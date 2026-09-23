@@ -1,0 +1,21 @@
+{
+  "timestamp": "2026-09-17T14:30:00Z",
+  "soil": {
+    "conductivity": 2.5,
+    "temperature": 22.3,
+    "humidity": 45.6,
+    "water_potential": -0.8
+  },
+  "irrigation": {
+    "active": true,
+    "accumulated_liters": 1250.0,
+    "flow_per_minute": 8.3
+  },
+  "environmental": {
+    "temperature": null,
+    "relative_humidity": null,
+    "wind_speed": null,
+    "solar_radiation": null,
+    "eto": null
+  }
+}

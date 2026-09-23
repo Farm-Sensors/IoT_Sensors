@@ -1,0 +1,1658 @@
+[
+  {
+    "name": "activation",
+    "operation": "activation",
+    "request": {
+      "headers": {
+        "Content-Type": "application/json"
+      },
+      "body": {
+        "activation_reference": "<activation-reference>"
+      },
+      "path_parameters": {}
+    },
+    "response": {
+      "status": 200,
+      "body": {
+        "gateway_id": 1,
+        "property_id": 10,
+        "credential": "<gateway-credential>"
+      }
+    },
+    "valid": true
+  },
+  {
+    "name": "configuration-full",
+    "operation": "configuration",
+    "request": {
+      "headers": {
+        "X-API-Key": "<gateway-credential>"
+      },
+      "body": null,
+      "path_parameters": {}
+    },
+    "response": {
+      "status": 200,
+      "body": {
+        "configuration_version": 4,
+        "bindings_revision": 9,
+        "property_id": 10,
+        "configuration": {
+          "gateway_id": 1,
+          "property_id": 10,
+          "slots": [
+            {
+              "slot_id": 3,
+              "logical_node_id": 21,
+              "irrigation_area_id": 7,
+              "hardware_profile_code": "soil-probe-v1"
+            }
+          ]
+        },
+        "binding_overlay": {
+          "slots": [
+            {
+              "slot_id": 3,
+              "logical_node_id": 21,
+              "irrigation_area_id": 7,
+              "binding_status": "unbound",
+              "current_binding": null,
+              "pending_binding": null
+            }
+          ]
+        },
+        "cloud_status": "recently_seen",
+        "edge_status": "connected"
+      }
+    },
+    "valid": true,
+    "current": {
+      "configuration_version": 4,
+      "bindings_revision": 9
+    }
+  },
+  {
+    "name": "configuration-stale-overlay",
+    "operation": "configuration",
+    "request": {
+      "headers": {
+        "X-API-Key": "<gateway-credential>",
+        "X-Config-Version": "4",
+        "X-Bindings-Revision": "8"
+      },
+      "body": null,
+      "path_parameters": {}
+    },
+    "response": {
+      "status": 200,
+      "body": {
+        "configuration_version": 4,
+        "bindings_revision": 9,
+        "property_id": 10,
+        "configuration": {
+          "gateway_id": 1,
+          "property_id": 10,
+          "slots": [
+            {
+              "slot_id": 3,
+              "logical_node_id": 21,
+              "irrigation_area_id": 7,
+              "hardware_profile_code": "soil-probe-v1"
+            }
+          ]
+        },
+        "binding_overlay": {
+          "slots": [
+            {
+              "slot_id": 3,
+              "logical_node_id": 21,
+              "irrigation_area_id": 7,
+              "binding_status": "unbound",
+              "current_binding": null,
+              "pending_binding": null
+            }
+          ]
+        },
+        "cloud_status": "recently_seen",
+        "edge_status": "connected"
+      }
+    },
+    "valid": true,
+    "current": {
+      "configuration_version": 4,
+      "bindings_revision": 9
+    }
+  },
+  {
+    "name": "configuration-current",
+    "operation": "configuration",
+    "request": {
+      "headers": {
+        "X-API-Key": "<gateway-credential>",
+        "X-Config-Version": "4",
+        "X-Bindings-Revision": "9"
+      },
+      "body": null,
+      "path_parameters": {}
+    },
+    "response": {
+      "status": 304,
+      "body": null
+    },
+    "valid": true,
+    "current": {
+      "configuration_version": 4,
+      "bindings_revision": 9
+    }
+  },
+  {
+    "name": "candidate",
+    "operation": "candidate",
+    "request": {
+      "headers": {
+        "X-API-Key": "<gateway-credential>",
+        "Content-Type": "application/json",
+        "X-Event-ID": "fixture-event-1"
+      },
+      "body": {
+        "slot_id": 3,
+        "logical_node_id": 21,
+        "irrigation_area_id": 7,
+        "uid": "fixture-uid",
+        "serial": "fixture-serial"
+      },
+      "path_parameters": {}
+    },
+    "response": {
+      "status": 201,
+      "body": {
+        "candidate_id": 1,
+        "slot_id": 3,
+        "binding_status": "pending_initial",
+        "submitted_at": "2026-09-23T00:00:00Z"
+      }
+    },
+    "valid": true
+  },
+  {
+    "name": "candidate-replay",
+    "operation": "candidate",
+    "request": {
+      "headers": {
+        "X-API-Key": "<gateway-credential>",
+        "Content-Type": "application/json",
+        "X-Event-ID": "fixture-event-1"
+      },
+      "body": {
+        "slot_id": 3,
+        "logical_node_id": 21,
+        "irrigation_area_id": 7,
+        "uid": "fixture-uid",
+        "serial": "fixture-serial"
+      },
+      "path_parameters": {}
+    },
+    "response": {
+      "status": 200,
+      "body": {
+        "candidate_id": 1,
+        "slot_id": 3,
+        "binding_status": "pending_initial",
+        "submitted_at": "2026-09-23T00:00:00Z"
+      }
+    },
+    "valid": true,
+    "replay_of": "candidate"
+  },
+  {
+    "name": "confirmation",
+    "operation": "confirmation",
+    "request": {
+      "headers": {
+        "X-API-Key": "<gateway-credential>",
+        "Content-Type": "application/json",
+        "X-Event-ID": "fixture-event-1"
+      },
+      "body": {
+        "slot_id": 3,
+        "technician_confirmed_at": "2026-09-23T00:00:00Z"
+      },
+      "path_parameters": {
+        "candidate_id": "1"
+      }
+    },
+    "response": {
+      "status": 200,
+      "body": {
+        "candidate_id": 1,
+        "slot_id": 3,
+        "binding_status": "confirmed",
+        "confirmed_at": "2026-09-23T00:00:00Z"
+      }
+    },
+    "valid": true
+  },
+  {
+    "name": "heartbeat",
+    "operation": "heartbeat",
+    "request": {
+      "headers": {
+        "X-API-Key": "<gateway-credential>"
+      },
+      "body": null,
+      "path_parameters": {}
+    },
+    "response": {
+      "status": 204,
+      "body": null
+    },
+    "valid": true
+  },
+  {
+    "name": "telemetry",
+    "operation": "telemetry",
+    "request": {
+      "headers": {
+        "X-API-Key": "<gateway-credential>",
+        "Content-Type": "application/json",
+        "X-Event-ID": "fixture-event-1",
+        "X-Logical-Node-Id": "21"
+      },
+      "body": {
+        "timestamp": "2026-09-17T14:30:00Z",
+        "soil": {
+          "conductivity": 2.5,
+          "temperature": 22.3,
+          "humidity": 45.6,
+          "water_potential": -0.8
+        },
+        "irrigation": {
+          "active": true,
+          "accumulated_liters": 1250.0,
+          "flow_per_minute": 8.3
+        },
+        "environmental": {
+          "temperature": null,
+          "relative_humidity": null,
+          "wind_speed": null,
+          "solar_radiation": null,
+          "eto": null
+        }
+      },
+      "path_parameters": {}
+    },
+    "response": {
+      "status": 201,
+      "body": {
+        "id": 1,
+        "node_id": 21,
+        "timestamp": "2026-09-17T14:30:00Z",
+        "created_at": "2026-09-23T00:00:00Z"
+      }
+    },
+    "valid": true
+  },
+  {
+    "name": "telemetry-replay",
+    "operation": "telemetry",
+    "request": {
+      "headers": {
+        "X-API-Key": "<gateway-credential>",
+        "Content-Type": "application/json",
+        "X-Event-ID": "fixture-event-1",
+        "X-Logical-Node-Id": "21"
+      },
+      "body": {
+        "timestamp": "2026-09-17T14:30:00Z",
+        "soil": {
+          "conductivity": 2.5,
+          "temperature": 22.3,
+          "humidity": 45.6,
+          "water_potential": -0.8
+        },
+        "irrigation": {
+          "active": true,
+          "accumulated_liters": 1250.0,
+          "flow_per_minute": 8.3
+        },
+        "environmental": {
+          "temperature": null,
+          "relative_humidity": null,
+          "wind_speed": null,
+          "solar_radiation": null,
+          "eto": null
+        }
+      },
+      "path_parameters": {}
+    },
+    "response": {
+      "status": 200,
+      "body": {
+        "id": 1,
+        "node_id": 21,
+        "timestamp": "2026-09-17T14:30:00Z",
+        "created_at": "2026-09-23T00:00:00Z"
+      }
+    },
+    "valid": true,
+    "replay_of": "telemetry"
+  },
+  {
+    "name": "ndvi",
+    "operation": "ndvi",
+    "request": {
+      "headers": {
+        "X-API-Key": "<gateway-credential>",
+        "Content-Type": "application/json"
+      },
+      "body": {
+        "irrigation_area_id": 12,
+        "ndvi": 0.63,
+        "provider": "Microsoft Planetary Computer",
+        "collection": "sentinel-2-l2a",
+        "scene_id": "S2B_MSIL2A_20260915T173909_R098_T13RCP_20260915T220101",
+        "scene_observed_at": "2026-09-15T17:39:09Z",
+        "cloud_cover_percent": 12.4,
+        "sample_method": "point"
+      },
+      "path_parameters": {}
+    },
+    "response": {
+      "status": 201,
+      "body": {
+        "irrigation_area_id": 12,
+        "ndvi": 0.63,
+        "provider": "Microsoft Planetary Computer",
+        "collection": "sentinel-2-l2a",
+        "scene_id": "S2B_MSIL2A_20260915T173909_R098_T13RCP_20260915T220101",
+        "scene_observed_at": "2026-09-15T17:39:09Z",
+        "cloud_cover_percent": 12.4,
+        "sample_method": "point"
+      }
+    },
+    "valid": true
+  },
+  {
+    "name": "ndvi-replay",
+    "operation": "ndvi",
+    "request": {
+      "headers": {
+        "X-API-Key": "<gateway-credential>",
+        "Content-Type": "application/json"
+      },
+      "body": {
+        "irrigation_area_id": 12,
+        "ndvi": 0.63,
+        "provider": "Microsoft Planetary Computer",
+        "collection": "sentinel-2-l2a",
+        "scene_id": "S2B_MSIL2A_20260915T173909_R098_T13RCP_20260915T220101",
+        "scene_observed_at": "2026-09-15T17:39:09Z",
+        "cloud_cover_percent": 12.4,
+        "sample_method": "point"
+      },
+      "path_parameters": {}
+    },
+    "response": {
+      "status": 200,
+      "body": {
+        "irrigation_area_id": 12,
+        "ndvi": 0.63,
+        "provider": "Microsoft Planetary Computer",
+        "collection": "sentinel-2-l2a",
+        "scene_id": "S2B_MSIL2A_20260915T173909_R098_T13RCP_20260915T220101",
+        "scene_observed_at": "2026-09-15T17:39:09Z",
+        "cloud_cover_percent": 12.4,
+        "sample_method": "point"
+      }
+    },
+    "valid": true,
+    "replay_of": "ndvi"
+  },
+  {
+    "name": "update-authorization",
+    "operation": "updateAuthorization",
+    "request": {
+      "headers": {
+        "X-API-Key": "<gateway-credential>"
+      },
+      "body": null,
+      "path_parameters": {}
+    },
+    "response": {
+      "status": 200,
+      "body": {
+        "authorization_id": "fixture-authorization",
+        "image_version": "fixture-v2",
+        "image_digest": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
+        "expires_at": "2026-09-23T00:00:00Z"
+      }
+    },
+    "valid": true
+  },
+  {
+    "name": "update-none",
+    "operation": "updateAuthorization",
+    "request": {
+      "headers": {
+        "X-API-Key": "<gateway-credential>"
+      },
+      "body": null,
+      "path_parameters": {}
+    },
+    "response": {
+      "status": 204,
+      "body": null
+    },
+    "valid": true
+  },
+  {
+    "name": "update-confirmation",
+    "operation": "updateConfirmation",
+    "request": {
+      "headers": {
+        "X-API-Key": "<gateway-credential>",
+        "Content-Type": "application/json",
+        "X-Event-ID": "fixture-event-1"
+      },
+      "body": {
+        "authorization_id": "fixture-authorization",
+        "image_version": "fixture-v2",
+        "image_digest": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
+        "technician_confirmed_at": "2026-09-23T00:00:00Z",
+        "result": "confirmed"
+      },
+      "path_parameters": {}
+    },
+    "response": {
+      "status": 201,
+      "body": {
+        "id": 1,
+        "authorization_id": "fixture-authorization",
+        "image_version": "fixture-v2",
+        "image_digest": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
+        "technician_confirmed_at": "2026-09-23T00:00:00Z",
+        "result": "confirmed"
+      }
+    },
+    "valid": true
+  },
+  {
+    "name": "update-confirmation-replay",
+    "operation": "updateConfirmation",
+    "request": {
+      "headers": {
+        "X-API-Key": "<gateway-credential>",
+        "Content-Type": "application/json",
+        "X-Event-ID": "fixture-event-1"
+      },
+      "body": {
+        "authorization_id": "fixture-authorization",
+        "image_version": "fixture-v2",
+        "image_digest": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
+        "technician_confirmed_at": "2026-09-23T00:00:00Z",
+        "result": "confirmed"
+      },
+      "path_parameters": {}
+    },
+    "response": {
+      "status": 200,
+      "body": {
+        "id": 1,
+        "authorization_id": "fixture-authorization",
+        "image_version": "fixture-v2",
+        "image_digest": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
+        "technician_confirmed_at": "2026-09-23T00:00:00Z",
+        "result": "confirmed"
+      }
+    },
+    "valid": true,
+    "replay_of": "update-confirmation"
+  },
+  {
+    "name": "missing-logical-node",
+    "operation": "telemetry",
+    "request": {
+      "headers": {
+        "X-API-Key": "<gateway-credential>",
+        "Content-Type": "application/json",
+        "X-Event-ID": "fixture-event-1"
+      },
+      "body": {
+        "timestamp": "2026-09-17T14:30:00Z",
+        "soil": {
+          "conductivity": 2.5,
+          "temperature": 22.3,
+          "humidity": 45.6,
+          "water_potential": -0.8
+        },
+        "irrigation": {
+          "active": true,
+          "accumulated_liters": 1250.0,
+          "flow_per_minute": 8.3
+        },
+        "environmental": {
+          "temperature": null,
+          "relative_humidity": null,
+          "wind_speed": null,
+          "solar_radiation": null,
+          "eto": null
+        }
+      },
+      "path_parameters": {}
+    },
+    "response": {
+      "status": 201,
+      "body": {
+        "id": 1,
+        "node_id": 21,
+        "timestamp": "2026-09-17T14:30:00Z",
+        "created_at": "2026-09-23T00:00:00Z"
+      }
+    },
+    "valid": false
+  },
+  {
+    "name": "missing-event",
+    "operation": "telemetry",
+    "request": {
+      "headers": {
+        "X-API-Key": "<gateway-credential>",
+        "Content-Type": "application/json",
+        "X-Logical-Node-Id": "21"
+      },
+      "body": {
+        "timestamp": "2026-09-17T14:30:00Z",
+        "soil": {
+          "conductivity": 2.5,
+          "temperature": 22.3,
+          "humidity": 45.6,
+          "water_potential": -0.8
+        },
+        "irrigation": {
+          "active": true,
+          "accumulated_liters": 1250.0,
+          "flow_per_minute": 8.3
+        },
+        "environmental": {
+          "temperature": null,
+          "relative_humidity": null,
+          "wind_speed": null,
+          "solar_radiation": null,
+          "eto": null
+        }
+      },
+      "path_parameters": {}
+    },
+    "response": {
+      "status": 201,
+      "body": {
+        "id": 1,
+        "node_id": 21,
+        "timestamp": "2026-09-17T14:30:00Z",
+        "created_at": "2026-09-23T00:00:00Z"
+      }
+    },
+    "valid": false
+  },
+  {
+    "name": "legacy-key",
+    "operation": "telemetry",
+    "request": {
+      "headers": {
+        "X-API-Key": "legacy-node-fixture",
+        "Content-Type": "application/json",
+        "X-Event-ID": "fixture-event-1",
+        "X-Logical-Node-Id": "21"
+      },
+      "body": {
+        "timestamp": "2026-09-17T14:30:00Z",
+        "soil": {
+          "conductivity": 2.5,
+          "temperature": 22.3,
+          "humidity": 45.6,
+          "water_potential": -0.8
+        },
+        "irrigation": {
+          "active": true,
+          "accumulated_liters": 1250.0,
+          "flow_per_minute": 8.3
+        },
+        "environmental": {
+          "temperature": null,
+          "relative_humidity": null,
+          "wind_speed": null,
+          "solar_radiation": null,
+          "eto": null
+        }
+      },
+      "path_parameters": {}
+    },
+    "response": {
+      "status": 201,
+      "body": {
+        "id": 1,
+        "node_id": 21,
+        "timestamp": "2026-09-17T14:30:00Z",
+        "created_at": "2026-09-23T00:00:00Z"
+      }
+    },
+    "valid": false
+  },
+  {
+    "name": "telemetry-extra-ndvi",
+    "operation": "telemetry",
+    "request": {
+      "headers": {
+        "X-API-Key": "<gateway-credential>",
+        "Content-Type": "application/json",
+        "X-Event-ID": "fixture-event-1",
+        "X-Logical-Node-Id": "21"
+      },
+      "body": {
+        "timestamp": "2026-09-17T14:30:00Z",
+        "soil": {
+          "conductivity": 2.5,
+          "temperature": 22.3,
+          "humidity": 45.6,
+          "water_potential": -0.8
+        },
+        "irrigation": {
+          "active": true,
+          "accumulated_liters": 1250.0,
+          "flow_per_minute": 8.3
+        },
+        "environmental": {
+          "temperature": null,
+          "relative_humidity": null,
+          "wind_speed": null,
+          "solar_radiation": null,
+          "eto": null
+        },
+        "ndvi": 0
+      },
+      "path_parameters": {}
+    },
+    "response": {
+      "status": 201,
+      "body": {
+        "id": 1,
+        "node_id": 21,
+        "timestamp": "2026-09-17T14:30:00Z",
+        "created_at": "2026-09-23T00:00:00Z"
+      }
+    },
+    "valid": false
+  },
+  {
+    "name": "telemetry-extra-gps",
+    "operation": "telemetry",
+    "request": {
+      "headers": {
+        "X-API-Key": "<gateway-credential>",
+        "Content-Type": "application/json",
+        "X-Event-ID": "fixture-event-1",
+        "X-Logical-Node-Id": "21"
+      },
+      "body": {
+        "timestamp": "2026-09-17T14:30:00Z",
+        "soil": {
+          "conductivity": 2.5,
+          "temperature": 22.3,
+          "humidity": 45.6,
+          "water_potential": -0.8
+        },
+        "irrigation": {
+          "active": true,
+          "accumulated_liters": 1250.0,
+          "flow_per_minute": 8.3
+        },
+        "environmental": {
+          "temperature": null,
+          "relative_humidity": null,
+          "wind_speed": null,
+          "solar_radiation": null,
+          "eto": null
+        },
+        "gps": 0
+      },
+      "path_parameters": {}
+    },
+    "response": {
+      "status": 201,
+      "body": {
+        "id": 1,
+        "node_id": 21,
+        "timestamp": "2026-09-17T14:30:00Z",
+        "created_at": "2026-09-23T00:00:00Z"
+      }
+    },
+    "valid": false
+  },
+  {
+    "name": "telemetry-extra-crop",
+    "operation": "telemetry",
+    "request": {
+      "headers": {
+        "X-API-Key": "<gateway-credential>",
+        "Content-Type": "application/json",
+        "X-Event-ID": "fixture-event-1",
+        "X-Logical-Node-Id": "21"
+      },
+      "body": {
+        "timestamp": "2026-09-17T14:30:00Z",
+        "soil": {
+          "conductivity": 2.5,
+          "temperature": 22.3,
+          "humidity": 45.6,
+          "water_potential": -0.8
+        },
+        "irrigation": {
+          "active": true,
+          "accumulated_liters": 1250.0,
+          "flow_per_minute": 8.3
+        },
+        "environmental": {
+          "temperature": null,
+          "relative_humidity": null,
+          "wind_speed": null,
+          "solar_radiation": null,
+          "eto": null
+        },
+        "crop": 0
+      },
+      "path_parameters": {}
+    },
+    "response": {
+      "status": 201,
+      "body": {
+        "id": 1,
+        "node_id": 21,
+        "timestamp": "2026-09-17T14:30:00Z",
+        "created_at": "2026-09-23T00:00:00Z"
+      }
+    },
+    "valid": false
+  },
+  {
+    "name": "telemetry-extra-size",
+    "operation": "telemetry",
+    "request": {
+      "headers": {
+        "X-API-Key": "<gateway-credential>",
+        "Content-Type": "application/json",
+        "X-Event-ID": "fixture-event-1",
+        "X-Logical-Node-Id": "21"
+      },
+      "body": {
+        "timestamp": "2026-09-17T14:30:00Z",
+        "soil": {
+          "conductivity": 2.5,
+          "temperature": 22.3,
+          "humidity": 45.6,
+          "water_potential": -0.8
+        },
+        "irrigation": {
+          "active": true,
+          "accumulated_liters": 1250.0,
+          "flow_per_minute": 8.3
+        },
+        "environmental": {
+          "temperature": null,
+          "relative_humidity": null,
+          "wind_speed": null,
+          "solar_radiation": null,
+          "eto": null
+        },
+        "size": 0
+      },
+      "path_parameters": {}
+    },
+    "response": {
+      "status": 201,
+      "body": {
+        "id": 1,
+        "node_id": 21,
+        "timestamp": "2026-09-17T14:30:00Z",
+        "created_at": "2026-09-23T00:00:00Z"
+      }
+    },
+    "valid": false
+  },
+  {
+    "name": "telemetry-extra-uid",
+    "operation": "telemetry",
+    "request": {
+      "headers": {
+        "X-API-Key": "<gateway-credential>",
+        "Content-Type": "application/json",
+        "X-Event-ID": "fixture-event-1",
+        "X-Logical-Node-Id": "21"
+      },
+      "body": {
+        "timestamp": "2026-09-17T14:30:00Z",
+        "soil": {
+          "conductivity": 2.5,
+          "temperature": 22.3,
+          "humidity": 45.6,
+          "water_potential": -0.8
+        },
+        "irrigation": {
+          "active": true,
+          "accumulated_liters": 1250.0,
+          "flow_per_minute": 8.3
+        },
+        "environmental": {
+          "temperature": null,
+          "relative_humidity": null,
+          "wind_speed": null,
+          "solar_radiation": null,
+          "eto": null
+        },
+        "uid": 0
+      },
+      "path_parameters": {}
+    },
+    "response": {
+      "status": 201,
+      "body": {
+        "id": 1,
+        "node_id": 21,
+        "timestamp": "2026-09-17T14:30:00Z",
+        "created_at": "2026-09-23T00:00:00Z"
+      }
+    },
+    "valid": false
+  },
+  {
+    "name": "telemetry-extra-serial",
+    "operation": "telemetry",
+    "request": {
+      "headers": {
+        "X-API-Key": "<gateway-credential>",
+        "Content-Type": "application/json",
+        "X-Event-ID": "fixture-event-1",
+        "X-Logical-Node-Id": "21"
+      },
+      "body": {
+        "timestamp": "2026-09-17T14:30:00Z",
+        "soil": {
+          "conductivity": 2.5,
+          "temperature": 22.3,
+          "humidity": 45.6,
+          "water_potential": -0.8
+        },
+        "irrigation": {
+          "active": true,
+          "accumulated_liters": 1250.0,
+          "flow_per_minute": 8.3
+        },
+        "environmental": {
+          "temperature": null,
+          "relative_humidity": null,
+          "wind_speed": null,
+          "solar_radiation": null,
+          "eto": null
+        },
+        "serial": 0
+      },
+      "path_parameters": {}
+    },
+    "response": {
+      "status": 201,
+      "body": {
+        "id": 1,
+        "node_id": 21,
+        "timestamp": "2026-09-17T14:30:00Z",
+        "created_at": "2026-09-23T00:00:00Z"
+      }
+    },
+    "valid": false
+  },
+  {
+    "name": "telemetry-null-category",
+    "operation": "telemetry",
+    "request": {
+      "headers": {
+        "X-API-Key": "<gateway-credential>",
+        "Content-Type": "application/json",
+        "X-Event-ID": "fixture-event-1",
+        "X-Logical-Node-Id": "21"
+      },
+      "body": {
+        "timestamp": "2026-09-17T14:30:00Z",
+        "soil": null,
+        "irrigation": {
+          "active": true,
+          "accumulated_liters": 1250.0,
+          "flow_per_minute": 8.3
+        },
+        "environmental": {
+          "temperature": null,
+          "relative_humidity": null,
+          "wind_speed": null,
+          "solar_radiation": null,
+          "eto": null
+        }
+      },
+      "path_parameters": {}
+    },
+    "response": {
+      "status": 201,
+      "body": {
+        "id": 1,
+        "node_id": 21,
+        "timestamp": "2026-09-17T14:30:00Z",
+        "created_at": "2026-09-23T00:00:00Z"
+      }
+    },
+    "valid": false
+  },
+  {
+    "name": "telemetry-missing-field",
+    "operation": "telemetry",
+    "request": {
+      "headers": {
+        "X-API-Key": "<gateway-credential>",
+        "Content-Type": "application/json",
+        "X-Event-ID": "fixture-event-1",
+        "X-Logical-Node-Id": "21"
+      },
+      "body": {
+        "timestamp": "2026-09-17T14:30:00Z",
+        "soil": {
+          "conductivity": 2.5,
+          "temperature": 22.3,
+          "water_potential": -0.8
+        },
+        "irrigation": {
+          "active": true,
+          "accumulated_liters": 1250.0,
+          "flow_per_minute": 8.3
+        },
+        "environmental": {
+          "temperature": null,
+          "relative_humidity": null,
+          "wind_speed": null,
+          "solar_radiation": null,
+          "eto": null
+        }
+      },
+      "path_parameters": {}
+    },
+    "response": {
+      "status": 201,
+      "body": {
+        "id": 1,
+        "node_id": 21,
+        "timestamp": "2026-09-17T14:30:00Z",
+        "created_at": "2026-09-23T00:00:00Z"
+      }
+    },
+    "valid": false
+  },
+  {
+    "name": "telemetry-non-utc",
+    "operation": "telemetry",
+    "request": {
+      "headers": {
+        "X-API-Key": "<gateway-credential>",
+        "Content-Type": "application/json",
+        "X-Event-ID": "fixture-event-1",
+        "X-Logical-Node-Id": "21"
+      },
+      "body": {
+        "timestamp": "2026-09-23T00:00:00+00:00",
+        "soil": {
+          "conductivity": 2.5,
+          "temperature": 22.3,
+          "humidity": 45.6,
+          "water_potential": -0.8
+        },
+        "irrigation": {
+          "active": true,
+          "accumulated_liters": 1250.0,
+          "flow_per_minute": 8.3
+        },
+        "environmental": {
+          "temperature": null,
+          "relative_humidity": null,
+          "wind_speed": null,
+          "solar_radiation": null,
+          "eto": null
+        }
+      },
+      "path_parameters": {}
+    },
+    "response": {
+      "status": 201,
+      "body": {
+        "id": 1,
+        "node_id": 21,
+        "timestamp": "2026-09-17T14:30:00Z",
+        "created_at": "2026-09-23T00:00:00Z"
+      }
+    },
+    "valid": false
+  },
+  {
+    "name": "ndvi-polygon",
+    "operation": "ndvi",
+    "request": {
+      "headers": {
+        "X-API-Key": "<gateway-credential>",
+        "Content-Type": "application/json"
+      },
+      "body": {
+        "irrigation_area_id": 12,
+        "ndvi": 0.63,
+        "provider": "Microsoft Planetary Computer",
+        "collection": "sentinel-2-l2a",
+        "scene_id": "S2B_MSIL2A_20260915T173909_R098_T13RCP_20260915T220101",
+        "scene_observed_at": "2026-09-15T17:39:09Z",
+        "cloud_cover_percent": 12.4,
+        "sample_method": "polygon"
+      },
+      "path_parameters": {}
+    },
+    "response": {
+      "status": 201,
+      "body": {
+        "irrigation_area_id": 12,
+        "ndvi": 0.63,
+        "provider": "Microsoft Planetary Computer",
+        "collection": "sentinel-2-l2a",
+        "scene_id": "S2B_MSIL2A_20260915T173909_R098_T13RCP_20260915T220101",
+        "scene_observed_at": "2026-09-15T17:39:09Z",
+        "cloud_cover_percent": 12.4,
+        "sample_method": "polygon"
+      }
+    },
+    "valid": false
+  },
+  {
+    "name": "ndvi-provenance",
+    "operation": "ndvi",
+    "request": {
+      "headers": {
+        "X-API-Key": "<gateway-credential>",
+        "Content-Type": "application/json"
+      },
+      "body": {
+        "irrigation_area_id": 12,
+        "ndvi": 0.63,
+        "provider": "Microsoft Planetary Computer",
+        "collection": "landsat",
+        "scene_id": "S2B_MSIL2A_20260915T173909_R098_T13RCP_20260915T220101",
+        "scene_observed_at": "2026-09-15T17:39:09Z",
+        "cloud_cover_percent": 12.4,
+        "sample_method": "point"
+      },
+      "path_parameters": {}
+    },
+    "response": {
+      "status": 201,
+      "body": {
+        "irrigation_area_id": 12,
+        "ndvi": 0.63,
+        "provider": "Microsoft Planetary Computer",
+        "collection": "landsat",
+        "scene_id": "S2B_MSIL2A_20260915T173909_R098_T13RCP_20260915T220101",
+        "scene_observed_at": "2026-09-15T17:39:09Z",
+        "cloud_cover_percent": 12.4,
+        "sample_method": "point"
+      }
+    },
+    "valid": false
+  },
+  {
+    "name": "ndvi-telemetry",
+    "operation": "ndvi",
+    "request": {
+      "headers": {
+        "X-API-Key": "<gateway-credential>",
+        "Content-Type": "application/json"
+      },
+      "body": {
+        "irrigation_area_id": 12,
+        "ndvi": 0.63,
+        "provider": "Microsoft Planetary Computer",
+        "collection": "sentinel-2-l2a",
+        "scene_id": "S2B_MSIL2A_20260915T173909_R098_T13RCP_20260915T220101",
+        "scene_observed_at": "2026-09-15T17:39:09Z",
+        "cloud_cover_percent": 12.4,
+        "sample_method": "point",
+        "soil": {}
+      },
+      "path_parameters": {}
+    },
+    "response": {
+      "status": 201,
+      "body": {
+        "irrigation_area_id": 12,
+        "ndvi": 0.63,
+        "provider": "Microsoft Planetary Computer",
+        "collection": "sentinel-2-l2a",
+        "scene_id": "S2B_MSIL2A_20260915T173909_R098_T13RCP_20260915T220101",
+        "scene_observed_at": "2026-09-15T17:39:09Z",
+        "cloud_cover_percent": 12.4,
+        "sample_method": "point",
+        "soil": {}
+      }
+    },
+    "valid": false
+  },
+  {
+    "name": "candidate-no-slot",
+    "operation": "candidate",
+    "request": {
+      "headers": {
+        "X-API-Key": "<gateway-credential>",
+        "Content-Type": "application/json",
+        "X-Event-ID": "fixture-event-1"
+      },
+      "body": {
+        "logical_node_id": 21,
+        "irrigation_area_id": 7,
+        "uid": "fixture-uid",
+        "serial": "fixture-serial"
+      },
+      "path_parameters": {}
+    },
+    "response": {
+      "status": 201,
+      "body": {
+        "candidate_id": 1,
+        "slot_id": 3,
+        "binding_status": "pending_initial",
+        "submitted_at": "2026-09-23T00:00:00Z"
+      }
+    },
+    "valid": false
+  },
+  {
+    "name": "heartbeat-body",
+    "operation": "heartbeat",
+    "request": {
+      "headers": {
+        "X-API-Key": "<gateway-credential>"
+      },
+      "body": {},
+      "path_parameters": {}
+    },
+    "response": {
+      "status": 204,
+      "body": null
+    },
+    "valid": false
+  },
+  {
+    "name": "stale-overlay-304",
+    "operation": "configuration",
+    "request": {
+      "headers": {
+        "X-API-Key": "<gateway-credential>",
+        "X-Config-Version": "4",
+        "X-Bindings-Revision": "8"
+      },
+      "body": null,
+      "path_parameters": {}
+    },
+    "response": {
+      "status": 304,
+      "body": null
+    },
+    "valid": false,
+    "current": {
+      "configuration_version": 4,
+      "bindings_revision": 9
+    }
+  },
+  {
+    "name": "304-body",
+    "operation": "configuration",
+    "request": {
+      "headers": {
+        "X-API-Key": "<gateway-credential>",
+        "X-Config-Version": "4",
+        "X-Bindings-Revision": "9"
+      },
+      "body": null,
+      "path_parameters": {}
+    },
+    "response": {
+      "status": 304,
+      "body": {}
+    },
+    "valid": false,
+    "current": {
+      "configuration_version": 4,
+      "bindings_revision": 9
+    }
+  },
+  {
+    "name": "status-mapping",
+    "operation": "configuration",
+    "request": {
+      "headers": {
+        "X-API-Key": "<gateway-credential>"
+      },
+      "body": null,
+      "path_parameters": {}
+    },
+    "response": {
+      "status": 200,
+      "body": {
+        "configuration_version": 4,
+        "bindings_revision": 9,
+        "property_id": 10,
+        "configuration": {
+          "gateway_id": 1,
+          "property_id": 10,
+          "slots": [
+            {
+              "slot_id": 3,
+              "logical_node_id": 21,
+              "irrigation_area_id": 7,
+              "hardware_profile_code": "soil-probe-v1"
+            }
+          ]
+        },
+        "binding_overlay": {
+          "slots": [
+            {
+              "slot_id": 3,
+              "logical_node_id": 21,
+              "irrigation_area_id": 7,
+              "binding_status": "unbound",
+              "current_binding": null,
+              "pending_binding": null
+            }
+          ]
+        },
+        "cloud_status": "recently_seen",
+        "edge_status": "pending"
+      }
+    },
+    "valid": false,
+    "current": {
+      "configuration_version": 4,
+      "bindings_revision": 9
+    }
+  },
+  {
+    "name": "jwt-header",
+    "operation": "heartbeat",
+    "request": {
+      "headers": {
+        "X-API-Key": "<gateway-credential>",
+        "Authorization": "Bearer fixture-jwt"
+      },
+      "body": null,
+      "path_parameters": {}
+    },
+    "response": {
+      "status": 204,
+      "body": null
+    },
+    "valid": false
+  },
+  {
+    "name": "confirmation-replay",
+    "operation": "confirmation",
+    "request": {
+      "headers": {
+        "X-API-Key": "<gateway-credential>",
+        "Content-Type": "application/json",
+        "X-Event-ID": "fixture-event-1"
+      },
+      "body": {
+        "slot_id": 3,
+        "technician_confirmed_at": "2026-09-23T00:00:00Z"
+      },
+      "path_parameters": {
+        "candidate_id": "1"
+      }
+    },
+    "response": {
+      "status": 200,
+      "body": {
+        "candidate_id": 1,
+        "slot_id": 3,
+        "binding_status": "confirmed",
+        "confirmed_at": "2026-09-23T00:00:00Z"
+      }
+    },
+    "valid": true,
+    "replay_of": "confirmation"
+  },
+  {
+    "name": "telemetry-conflict",
+    "operation": "telemetry",
+    "request": {
+      "headers": {
+        "X-API-Key": "<gateway-credential>",
+        "Content-Type": "application/json",
+        "X-Event-ID": "fixture-event-1",
+        "X-Logical-Node-Id": "21"
+      },
+      "body": {
+        "timestamp": "2026-09-23T00:10:00Z",
+        "soil": {
+          "conductivity": 2.5,
+          "temperature": 22.3,
+          "humidity": 45.6,
+          "water_potential": -0.8
+        },
+        "irrigation": {
+          "active": true,
+          "accumulated_liters": 1250.0,
+          "flow_per_minute": 8.3
+        },
+        "environmental": {
+          "temperature": null,
+          "relative_humidity": null,
+          "wind_speed": null,
+          "solar_radiation": null,
+          "eto": null
+        }
+      },
+      "path_parameters": {}
+    },
+    "response": {
+      "status": 409,
+      "body": {
+        "code": "conflict",
+        "message": "Request conflicts with existing state"
+      }
+    },
+    "valid": true,
+    "conflict_of": "telemetry"
+  },
+  {
+    "name": "ndvi-conflict",
+    "operation": "ndvi",
+    "request": {
+      "headers": {
+        "X-API-Key": "<gateway-credential>",
+        "Content-Type": "application/json"
+      },
+      "body": {
+        "irrigation_area_id": 12,
+        "ndvi": 0.123,
+        "provider": "Microsoft Planetary Computer",
+        "collection": "sentinel-2-l2a",
+        "scene_id": "S2B_MSIL2A_20260915T173909_R098_T13RCP_20260915T220101",
+        "scene_observed_at": "2026-09-15T17:39:09Z",
+        "cloud_cover_percent": 12.4,
+        "sample_method": "point"
+      },
+      "path_parameters": {}
+    },
+    "response": {
+      "status": 409,
+      "body": {
+        "code": "conflict",
+        "message": "Request conflicts with existing state"
+      }
+    },
+    "valid": true,
+    "conflict_of": "ndvi"
+  },
+  {
+    "name": "candidate-conflict",
+    "operation": "candidate",
+    "request": {
+      "headers": {
+        "X-API-Key": "<gateway-credential>",
+        "Content-Type": "application/json",
+        "X-Event-ID": "fixture-event-1"
+      },
+      "body": {
+        "slot_id": 3,
+        "logical_node_id": 21,
+        "irrigation_area_id": 7,
+        "uid": "other-fixture-uid",
+        "serial": "fixture-serial"
+      },
+      "path_parameters": {}
+    },
+    "response": {
+      "status": 409,
+      "body": {
+        "code": "conflict",
+        "message": "Request conflicts with existing state"
+      }
+    },
+    "valid": true,
+    "conflict_of": "candidate"
+  },
+  {
+    "name": "confirmation-conflict",
+    "operation": "confirmation",
+    "request": {
+      "headers": {
+        "X-API-Key": "<gateway-credential>",
+        "Content-Type": "application/json",
+        "X-Event-ID": "fixture-event-1"
+      },
+      "body": {
+        "slot_id": 4,
+        "technician_confirmed_at": "2026-09-23T00:00:00Z"
+      },
+      "path_parameters": {
+        "candidate_id": "1"
+      }
+    },
+    "response": {
+      "status": 409,
+      "body": {
+        "code": "conflict",
+        "message": "Request conflicts with existing state"
+      }
+    },
+    "valid": true,
+    "conflict_of": "confirmation"
+  },
+  {
+    "name": "update-confirmation-conflict",
+    "operation": "updateConfirmation",
+    "request": {
+      "headers": {
+        "X-API-Key": "<gateway-credential>",
+        "Content-Type": "application/json",
+        "X-Event-ID": "fixture-event-1"
+      },
+      "body": {
+        "authorization_id": "fixture-authorization",
+        "image_version": "fixture-other",
+        "image_digest": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
+        "technician_confirmed_at": "2026-09-23T00:00:00Z",
+        "result": "confirmed"
+      },
+      "path_parameters": {}
+    },
+    "response": {
+      "status": 409,
+      "body": {
+        "code": "conflict",
+        "message": "Request conflicts with existing state"
+      }
+    },
+    "valid": true,
+    "conflict_of": "update-confirmation"
+  },
+  {
+    "name": "configuration-pending_initial",
+    "operation": "configuration",
+    "request": {
+      "headers": {
+        "X-API-Key": "<gateway-credential>"
+      },
+      "body": null,
+      "path_parameters": {}
+    },
+    "response": {
+      "status": 200,
+      "body": {
+        "configuration_version": 4,
+        "bindings_revision": 9,
+        "property_id": 10,
+        "configuration": {
+          "gateway_id": 1,
+          "property_id": 10,
+          "slots": [
+            {
+              "slot_id": 3,
+              "logical_node_id": 21,
+              "irrigation_area_id": 7,
+              "hardware_profile_code": "soil-probe-v1"
+            }
+          ]
+        },
+        "binding_overlay": {
+          "slots": [
+            {
+              "slot_id": 3,
+              "logical_node_id": 21,
+              "irrigation_area_id": 7,
+              "binding_status": "pending_initial",
+              "current_binding": null,
+              "pending_binding": {
+                "candidate_id": 2,
+                "uid": "fixture-uid-2",
+                "serial": "fixture-serial-2",
+                "submitted_at": "2026-09-23T00:00:00Z",
+                "confirmed_at": null
+              }
+            }
+          ]
+        },
+        "cloud_status": "recently_seen",
+        "edge_status": "connected"
+      }
+    },
+    "valid": true,
+    "current": {
+      "configuration_version": 4,
+      "bindings_revision": 9
+    }
+  },
+  {
+    "name": "configuration-confirmed",
+    "operation": "configuration",
+    "request": {
+      "headers": {
+        "X-API-Key": "<gateway-credential>"
+      },
+      "body": null,
+      "path_parameters": {}
+    },
+    "response": {
+      "status": 200,
+      "body": {
+        "configuration_version": 4,
+        "bindings_revision": 9,
+        "property_id": 10,
+        "configuration": {
+          "gateway_id": 1,
+          "property_id": 10,
+          "slots": [
+            {
+              "slot_id": 3,
+              "logical_node_id": 21,
+              "irrigation_area_id": 7,
+              "hardware_profile_code": "soil-probe-v1"
+            }
+          ]
+        },
+        "binding_overlay": {
+          "slots": [
+            {
+              "slot_id": 3,
+              "logical_node_id": 21,
+              "irrigation_area_id": 7,
+              "binding_status": "confirmed",
+              "current_binding": {
+                "candidate_id": 1,
+                "uid": "fixture-uid-1",
+                "serial": "fixture-serial-1",
+                "submitted_at": "2026-09-23T00:00:00Z",
+                "confirmed_at": "2026-09-23T00:01:00Z"
+              },
+              "pending_binding": null
+            }
+          ]
+        },
+        "cloud_status": "recently_seen",
+        "edge_status": "connected"
+      }
+    },
+    "valid": true,
+    "current": {
+      "configuration_version": 4,
+      "bindings_revision": 9
+    }
+  },
+  {
+    "name": "configuration-pending_reassignment",
+    "operation": "configuration",
+    "request": {
+      "headers": {
+        "X-API-Key": "<gateway-credential>"
+      },
+      "body": null,
+      "path_parameters": {}
+    },
+    "response": {
+      "status": 200,
+      "body": {
+        "configuration_version": 4,
+        "bindings_revision": 9,
+        "property_id": 10,
+        "configuration": {
+          "gateway_id": 1,
+          "property_id": 10,
+          "slots": [
+            {
+              "slot_id": 3,
+              "logical_node_id": 21,
+              "irrigation_area_id": 7,
+              "hardware_profile_code": "soil-probe-v1"
+            }
+          ]
+        },
+        "binding_overlay": {
+          "slots": [
+            {
+              "slot_id": 3,
+              "logical_node_id": 21,
+              "irrigation_area_id": 7,
+              "binding_status": "pending_reassignment",
+              "current_binding": {
+                "candidate_id": 1,
+                "uid": "fixture-uid-1",
+                "serial": "fixture-serial-1",
+                "submitted_at": "2026-09-23T00:00:00Z",
+                "confirmed_at": "2026-09-23T00:01:00Z"
+              },
+              "pending_binding": {
+                "candidate_id": 2,
+                "uid": "fixture-uid-2",
+                "serial": "fixture-serial-2",
+                "submitted_at": "2026-09-23T00:00:00Z",
+                "confirmed_at": null
+              }
+            }
+          ]
+        },
+        "cloud_status": "recently_seen",
+        "edge_status": "connected"
+      }
+    },
+    "valid": true,
+    "current": {
+      "configuration_version": 4,
+      "bindings_revision": 9
+    }
+  }
+]
