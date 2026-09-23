@@ -61,3 +61,5 @@ token.txt
 fix_passwords.py
 test.cjs
 test_api.py
+# Local Pi runtime state
+.atl/

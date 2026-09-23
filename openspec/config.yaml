@@ -1,30 +1,63 @@
 schema: spec-driven
 
 context: |
-  Language: en
-  All artifacts must be written in en.
-  Keep OpenSpec structural headings and SHALL/MUST keywords in English.
+  Language: en. Artifacts use English headings and RFC 2119 keywords.
+  Stack: FastAPI/SQLAlchemy/MySQL backend; React Vite TypeScript frontend; Docker Compose.
+  Architecture: Client → Property → Irrigation Area (1 crop type + 1 IoT node). Gateway v2 replaces per-node X-API-Key ingest; see openspec/changes/edge-cloud-gateway-provisioning.
+  MVP: ingest, users, visualization. Phase 2 AI/alerts stay behind flags. NDVI is a separate event.
+  Testing: project-local pytest and vitest; no workspace-wide test target.
+
+strict_tdd: false
+
 githubCopilot:
   cloudAgent: false
 
-# Per-artifact rules (optional)
-# Add custom rules for specific artifacts.
-# Example:
-#   rules:
-#     proposal:
-#       - Keep proposals under 500 words
-#       - Always include a "Non-goals" section
-#     tasks:
-#       - Break tasks into chunks of max 2 hours
+projects:
+  - path: backend
+    stack: Python 3.13 FastAPI SQLAlchemy
+    test_command: uv run pytest
+    coverage_command: uv run pytest --cov
+    linter: uv run ruff check
+    formatter: uv run ruff format
+  - path: frontend
+    stack: React Vite TypeScript
+    test_command: npm test
+    coverage_command: npm run test:coverage
+    type_checker: npm run typecheck
 
-# Per-operation guidance (optional)
-# Add advisory guidance for how apply and archive work should be conducted.
-# This is separate from artifact rules above.
-# Example:
-#   operations:
-#     apply:
-#       guidance:
-#         - Keep test summaries concise
-#     archive:
-#       guidance:
-#         - Summarize the archive outcome before finishing
+testing:
+  strict_tdd: false
+  workspace_test_command: null
+  fallback: no workspace-level test command covers every in-scope project
+  layers:
+    backend:
+      unit: pytest
+      integration: pytest + httpx
+      e2e: null
+    frontend:
+      unit: vitest
+      integration: "@testing-library/react"
+      e2e: null
+
+rules:
+  proposal:
+    - Keep Non-goals explicit; do not expand Phase 2 AI/alerts unless authorized
+  specs:
+    - Use Given/When/Then
+    - Use RFC 2119 keywords (MUST, SHALL, SHOULD, MAY)
+  design:
+    - Document architecture decisions with rationale
+  tasks:
+    - Group by phase; keep tasks completable in one session
+  apply:
+    tdd: false
+    test_command: ""
+    guidelines:
+      - Follow existing code patterns
+      - Run the matching project-local test command only
+  verify:
+    test_command: ""
+    build_command: ""
+    coverage_threshold: 0
+  archive:
+    - Warn before merging destructive deltas
