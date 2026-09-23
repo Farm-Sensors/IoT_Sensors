@@ -46,9 +46,16 @@ Chain strategy: pending
 
 ## Phase 1: Contract Publication First
 
-- [ ] 1.1 **Contract lane** — Create `contracts/edge-cloud/v2/README.md`, `telemetry.schema.json`, `ndvi.schema.json`, `fixtures/**`, and `SHA256SUMS` (edit targets) defining activation, conditional configuration poll/overlay, selected-slot candidates, confirmation, heartbeat, telemetry, NDVI, update authorization, and update confirmation exactly as specified in `machine-contract.md`; keep secrets out of fixtures and document the common error/retry envelope.
-- [ ] 1.2 **Contract compatibility tests** — Add or update contract validation so v2 fixtures cover required headers, `304` only when both revisions match, gateway/logical-node telemetry identity, separate NDVI replay, and forbidden static/NDVI telemetry fields; verify `contracts/edge-cloud/v1/**` (read-only) remains byte-stable except for its frozen-runtime pointer in `README.md`.
-- [ ] 1.3 **External gate record** — Document in `docs/integration/README.md` the Agro.io paired acceptance matrix, ownership lanes, and the rule that v2 publication and paired readiness precede runtime cutover; do not claim Agro.io implementation in this repository.
+- [x] 1.1 **Contract lane** — Create `contracts/edge-cloud/v2/README.md`, `telemetry.schema.json`, `ndvi.schema.json`, `fixtures/**`, and `SHA256SUMS` (edit targets) defining activation, conditional configuration poll/overlay, selected-slot candidates, confirmation, heartbeat, telemetry, NDVI, update authorization, and update confirmation exactly as specified in `machine-contract.md`; keep secrets out of fixtures and document the common error/retry envelope.
+- [x] 1.2 **Contract compatibility tests** — Add or update contract validation so v2 fixtures cover required headers, `304` only when both revisions match, gateway/logical-node telemetry identity, separate NDVI replay, and forbidden static/NDVI telemetry fields; verify `contracts/edge-cloud/v1/**` (read-only) remains byte-stable except for its frozen-runtime pointer in `README.md`.
+- [x] 1.3 **External gate record** — Document in `docs/integration/README.md` the Agro.io paired acceptance matrix, ownership lanes, and the rule that v2 publication and paired readiness precede runtime cutover; do not claim Agro.io implementation in this repository.
+
+### Issue #28 local implementation evidence
+
+- Branch: `feat/28`, based on `origin/integration/gateway-v2` at `4753987`. The user explicitly approved a single change exceeding the 400-authored-line target for this contract-only package on 2026-09-23.
+- Created the nine-operation package, request/response/header/path schemas, 46 credential-free machine examples, body fixtures, complete package checksums, and a full v1 freeze manifest. Runtime backend/frontend behavior is unchanged.
+- Local validation: 15 contract regression tests pass (including full-package validation), four existing H0 harness tests pass, Ruff passes, and `git diff --check` passes. CI now includes a dedicated contract job; remote CI has not run for this work.
+- Publication and acceptance are pending: no PR, accepted contract revision, paired Agro.io build, runtime cutover, or deployment is claimed. Later packages remain blocked until #28 is published and its evidence is accepted.
 
 ## Phase 2: Control Plane Persistence and Provisioning
 

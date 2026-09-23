@@ -1,0 +1,297 @@
+{
+  "activation": {
+    "method": "POST",
+    "path": "/api/v1/gateways/activate",
+    "headers": "machine.schema.json#/$defs/activationHeaders",
+    "request": "machine.schema.json#/$defs/activationRequest",
+    "responses": {
+      "200": "machine.schema.json#/$defs/activationResponse"
+    },
+    "errors": [
+      401,
+      409,
+      422,
+      429,
+      500,
+      502,
+      503,
+      504
+    ],
+    "error": "machine.schema.json#/$defs/error",
+    "identity": null,
+    "retry": "Non-repeatable. If credential was not received, obtain a new activation reference. Otherwise poll configuration.",
+    "scope": "Consume an opaque, single-use, 24-hour reference for a provisioned gateway; uniform 401 for malformed/unknown/expired/consumed references.",
+    "path_parameters": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [],
+      "properties": {}
+    }
+  },
+  "configuration": {
+    "method": "GET",
+    "path": "/api/v1/gateways/me/configuration",
+    "headers": "machine.schema.json#/$defs/configurationHeaders",
+    "request": null,
+    "responses": {
+      "200": "machine.schema.json#/$defs/configurationResponse",
+      "304": null
+    },
+    "errors": [
+      401,
+      403,
+      422,
+      429,
+      500,
+      502,
+      503,
+      504
+    ],
+    "error": "machine.schema.json#/$defs/error",
+    "identity": null,
+    "retry": "Safe. 304 only when both revision headers match; retain both cached views. On 200 replace both atomically.",
+    "scope": "Authenticated active gateway and its property only.",
+    "path_parameters": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [],
+      "properties": {}
+    }
+  },
+  "candidate": {
+    "method": "POST",
+    "path": "/api/v1/gateways/me/binding-candidates",
+    "headers": "machine.schema.json#/$defs/eventHeaders",
+    "request": "machine.schema.json#/$defs/candidateRequest",
+    "responses": {
+      "201": "machine.schema.json#/$defs/candidateResponse",
+      "200": "machine.schema.json#/$defs/candidateResponse"
+    },
+    "errors": [
+      401,
+      403,
+      409,
+      422,
+      429,
+      500,
+      502,
+      503,
+      504
+    ],
+    "error": "machine.schema.json#/$defs/error",
+    "identity": [
+      "gateway",
+      "X-Event-ID"
+    ],
+    "retry": "Exact retry 200 with original candidate; changed body 409, no mutation.",
+    "scope": "Technician-selected slot, logical node and area in active gateway configuration; never infer slot from UID/serial.",
+    "path_parameters": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [],
+      "properties": {}
+    }
+  },
+  "confirmation": {
+    "method": "POST",
+    "path": "/api/v1/gateways/me/binding-candidates/{candidate_id}/confirm",
+    "headers": "machine.schema.json#/$defs/eventHeaders",
+    "request": "machine.schema.json#/$defs/confirmationRequest",
+    "responses": {
+      "200": "machine.schema.json#/$defs/confirmationResponse"
+    },
+    "errors": [
+      401,
+      403,
+      404,
+      409,
+      422,
+      429,
+      500,
+      502,
+      503,
+      504
+    ],
+    "error": "machine.schema.json#/$defs/error",
+    "identity": [
+      "gateway",
+      "X-Event-ID"
+    ],
+    "retry": "Exact retry returns confirmed result; conflicting retry 409 without transition.",
+    "scope": "Own previously submitted pending candidate and stated slot in current configuration; foreign candidate 403, invisible 404, stale/resolved 409 except exact replay.",
+    "path_parameters": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "candidate_id"
+      ],
+      "properties": {
+        "candidate_id": {
+          "type": "string",
+          "pattern": "^[1-9][0-9]*$"
+        }
+      }
+    }
+  },
+  "heartbeat": {
+    "method": "POST",
+    "path": "/api/v1/gateways/me/heartbeat",
+    "headers": "machine.schema.json#/$defs/heartbeatHeaders",
+    "request": null,
+    "responses": {
+      "204": null
+    },
+    "errors": [
+      401,
+      403,
+      422,
+      429,
+      500,
+      502,
+      503,
+      504
+    ],
+    "error": "machine.schema.json#/$defs/error",
+    "identity": null,
+    "retry": "Safe. Update receive-time last-seen only; no history row. Target cadence 300 seconds.",
+    "scope": "Authenticated active gateway; status is independent of logical-node reading freshness.",
+    "path_parameters": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [],
+      "properties": {}
+    }
+  },
+  "telemetry": {
+    "method": "POST",
+    "path": "/api/v1/readings",
+    "headers": "machine.schema.json#/$defs/telemetryHeaders",
+    "request": "telemetry.schema.json",
+    "responses": {
+      "201": "machine.schema.json#/$defs/readingResponse",
+      "200": "machine.schema.json#/$defs/readingResponse"
+    },
+    "errors": [
+      401,
+      403,
+      409,
+      422,
+      429,
+      500,
+      502,
+      503,
+      504
+    ],
+    "error": "machine.schema.json#/$defs/error",
+    "identity": [
+      "gateway",
+      "X-Logical-Node-Id",
+      "X-Event-ID"
+    ],
+    "retry": "Exact payload replay 200 existing record; changed payload 409, no writes. Preserve identity across restarts/timeouts.",
+    "scope": "Logical node authorized by active gateway configuration. History/latest use capture time, not arrival; retain suspicious timestamps for later runtime marking.",
+    "path_parameters": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [],
+      "properties": {}
+    }
+  },
+  "ndvi": {
+    "method": "POST",
+    "path": "/api/v1/ndvi-snapshots",
+    "headers": "machine.schema.json#/$defs/jsonHeaders",
+    "request": "ndvi.schema.json",
+    "responses": {
+      "201": "ndvi.schema.json",
+      "200": "ndvi.schema.json"
+    },
+    "errors": [
+      401,
+      403,
+      409,
+      422,
+      429,
+      500,
+      502,
+      503,
+      504
+    ],
+    "error": "machine.schema.json#/$defs/error",
+    "identity": [
+      "scene identity",
+      "complete payload"
+    ],
+    "retry": "Exact scene/payload replay 200 existing snapshot; changed full payload for same scene 409, never overwrite on conflict.",
+    "scope": "Area authorized by active gateway configuration; latest point Sentinel-2 only, separate storage, no polygon/history.",
+    "path_parameters": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [],
+      "properties": {}
+    }
+  },
+  "updateAuthorization": {
+    "method": "GET",
+    "path": "/api/v1/gateways/me/update-authorization",
+    "headers": "machine.schema.json#/$defs/gatewayHeaders",
+    "request": null,
+    "responses": {
+      "200": "machine.schema.json#/$defs/updateAuthorizationResponse",
+      "204": null
+    },
+    "errors": [
+      401,
+      403,
+      429,
+      500,
+      502,
+      503,
+      504
+    ],
+    "error": "machine.schema.json#/$defs/error",
+    "identity": null,
+    "retry": "Safe and idempotent; 204 when no active authorization exists.",
+    "scope": "Own active prepared-image authorization metadata only; no image transfer, OTA, rollback or rollout.",
+    "path_parameters": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [],
+      "properties": {}
+    }
+  },
+  "updateConfirmation": {
+    "method": "POST",
+    "path": "/api/v1/gateways/me/update-confirmations",
+    "headers": "machine.schema.json#/$defs/eventHeaders",
+    "request": "machine.schema.json#/$defs/updateConfirmationRequest",
+    "responses": {
+      "201": "machine.schema.json#/$defs/updateConfirmationResponse",
+      "200": "machine.schema.json#/$defs/updateConfirmationResponse"
+    },
+    "errors": [
+      401,
+      403,
+      409,
+      422,
+      429,
+      500,
+      502,
+      503,
+      504
+    ],
+    "error": "machine.schema.json#/$defs/error",
+    "identity": [
+      "gateway",
+      "X-Event-ID"
+    ],
+    "retry": "Exact retry 200 original confirmation; conflicting retry 409 with no transition.",
+    "scope": "Own active authorization and exact image identity; foreign 403, expired/consumed/mismatched 409 except exact replay. Record technician confirmation only.",
+    "path_parameters": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [],
+      "properties": {}
+    }
+  }
+}

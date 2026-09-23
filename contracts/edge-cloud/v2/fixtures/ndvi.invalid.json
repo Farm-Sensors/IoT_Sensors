@@ -1,0 +1,10 @@
+{
+  "irrigation_area_id": 12,
+  "ndvi": 0.63,
+  "provider": "Microsoft Planetary Computer",
+  "collection": "sentinel-2-l2a",
+  "scene_id": "S2B_MSIL2A_20260915T173909_R098_T13RCP_20260915T220101",
+  "scene_observed_at": "2026-09-15T17:39:09Z",
+  "cloud_cover_percent": 12.4,
+  "sample_method": "polygon"
+}

@@ -6,6 +6,21 @@ on:
   pull_request:
 
 jobs:
+  edge-cloud-contract:
+    name: Edge-cloud v2 contract
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - name: Install contract validator
+        run: python -m pip install -r scripts/integration/contract-requirements.txt
+      - name: Validate package and frozen v1
+        run: python scripts/integration/validate_v2_contract.py
+      - name: Contract regression tests
+        run: python -m unittest discover -s scripts/integration -p 'test_v2_contract.py'
+
   backend:
     name: Backend (ruff + pytest)
     runs-on: ubuntu-latest
