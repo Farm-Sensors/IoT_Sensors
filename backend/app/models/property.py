@@ -9,6 +9,7 @@ from app.models.base import SoftDeleteMixin, TimestampMixin
 
 
 if TYPE_CHECKING:
+    from app.models.gateway import Gateway
     from app.models.client import Client
     from app.models.irrigation_area import IrrigationArea
 
@@ -22,6 +23,10 @@ class Property(Base, TimestampMixin, SoftDeleteMixin):
     nombre: Mapped[str] = mapped_column(String(150), nullable=False)
     ubicacion: Mapped[str | None] = mapped_column(
         String(255), nullable=True, default=None
+    )
+
+    gateway: Mapped["Gateway | None"] = relationship(
+        "Gateway", back_populates="property", uselist=False
     )
 
     # Relationships

@@ -142,7 +142,12 @@ def test_migration_preserves_history_and_enforces_unique_events(isolated_engine)
     spec.loader.exec_module(migration)
     engine, node_id = isolated_engine
     with engine.begin() as connection:
-        with Operations.context(MigrationContext.configure(connection)):
+        with Operations.context(MigrationContext.configure(connection)) as operations:
+            # This test exercises the historical C2 revision, not gateway v2.
+            # The fixture uses current metadata: remove the later event index,
+            # retaining a supporting index for the gateway FK on MySQL.
+            operations.create_index("idx_test_legacy_gateway_fk", "lecturas", ["pasarela_id"])
+            operations.drop_index("uq_lecturas_pasarela_nodo_event_id", table_name="lecturas")
             migration.downgrade()
             for _ in range(2):
                 connection.execute(
