@@ -1,6 +1,6 @@
 import csv
 import io
-from datetime import date, datetime, timedelta
+from datetime import UTC, date, datetime, timedelta
 
 from fastapi import HTTPException, status
 from sqlalchemy import func, select
@@ -10,6 +10,9 @@ from sqlalchemy.orm import Session
 from app.core.config import settings
 from app.models.crop_cycle import CropCycle
 from app.models.alert import Alert
+from app.models.gateway import Gateway
+from app.models.gateway_config import GatewayConfig
+from app.models.irrigation_area import IrrigationArea
 from app.models.node import Node
 from app.models.reading import Reading
 from app.models.threshold import Threshold
@@ -144,19 +147,70 @@ def _create_threshold_alerts(db: Session, node: Node, reading: Reading) -> None:
         db.add(alert)
 
 
+def _configured_node(db: Session, gateway: Gateway, logical_node_id: int) -> Node:
+    if gateway.config_version_activa <= 0:
+        raise HTTPException(status_code=403, detail="Logical node is outside gateway scope")
+    config = db.execute(
+        select(GatewayConfig).where(
+            GatewayConfig.pasarela_id == gateway.id,
+            GatewayConfig.predio_id == gateway.predio_id,
+            GatewayConfig.version == gateway.config_version_activa,
+        )
+    ).scalar_one_or_none()
+    configured_slot = next(
+        (
+            item
+            for item in (config.snapshot.get("slots", []) if config else [])
+            if item.get("logical_node_id") == logical_node_id
+        ),
+        None,
+    )
+    if configured_slot is None:
+        raise HTTPException(status_code=403, detail="Logical node is outside gateway scope")
+
+    node = db.execute(
+        select(Node)
+        .join(IrrigationArea, IrrigationArea.id == Node.area_riego_id)
+        .where(
+            Node.id == logical_node_id,
+            Node.area_riego_id == configured_slot.get("irrigation_area_id"),
+            Node.activo.is_(True),
+            Node.eliminado_en.is_(None),
+            IrrigationArea.predio_id == gateway.predio_id,
+            IrrigationArea.eliminado_en.is_(None),
+        )
+    ).scalar_one_or_none()
+    if node is None:
+        raise HTTPException(status_code=403, detail="Logical node is outside gateway scope")
+    return node
+
+
 def ingest_reading(
-    db: Session, node: Node, data: ReadingCreate, event_id: str, payload_hash: str
+    db: Session,
+    gateway: Gateway,
+    logical_node_id: int,
+    data: ReadingCreate,
+    event_id: str,
+    payload_hash: str,
 ) -> tuple[Reading, bool]:
     """Bind a telemetry event to one reading; return (reading, created)."""
+    node = _configured_node(db, gateway, logical_node_id)
     node_id = node.id
     query = select(Reading).where(
-        Reading.nodo_id == node_id, Reading.event_id == event_id
+        Reading.pasarela_id == gateway.id,
+        Reading.nodo_id == node_id,
+        Reading.event_id == event_id,
     )
     existing = db.execute(query).scalar_one_or_none()
     if existing is None:
         try:
             return create_reading(
-                db, node, data, event_id=event_id, payload_hash=payload_hash
+                db,
+                node,
+                data,
+                event_id=event_id,
+                payload_hash=payload_hash,
+                gateway_id=gateway.id,
             ), True
         except IntegrityError:
             # A concurrent request may have committed the same event. Roll back
@@ -180,12 +234,17 @@ def create_reading(
     *,
     event_id: str | None = None,
     payload_hash: str | None = None,
+    gateway_id: int | None = None,
 ) -> Reading:
     """Insert reading in a single table."""
+    now = datetime.now(UTC).replace(tzinfo=None)
+    suspicious = data.timestamp > now + timedelta(hours=1) or data.timestamp < now - timedelta(days=30)
     reading = Reading(
         nodo_id=node.id,
+        pasarela_id=gateway_id,
         event_id=event_id,
         payload_hash=payload_hash,
+        marca_tiempo_sospechosa=suspicious,
         marca_tiempo=data.timestamp,
         suelo_conductividad=data.soil.conductivity,
         suelo_temperatura=data.soil.temperature,

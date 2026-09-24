@@ -17,7 +17,9 @@ from sqlalchemy.exc import IntegrityError, OperationalError
 from app.core.config import settings
 
 PREVIOUS = "d4a8c2e67190"
-HEAD = "e29a02c7b902"
+PREVIOUS_GATEWAY_HEAD = "e29a03c7b903"
+PREVIOUS_BEFORE_GATEWAY = "e29a02c7b902"
+HEAD = "e29a04c7b904"
 TABLES = {
     "pasarelas",
     "referencias_activacion",
@@ -90,6 +92,9 @@ def test_mysql_empty_upgrade_legacy_preservation_constraints_and_rollback(monkey
                 )
             )
         command.upgrade(config, "head")
+        indexes = {index["name"] for index in inspect(engine).get_indexes("lecturas")}
+        assert "uq_lecturas_pasarela_nodo_event_id" in indexes
+        assert "uq_lecturas_nodo_event_id" not in indexes
         with engine.begin() as c:
             assert c.execute(
                 text(
@@ -146,19 +151,62 @@ def test_mysql_empty_upgrade_legacy_preservation_constraints_and_rollback(monkey
                 )
                 == 1
             )
+            insert_pending = (
+                "INSERT INTO vinculos_fisicos "
+                "(pasarela_id,ranura_id,nodo_id,area_riego_id,uid,numero_serie,estado,"
+                "evento_propuesta_id,hash_propuesta,estado_propuesta,evento_confirmacion_id,hash_confirmacion) "
+                "VALUES (1,2,2,2,'candidate-uid','candidate-serial','pending',"
+                "'proposal-1','aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',"
+                "'pending_initial','confirm-1',"
+                "'bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb')"
+            )
+            c.execute(text(insert_pending))
+            reject(
+                insert_pending.replace("candidate-uid", "other-uid").replace(
+                    "candidate-serial", "other-serial"
+                )
+            )
+            duplicate_confirmation = insert_pending.replace("proposal-1", "proposal-2").replace(
+                "candidate-uid", "other-uid"
+            ).replace("candidate-serial", "other-serial")
+            reject(duplicate_confirmation)
             reading = "INSERT INTO lecturas (nodo_id,pasarela_id,marca_tiempo,event_id) VALUES (1,1,'2026-09-23','gateway-event')"
             c.execute(text(reading))
             reject(reading)
+            c.execute(
+                text(
+                    "INSERT INTO lecturas (nodo_id,pasarela_id,marca_tiempo,event_id) "
+                    "VALUES (1,2,'2026-09-23','gateway-event')"
+                )
+            )
+        with pytest.raises(RuntimeError, match="gateway-scoped event identities"):
+            command.downgrade(config, PREVIOUS_GATEWAY_HEAD)
+        with engine.begin() as c:
+            c.execute(
+                text(
+                    "DELETE FROM lecturas WHERE nodo_id=1 AND pasarela_id=2 "
+                    "AND event_id='gateway-event'"
+                )
+            )
             c.execute(
                 text(
                     "INSERT INTO lecturas (nodo_id,pasarela_id,marca_tiempo,event_id) VALUES (2,1,'2026-09-23','gateway-event')"
                 )
             )
             c.execute(text("UPDATE nodos SET api_key=NULL WHERE id=2"))
+        with pytest.raises(RuntimeError, match="gateway binding retry identities"):
+            command.downgrade(config, PREVIOUS)
+        with engine.begin() as c:
+            c.execute(
+                text(
+                    "UPDATE vinculos_fisicos SET evento_propuesta_id=NULL, hash_propuesta=NULL, "
+                    "estado_propuesta=NULL, evento_confirmacion_id=NULL, hash_confirmacion=NULL"
+                )
+            )
         with pytest.raises(RuntimeError, match="gateway reading metadata"):
             command.downgrade(config, PREVIOUS)
         with engine.connect() as c:
-            assert c.scalar(text("SELECT version_num FROM alembic_version")) == HEAD
+            assert c.scalar(text("SELECT version_num FROM alembic_version")) == PREVIOUS_BEFORE_GATEWAY
             assert c.scalar(text("SELECT COUNT(*) FROM lecturas")) == 3
     finally:
         engine.dispose()

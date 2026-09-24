@@ -20,9 +20,7 @@ class TestCreateNode:
         assert node.id is not None
         assert node.nombre == "Nodo A"
         assert node.numero_serie == "SN-001"
-        # API key debe ser generada automáticamente
-        assert node.api_key.startswith("ak_")
-        assert len(node.api_key) > 10
+        assert node.api_key is None
 
     def test_create_invalid_area_raises_404(self, db):
         data = NodeCreate(irrigation_area_id=99999, name="Sin Área")
@@ -41,8 +39,8 @@ class TestCreateNode:
             )
         assert exc.value.status_code == 409
 
-    def test_each_node_gets_unique_api_key(self, db, sample_property, sample_crop_type):
-        """Dos nodos en distintas áreas deben tener API keys diferentes."""
+    def test_new_nodes_do_not_receive_legacy_api_keys(self, db, sample_property, sample_crop_type):
+        """New logical nodes do not receive direct machine credentials."""
         from app.models.irrigation_area import IrrigationArea
 
         area1 = IrrigationArea(
@@ -63,7 +61,8 @@ class TestCreateNode:
 
         n1 = node_service.create_node(db, NodeCreate(irrigation_area_id=area1.id, name="N1"))
         n2 = node_service.create_node(db, NodeCreate(irrigation_area_id=area2.id, name="N2"))
-        assert n1.api_key != n2.api_key
+        assert n1.api_key is None
+        assert n2.api_key is None
 
 
 class TestGetNode:

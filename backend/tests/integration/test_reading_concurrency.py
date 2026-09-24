@@ -20,7 +20,7 @@ from sqlalchemy.orm import Session
 
 from app.core.config import settings
 from app.db.session import Base
-from app.models.node import Node
+from app.models.gateway import Gateway
 from app.models.reading import Reading
 from app.schemas.reading import ReadingCreate
 from app.services import reading as service
@@ -28,7 +28,7 @@ from tests.integration.test_readings_api import SENSOR_PAYLOAD
 
 
 @pytest.fixture
-def isolated_engine(tmp_path, db, sample_node, monkeypatch):
+def isolated_engine(tmp_path, db, sample_node, sample_gateway, monkeypatch):
     url = os.environ.get("C2_TEST_DATABASE_URL")
     if url:
         assert make_url(url).database.startswith("c2_test_"), "Use a disposable C2 test database"
@@ -44,7 +44,7 @@ def isolated_engine(tmp_path, db, sample_node, monkeypatch):
                 rows = [dict(row) for row in db.execute(select(table)).mappings()]
                 if rows:
                     connection.execute(insert(table), rows)
-        yield engine, sample_node.id
+        yield engine, sample_node.id, sample_gateway[0].id
     finally:
         Base.metadata.drop_all(engine)
         engine.dispose()
@@ -52,7 +52,7 @@ def isolated_engine(tmp_path, db, sample_node, monkeypatch):
 
 @pytest.mark.parametrize("different_body", [False, True])
 def test_simultaneous_events_have_one_winner(isolated_engine, monkeypatch, different_body):
-    engine, node_id = isolated_engine
+    engine, node_id, gateway_id = isolated_engine
     barrier = Barrier(2, timeout=15)
     original = service.create_reading
     attempted = []
@@ -72,10 +72,15 @@ def test_simultaneous_events_have_one_winner(isolated_engine, monkeypatch, diffe
             payload["timestamp"] = "2026-04-01T11:00:00Z"
         fingerprint = hashlib.sha256(json.dumps(payload, sort_keys=True).encode()).hexdigest()
         with Session(engine) as session:
-            node = session.get(Node, node_id)
+            gateway = session.get(Gateway, gateway_id)
             try:
                 reading, created = service.ingest_reading(
-                    session, node, ReadingCreate.model_validate(payload), event_id, fingerprint
+                    session,
+                    gateway,
+                    node_id,
+                    ReadingCreate.model_validate(payload),
+                    event_id,
+                    fingerprint,
                 )
                 return (201 if created else 200), reading.id, fingerprint, payload
             except HTTPException as exc:
@@ -94,7 +99,8 @@ def test_simultaneous_events_have_one_winner(isolated_engine, monkeypatch, diffe
         # A fresh session sees the durable identity, not an in-memory cache.
         retry, created = service.ingest_reading(
             session,
-            session.get(Node, node_id),
+            session.get(Gateway, gateway_id),
+            node_id,
             ReadingCreate.model_validate(winner[3]),
             event_id,
             winner[2],
@@ -106,7 +112,7 @@ def test_simultaneous_events_have_one_winner(isolated_engine, monkeypatch, diffe
 
 
 def test_unrelated_integrity_error_is_not_reported_as_retry(isolated_engine, monkeypatch):
-    engine, node_id = isolated_engine
+    engine, node_id, gateway_id = isolated_engine
 
     def fail(*args, **kwargs):
         raise IntegrityError("insert", {}, ValueError("unrelated constraint"))
@@ -116,7 +122,8 @@ def test_unrelated_integrity_error_is_not_reported_as_retry(isolated_engine, mon
         with pytest.raises(IntegrityError):
             service.ingest_reading(
                 session,
-                session.get(Node, node_id),
+                session.get(Gateway, gateway_id),
+                node_id,
                 ReadingCreate.model_validate(SENSOR_PAYLOAD),
                 str(uuid4()),
                 "a" * 64,
@@ -140,13 +147,15 @@ def test_migration_preserves_history_and_enforces_unique_events(isolated_engine)
     spec = importlib.util.spec_from_file_location("reading_event_migration", path)
     migration = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(migration)
-    engine, node_id = isolated_engine
+    engine, node_id, _gateway_id = isolated_engine
     with engine.begin() as connection:
         with Operations.context(MigrationContext.configure(connection)) as operations:
             # This test exercises the historical C2 revision, not gateway v2.
-            # The fixture uses current metadata: remove the later event index,
-            # retaining a supporting index for the gateway FK on MySQL.
+            # Simulate the C2 schema, retaining the later gateway FK support.
             operations.create_index("idx_test_legacy_gateway_fk", "lecturas", ["pasarela_id"])
+            operations.create_index(
+                "uq_lecturas_nodo_event_id", "lecturas", ["nodo_id", "event_id"], unique=True
+            )
             operations.drop_index("uq_lecturas_pasarela_nodo_event_id", table_name="lecturas")
             migration.downgrade()
             for _ in range(2):
