@@ -79,15 +79,23 @@ Chain strategy: One PR per issue
 
 - [x] 3.1 **Activation and provisioning services/API** — Create `backend/app/schemas/gateway.py`, `backend/app/services/gateway.py`, and `backend/app/api/v1/endpoints/gateways.py` for admin provisioning, 24-hour opaque single-use references, atomic consumption, controlled credential issuance/rotation/revocation, status, and secret-redacted responses; add router wiring in `backend/app/api/v1/router.py`.
 - [x] 3.2 **Template and property working-set behavior** — Implement versioned global templates, hardware profiles, active-template copy isolation, existing-area/node resolution, and publishable property working sets without implicit gateway, area, node, or physical binding creation; seed only non-secret hardware profiles in `backend/app/db/seed.py`.
-- [ ] 3.3 **Configuration service** — Create `backend/app/services/gateway_config.py` and schemas/routes for immutable monotonic publication and conditional poll; return `304` only when both `X-Config-Version` and `X-Bindings-Revision` match, otherwise return the snapshot plus live overlay.
-- [ ] 3.4 **Binding state machine** — Create `backend/app/services/binding.py` and implement selected-slot candidate submission and same-gateway confirmation with `unbound → pending_initial → confirmed` and `confirmed → pending_reassignment → confirmed`; close prior records atomically and retain capture-time logical-node history.
-- [ ] 3.5 **Binding/config RED tests** — Add `backend/tests/unit/test_gateway_config_service.py`, `backend/tests/unit/test_binding_service.py`, and integration cases in `backend/tests/integration/test_gateways_api.py` for cross-property isolation, stale overlay `200`, exact-match `304`, partial activation, duplicate candidates, foreign confirmation, and reassignment history.
+- [x] 3.3 **Configuration service** — Publish immutable monotonic gateway snapshots and poll conditionally; return bodyless `304` only when both `X-Config-Version` and `X-Bindings-Revision` match, otherwise return the snapshot plus current binding overlay.
+- [x] 3.4 **Binding state machine** — Implement selected-slot candidate submission and same-gateway confirmation with `unbound → pending_initial → confirmed` and `confirmed → pending_reassignment → confirmed`; close prior records atomically and retain capture-time logical-node history.
+- [x] 3.5 **Binding/config tests** — Add `backend/tests/unit/test_gateway_config_service.py`, `backend/tests/unit/test_binding_service.py`, and `backend/tests/integration/test_gateway_config_binding_api.py` for monotonic snapshots, cross-property/slot isolation, stale overlay `200`, exact-match `304`, duplicate-event replay, duplicate candidates, foreign confirmation, and reassignment history.
 
 ### Issue #30 delivery evidence
 
 - Scope: tasks 3.1 and 3.2 only — property gateway provisioning, one-time activation references, credential lifecycle, hardware-profile catalog, versioned templates, and copying an active template into an existing property's working set.
 - All copied slots resolve existing areas and logical nodes. This issue does not create gateways, areas, nodes, or physical bindings implicitly.
-- Validation: 21 focused integration tests passed, Ruff passed, and the full backend suite is running. Tasks 3.3 and later remain outside issue #30.
+- Validation: 21 focused integration tests and Ruff passed. The complete issue is in PR #42; backend suite evidence is recorded with that PR. Tasks 3.3 and later remain outside issue #30.
+
+### Issue #31 delivery evidence
+
+- Scope: tasks 3.3–3.5 only — immutable configuration publication, gateway-scoped conditional polling/live binding overlay, idempotent selected-slot candidates, gateway-owned confirmation, and reassignment history.
+- Configuration versions increase monotonically and retain immutable profile snapshots. Polling returns bodyless `304` only for an exact match of both current revisions; a stale overlay returns `200` without changing the configuration version.
+- Candidate submission requires the authenticated gateway, active published slot identity, logical node, area, UID, serial, and `X-Event-ID`. Exact retries return the original result; conflicting or duplicate candidates are rejected. Confirmation is limited to that gateway's pending candidate and selected slot; reassignment closes the old binding only after valid confirmation.
+- Migration `e29a03c7b903` adds gateway-scoped proposal/confirmation replay identities while preserving existing binding history. No ingest, NDVI, heartbeat, UI, simulator, Agro.io, or Phase 2 behavior is included.
+- Validation: focused control-plane tests and full backend suite, plus Ruff and `git diff --check`; exact results are recorded in PR #43.
 
 ## Phase 4: Gateway Ingestion and NDVI
 
