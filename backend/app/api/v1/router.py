@@ -9,6 +9,7 @@ from app.api.v1.endpoints import (
     clients,
     crop_cycles,
     crop_types,
+    gateway_template_copy,
     irrigation_areas,
     ndvi_snapshots,
     nodes,
@@ -30,6 +31,11 @@ api_v1_router.include_router(
 )
 api_v1_router.include_router(
     crop_types.router, prefix="/crop-types", tags=["Crop Types"]
+)
+api_v1_router.include_router(
+    gateway_template_copy.router,
+    prefix="/gateway-templates",
+    tags=["Gateway Templates"],
 )
 api_v1_router.include_router(
     irrigation_areas.router, prefix="/irrigation-areas", tags=["Irrigation Areas"]
