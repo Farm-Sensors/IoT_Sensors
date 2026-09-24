@@ -63,7 +63,6 @@ api_v1_router.include_router(
     crop_cycles.router, prefix="/crop-cycles", tags=["Crop Cycles"]
 )
 api_v1_router.include_router(nodes.router, prefix="/nodes", tags=["Nodes"])
-api_v1_router.include_router(gateways.router, prefix="/gateways", tags=["Gateways"])
 api_v1_router.include_router(
     hardware_profiles.router, prefix="/hardware-profiles", tags=["Hardware Profiles"]
 )

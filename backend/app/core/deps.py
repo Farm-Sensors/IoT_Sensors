@@ -1,3 +1,5 @@
+import hashlib
+
 from fastapi import Depends, Header, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy import select
@@ -6,6 +8,7 @@ from sqlalchemy.orm import Session
 from app.core.security import decode_token
 from app.db.session import get_db
 from app.models.client import Client
+from app.models.gateway import Gateway
 from app.models.node import Node
 from app.models.user import User
 
@@ -101,3 +104,29 @@ def validate_api_key(
             detail="API Key inválida o nodo deshabilitado",
         )
     return node
+
+
+def validate_gateway_credential(
+    x_api_key: str | None = Header(default=None, alias="X-API-Key"),
+    db: Session = Depends(get_db),
+) -> Gateway:
+    """Authenticate a machine request as exactly one active gateway."""
+    if not x_api_key:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Gateway credential is required",
+        )
+    digest = hashlib.sha256(x_api_key.encode("utf-8")).hexdigest()
+    gateway = db.execute(
+        select(Gateway).where(
+            Gateway.credencial_hash == digest,
+            Gateway.estado == "active",
+            Gateway.eliminado_en.is_(None),
+        )
+    ).scalar_one_or_none()
+    if gateway is None:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Gateway credential is invalid",
+        )
+    return gateway
