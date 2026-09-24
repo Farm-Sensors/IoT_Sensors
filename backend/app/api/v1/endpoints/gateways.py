@@ -1,6 +1,6 @@
 from datetime import UTC
 
-from fastapi import APIRouter, Depends, Header, HTTPException, Response, status
+from fastapi import APIRouter, Depends, Header, HTTPException, Request, Response, status
 from sqlalchemy.orm import Session
 
 from app.core.deps import require_admin, validate_gateway_credential
@@ -22,7 +22,16 @@ from app.schemas.gateway_config import (
 from app.services import gateway as gateway_service
 from app.services import binding as binding_service
 from app.services import gateway_config as configuration_service
+from app.services import gateway_heartbeat as heartbeat_service
+from app.services import gateway_update as update_service
 from app.models.gateway import Gateway
+from app.schemas.gateway_status import GatewayStatusResponse
+from app.schemas.gateway_update import (
+    UpdateAuthorizationCreate,
+    UpdateAuthorizationResponse,
+    UpdateConfirmationCreate,
+    UpdateConfirmationResponse,
+)
 
 router = APIRouter()
 
@@ -156,4 +165,94 @@ def confirm_gateway_binding_candidate(
         slot_id=record.ranura_id,
         binding_status="confirmed",
         confirmed_at=confirmed_at,
+    )
+
+
+@router.post("/me/heartbeat", status_code=status.HTTP_204_NO_CONTENT)
+def gateway_heartbeat(
+    request: Request,
+    gateway: Gateway = Depends(validate_gateway_credential),
+    db: Session = Depends(get_db),
+):
+    if request.headers.get("content-length") not in (None, "0"):
+        raise HTTPException(status_code=422, detail="Heartbeat must not include a body")
+    heartbeat_service.record_heartbeat(db, gateway)
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
+
+
+@router.get("/{gateway_id}/status", response_model=GatewayStatusResponse)
+def admin_gateway_status(
+    gateway_id: int,
+    _admin: User = Depends(require_admin),
+    db: Session = Depends(get_db),
+):
+    gateway = gateway_service.get_gateway(db, gateway_id)
+    return GatewayStatusResponse.model_validate(
+        heartbeat_service.build_status_payload(db, gateway, include_pending_identity=True)
+    )
+
+
+@router.post(
+    "/{gateway_id}/update-authorizations",
+    response_model=UpdateAuthorizationResponse,
+    status_code=status.HTTP_201_CREATED,
+)
+def create_update_authorization(
+    gateway_id: int,
+    data: UpdateAuthorizationCreate,
+    admin: User = Depends(require_admin),
+    db: Session = Depends(get_db),
+):
+    row = update_service.create_authorization(db, gateway_id, admin.id, data)
+    expires_at = row.expires_at
+    if expires_at.tzinfo is None:
+        expires_at = expires_at.replace(tzinfo=UTC)
+    return UpdateAuthorizationResponse(
+        authorization_id=row.authorization_id,
+        image_version=row.image_version,
+        image_digest=row.image_digest,
+        expires_at=expires_at,
+    )
+
+
+@router.get("/me/update-authorization", response_model=UpdateAuthorizationResponse)
+def get_update_authorization(
+    gateway: Gateway = Depends(validate_gateway_credential),
+    db: Session = Depends(get_db),
+):
+    row = update_service.get_active_authorization(db, gateway)
+    if row is None:
+        return Response(status_code=status.HTTP_204_NO_CONTENT)
+    expires_at = row.expires_at
+    if expires_at.tzinfo is None:
+        expires_at = expires_at.replace(tzinfo=UTC)
+    return UpdateAuthorizationResponse(
+        authorization_id=row.authorization_id,
+        image_version=row.image_version,
+        image_digest=row.image_digest,
+        expires_at=expires_at,
+    )
+
+
+@router.post("/me/update-confirmations", response_model=UpdateConfirmationResponse)
+def confirm_update(
+    data: UpdateConfirmationCreate,
+    response: Response,
+    x_event_id: str | None = Header(default=None, alias="X-Event-ID", min_length=1, max_length=128),
+    gateway: Gateway = Depends(validate_gateway_credential),
+    db: Session = Depends(get_db),
+):
+    if x_event_id is None:
+        raise HTTPException(status_code=422, detail="X-Event-ID is required")
+    row, code = update_service.record_confirmation(db, gateway, x_event_id, data)
+    response.status_code = code
+    recorded = row.creado_en
+    if recorded.tzinfo is None:
+        recorded = recorded.replace(tzinfo=UTC)
+    return UpdateConfirmationResponse(
+        authorization_id=row.authorization_id,
+        image_version=row.image_version,
+        image_digest=row.image_digest,
+        result=row.result,
+        recorded_at=recorded,
     )

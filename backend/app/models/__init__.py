@@ -22,6 +22,7 @@ from app.models.gateway_template import GatewayTemplate, GatewayTemplateVersion
 from app.models.gateway_slot import GatewaySlot
 from app.models.gateway_config import GatewayConfig
 from app.models.physical_binding import PhysicalBinding
+from app.models.gateway_update import GatewayUpdateAuthorization, GatewayUpdateConfirmation
 
 
 __all__ = [
@@ -49,4 +50,6 @@ __all__ = [
     "GatewaySlot",
     "GatewayConfig",
     "PhysicalBinding",
+    "GatewayUpdateAuthorization",
+    "GatewayUpdateConfirmation",
 ]

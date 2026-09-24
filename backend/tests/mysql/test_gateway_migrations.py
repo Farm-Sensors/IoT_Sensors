@@ -19,7 +19,7 @@ from app.core.config import settings
 PREVIOUS = "d4a8c2e67190"
 PREVIOUS_GATEWAY_HEAD = "e29a03c7b903"
 PREVIOUS_BEFORE_GATEWAY = "e29a02c7b902"
-HEAD = "e29a04c7b904"
+HEAD = "e29a05c7b905"
 TABLES = {
     "pasarelas",
     "referencias_activacion",
@@ -29,6 +29,8 @@ TABLES = {
     "ranuras_logicas",
     "configuraciones_pasarela",
     "vinculos_fisicos",
+    "autorizaciones_actualizacion",
+    "confirmaciones_actualizacion",
 }
 
 

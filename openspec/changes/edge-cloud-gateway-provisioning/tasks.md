@@ -116,9 +116,9 @@ Chain strategy: One PR per issue
 
 ## Phase 5: Heartbeat, Status, and Prepared Updates
 
-- [ ] 5.1 **Heartbeat/status implementation** — Add configured thresholds in `backend/app/core/config.py`, heartbeat persistence/service/API, and property status responses with `inactive|never_seen|recently_seen|stale|disconnected` mapped to `pending|connected|delayed|disconnected`; keep status independent from `FreshnessIndicator` and add no scheduler or Phase 2 alert.
-- [ ] 5.2 **Update authorization/confirmation** — Add gateway-scoped persistence, schemas, services, and routes for admin-created prepared image version/digest authorizations, gateway retrieval, and technician-confirmed matching results; store no image bytes, OTA command, JWT, rollback, or rollout state.
-- [ ] 5.3 **Status/update RED tests** — Add integration coverage for heartbeat credential rejection, `204` heartbeat, all threshold boundaries, gateway-connected/node-stale distinction, no active authorization (`204`), mismatched/expired update confirmation, exact retry, and secret/JWT absence.
+- [x] 5.1 **Heartbeat/status implementation** — Add configured thresholds in `backend/app/core/config.py`, heartbeat persistence/service/API, and property status responses with `inactive|never_seen|recently_seen|stale|disconnected` mapped to `pending|connected|delayed|disconnected`; keep status independent from `FreshnessIndicator` and add no scheduler or Phase 2 alert.
+- [x] 5.2 **Update authorization/confirmation** — Add gateway-scoped persistence, schemas, services, and routes for admin-created prepared image version/digest authorizations, gateway retrieval, and technician-confirmed matching results; store no image bytes, OTA command, JWT, rollback, or rollout state.
+- [x] 5.3 **Status/update RED tests** — Add integration coverage for heartbeat credential rejection, `204` heartbeat, all threshold boundaries, gateway-connected/node-stale distinction, no active authorization (`204`), mismatched/expired update confirmation, exact retry, and secret/JWT absence.
 
 ## Phase 6: Frontend Control-Plane and Status UX
 
@@ -128,7 +128,7 @@ Chain strategy: One PR per issue
 
 ## Phase 7: Simulator, Manifests, Documentation, and Cutover
 
-- [ ] 7.1 **Producer fixtures** — Modify `simulator/simulator.py`, `simulator/simulator_fast.py`, and `scripts/integration/manifests/h1-*.json` to use gateway secret references, logical-node IDs, and event IDs; reject node-key flags and keep credentials absent from committed fixtures.
+- [x] 7.1 **Producer fixtures** — Modify `simulator/simulator.py`, `simulator/simulator_fast.py`, and `scripts/integration/manifests/h1-*.json` to use gateway secret references, logical-node IDs, and event IDs; reject node-key flags and keep credentials absent from committed fixtures.
 - [ ] 7.2 **Project guidance and baselines** — Modify `openspec/config.yaml`, `openspec/specs/readings/spec.md`, `openspec/specs/security/spec.md`, `openspec/specs/data-model/spec.md`, and `AGENTS.md` so gateway-only ingest, MySQL 8, null semantics, separate NDVI, and Phase 2 boundaries are consistent.
 - [ ] 7.3 **Operational/API documentation** — Modify `docs/api.md`, `docs/security.md`, `docs/stack.md`, `docs/architecture/overview.md`, `backend.md`, `frontend.md`, `decisions.md`, `docs/data-model.md`, and `docs/testing.md`; create `docs/integration/README.md` with the external acceptance matrix, deployment order, rollback, and explicit Agro.io boundary.
 - [ ] 7.4 **Full cutover verification** — Run backend migrations/tests, frontend tests/typecheck, v1/v2 contract checks, and a staging paired smoke test only after Agro.io readiness is confirmed; verify no per-node authentication contradictions remain and record every failed/skipped check before declaring ready.

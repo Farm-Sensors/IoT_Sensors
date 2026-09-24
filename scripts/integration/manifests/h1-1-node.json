@@ -1,7 +1,7 @@
 {
-  "manifest_version": "h1/v1",
+  "manifest_version": "h1/v2",
   "scenario_nodes": 1,
-  "contract_ref": "PENDING_CONTRACT_REF",
+  "contract_ref": "contracts/edge-cloud/v2",
   "packet_refs": {
     "ricky_c1": "PENDING_RICKY_C1_REF",
     "ricky_c2": "PENDING_RICKY_C2_REF",
@@ -20,6 +20,11 @@
     "cloud_verify": "PENDING_CLOUD_VERIFY_ADAPTER"
   },
   "nodes": [
-    {"node_code": "H0001", "cloud_area_id": "PENDING_AREA_ID_H0001", "cloud_node_id": "PENDING_NODE_ID_H0001", "api_key_secret_ref": "PENDING_SECRET_REF_H0001"}
-  ]
+    {
+      "node_code": "H0001",
+      "cloud_area_id": "PENDING_AREA_ID_H0001",
+      "logical_node_id": "PENDING_LOGICAL_NODE_ID_H0001"
+    }
+  ],
+  "gateway_secret_ref": "PENDING_GATEWAY_SECRET_REF"
 }

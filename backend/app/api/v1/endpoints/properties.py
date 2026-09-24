@@ -9,6 +9,8 @@ from app.models.user import User
 from app.schemas.base import PaginatedResponse
 from app.schemas.property import PropertyCreate, PropertyResponse, PropertyUpdate
 from app.services import property as property_service
+from app.services import gateway_heartbeat as heartbeat_service
+from app.schemas.gateway_status import GatewayStatusResponse
 
 router = APIRouter()
 
@@ -93,6 +95,24 @@ def get_property(
     _check_ownership(current_user, db, property_id)
     prop = property_service.get_property(db, property_id)
     return PropertyResponse.model_validate(prop)
+
+
+@router.get(
+    "/{property_id}/gateway/status",
+    response_model=GatewayStatusResponse,
+    response_model_exclude_none=True,
+)
+def get_property_gateway_status(
+    property_id: int,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    _check_ownership(current_user, db, property_id)
+    gateway = heartbeat_service.get_property_gateway(db, property_id)
+    include_identity = current_user.rol == "admin"
+    return heartbeat_service.build_status_payload(
+        db, gateway, include_pending_identity=include_identity
+    )
 
 
 @router.put("/{property_id}", response_model=PropertyResponse)
