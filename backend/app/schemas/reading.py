@@ -1,7 +1,7 @@
-from datetime import date, datetime, timezone
+from datetime import UTC, date, datetime, timezone
 from typing import Literal
 
-from pydantic import BaseModel, ConfigDict, Field, field_serializer
+from pydantic import BaseModel, ConfigDict, Field, field_serializer, field_validator
 
 from app.models.reading import Reading
 
@@ -10,31 +10,57 @@ from app.models.reading import Reading
 
 
 class SoilData(BaseModel):
-    conductivity: float | None = None
-    temperature: float | None = None
-    humidity: float | None = None
-    water_potential: float | None = None
+    model_config = ConfigDict(extra="forbid")
+
+    conductivity: float | None
+    temperature: float | None
+    humidity: float | None
+    water_potential: float | None
 
 
 class IrrigationData(BaseModel):
-    active: bool | None = None
-    accumulated_liters: float | None = None
-    flow_per_minute: float | None = None
+    model_config = ConfigDict(extra="forbid")
+
+    active: bool | None
+    accumulated_liters: float | None
+    flow_per_minute: float | None
 
 
 class EnvironmentalData(BaseModel):
-    temperature: float | None = None
-    relative_humidity: float | None = None
-    wind_speed: float | None = None
-    solar_radiation: float | None = None
-    eto: float | None = None
+    model_config = ConfigDict(extra="forbid")
+
+    temperature: float | None
+    relative_humidity: float | None
+    wind_speed: float | None
+    solar_radiation: float | None
+    eto: float | None
 
 
 class ReadingCreate(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
     timestamp: datetime
     soil: SoilData
     irrigation: IrrigationData
     environmental: EnvironmentalData
+
+    @field_validator("timestamp", mode="before")
+    @classmethod
+    def require_explicit_utc_z(cls, value):
+        if isinstance(value, datetime):
+            if value.tzinfo is None or value.utcoffset() != UTC.utcoffset(value):
+                raise ValueError("timestamp must be timezone-aware UTC")
+            return value
+        if not isinstance(value, str) or not value.endswith("Z"):
+            raise ValueError("timestamp must be ISO 8601 UTC ending in Z")
+        return value
+
+    @field_validator("timestamp")
+    @classmethod
+    def normalize_timestamp_utc(cls, value: datetime) -> datetime:
+        if value.tzinfo is None:
+            raise ValueError("timestamp must be timezone-aware UTC")
+        return value.astimezone(UTC).replace(tzinfo=None)
 
 
 # ---------- Response sub-schemas (from ORM) ----------
@@ -107,6 +133,9 @@ class ReadingResponse(BaseModel):
     id: int
     node_id: int = Field(validation_alias="nodo_id")
     timestamp: datetime = Field(validation_alias="marca_tiempo")
+    timestamp_suspicious: bool = Field(
+        default=False, validation_alias="marca_tiempo_sospechosa"
+    )
     soil: SoilResponse
     irrigation: IrrigationResponse
     environmental: EnvironmentalResponse
@@ -118,6 +147,9 @@ class ReadingResponse(BaseModel):
             id=reading.id,
             nodo_id=reading.nodo_id,
             marca_tiempo=reading.marca_tiempo,
+            marca_tiempo_sospechosa=(
+                getattr(reading, "marca_tiempo_sospechosa", False) is True
+            ),
             soil=SoilResponse.model_validate(reading),
             irrigation=IrrigationResponse.model_validate(reading),
             environmental=EnvironmentalResponse.model_validate(reading),

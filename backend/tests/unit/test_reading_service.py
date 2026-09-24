@@ -43,9 +43,19 @@ class TestCreateReading:
         """Campos no disponibles se almacenan como None."""
         data = ReadingCreate(
             timestamp=datetime(2026, 4, 1, 11, 0, 0, tzinfo=timezone.utc),
-            soil=SoilData(),  # todos None
-            irrigation=IrrigationData(active=False),
-            environmental=EnvironmentalData(),
+            soil=SoilData(
+                conductivity=None, temperature=None, humidity=None, water_potential=None
+            ),
+            irrigation=IrrigationData(
+                active=False, accumulated_liters=None, flow_per_minute=None
+            ),
+            environmental=EnvironmentalData(
+                temperature=None,
+                relative_humidity=None,
+                wind_speed=None,
+                solar_radiation=None,
+                eto=None,
+            ),
         )
         reading = reading_service.create_reading(db, sample_node, data)
         assert reading.suelo_humedad is None

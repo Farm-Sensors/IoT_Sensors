@@ -43,10 +43,10 @@ def _foreign_area(db, crop_type) -> IrrigationArea:
 
 
 def test_node_creates_and_replaces_latest_snapshot(
-    client, node_headers, sample_node, sample_irrigation_area
+    client, legacy_node_headers, sample_node, sample_irrigation_area
 ):
     created_event = _event(sample_irrigation_area.id)
-    created = client.post(PATH, json=created_event, headers=node_headers)
+    created = client.post(PATH, json=created_event, headers=legacy_node_headers)
 
     assert created.status_code == 201
     assert created.headers["X-NDVI-Write-Result"] == "created"
@@ -60,7 +60,7 @@ def test_node_creates_and_replaces_latest_snapshot(
         scene_observed_at="2026-09-15T17:39:09.123456790Z",
         cloud_cover_percent=99.25,
     )
-    replaced = client.post(PATH, json=replacement, headers=node_headers)
+    replaced = client.post(PATH, json=replacement, headers=legacy_node_headers)
 
     assert replaced.status_code == 200
     assert replaced.headers["X-NDVI-Write-Result"] == "replaced"
@@ -68,12 +68,12 @@ def test_node_creates_and_replaces_latest_snapshot(
 
 
 def test_identical_replay_returns_current_snapshot(
-    client, db, node_headers, sample_irrigation_area
+    client, db, legacy_node_headers, sample_irrigation_area
 ):
     event = _event(sample_irrigation_area.id)
-    client.post(PATH, json=event, headers=node_headers)
+    client.post(PATH, json=event, headers=legacy_node_headers)
 
-    replay = client.post(PATH, json=event, headers=node_headers)
+    replay = client.post(PATH, json=event, headers=legacy_node_headers)
 
     assert replay.status_code == 200
     assert replay.headers["X-NDVI-Write-Result"] == "replayed"
@@ -93,11 +93,11 @@ def test_ingestion_rejects_missing_or_wrong_api_key(client, headers, expected_st
     assert response.status_code == expected_status
 
 
-def test_node_cannot_write_another_area(client, db, node_headers, sample_irrigation_area):
+def test_node_cannot_write_another_area(client, db, legacy_node_headers, sample_irrigation_area):
     response = client.post(
         PATH,
         json=_event(sample_irrigation_area.id + 1),
-        headers=node_headers,
+        headers=legacy_node_headers,
     )
 
     assert response.status_code == 403
@@ -105,7 +105,7 @@ def test_node_cannot_write_another_area(client, db, node_headers, sample_irrigat
 
 
 def test_area_race_returns_404_without_commit_or_mutation(
-    client, db, node_headers, sample_irrigation_area, monkeypatch
+    client, db, legacy_node_headers, sample_irrigation_area, monkeypatch
 ):
     def raise_missing_area(*_args):
         raise ndvi_service.NDVIAreaMismatchError("area disappeared")
@@ -116,7 +116,7 @@ def test_area_race_returns_404_without_commit_or_mutation(
     response = client.post(
         PATH,
         json=_event(sample_irrigation_area.id),
-        headers=node_headers,
+        headers=legacy_node_headers,
     )
 
     assert response.status_code == 404
@@ -138,15 +138,15 @@ def test_area_race_returns_404_without_commit_or_mutation(
     ],
 )
 def test_conflicts_do_not_mutate_snapshot(
-    client, db, node_headers, sample_irrigation_area, overrides
+    client, db, legacy_node_headers, sample_irrigation_area, overrides
 ):
     current = _event(sample_irrigation_area.id)
-    client.post(PATH, json=current, headers=node_headers)
+    client.post(PATH, json=current, headers=legacy_node_headers)
 
     conflict = client.post(
         PATH,
         json=_event(sample_irrigation_area.id, **overrides),
-        headers=node_headers,
+        headers=legacy_node_headers,
     )
 
     assert conflict.status_code == 409
@@ -158,13 +158,13 @@ def test_conflicts_do_not_mutate_snapshot(
 
 def test_admin_and_owner_can_read_latest(
     client,
-    node_headers,
+    legacy_node_headers,
     admin_headers,
     client_headers,
     sample_irrigation_area,
 ):
     event = _event(sample_irrigation_area.id)
-    client.post(PATH, json=event, headers=node_headers)
+    client.post(PATH, json=event, headers=legacy_node_headers)
 
     for headers in (admin_headers, client_headers):
         response = client.get(

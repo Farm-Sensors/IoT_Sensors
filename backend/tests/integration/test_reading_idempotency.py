@@ -8,6 +8,8 @@ from sqlalchemy import func, select
 
 from app.models.irrigation_area import IrrigationArea
 from app.models.node import Node
+from app.models.gateway_config import GatewayConfig
+from app.models.gateway_slot import GatewaySlot
 from app.models.reading import Reading
 from app.services import reading as service
 from tests.integration.test_readings_api import SENSOR_PAYLOAD
@@ -90,7 +92,7 @@ def test_missing_or_invalid_event_id_does_not_write(client, db, node_headers, ev
     assert reading_count(db) == 0
 
 
-@pytest.mark.parametrize("api_key,expected", [(None, 422), ("", 401), ("invalid", 401)])
+@pytest.mark.parametrize("api_key,expected", [(None, 401), ("", 401), ("invalid", 401)])
 def test_missing_or_invalid_key_does_not_write(client, db, api_key, expected):
     headers = {"X-Event-ID": str(uuid4())}
     if api_key is not None:
@@ -100,12 +102,12 @@ def test_missing_or_invalid_key_does_not_write(client, db, api_key, expected):
     assert reading_count(db) == 0
 
 
-def test_retry_still_requires_active_node(client, db, node_headers, sample_node):
+def test_retry_still_requires_active_configured_node(client, db, node_headers, sample_node):
     headers = {**node_headers, "X-Event-ID": str(uuid4())}
     assert client.post("/api/v1/readings", json=SENSOR_PAYLOAD, headers=headers).status_code == 201
     sample_node.activo = False
     db.commit()
-    assert client.post("/api/v1/readings", json=SENSOR_PAYLOAD, headers=headers).status_code == 401
+    assert client.post("/api/v1/readings", json=SENSOR_PAYLOAD, headers=headers).status_code == 403
     assert reading_count(db) == 1
 
 
@@ -117,7 +119,9 @@ def test_invalid_body_does_not_reserve_event_id(client, db, node_headers):
     assert client.post("/api/v1/readings", json=SENSOR_PAYLOAD, headers=headers).status_code == 201
 
 
-def test_event_id_is_scoped_to_node(client, db, node_headers, sample_irrigation_area):
+def test_event_id_is_scoped_to_gateway_and_logical_node(
+    client, db, node_headers, sample_gateway, sample_irrigation_area
+):
     area = IrrigationArea(
         predio_id=sample_irrigation_area.predio_id,
         tipo_cultivo_id=sample_irrigation_area.tipo_cultivo_id,
@@ -128,6 +132,32 @@ def test_event_id_is_scoped_to_node(client, db, node_headers, sample_irrigation_
     db.flush()
     node = Node(area_riego_id=area.id, api_key="test-only-second-node", activo=True)
     db.add(node)
+    db.flush()
+    gateway = sample_gateway[0]
+    slot = GatewaySlot(
+        pasarela_id=gateway.id,
+        nodo_id=node.id,
+        area_riego_id=area.id,
+    )
+    db.add(slot)
+    db.flush()
+    config = db.scalar(
+        select(GatewayConfig).where(
+            GatewayConfig.pasarela_id == gateway.id,
+            GatewayConfig.version == gateway.config_version_activa,
+        )
+    )
+    config.snapshot["slots"].append(
+        {
+            "slot_id": slot.id,
+            "logical_node_id": node.id,
+            "irrigation_area_id": area.id,
+            "hardware_profile_code": None,
+        }
+    )
+    from sqlalchemy.orm.attributes import flag_modified
+
+    flag_modified(config, "snapshot")
     db.commit()
     event_id = str(uuid4())
     first = client.post(
@@ -136,7 +166,11 @@ def test_event_id_is_scoped_to_node(client, db, node_headers, sample_irrigation_
     second = client.post(
         "/api/v1/readings",
         json=SENSOR_PAYLOAD,
-        headers={"X-API-Key": node.api_key, "X-Event-ID": event_id},
+        headers={
+            **node_headers,
+            "X-Logical-Node-Id": str(node.id),
+            "X-Event-ID": event_id,
+        },
     )
     assert first.status_code == second.status_code == 201
     assert first.json()["id"] != second.json()["id"]

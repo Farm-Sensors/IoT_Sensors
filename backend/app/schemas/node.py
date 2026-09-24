@@ -34,12 +34,6 @@ class NodeResponse(BaseModel):
     updated_at: datetime = Field(validation_alias="actualizado_en")
 
 
-class NodeCreateResponse(NodeResponse):
-    """Respuesta de creación: única respuesta que expone la api_key."""
-
-    api_key: str
-
-
 class NodeGeoResponse(BaseModel):
     id: int
     irrigation_area_id: int
