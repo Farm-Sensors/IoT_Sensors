@@ -83,6 +83,13 @@ Chain strategy: pending
 - [ ] 3.4 **Binding state machine** — Create `backend/app/services/binding.py` and implement selected-slot candidate submission and same-gateway confirmation with `unbound → pending_initial → confirmed` and `confirmed → pending_reassignment → confirmed`; close prior records atomically and retain capture-time logical-node history.
 - [ ] 3.5 **Binding/config RED tests** — Add `backend/tests/unit/test_gateway_config_service.py`, `backend/tests/unit/test_binding_service.py`, and integration cases in `backend/tests/integration/test_gateways_api.py` for cross-property isolation, stale overlay `200`, exact-match `304`, partial activation, duplicate candidates, foreign confirmation, and reassignment history.
 
+### Issue #30 task 3.2 delivery slices
+
+- Slice A — admin hardware-profile catalog and non-secret seed records. Focused validation: `backend/.venv/bin/pytest tests/integration/test_hardware_profiles_api.py tests/unit/test_gateway_service.py -q` → 10 passed; Ruff and `git diff --check` pass.
+- Slice B — versioned global-template authoring, activation, retirement, and focused API tests.
+- Slice C — copy an active template version into a property working set, resolving existing areas and nodes without creating gateways, areas, nodes, or physical bindings; add isolation and retired-version tests.
+- Task 3.2 remains incomplete until all slices are accepted.
+
 ## Phase 4: Gateway Ingestion and NDVI
 
 - [ ] 4.1 **Gateway authentication boundary** — Modify `backend/app/core/deps.py`, `backend/app/services/node.py`, and `backend/app/schemas/node.py` to add `validate_gateway_credential`, stop generating/returning node keys, and reject legacy node credentials on all machine endpoints without granting JWT/admin access.
