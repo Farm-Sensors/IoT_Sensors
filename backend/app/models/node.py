@@ -11,6 +11,7 @@ from app.models.base import SoftDeleteMixin, TimestampMixin
 
 
 if TYPE_CHECKING:
+    from app.models.gateway_slot import GatewaySlot
     from app.models.alert import Alert
     from app.models.irrigation_area import IrrigationArea
     from app.models.reading import Reading
@@ -25,7 +26,7 @@ class Node(Base, TimestampMixin, SoftDeleteMixin):
         nullable=False,
         unique=True,
     )
-    api_key: Mapped[str] = mapped_column(String(128), nullable=False, unique=True)
+    api_key: Mapped[str | None] = mapped_column(String(128), nullable=True, unique=True)
     numero_serie: Mapped[str | None] = mapped_column(
         String(100), nullable=True, default=None, unique=True
     )
@@ -37,6 +38,10 @@ class Node(Base, TimestampMixin, SoftDeleteMixin):
         DECIMAL(10, 7), nullable=True, default=None
     )
     activo: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
+
+    gateway_slot: Mapped["GatewaySlot | None"] = relationship(
+        "GatewaySlot", back_populates="node", uselist=False
+    )
 
     # Relationships
     irrigation_area: Mapped["IrrigationArea"] = relationship(

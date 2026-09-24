@@ -39,6 +39,9 @@ class Reading(Base):
     event_id: Mapped[str | None] = mapped_column(String(36), nullable=True)
     payload_hash: Mapped[str | None] = mapped_column(String(64), nullable=True)
 
+    pasarela_id: Mapped[int | None] = mapped_column(ForeignKey("pasarelas.id"))
+    marca_tiempo_sospechosa: Mapped[bool] = mapped_column(Boolean, nullable=False, server_default="0")
+
     # Datos Suelo
     suelo_conductividad: Mapped[Decimal | None] = mapped_column(
         DECIMAL(8, 3), nullable=True
@@ -79,6 +82,7 @@ class Reading(Base):
     node: Mapped["Node"] = relationship("Node", back_populates="readings")
 
     __table_args__ = (
+        Index("uq_lecturas_pasarela_nodo_event_id", "pasarela_id", "nodo_id", "event_id", unique=True),
         Index("uq_lecturas_nodo_event_id", "nodo_id", "event_id", unique=True),
         Index("idx_lecturas_nodo_tiempo", "nodo_id", "marca_tiempo"),
         Index("idx_lecturas_tiempo", "marca_tiempo"),
