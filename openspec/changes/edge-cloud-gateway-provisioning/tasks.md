@@ -128,7 +128,7 @@ Chain strategy: One PR per issue
 
 ## Phase 7: Simulator, Manifests, Documentation, and Cutover
 
-- [ ] 7.1 **Producer fixtures** — Modify `simulator/simulator.py`, `simulator/simulator_fast.py`, and `scripts/integration/manifests/h1-*.json` to use gateway secret references, logical-node IDs, and event IDs; reject node-key flags and keep credentials absent from committed fixtures.
+- [x] 7.1 **Producer fixtures** — Modify `simulator/simulator.py`, `simulator/simulator_fast.py`, and `scripts/integration/manifests/h1-*.json` to use gateway secret references, logical-node IDs, and event IDs; reject node-key flags and keep credentials absent from committed fixtures.
 - [ ] 7.2 **Project guidance and baselines** — Modify `openspec/config.yaml`, `openspec/specs/readings/spec.md`, `openspec/specs/security/spec.md`, `openspec/specs/data-model/spec.md`, and `AGENTS.md` so gateway-only ingest, MySQL 8, null semantics, separate NDVI, and Phase 2 boundaries are consistent.
 - [ ] 7.3 **Operational/API documentation** — Modify `docs/api.md`, `docs/security.md`, `docs/stack.md`, `docs/architecture/overview.md`, `backend.md`, `frontend.md`, `decisions.md`, `docs/data-model.md`, and `docs/testing.md`; create `docs/integration/README.md` with the external acceptance matrix, deployment order, rollback, and explicit Agro.io boundary.
 - [ ] 7.4 **Full cutover verification** — Run backend migrations/tests, frontend tests/typecheck, v1/v2 contract checks, and a staging paired smoke test only after Agro.io readiness is confirmed; verify no per-node authentication contradictions remain and record every failed/skipped check before declaring ready.

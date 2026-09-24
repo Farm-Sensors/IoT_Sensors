@@ -1,7 +1,7 @@
 {
-  "manifest_version": "h1/v1",
+  "manifest_version": "h1/v2",
   "scenario_nodes": 8,
-  "contract_ref": "PENDING_CONTRACT_REF",
+  "contract_ref": "contracts/edge-cloud/v2",
   "packet_refs": {
     "ricky_c1": "PENDING_RICKY_C1_REF",
     "ricky_c2": "PENDING_RICKY_C2_REF",
@@ -20,13 +20,46 @@
     "cloud_verify": "PENDING_CLOUD_VERIFY_ADAPTER"
   },
   "nodes": [
-    {"node_code": "H0001", "cloud_area_id": "PENDING_AREA_ID_H0001", "cloud_node_id": "PENDING_NODE_ID_H0001", "api_key_secret_ref": "PENDING_SECRET_REF_H0001"},
-    {"node_code": "H0002", "cloud_area_id": "PENDING_AREA_ID_H0002", "cloud_node_id": "PENDING_NODE_ID_H0002", "api_key_secret_ref": "PENDING_SECRET_REF_H0002"},
-    {"node_code": "H0003", "cloud_area_id": "PENDING_AREA_ID_H0003", "cloud_node_id": "PENDING_NODE_ID_H0003", "api_key_secret_ref": "PENDING_SECRET_REF_H0003"},
-    {"node_code": "H0004", "cloud_area_id": "PENDING_AREA_ID_H0004", "cloud_node_id": "PENDING_NODE_ID_H0004", "api_key_secret_ref": "PENDING_SECRET_REF_H0004"},
-    {"node_code": "H0005", "cloud_area_id": "PENDING_AREA_ID_H0005", "cloud_node_id": "PENDING_NODE_ID_H0005", "api_key_secret_ref": "PENDING_SECRET_REF_H0005"},
-    {"node_code": "H0006", "cloud_area_id": "PENDING_AREA_ID_H0006", "cloud_node_id": "PENDING_NODE_ID_H0006", "api_key_secret_ref": "PENDING_SECRET_REF_H0006"},
-    {"node_code": "H0007", "cloud_area_id": "PENDING_AREA_ID_H0007", "cloud_node_id": "PENDING_NODE_ID_H0007", "api_key_secret_ref": "PENDING_SECRET_REF_H0007"},
-    {"node_code": "H0008", "cloud_area_id": "PENDING_AREA_ID_H0008", "cloud_node_id": "PENDING_NODE_ID_H0008", "api_key_secret_ref": "PENDING_SECRET_REF_H0008"}
-  ]
+    {
+      "node_code": "H0001",
+      "cloud_area_id": "PENDING_AREA_ID_H0001",
+      "logical_node_id": "PENDING_LOGICAL_NODE_ID_H0001"
+    },
+    {
+      "node_code": "H0002",
+      "cloud_area_id": "PENDING_AREA_ID_H0002",
+      "logical_node_id": "PENDING_LOGICAL_NODE_ID_H0002"
+    },
+    {
+      "node_code": "H0003",
+      "cloud_area_id": "PENDING_AREA_ID_H0003",
+      "logical_node_id": "PENDING_LOGICAL_NODE_ID_H0003"
+    },
+    {
+      "node_code": "H0004",
+      "cloud_area_id": "PENDING_AREA_ID_H0004",
+      "logical_node_id": "PENDING_LOGICAL_NODE_ID_H0004"
+    },
+    {
+      "node_code": "H0005",
+      "cloud_area_id": "PENDING_AREA_ID_H0005",
+      "logical_node_id": "PENDING_LOGICAL_NODE_ID_H0005"
+    },
+    {
+      "node_code": "H0006",
+      "cloud_area_id": "PENDING_AREA_ID_H0006",
+      "logical_node_id": "PENDING_LOGICAL_NODE_ID_H0006"
+    },
+    {
+      "node_code": "H0007",
+      "cloud_area_id": "PENDING_AREA_ID_H0007",
+      "logical_node_id": "PENDING_LOGICAL_NODE_ID_H0007"
+    },
+    {
+      "node_code": "H0008",
+      "cloud_area_id": "PENDING_AREA_ID_H0008",
+      "logical_node_id": "PENDING_LOGICAL_NODE_ID_H0008"
+    }
+  ],
+  "gateway_secret_ref": "PENDING_GATEWAY_SECRET_REF"
 }

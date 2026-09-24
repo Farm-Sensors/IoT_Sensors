@@ -23,6 +23,7 @@ import sys
 import time
 import urllib.error
 import urllib.request
+import uuid
 from datetime import datetime, timedelta, timezone
 
 # ---------------------------------------------------------------------------
@@ -39,8 +40,18 @@ def get_config():
     )
     parser.add_argument(
         "--api-key",
-        default=os.getenv("SIMULATOR_API_KEY", ""),
-        help="API Key del nodo IoT (o env SIMULATOR_API_KEY)",
+        default="",
+        help=argparse.SUPPRESS,
+    )
+    parser.add_argument(
+        "--gateway-key",
+        default=os.getenv("SIMULATOR_GATEWAY_KEY", ""),
+        help="Credencial de gateway (o env SIMULATOR_GATEWAY_KEY)",
+    )
+    parser.add_argument(
+        "--logical-node-id",
+        default=os.getenv("SIMULATOR_LOGICAL_NODE_ID", ""),
+        help="ID del nodo lógico autorizado (o env SIMULATOR_LOGICAL_NODE_ID)",
     )
     parser.add_argument(
         "--base-url",
@@ -163,7 +174,7 @@ def generate_reading(timestamp: datetime) -> dict:
 # ---------------------------------------------------------------------------
 
 
-def send_reading(base_url: str, api_key: str, payload: dict) -> bool:
+def send_reading(base_url: str, gateway_key: str, logical_node_id: str, payload: dict) -> bool:
     """POST a reading using urllib. Returns True on success."""
     url = f"{base_url}/readings"
     data = json.dumps(payload).encode("utf-8")
@@ -171,14 +182,16 @@ def send_reading(base_url: str, api_key: str, payload: dict) -> bool:
         url,
         data=data,
         headers={
-            "X-API-Key": api_key,
+            "X-API-Key": gateway_key,
+            "X-Logical-Node-Id": str(logical_node_id),
+            "X-Event-ID": str(uuid.uuid4()),
             "Content-Type": "application/json",
         },
         method="POST",
     )
     try:
         with urllib.request.urlopen(req, timeout=15) as resp:
-            if resp.status == 201:
+            if resp.status in (200, 201):
                 return True
             else:
                 body = resp.read().decode("utf-8", errors="replace")
@@ -213,7 +226,7 @@ def normalize_api_key(raw_key: str) -> tuple[str, bool]:
 # ---------------------------------------------------------------------------
 
 
-def backfill(base_url: str, api_key: str, days: int, dry_run: bool):
+def backfill(base_url: str, gateway_key: str, logical_node_id: str, days: int, dry_run: bool):
     """Generate historical data for the last N days."""
     now = datetime.now(timezone.utc)
     start = now - timedelta(days=days)
@@ -237,7 +250,7 @@ def backfill(base_url: str, api_key: str, days: int, dry_run: bool):
                       f"Temp: {payload['environmental']['temperature']}°C | "
                       f"Riego: {'ON' if payload['irrigation']['active'] else 'OFF'}")
         else:
-            if send_reading(base_url, api_key, payload):
+            if send_reading(base_url, gateway_key, logical_node_id, payload):
                 success += 1
             if total % 144 == 0:
                 print(f"  ✅ Día {total // 144}/{days} ({success}/{total} ok)")
@@ -251,32 +264,28 @@ def backfill(base_url: str, api_key: str, days: int, dry_run: bool):
 
 def main():
     args = get_config()
-    args.api_key, normalized = normalize_api_key(args.api_key)
-
-    if not args.api_key:
-        print("❌ Debes especificar una API Key.")
-        print("   Uso:  python simulator.py --api-key <TU_API_KEY>")
-        print("   O:    export SIMULATOR_API_KEY=<TU_API_KEY>")
-        print("\n   Obtén la API Key creando un nodo desde el panel de Admin.")
+    if args.api_key or os.getenv("SIMULATOR_API_KEY"):
+        print("❌ --api-key ya no es válido. Usa --gateway-key y --logical-node-id.")
+        sys.exit(2)
+    if not args.gateway_key or not args.logical_node_id:
+        print("❌ Debes especificar --gateway-key y --logical-node-id.")
         sys.exit(1)
 
-    if normalized:
-        print("⚠️  API Key normalizada automáticamente. Usando el segmento que inicia con 'ak_'.")
-
-    key_display = (f"{args.api_key[:12]}...{args.api_key[-4:]}"
-                   if len(args.api_key) > 16 else args.api_key)
+    key_display = (f"{args.gateway_key[:12]}...{args.gateway_key[-4:]}"
+                   if len(args.gateway_key) > 16 else args.gateway_key)
 
     print("=" * 60)
     print("  📡 Simulador IoT — Sistema de Riego Agrícola")
     print("=" * 60)
     print(f"  🔗 Server:    {args.base_url}")
-    print(f"  🔑 API Key:   {key_display}")
+    print(f"  🔑 Gateway:   {key_display}")
+    print(f"  🧩 Nodo:      {args.logical_node_id}")
     print(f"  ⏱️  Intervalo: {args.interval}s ({args.interval / 60:.1f} min)")
     print(f"  🧪 Dry-run:   {'Sí' if args.dry_run else 'No'}")
     print("=" * 60)
 
     if args.backfill > 0:
-        backfill(args.base_url, args.api_key, args.backfill, args.dry_run)
+        backfill(args.base_url, args.gateway_key, args.logical_node_id, args.backfill, args.dry_run)
 
     print(f"\n🔄 Loop activo cada {args.interval}s (Ctrl+C para detener)\n")
     sent = 0
@@ -296,7 +305,7 @@ def main():
             if args.dry_run:
                 print(f"  [DRY] {p['timestamp']} | {label}")
             else:
-                if send_reading(args.base_url, args.api_key, p):
+                if send_reading(args.base_url, args.gateway_key, args.logical_node_id, p):
                     sent += 1
                     print(f"  ✅ [{sent}] {p['timestamp']} | {label}")
                 else:
