@@ -7,10 +7,15 @@ class TemplateSlotDefinition(BaseModel):
 
     model_config = ConfigDict(extra="forbid")
 
-    @field_validator("area_name", "hardware_profile_code", mode="before")
+    @field_validator("area_name", mode="before")
     @classmethod
-    def strip_text(cls, value: object) -> object:
+    def strip_area_name(cls, value: object) -> object:
         return value.strip() if isinstance(value, str) else value
+
+    @field_validator("hardware_profile_code", mode="before")
+    @classmethod
+    def normalize_profile_code(cls, value: object) -> object:
+        return value.strip().lower() if isinstance(value, str) else value
 
 
 class GatewayTemplateDefinition(BaseModel):

@@ -12,7 +12,7 @@ from app.schemas.gateway_lifecycle import (
 )
 from app.services import gateway_lifecycle as service
 
-router = APIRouter()
+router = APIRouter(include_in_schema=False)
 
 
 @router.post("/activate", response_model=GatewayCredentialResponse)

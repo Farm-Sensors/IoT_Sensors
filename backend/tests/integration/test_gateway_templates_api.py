@@ -56,3 +56,24 @@ def test_template_rejects_unknown_profiles_duplicate_selectors_and_non_admin(cli
     )
     assert duplicate_selectors.status_code == 422
     assert client.get("/api/v1/gateway-templates").status_code == 401
+
+
+def test_template_normalizes_hardware_profile_codes(client, admin_headers, db):
+    from app.models import HardwareProfile
+
+    db.add(HardwareProfile(codigo="soil-v1", nombre="Soil profile", activo=True))
+    db.commit()
+    response = client.post(
+        "/api/v1/gateway-templates",
+        headers=admin_headers,
+        json={
+            "name": "Normalized profile",
+            "definition": {
+                "slots": [{"area_name": "North Field", "hardware_profile_code": " SOIL-V1 "}]
+            },
+        },
+    )
+    assert response.status_code == 201, response.text
+    assert response.json()["versions"][0]["definition"]["slots"][0][
+        "hardware_profile_code"
+    ] == "soil-v1"
