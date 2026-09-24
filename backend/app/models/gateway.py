@@ -19,6 +19,7 @@ from app.db.session import Base
 from app.models.base import SoftDeleteMixin, TimestampMixin
 
 if TYPE_CHECKING:
+    from app.models.gateway_slot import GatewaySlot
     from app.models.property import Property
 
 
@@ -42,6 +43,9 @@ class Gateway(Base, TimestampMixin, SoftDeleteMixin):
     activado_en: Mapped[datetime | None] = mapped_column(DateTime)
     revocado_en: Mapped[datetime | None] = mapped_column(DateTime)
     property: Mapped["Property"] = relationship(back_populates="gateway")
+    slots: Mapped[list["GatewaySlot"]] = relationship(
+        "GatewaySlot", back_populates="gateway", cascade="all, delete-orphan"
+    )
 
     __table_args__ = (
         UniqueConstraint("id", "predio_id", name="uq_pasarelas_id_predio"),

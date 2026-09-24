@@ -6,6 +6,7 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.db.session import Base
 
 if TYPE_CHECKING:
+    from app.models.gateway import Gateway
     from app.models.node import Node
 
 
@@ -20,6 +21,7 @@ class GatewaySlot(Base):
     version_plantilla_id: Mapped[int | None] = mapped_column(
         ForeignKey("versiones_plantilla_pasarela.id")
     )
+    gateway: Mapped["Gateway"] = relationship("Gateway", back_populates="slots")
     node: Mapped["Node"] = relationship(back_populates="gateway_slot")
     __table_args__ = (
         UniqueConstraint(
