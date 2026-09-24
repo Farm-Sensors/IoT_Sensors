@@ -10,6 +10,7 @@ from app.api.v1.endpoints import (
     crop_cycles,
     crop_types,
     gateways,
+    hardware_profiles,
     irrigation_areas,
     ndvi_snapshots,
     nodes,
@@ -40,6 +41,9 @@ api_v1_router.include_router(
 )
 api_v1_router.include_router(nodes.router, prefix="/nodes", tags=["Nodes"])
 api_v1_router.include_router(gateways.router, prefix="/gateways", tags=["Gateways"])
+api_v1_router.include_router(
+    hardware_profiles.router, prefix="/hardware-profiles", tags=["Hardware Profiles"]
+)
 api_v1_router.include_router(
     notification_preferences.router,
     prefix="/notification-preferences",

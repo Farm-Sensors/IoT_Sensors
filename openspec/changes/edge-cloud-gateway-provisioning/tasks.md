@@ -83,13 +83,11 @@ Chain strategy: pending
 - [ ] 3.4 **Binding state machine** — Create `backend/app/services/binding.py` and implement selected-slot candidate submission and same-gateway confirmation with `unbound → pending_initial → confirmed` and `confirmed → pending_reassignment → confirmed`; close prior records atomically and retain capture-time logical-node history.
 - [ ] 3.5 **Binding/config RED tests** — Add `backend/tests/unit/test_gateway_config_service.py`, `backend/tests/unit/test_binding_service.py`, and integration cases in `backend/tests/integration/test_gateways_api.py` for cross-property isolation, stale overlay `200`, exact-match `304`, partial activation, duplicate candidates, foreign confirmation, and reassignment history.
 
-### Issue #30 task 3.1 delivery slices
+### Issue #30 delivery evidence
 
-- Base: `integration/gateway-v2` at `1232f15753ddd7a248666b81b3390cc01072dd72`; each PR slice remains below 400 changed lines. #30 stays open until all parts of task 3.1 and task 3.2 are accepted.
-- Slice A — property gateway provisioning and redacted admin read/status API: validate active logical nodes under the selected property, prepare only logical slots, reject cross-property and duplicate gateway requests. Local evidence is being run before publishing this slice.
-- Slice B — one-time activation reference and activation response: SHA-256 token storage, 24-hour expiry, atomic consume, generic reference failure response, one-time credential issuance.
-- Slice C — controlled credential rotation/revocation and final lifecycle acceptance coverage.
-- Template/profile management, property working-set copy, and non-secret profile seeds remain task 3.2 and will follow after task 3.1 is accepted.
+- Scope: tasks 3.1 and 3.2 only — property gateway provisioning, one-time activation references, credential lifecycle, hardware-profile catalog, versioned templates, and copying an active template into an existing property's working set.
+- All copied slots resolve existing areas and logical nodes. This issue does not create gateways, areas, nodes, or physical bindings implicitly.
+- Validation is recorded with the consolidated issue PR. Tasks 3.3 and later remain outside issue #30.
 
 ## Phase 4: Gateway Ingestion and NDVI
 
