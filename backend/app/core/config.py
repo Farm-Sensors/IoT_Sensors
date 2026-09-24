@@ -125,6 +125,10 @@ class Settings(BaseSettings):
     AZURE_OPENAI_MAX_TOKENS: int = 900
     AZURE_OPENAI_TIMEOUT_SECONDS: int = 30
 
+    GATEWAY_HEARTBEAT_TARGET_SECONDS: int = 300
+    GATEWAY_STATUS_RECENT_SECONDS: int = 450
+    GATEWAY_STATUS_STALE_SECONDS: int = 900
+
     @field_validator("DEBUG", mode="before")
     @classmethod
     def parse_debug(cls, value: object) -> object:

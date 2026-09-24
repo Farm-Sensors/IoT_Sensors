@@ -116,9 +116,9 @@ Chain strategy: One PR per issue
 
 ## Phase 5: Heartbeat, Status, and Prepared Updates
 
-- [ ] 5.1 **Heartbeat/status implementation** — Add configured thresholds in `backend/app/core/config.py`, heartbeat persistence/service/API, and property status responses with `inactive|never_seen|recently_seen|stale|disconnected` mapped to `pending|connected|delayed|disconnected`; keep status independent from `FreshnessIndicator` and add no scheduler or Phase 2 alert.
-- [ ] 5.2 **Update authorization/confirmation** — Add gateway-scoped persistence, schemas, services, and routes for admin-created prepared image version/digest authorizations, gateway retrieval, and technician-confirmed matching results; store no image bytes, OTA command, JWT, rollback, or rollout state.
-- [ ] 5.3 **Status/update RED tests** — Add integration coverage for heartbeat credential rejection, `204` heartbeat, all threshold boundaries, gateway-connected/node-stale distinction, no active authorization (`204`), mismatched/expired update confirmation, exact retry, and secret/JWT absence.
+- [x] 5.1 **Heartbeat/status implementation** — Add configured thresholds in `backend/app/core/config.py`, heartbeat persistence/service/API, and property status responses with `inactive|never_seen|recently_seen|stale|disconnected` mapped to `pending|connected|delayed|disconnected`; keep status independent from `FreshnessIndicator` and add no scheduler or Phase 2 alert.
+- [x] 5.2 **Update authorization/confirmation** — Add gateway-scoped persistence, schemas, services, and routes for admin-created prepared image version/digest authorizations, gateway retrieval, and technician-confirmed matching results; store no image bytes, OTA command, JWT, rollback, or rollout state.
+- [x] 5.3 **Status/update RED tests** — Add integration coverage for heartbeat credential rejection, `204` heartbeat, all threshold boundaries, gateway-connected/node-stale distinction, no active authorization (`204`), mismatched/expired update confirmation, exact retry, and secret/JWT absence.
 
 ## Phase 6: Frontend Control-Plane and Status UX
 
