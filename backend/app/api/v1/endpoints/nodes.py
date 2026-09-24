@@ -12,7 +12,6 @@ from app.models.user import User
 from app.schemas.base import PaginatedResponse
 from app.schemas.node import (
     NodeCreate,
-    NodeCreateResponse,
     NodeGeoResponse,
     NodeResponse,
     NodeUpdate,
@@ -151,14 +150,14 @@ def list_nodes_geo(
     )
 
 
-@router.post("", response_model=NodeCreateResponse, status_code=201)
+@router.post("", response_model=NodeResponse, status_code=201)
 def create_node(
     data: NodeCreate,
     _admin: User = Depends(require_admin),
     db: Session = Depends(get_db),
 ):
     node = node_service.create_node(db, data)
-    return NodeCreateResponse.model_validate(node)
+    return NodeResponse.model_validate(node)
 
 
 @router.get("/{node_id}", response_model=NodeResponse)

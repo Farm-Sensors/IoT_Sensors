@@ -83,7 +83,6 @@ class Reading(Base):
 
     __table_args__ = (
         Index("uq_lecturas_pasarela_nodo_event_id", "pasarela_id", "nodo_id", "event_id", unique=True),
-        Index("uq_lecturas_nodo_event_id", "nodo_id", "event_id", unique=True),
         Index("idx_lecturas_nodo_tiempo", "nodo_id", "marca_tiempo"),
         Index("idx_lecturas_tiempo", "marca_tiempo"),
     )

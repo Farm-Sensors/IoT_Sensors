@@ -1,4 +1,3 @@
-import secrets
 from datetime import datetime, timezone
 
 from fastapi import HTTPException, status
@@ -12,11 +11,6 @@ from app.models.node import Node
 from app.models.property import Property
 from app.models.reading import Reading
 from app.schemas.node import NodeCreate, NodeUpdate
-
-
-def _generate_api_key() -> str:
-    """Generate a unique API key for a node."""
-    return f"ak_{secrets.token_hex(16)}"
 
 
 def get_node(db: Session, node_id: int) -> Node:
@@ -211,7 +205,6 @@ def create_node(db: Session, data: NodeCreate) -> Node:
 
     node = Node(
         area_riego_id=data.irrigation_area_id,
-        api_key=_generate_api_key(),
         numero_serie=data.serial_number,
         nombre=data.name,
         latitud=data.latitude,

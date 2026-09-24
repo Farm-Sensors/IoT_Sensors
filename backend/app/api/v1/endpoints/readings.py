@@ -9,8 +9,9 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.core.authz import get_client_area_ids, validate_area_access
-from app.core.deps import get_current_user, validate_api_key
+from app.core.deps import get_current_user, validate_gateway_credential
 from app.db.session import get_db
+from app.models.gateway import Gateway
 from app.models.node import Node
 from app.models.user import User
 from app.schemas.base import PaginatedResponse
@@ -40,7 +41,7 @@ def _get_client_node_ids(user: User, db: Session) -> list[int]:
     )
 
 
-# ---------- POST (sensor ingestion via API Key) ----------
+# ---------- POST (gateway-authenticated telemetry ingestion) ----------
 
 
 async def _reading_payload_hash(request: Request) -> str:
@@ -64,11 +65,12 @@ def create_reading(
     response: Response,
     event_id: UUID = Header(..., alias="X-Event-ID"),
     payload_hash: str = Depends(_reading_payload_hash),
-    node: Node = Depends(validate_api_key),
+    logical_node_id: int = Header(..., alias="X-Logical-Node-Id"),
+    gateway: Gateway = Depends(validate_gateway_credential),
     db: Session = Depends(get_db),
 ):
     reading, created = reading_service.ingest_reading(
-        db, node, data, str(event_id), payload_hash
+        db, gateway, logical_node_id, data, str(event_id), payload_hash
     )
     response.status_code = 201 if created else 200
     return ReadingCreateResponse.model_validate(reading)

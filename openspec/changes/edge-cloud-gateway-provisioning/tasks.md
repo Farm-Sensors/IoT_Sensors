@@ -99,11 +99,20 @@ Chain strategy: One PR per issue
 
 ## Phase 4: Gateway Ingestion and NDVI
 
-- [ ] 4.1 **Gateway authentication boundary** — Modify `backend/app/core/deps.py`, `backend/app/services/node.py`, and `backend/app/schemas/node.py` to add `validate_gateway_credential`, stop generating/returning node keys, and reject legacy node credentials on all machine endpoints without granting JWT/admin access.
-- [ ] 4.2 **Telemetry cutover** — Modify `backend/app/api/v1/endpoints/readings.py`, `backend/app/services/reading.py`, `backend/app/models/reading.py`, and `backend/app/schemas/reading.py` to require gateway auth, `X-Logical-Node-Id`, `X-Event-ID`, exact 12-field `extra=forbid` payloads, explicit `Z` timestamps, gateway/logical-node idempotency, canonical capture-time ordering, and suspicious timestamp retention.
-- [ ] 4.3 **Telemetry RED tests** — Extend `backend/tests/conftest.py`, `test_readings_api.py`, `test_reading_idempotency.py`, `test_permissions.py`, and `backend/tests/integration/test_gateway_ingest.py` for 201/200/409 behavior, same event ID on different logical nodes, legacy-key 401, unconfigured/cross-property 403, extra/static/NDVI 422, null versus measured zero, naive timestamp 422, and late-event latest selection.
+- [x] 4.1 **Telemetry gateway authentication boundary** — Use `validate_gateway_credential` for telemetry, stop generating/returning node keys, and reject legacy node credentials on `POST /api/v1/readings` without granting JWT/admin access.
+- [x] 4.2 **Telemetry cutover** — Require gateway auth, `X-Logical-Node-Id`, `X-Event-ID`, exact 12-field `extra=forbid` payloads, explicit `Z` timestamps, gateway/logical-node idempotency, canonical capture-time ordering, and suspicious timestamp retention.
+- [x] 4.3 **Telemetry RED tests** — Cover 201/200/409 behavior, same event ID on different logical nodes, legacy-key 401, unconfigured/cross-property 403, extra/static/NDVI 422, null versus measured zero, naive timestamp 422, and late-event latest selection.
 - [ ] 4.4 **NDVI authorization** — Modify `backend/app/api/v1/endpoints/ndvi_snapshots.py` and `backend/app/services/ndvi.py` to authorize `irrigation_area_id` through the active gateway configuration while retaining separate `ndvi_ultimos` storage and scene-plus-payload replay semantics; reject polygon/history and telemetry-shaped NDVI.
 - [ ] 4.5 **NDVI RED tests** — Update `backend/tests/integration/test_ndvi_api.py` for gateway authorization, unauthorized area, exact replay, conflicting scene replay, invalid provenance/polygon, and telemetry-with-NDVI rejection; verify no `lecturas` NDVI column or export field is introduced.
+
+### Issue #32 delivery evidence
+
+- Scope: tasks 4.1–4.3 only — telemetry authenticates one active gateway and accepts only logical nodes in its current published configuration. Node creation no longer generates or returns direct credentials.
+- Telemetry replay identity is `(gateway, logical node, event ID)`. Migration `e29a04c7b904` replaces the legacy node/event unique index; downgrade refuses when rows cannot fit the previous identity.
+- Requests require exactly the 12 dynamic fields, `null` for unavailable values, and ISO 8601 timestamps ending in `Z`. Late readings retain capture time; readings over one hour in the future or over 30 days old are retained and marked suspicious.
+- NDVI remains a separate operation in issue #33. Do not deploy the telemetry cutover by itself; the coordinated gateway-only release remains deferred until paired integration readiness.
+- Branch: `feat/32`, based on `feat/31` while PR #43 is open; the PR is temporarily stacked so its diff contains only issue #32. Retarget it to `integration/gateway-v2` after #43 merges.
+- Validation: focused gateway/reading suite → 147 passed; full backend suite → 470 passed, 1 skipped (opt-in MySQL migration test); Ruff and `git diff --check` pass. GitHub CI runs the MySQL 8 acceptance test.
 
 ## Phase 5: Heartbeat, Status, and Prepared Updates
 

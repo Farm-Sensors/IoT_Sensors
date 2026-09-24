@@ -17,8 +17,9 @@ from sqlalchemy.exc import IntegrityError, OperationalError
 from app.core.config import settings
 
 PREVIOUS = "d4a8c2e67190"
-PREVIOUS_GATEWAY_HEAD = "e29a02c7b902"
-HEAD = "e29a03c7b903"
+PREVIOUS_GATEWAY_HEAD = "e29a03c7b903"
+PREVIOUS_BEFORE_GATEWAY = "e29a02c7b902"
+HEAD = "e29a04c7b904"
 TABLES = {
     "pasarelas",
     "referencias_activacion",
@@ -91,6 +92,9 @@ def test_mysql_empty_upgrade_legacy_preservation_constraints_and_rollback(monkey
                 )
             )
         command.upgrade(config, "head")
+        indexes = {index["name"] for index in inspect(engine).get_indexes("lecturas")}
+        assert "uq_lecturas_pasarela_nodo_event_id" in indexes
+        assert "uq_lecturas_nodo_event_id" not in indexes
         with engine.begin() as c:
             assert c.execute(
                 text(
@@ -171,12 +175,27 @@ def test_mysql_empty_upgrade_legacy_preservation_constraints_and_rollback(monkey
             reject(reading)
             c.execute(
                 text(
+                    "INSERT INTO lecturas (nodo_id,pasarela_id,marca_tiempo,event_id) "
+                    "VALUES (1,2,'2026-09-23','gateway-event')"
+                )
+            )
+        with pytest.raises(RuntimeError, match="gateway-scoped event identities"):
+            command.downgrade(config, PREVIOUS_GATEWAY_HEAD)
+        with engine.begin() as c:
+            c.execute(
+                text(
+                    "DELETE FROM lecturas WHERE nodo_id=1 AND pasarela_id=2 "
+                    "AND event_id='gateway-event'"
+                )
+            )
+            c.execute(
+                text(
                     "INSERT INTO lecturas (nodo_id,pasarela_id,marca_tiempo,event_id) VALUES (2,1,'2026-09-23','gateway-event')"
                 )
             )
             c.execute(text("UPDATE nodos SET api_key=NULL WHERE id=2"))
         with pytest.raises(RuntimeError, match="gateway binding retry identities"):
-            command.downgrade(config, PREVIOUS_GATEWAY_HEAD)
+            command.downgrade(config, PREVIOUS)
         with engine.begin() as c:
             c.execute(
                 text(
@@ -187,7 +206,7 @@ def test_mysql_empty_upgrade_legacy_preservation_constraints_and_rollback(monkey
         with pytest.raises(RuntimeError, match="gateway reading metadata"):
             command.downgrade(config, PREVIOUS)
         with engine.connect() as c:
-            assert c.scalar(text("SELECT version_num FROM alembic_version")) == PREVIOUS_GATEWAY_HEAD
+            assert c.scalar(text("SELECT version_num FROM alembic_version")) == PREVIOUS_BEFORE_GATEWAY
             assert c.scalar(text("SELECT COUNT(*) FROM lecturas")) == 3
     finally:
         engine.dispose()
