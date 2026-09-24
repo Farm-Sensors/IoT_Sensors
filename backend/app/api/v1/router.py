@@ -11,6 +11,7 @@ from app.api.v1.endpoints import (
     crop_types,
     gateways,
     hardware_profiles,
+    gateway_templates,
     irrigation_areas,
     ndvi_snapshots,
     nodes,
@@ -32,6 +33,9 @@ api_v1_router.include_router(
 )
 api_v1_router.include_router(
     crop_types.router, prefix="/crop-types", tags=["Crop Types"]
+)
+api_v1_router.include_router(
+    gateway_templates.router, prefix="/gateway-templates", tags=["Gateway Templates"]
 )
 api_v1_router.include_router(
     irrigation_areas.router, prefix="/irrigation-areas", tags=["Irrigation Areas"]
