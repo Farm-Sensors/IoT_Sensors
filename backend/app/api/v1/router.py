@@ -12,6 +12,7 @@ from app.api.v1.endpoints import (
     gateways,
     hardware_profiles,
     gateway_templates,
+    gateway_lifecycle,
     irrigation_areas,
     ndvi_snapshots,
     nodes,
