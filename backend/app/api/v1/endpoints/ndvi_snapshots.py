@@ -2,12 +2,13 @@ from fastapi import APIRouter, Depends, HTTPException, Query, Response, status
 from sqlalchemy.orm import Session
 
 from app.core.authz import validate_area_access
-from app.core.deps import get_current_user, validate_api_key
+from app.core.deps import get_current_user, validate_gateway_credential
 from app.db.session import get_db
-from app.models.node import Node
+from app.models.gateway import Gateway
 from app.models.user import User
 from app.schemas.ndvi import NDVIEvent, NDVISnapshotResponse
 from app.services import irrigation_area as area_service
+from app.services import gateway_config as gateway_config_service
 from app.services import ndvi as ndvi_service
 
 router = APIRouter()
@@ -22,22 +23,30 @@ router = APIRouter()
 def ingest_latest_ndvi(
     data: NDVIEvent,
     response: Response,
-    node: Node = Depends(validate_api_key),
+    gateway: Gateway = Depends(validate_gateway_credential),
     db: Session = Depends(get_db),
 ):
-    if node.area_riego_id != data.irrigation_area_id:
+    _, configuration = gateway_config_service.poll_configuration(
+        db, gateway, config_version=None, bindings_revision=None
+    )
+
+    configured_area_ids = {
+        slot.get("irrigation_area_id")
+        for slot in configuration["configuration"].get("slots", [])
+    }
+    if data.irrigation_area_id not in configured_area_ids:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="Node is not assigned to this irrigation area",
+            detail="Irrigation area is outside the gateway's active configuration",
         )
 
-    area = area_service.get_irrigation_area(db, node.area_riego_id)
+    area = area_service.get_irrigation_area(db, data.irrigation_area_id)
     try:
         result = ndvi_service.store_latest_ndvi_with_result(db, area, data)
     except ndvi_service.NDVIAreaMismatchError as exc:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Irrigation area with id {node.area_riego_id} not found",
+            detail=f"Irrigation area with id {data.irrigation_area_id} not found",
         ) from exc
     except ndvi_service.NDVIStaleError as exc:
         raise HTTPException(
