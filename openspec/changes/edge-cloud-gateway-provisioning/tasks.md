@@ -5,16 +5,16 @@
 | Field | Value |
 |-------|-------|
 | Estimated changed lines | 2,000–3,000 authored lines across 9 autonomous slices; generated migrations/fixtures excluded from the estimate |
-| 400-line budget risk | High |
-| Chained PRs recommended | Yes |
-| Suggested split | PR 1 → PR 2 → PR 3 → PR 4 → PR 5 → PR 6 → PR 7 → PR 8 → PR 9 |
-| Delivery strategy | ask-on-risk |
-| Chain strategy | pending — ask before apply if any slice exceeds 400 authored changed lines |
+| 400-line budget risk | Not applicable under the user's issue-based PR policy |
+| Chained PRs recommended | No; one PR per GitHub issue |
+| Suggested split | One PR per issue; issue #30 includes tasks 3.1 and 3.2 |
+| Delivery strategy | One complete PR per issue |
+| Chain strategy | No authored-line cap |
 
-Decision needed before apply: Yes
-Chained PRs recommended: Yes
-Chain strategy: pending
-400-line budget risk: High
+Decision needed before apply: No
+Chained PRs recommended: No
+Chain strategy: One PR per issue
+400-line budget risk: Not applicable
 
 ## Execution Branch and Publication Prerequisite
 
@@ -77,11 +77,17 @@ Chain strategy: pending
 
 ## Phase 3: Activation, Templates, Configuration, and Binding
 
-- [ ] 3.1 **Activation and provisioning services/API** — Create `backend/app/schemas/gateway.py`, `backend/app/services/gateway.py`, and `backend/app/api/v1/endpoints/gateways.py` for admin provisioning, 24-hour opaque single-use references, atomic consumption, controlled credential issuance/rotation/revocation, status, and secret-redacted responses; add router wiring in `backend/app/api/v1/router.py`.
-- [ ] 3.2 **Template and property working-set behavior** — Implement versioned global templates, hardware profiles, active-template copy isolation, existing-area/node resolution, and publishable property working sets without implicit gateway, area, node, or physical binding creation; seed only non-secret hardware profiles in `backend/app/db/seed.py`.
+- [x] 3.1 **Activation and provisioning services/API** — Create `backend/app/schemas/gateway.py`, `backend/app/services/gateway.py`, and `backend/app/api/v1/endpoints/gateways.py` for admin provisioning, 24-hour opaque single-use references, atomic consumption, controlled credential issuance/rotation/revocation, status, and secret-redacted responses; add router wiring in `backend/app/api/v1/router.py`.
+- [x] 3.2 **Template and property working-set behavior** — Implement versioned global templates, hardware profiles, active-template copy isolation, existing-area/node resolution, and publishable property working sets without implicit gateway, area, node, or physical binding creation; seed only non-secret hardware profiles in `backend/app/db/seed.py`.
 - [ ] 3.3 **Configuration service** — Create `backend/app/services/gateway_config.py` and schemas/routes for immutable monotonic publication and conditional poll; return `304` only when both `X-Config-Version` and `X-Bindings-Revision` match, otherwise return the snapshot plus live overlay.
 - [ ] 3.4 **Binding state machine** — Create `backend/app/services/binding.py` and implement selected-slot candidate submission and same-gateway confirmation with `unbound → pending_initial → confirmed` and `confirmed → pending_reassignment → confirmed`; close prior records atomically and retain capture-time logical-node history.
 - [ ] 3.5 **Binding/config RED tests** — Add `backend/tests/unit/test_gateway_config_service.py`, `backend/tests/unit/test_binding_service.py`, and integration cases in `backend/tests/integration/test_gateways_api.py` for cross-property isolation, stale overlay `200`, exact-match `304`, partial activation, duplicate candidates, foreign confirmation, and reassignment history.
+
+### Issue #30 delivery evidence
+
+- Scope: tasks 3.1 and 3.2 only — property gateway provisioning, one-time activation references, credential lifecycle, hardware-profile catalog, versioned templates, and copying an active template into an existing property's working set.
+- All copied slots resolve existing areas and logical nodes. This issue does not create gateways, areas, nodes, or physical bindings implicitly.
+- Validation: 21 focused integration tests passed, Ruff passed, and the full backend suite is running. Tasks 3.3 and later remain outside issue #30.
 
 ## Phase 4: Gateway Ingestion and NDVI
 

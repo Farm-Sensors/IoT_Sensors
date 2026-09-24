@@ -103,13 +103,13 @@ Existing layering is preserved: thin FastAPI endpoints → services → SQLAlche
 
 **Rationale**: The v2 boundary supports auditable central control and local consent without expanding into fleet-management behavior.
 
-### Decision: Additive Alembic; no dual-auth; chained PR slices
+### Decision: Additive Alembic; no dual-auth; one PR per issue
 
-**Choice**: New tables and nullable columns only. `nodos.api_key` becomes nullable and unused for auth. Destructive drop of `api_key` is a later change after the observation window. Delivery uses chained PRs under `ask-on-risk` with a 400 authored-line target.
+**Choice**: New tables and nullable columns only. `nodos.api_key` becomes nullable and unused for auth. Destructive drop of `api_key` is a later change after the observation window. Deliver one complete PR per GitHub issue.
 
 **Alternatives considered**: One PR with full cutover; drop `api_key` in the first migration; feature-flag both auth paths.
 
-**Rationale**: Proposal rollback plan: additive until stable; never both auth paths in one runtime. Review budget is 400 lines.
+**Rationale**: Proposal rollback plan: additive until stable; never both auth paths in one runtime. Issue-level PRs keep each review complete and aligned with issue acceptance.
 
 ## Data Flow
 
@@ -686,7 +686,7 @@ Never enable node keys and gateway keys in one process.
 
 ### Chained PR forecast (for `sdd-tasks`)
 
-Suggested autonomous slices under 400 authored lines:
+Suggested issue-level implementation packages (one PR per GitHub issue):
 
 1. Models + Alembic control plane + unit uniqueness
 2. Activation references + template/admin provision API
@@ -698,7 +698,7 @@ Suggested autonomous slices under 400 authored lines:
 8. Admin/client frontend
 9. Contract v2 + simulator + manifests + docs/`AGENTS.md`/`openspec/config.yaml`
 
-`Decision needed before apply: Yes` if a slice exceeds 400 lines (`ask-on-risk`). `Chained PRs recommended: Yes`. `400-line budget risk: High`.
+`Decision needed before apply: No` for the selected one-PR-per-issue delivery policy. `Chained PRs recommended: No`. No authored-line cap applies.
 
 ## Open Questions
 

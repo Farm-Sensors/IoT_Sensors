@@ -46,11 +46,11 @@ Replace direct per-node ingestion with a cloud-owned gateway model: one authoriz
 
 Keep MySQL 8 and extend the existing FastAPI, SQLAlchemy, and Alembic architecture with additive gateway control-plane tables and portable composite uniqueness. PostgreSQL-specific JSONB, partial-index, and notification features are unnecessary for the required constraints and would add an unrelated stack migration.
 
-Publish a new versioned edge-cloud contract rather than silently changing the current per-node contract. Build the cloud path in coordinated slices: additive domain and activation; versioned configuration and bindings; gateway-authenticated telemetry/idempotency and separate NDVI; heartbeat/status; then contract, simulator, and documentation cutover. Runtime acceptance changes completely to gateway credentials—legacy node credentials are not accepted concurrently.
+Publish a new versioned edge-cloud contract rather than silently changing the current per-node contract. Build the cloud path as issue-sized deliverables: additive domain and activation; versioned configuration and bindings; gateway-authenticated telemetry/idempotency and separate NDVI; heartbeat/status; then contract, simulator, and documentation cutover. Runtime acceptance changes completely to gateway credentials—legacy node credentials are not accepted concurrently.
 
 Cloud configuration is authoritative. Global templates are versioned admin assets that copy expected existing areas, pending node slots, and hardware-profile links into an independent property working set before that property configuration is published. Ingest resolves the property and logical node from the authenticated gateway and active configuration, validates the event against that scope, and stores history under the logical area node using edge capture time. Physical reassignment creates binding history instead of rewriting prior readings. Agro.io consumes the published contract and performs the paired local workflows without changes from this repository.
 
-Implementation must use chained, independently reviewable PR slices with a target of at most 400 authored changed lines per slice. Each slice requires its own verification and rollback boundary; an oversized apply requires an explicit size exception under the `ask-on-risk` delivery strategy.
+Implementation is published as one complete PR per GitHub issue. Verify the entire issue scope and preserve the change-level rollback boundary; there is no authored-line limit.
 
 ## Affected Areas
 
@@ -77,11 +77,11 @@ Implementation must use chained, independently reviewable PR slices with a targe
 | Partial activation or reassignment violates one-area/one-logical-node invariants | Medium | Separate logical slots from physical binding history, validate active-binding uniqueness, and require field confirmation before reassignment. |
 | Late or anomalous timestamps corrupt latest/freshness behavior | Medium | Preserve edge capture time, mark suspicious values explicitly, and compute latest from accepted capture timestamps rather than arrival order. |
 | Contract, specs, simulator, and operational docs drift during the cutover | High | Treat consistency surfaces as acceptance criteria and complete the final documentation/fixture slice before declaring the change ready. |
-| The change exceeds reviewer capacity | High | Use chained PRs with autonomous scopes and a 400-authored-line target; do not start an oversized apply without explicit approval. |
+| The change exceeds reviewer capacity | High | Keep one PR per issue and provide complete scope, focused tests, and full validation evidence for review. |
 
 ## Rollback Plan
 
-Use additive migrations and retain legacy node credential data through a defined observation window, but never enable both authentication paths in the same runtime. Before contract cutover, rollback by disabling the new gateway routes and reverting the corresponding additive slice. After cutover, stop gateway traffic, redeploy the last compatible cloud release, and coordinate Agro.io rollback to its matching contract; keep additive gateway tables intact if they contain operational history. Reverse or remove new tables only when they are empty and an Alembic downgrade has been validated. Defer destructive removal of legacy columns until the gateway release is stable and rollback is no longer required.
+Use additive migrations and retain legacy node credential data through a defined observation window, but never enable both authentication paths in the same runtime. Before contract cutover, rollback by disabling the new gateway routes and reverting the corresponding issue-level change. After cutover, stop gateway traffic, redeploy the last compatible cloud release, and coordinate Agro.io rollback to its matching contract; keep additive gateway tables intact if they contain operational history. Reverse or remove new tables only when they are empty and an Alembic downgrade has been validated. Defer destructive removal of legacy columns until the gateway release is stable and rollback is no longer required.
 
 ## Dependencies
 
@@ -103,4 +103,4 @@ Use additive migrations and retain legacy node credential data through a defined
 - [ ] Gateway status and logical-node reading freshness are exposed as distinct concepts, with canonical cloud status mapped to edge `pending`, `connected`, `delayed`, or `disconnected`, without enabling active inactivity alerts.
 - [ ] MySQL 8 migrations upgrade a clean database successfully, relevant backend/frontend/contract tests pass, and no PostgreSQL dependency or dialect-specific design is introduced.
 - [ ] Contracts, OpenSpec baselines, simulator/manifests, `AGENTS.md`, project config, and API/security/architecture/stack/integration documentation contain no per-node-ingest contradictions.
-- [ ] Implementation is delivered through independently verifiable chained PR slices targeting no more than 400 authored changed lines each, unless the user grants an explicit size exception.
+- [x] Implementation is delivered in one complete PR per GitHub issue, with validation across the full issue scope.
