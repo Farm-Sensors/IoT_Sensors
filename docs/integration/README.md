@@ -24,3 +24,5 @@ The accepted v2 contract is the first gate. Final runtime cutover additionally r
 There is **no dual-auth window**: after the coordinated switch, legacy node keys must never authenticate. Retained legacy columns are for rollback observation only. Rollback means stopping traffic and redeploying the last compatible cloud/producer pair, never enabling both authentication paths in one process. Activation, telemetry and configuration publication are not performed by #28.
 
 OTA delivery, automated rollback, gradual rollout, phone helpers, AI, schedulers, active alerts and notifications remain out of scope. NDVI remains latest-point-only and separate from telemetry.
+
+The cutover/rollback steps live in [`gateway-v2-cutover-runbook.md`](gateway-v2-cutover-runbook.md).

@@ -7,7 +7,7 @@
 | Actor | Mecanismo | Detalle |
 |---|---|---|
 | **Usuarios web** (Admin/Cliente) | JWT | Login devuelve `access_token` (30 min) + `refresh_token` (7 días, persistido en BD). Frontend envía `Authorization: Bearer <token>`; ante 401 renueva con `POST /auth/refresh` |
-| **Nodos IoT** | API Key fija | Generada al registrar el nodo; se envía en `X-API-Key`. La key **solo se devuelve en la respuesta de creación** (nunca en listados/geo) |
+| **Gateway Agro.io** | Credencial hasheada | Una por predio; `X-API-Key` + identidad de nodo lógico. Las keys de nodo se conservan solo para observación de rollback y no autentican |
 
 ## Roles y ownership (multi-tenant)
 

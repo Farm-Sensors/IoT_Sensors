@@ -12,7 +12,7 @@ El backend FastAPI (puerto 5050) es el único punto de contacto con MySQL 8 (pue
 
 | Actor | Qué hace | Autenticación | Endpoints que usa |
 |-------|---------|---------------|-------------------|
-| **Simulador** (Módulo de Control) | Envía lecturas cada 10 min | Header `X-API-Key` | Solo `POST /api/v1/readings` |
+| **Gateway Agro.io / simulador** | Envía lecturas cada 10 min | `X-API-Key` de gateway + `X-Logical-Node-Id` + `X-Event-ID` | `POST /api/v1/readings`, heartbeat, config poll |
 | **Frontend — Admin** | Gestiona toda la plataforma + ve todos los dashboards | `Authorization: Bearer <JWT>` | Todos los endpoints |
 | **Frontend — Cliente** | Ve dashboard, histórico y exporta de SUS predios/áreas | `Authorization: Bearer <JWT>` | GET de properties, irrigation-areas, crop-cycles, nodes, readings + export |
 
@@ -24,7 +24,7 @@ Con el backend corriendo: Swagger UI en `/api/v1/docs`, ReDoc en `/api/v1/redoc`
 
 ## 3. Autenticación
 
-El sistema tiene **dos mecanismos separados**: JWT para usuarios web y API Key para nodos IoT.
+El sistema tiene **dos mecanismos separados**: JWT para usuarios web y credencial de **gateway** para máquinas. Las API keys por nodo ya no autentican.
 
 ### 3.1. JWT — Usuarios web (Admin y Cliente)
 
