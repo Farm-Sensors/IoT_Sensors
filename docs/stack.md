@@ -11,6 +11,7 @@
 | **Despliegue** | Docker + Docker Compose / Dokploy / Traefik (SSL automático) / Nginx interno (frontend) |
 | **Servidor** | VPS Linux ("Servidor Grogu") |
 | **CI** | GitHub Actions (ruff + pytest / typecheck + vitest + build) |
+| **Contrato edge** | `contracts/edge-cloud/v2/` (IoT canónico; Agro.io vende copia) |
 
 ## Versiones clave
 

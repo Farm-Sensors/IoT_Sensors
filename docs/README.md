@@ -1,10 +1,12 @@
 # Documentación — Guía General
 
-Este repositorio organiza la información en **tres capas** con responsabilidades estrictas:
+**Cómo funciona el sistema hoy:** empieza por [`docs/system.md`](system.md). Ese archivo es la fuente de verdad del flujo gateway v2 (Agro.io → IoT_Sensors). Si un SRS o diagrama viejo contradice `system.md`, gana `system.md`.
+
+El resto se organiza en **tres capas**:
 
 ```
 docs/product/     El "por qué" — contexto de negocio, visión, problema, requerimientos de alto nivel
-openspec/specs/   El "qué" — comportamiento del sistema (requirements + scenarios por capacidad)
+openspec/specs/   El "qué" detallado — requirements + scenarios (más el cambio gateway en openspec/changes/)
 docs/             El "cómo" — referencia técnica (arquitectura, stack, API, datos, seguridad, deploy)
 ```
 
@@ -37,6 +39,7 @@ Comportamiento del sistema, por capacidad. Todo cambio de comportamiento parte d
 
 | Archivo | Contenido |
 |---|---|
+| `system.md` | **Fuente de verdad:** flujo actual edge-cloud, instalación, auth, datos |
 | `architecture/overview.md` | Diagramas de infraestructura, flujos de datos, autenticación |
 | `architecture/frontend.md` | Stack, estructura, módulos y navegación del frontend |
 | `architecture/backend.md` | Estructura del backend, convenciones, capas, jobs |
@@ -53,9 +56,10 @@ Comportamiento del sistema, por capacidad. Todo cambio de comportamiento parte d
 
 ## Cómo usarlo (IA o desarrollador nuevo)
 
-1. **Entender el producto**: `docs/product/README.md` → `vision.md` → `problem-context.md`.
-2. **Entender el comportamiento**: `openspec/specs/` (requisitos + escenarios por capacidad).
-3. **Entender la construcción**: `docs/stack.md` → `docs/architecture/overview.md` → `docs/architecture/backend.md` o `frontend.md`.
+1. **Cómo funciona ahora**: `docs/system.md`.
+2. **Entender el producto**: `docs/product/README.md` → `vision.md` → `problem-context.md`.
+3. **Entender el comportamiento detallado**: `openspec/changes/edge-cloud-gateway-provisioning/` y `openspec/specs/`.
+4. **Entender la construcción**: `docs/stack.md` → `docs/architecture/overview.md` → `docs/architecture/backend.md` o `frontend.md`.
 4. **Antes de tocar un endpoint o una tabla**: `docs/api.md` + `openapi.yaml`, y `docs/data-model.md`.
 5. **Para cambiar el comportamiento**: crear un cambio OpenSpec (los specs son la fuente de verdad del "qué").
 6. **El contrato técnico**: `openapi.yaml` se regenera con `make openapi-sync` desde el backend activo.

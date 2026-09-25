@@ -6,7 +6,7 @@ Actúa como un arquitecto de software y desarrollador Senior. Estoy construyendo
 
 ### Approved integration-week override
 
-The latest **point-sampled NDVI** result from Agro.io is approved as a bounded integration addition. It MUST use the separate `contracts/edge-cloud/v1/ndvi.schema.json` event and MUST NOT become a thirteenth telemetry field. Polygon/history NDVI remains deferred. All other Phase 2 restrictions in this file remain unchanged. Start integration work at `docs/integration/README.md`.
+The latest **point-sampled NDVI** result from Agro.io is approved as a bounded integration addition. It MUST use the separate `contracts/edge-cloud/v2/ndvi.schema.json` event and MUST NOT become a thirteenth telemetry field. Polygon/history NDVI remains deferred. All other Phase 2 restrictions in this file remain unchanged. How the system works: `docs/system.md`. Integration: `docs/integration/README.md`.
 
 ### Integration agent
 
