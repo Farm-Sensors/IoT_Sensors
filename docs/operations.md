@@ -45,18 +45,15 @@ python3 simulator_fast.py --api-keys-file ./keys_partner_local.txt --mode demo-a
 
 ## 2. Simulador IoT
 
-Requiere una API Key de nodo (ver [`docs/test-data.md`](test-data.md)):
+Requiere credencial de gateway y nodo lógico (ver [`simulator/README.md`](../simulator/README.md)):
 
 ```bash
 cd simulator
-# Uso básico (una lectura cada 10 minutos, comportamiento real):
-python3 simulator.py --api-key ak_partner_granja_hogar_001
+python3 simulator.py --gateway-key gk_... --logical-node-id 12
 
-# Pruebas rápidas — cada 30 segundos:
-python3 simulator.py --api-key ak_partner_granja_hogar_001 --interval 30
+python3 simulator.py --gateway-key gk_... --logical-node-id 12 --interval 30
 
-# Historial de los últimos 7 días de golpe:
-python3 simulator.py --api-key ak_partner_granja_hogar_001 --backfill 7
+python3 simulator.py --gateway-key gk_... --logical-node-id 12 --backfill 7
 ```
 
 La key del ejemplo corresponde al **Nodo Granja Hogar**, vinculado a `alan2203mx@gmail.com`.

@@ -160,7 +160,7 @@ El simulador/edge envía un POST a `/api/v1/readings` con `X-API-Key` (gateway),
   - **Histórico con filtros:** Consulta datos filtrando por rango libre de fechas, presets rápidos (semana, mes, año) y por ciclo de cultivo (inicio/fin definido por el Admin).
   - **Exportar datos:** Descarga los datos filtrados.
 
-- **Nodo IoT (Actor de Sistema):** El simulador que transmite las lecturas al servidor mediante HTTP POST cada 10 minutos. Envía un payload JSON unificado con las **3 categorías dinámicas** (Suelo, Riego, Ambiental — ver sección 2.1). Se autentica con una API Key fija en el header `X-API-Key`. Campos no disponibles van como `0` o `null`.
+- **Nodo IoT (Actor de Sistema):** El simulador/edge transmite lecturas cada 10 minutos. Se autentica con la credencial de **gateway** del predio (`X-API-Key`) más `X-Logical-Node-Id` y `X-Event-ID`. Campos no disponibles van como `0` o `null`.
 
 4. ROADMAP Y ESCALABILIDAD (FASE 2 - NO IMPLEMENTAR AÚN)
 La arquitectura de la base de datos y la API del MVP deben diseñarse preparando el terreno para la futura integración de funcionalidades avanzadas. A continuación se documenta todo lo planificado para la Fase 2, organizado por módulo:
@@ -218,6 +218,6 @@ La arquitectura de la base de datos y la API del MVP deben diseñarse preparando
 - El catálogo de cultivos es **administrable** por el Admin (CRUD). Valores iniciales de seed: **Nogal, Alfalfa, Manzana, Maíz, Chile, Algodón**.
 - Toda lectura debe llevar `timestamp` (ISO 8601 UTC). Todo endpoint de consulta debe soportar filtros por rango de fechas (`start_date`, `end_date`).
 - Contempla el indicador de frescura de datos (último timestamp + tiempo transcurrido) en diseños de dashboard.
-- **Auth:** JWT para usuarios, API Key (`X-API-Key` header) para nodos IoT.
+- **Auth:** JWT para usuarios, API Key (`X-API-Key` header) para gateways Agro.io.
 - **API:** URLs en inglés, plural, versionadas (`/api/v1/...`). Paginación en listados. Exportación en CSV/Excel/PDF.
 - **Ciclos de cultivo:** Múltiples por área (historial). Solo 1 activo a la vez.

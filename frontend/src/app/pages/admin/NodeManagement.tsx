@@ -254,7 +254,6 @@ export function NodeManagement() {
               <tr className="border-b border-[var(--border-strong)]">
                 <th scope="col" className="text-left py-3 px-4 text-xs font-semibold uppercase tracking-[0.08em] text-[var(--text-subtle)]">Nombre</th>
                 <th scope="col" className="text-left py-3 px-4 text-xs font-semibold uppercase tracking-[0.08em] text-[var(--text-subtle)]">Serie</th>
-                <th scope="col" className="text-left py-3 px-4 text-xs font-semibold uppercase tracking-[0.08em] text-[var(--text-subtle)]">API Key</th>
                 <th scope="col" className="text-left py-3 px-4 text-xs font-semibold uppercase tracking-[0.08em] text-[var(--text-subtle)]">Área Vinculada</th>
                 <th scope="col" className="text-left py-3 px-4 text-xs font-semibold uppercase tracking-[0.08em] text-[var(--text-subtle)]">GPS</th>
                 <th scope="col" className="text-left py-3 px-4 text-xs font-semibold uppercase tracking-[0.08em] text-[var(--text-subtle)]">Estado</th>
@@ -271,11 +270,6 @@ export function NodeManagement() {
                   </td>
                   <td className="py-4 px-4 text-sm text-[var(--text-muted)] font-mono">
                     {node.serial_number || '-'}
-                  </td>
-                  <td className="py-4 px-4">
-                    <span className="text-sm text-[var(--text-muted)]">
-                      Se muestra al crear
-                    </span>
                   </td>
                   <td className="py-4 px-4 text-sm text-[var(--text-main)]">
                     {getAreaName(node.irrigation_area_id)}

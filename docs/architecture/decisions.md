@@ -48,7 +48,7 @@ Formato ligero: contexto → decisión → consecuencias. Las decisiones de **pr
 
 - **Estado:** Aceptado (con pendientes conocidos).
 - **Contexto:** Dos tipos de actores: usuarios web y nodos IoT.
-- **Decisión:** Usuarios: JWT access (30 min) + refresh token persistido en BD (revocado en logout/cambio de contraseña), roles `admin`/`cliente` con ownership server-side. Nodos: API Key fija (`X-API-Key`) generada al registrar; la key solo se devuelve en la creación.
+- **Decisión:** Usuarios: JWT access (30 min) + refresh token persistido en BD (revocado en logout/cambio de contraseña), roles `admin`/`cliente` con ownership server-side. Máquinas: credencial de gateway por predio (`X-API-Key` hasheada) + `X-Logical-Node-Id`. Las API keys por nodo quedan obsoletas para autenticación.
 - **Consecuencias:** Pendientes conocidos: el refresh no tiene rotación ni detección de reuso; las API keys se almacenan en texto plano en BD (hash pendiente).
 
 ## ADR-008 — Mapas con MapLibre GL + OpenFreeMap

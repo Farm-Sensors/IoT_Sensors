@@ -227,7 +227,7 @@ sequenceDiagram
     N-->>U: 200 OK
 ```
 
-### 3.3 Nodos IoT — API Key
+### 3.3 Gateways Agro.io — credencial de predio
 
 ```mermaid
 sequenceDiagram
@@ -236,18 +236,18 @@ sequenceDiagram
     participant B as 🐍 Backend
     participant DB as 🗄️ MySQL
 
-    Note right of S: API Key fija asignada<br/>al registrar el nodo
+    Note right of S: Credencial de gateway del predio<br/>+ X-Logical-Node-Id
 
-    S->>N: POST /api/v1/readings<br/>Header: X-API-Key: abc123...
+    S->>N: POST /api/v1/readings<br/>X-API-Key + X-Logical-Node-Id + X-Event-ID
     N->>B: Proxy pass → :5050
-    B->>DB: SELECT nodo WHERE api_key = ?
+    B->>DB: Validar hash de gateway y nodo autorizado
 
-    alt API Key válida
-        B->>B: Asociar lectura al nodo encontrado
+    alt Credencial válida
+        B->>B: Asociar lectura al nodo lógico
         B->>DB: INSERT lectura + datos categorías
         B-->>N: 201 Created
         N-->>S: 201 Created
-    else API Key inválida / no existe
+    else Credencial inválida
         B-->>N: 401 Unauthorized
         N-->>S: 401 Unauthorized
     end
@@ -255,12 +255,12 @@ sequenceDiagram
 
 **Comparativa rápida:**
 
-| Aspecto | Usuarios (JWT) | Nodos IoT (API Key) |
+| Aspecto | Usuarios (JWT) | Gateway Agro.io |
 |---------|---------------|---------------------|
-| Header | `Authorization: Bearer <token>` | `X-API-Key: <key>` |
-| Expiración | Access token expira (minutos), refresh renueva | No expira (key fija) |
-| Flujo | Login → obtener tokens → enviar Bearer | Key asignada al registro → enviar siempre |
-| Permisos | CRUD completo según rol (Admin/Cliente) | Solo POST `/api/v1/readings` (escritura) |
+| Header | `Authorization: Bearer <token>` | `X-API-Key` (gateway) + `X-Logical-Node-Id` |
+| Expiración | Access token expira (minutos), refresh renueva | Rotación/revocación de gateway |
+| Flujo | Login → obtener tokens → enviar Bearer | Activación → credencial de predio |
+| Permisos | CRUD completo según rol (Admin/Cliente) | Lecturas, heartbeat, config, NDVI |
 
 ---
 

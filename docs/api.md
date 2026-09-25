@@ -45,16 +45,18 @@ Content-Type: application/json
 
 **Permisos por rol:** Admin puede CRUD de todo; Cliente solo lectura (GET) de recursos de su propia cadena Cliente → Predio → Área — si intenta ver datos ajenos recibe **403 Forbidden**. Users/Clients CRUD y auditoría son Admin only.
 
-### 3.2. API Key — Nodos IoT (Simulador)
+### 3.2. Credencial de gateway (Agro.io / simulador)
 
-Cada nodo tiene una **API Key fija** (string único, generada al registrar el nodo). El simulador la envía en cada POST de lectura:
+Cada predio tiene **una credencial de gateway**. El edge/simulador la envía junto con el nodo lógico:
 
 ```http
 POST /api/v1/readings
-X-API-Key: ak_n01_a1b2c3d4e5f6
+X-API-Key: gk_...
+X-Logical-Node-Id: 12
+X-Event-ID: <uuid>
 ```
 
-Validación: si falta el header → **422** (parámetro requerido); si la key no existe o el nodo está inactivo/eliminado → **401**. La API Key **solo sirve para `POST /api/v1/readings`** — no permite consultar datos.
+Validación: credencial ausente o inválida → **401**. Nodo lógico no autorizado para ese gateway → **403**. Las API keys por nodo ya no autentican.
 
 ## 4. Convenciones Generales
 
@@ -129,7 +131,7 @@ Contrato detallado (payloads, schemas, errores, ejemplos): **`openapi.yaml`** (a
 | Crop Cycles | DELETE | `/api/v1/crop-cycles/{cycle_id}` | Eliminar — Admin |
 | Nodes | GET | `/api/v1/nodes` | Listar (paginado, filtro `irrigation_area_id`) |
 | Nodes | GET | `/api/v1/nodes/geo` | Capa geoespacial (frescura; filtros client/property/area) |
-| Nodes | POST | `/api/v1/nodes` | Registrar nodo (genera API Key) — Admin |
+| Nodes | POST | `/api/v1/nodes` | Registrar nodo lógico (sin credencial de ingest) — Admin |
 | Nodes | GET | `/api/v1/nodes/{node_id}` | Detalle |
 | Nodes | PUT | `/api/v1/nodes/{node_id}` | Actualizar — Admin |
 | Nodes | DELETE | `/api/v1/nodes/{node_id}` | Eliminar — Admin |

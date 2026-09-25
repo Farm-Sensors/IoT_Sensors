@@ -20,7 +20,7 @@
 | R7 | El Cliente solo accede a sus predios/áreas; el Admin gestiona todo (multi-tenant) | `openspec/specs/security` |
 | R8 | Catálogo administrable de cultivos (seed: Nogal, Alfalfa, Manzana, Maíz, Chile, Algodón) | `openspec/specs/data-model` |
 | R9 | Navegación jerárquica: Cliente → Predio → Área → datos | `docs/architecture/frontend.md` |
-| R10 | Los nodos se autentican con API Key fija; los usuarios con JWT | `openspec/specs/security` |
+| R10 | Los gateways se autentican con credencial de predio; los usuarios con JWT | `openspec/specs/security` |
 
 ## Requerimientos no funcionales de alto nivel
 
