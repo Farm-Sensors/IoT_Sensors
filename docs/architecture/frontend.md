@@ -31,7 +31,7 @@ src/app/
 ├── hooks/            # Custom hooks (e.g., useIsMobile.ts, usePageVisibility.ts)
 ├── layouts/          # Envoltorios de interfaz (RootLayout, AdminLayout, ClientLayout)
 ├── pages/            # Vistas enrutadas
-│   ├── admin/        # CRUD para el admin (Clientes, Predios, Nodos, Cultivos, etc.)
+│   ├── admin/        # CRUD admin + Gateways (/admin/gateways)
 │   ├── auth/         # Autenticación y recuperación (Login/Forgot/Reset)
 │   └── client/       # Dashboards y datos de agricultores (ClientDashboard, Histórico, etc.)
 │   └── shared/       # Pantallas compartidas entre roles (AlertsCenterPage)

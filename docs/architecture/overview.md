@@ -25,7 +25,7 @@ Este diagrama muestra **todos los componentes del sistema y cómo se comunican e
 graph TD
     subgraph INTERNET["🌐 Internet"]
         Browser["🖥️ Browser<br/>(Admin / Cliente)"]
-        Simulator["📡 Simulador<br/>(PC Local — Script Python)"]
+        Simulator["📡 Agro.io / simulador<br/>(Raspberry o PC)"]
     end
 
     subgraph VPS["🐸 VPS Linux — Servidor Grogu<br/>Docker Compose"]
@@ -49,7 +49,7 @@ graph TD
 
     %% --- Conexiones externas → Nginx ---
     Browser -->|"HTTPS :443<br/>JWT Bearer token"| Nginx
-    Simulator -->|"HTTPS POST<br/>/api/v1/readings<br/>Header: X-API-Key"| Nginx
+    Simulator -->|"HTTPS POST /api/v1/readings<br/>X-API-Key gateway + X-Logical-Node-Id"| Nginx
 
     %% --- Nginx rutea ---
     Nginx -->|"/ → static files"| Frontend
