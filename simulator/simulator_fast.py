@@ -20,6 +20,7 @@ import sys
 import time
 import urllib.error
 import urllib.request
+import uuid
 from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
 from urllib.parse import urlencode
@@ -66,6 +67,7 @@ class NodeState:
 @dataclass
 class NodeContext:
     api_key: str
+    logical_node_id: str
     label: str
     state: NodeState
     sent: int = 0
@@ -78,7 +80,18 @@ def get_config():
         "--api-key",
         action="append",
         default=[],
-        help="API Key del nodo IoT (puede repetirse)",
+        help=argparse.SUPPRESS,
+    )
+    parser.add_argument(
+        "--gateway-key",
+        default=os.getenv("SIMULATOR_GATEWAY_KEY", ""),
+        help="Credencial de gateway (o env SIMULATOR_GATEWAY_KEY)",
+    )
+    parser.add_argument(
+        "--logical-node-id",
+        action="append",
+        default=[],
+        help="ID de nodo lógico (repetible; o env SIMULATOR_LOGICAL_NODE_ID)",
     )
     parser.add_argument(
         "--api-keys-file",
@@ -484,23 +497,27 @@ def _generate_reading(
     return payload, probable_breaches
 
 
-def send_reading(base_url: str, api_key: str, payload: dict) -> bool:
+def send_reading(base_url: str, api_key: str, payload: dict, logical_node_id: str | None = None) -> bool:
     url = f"{base_url}/readings"
     data = json.dumps(payload).encode("utf-8")
+    headers = {
+        "X-API-Key": api_key,
+        "Content-Type": "application/json",
+        "Accept": "application/json, text/plain, */*",
+        "User-Agent": DEFAULT_HTTP_USER_AGENT,
+        "X-Event-ID": str(uuid.uuid4()),
+    }
+    if logical_node_id:
+        headers["X-Logical-Node-Id"] = str(logical_node_id)
     req = urllib.request.Request(
         url,
         data=data,
-        headers={
-            "X-API-Key": api_key,
-            "Content-Type": "application/json",
-            "Accept": "application/json, text/plain, */*",
-            "User-Agent": DEFAULT_HTTP_USER_AGENT,
-        },
+        headers=headers,
         method="POST",
     )
     try:
         with urllib.request.urlopen(req, timeout=15) as resp:
-            if resp.status == 201:
+            if resp.status in (200, 201):
                 return True
             body = resp.read().decode("utf-8", errors="replace")
             print(f"HTTP {resp.status}: {body[:200]}")
@@ -781,7 +798,7 @@ def backfill(
                         probable_breaches=probable,
                     )
             else:
-                if send_reading(base_url, node.api_key, payload):
+                if send_reading(base_url, node.api_key, payload, node.logical_node_id):
                     ok += 1
                 if total % 144 == 0:
                     print(f"  Dia {total // 144}/{days} ({ok}/{total} ok)")
@@ -793,27 +810,29 @@ def backfill(
 def main():
     args = get_config()
     apply_quick_demo_defaults(args)
-    api_keys, normalized_count = load_api_keys(args)
-
-    if not api_keys:
-        print("Debes indicar al menos una API Key.")
-        print("Ejemplos:")
-        print("  python simulator_fast.py --api-key <KEY>")
-        print("  python simulator_fast.py --api-key <KEY1> --api-key <KEY2>")
-        print("  python simulator_fast.py --api-keys-file ./keys.txt")
-        print("Env vars soportadas: SIMULATOR_API_KEY, SIMULATOR_API_KEYS")
+    if args.api_key or args.api_keys_file or os.getenv("SIMULATOR_API_KEY") or os.getenv("SIMULATOR_API_KEYS"):
+        print("--api-key ya no es válido. Usa --gateway-key y --logical-node-id.")
+        sys.exit(2)
+    logical_ids = list(args.logical_node_id)
+    env_logical = os.getenv("SIMULATOR_LOGICAL_NODE_ID")
+    if env_logical and not logical_ids:
+        logical_ids = [env_logical]
+    if not args.gateway_key or not logical_ids:
+        print("Debes indicar --gateway-key y al menos un --logical-node-id.")
         sys.exit(1)
 
-    if normalized_count > 0:
-        print(
-            f"Se normalizaron {normalized_count} API keys automaticamente (segmento desde 'ak_')."
-        )
-
     nodes: list[NodeContext] = []
-    for index, key in enumerate(api_keys):
+    for index, logical_id in enumerate(logical_ids):
         label = f"node-{index + 1:02d}"
         state = _init_node_state(index, args.seed)
-        nodes.append(NodeContext(api_key=key, label=label, state=state))
+        nodes.append(
+            NodeContext(
+                api_key=args.gateway_key,
+                logical_node_id=str(logical_id),
+                label=label,
+                state=state,
+            )
+        )
 
     print("=" * 72)
     print("IoT Simulator FAST - Multi Nodo")
@@ -938,7 +957,7 @@ def main():
                     )
                     continue
 
-                if send_reading(args.base_url, node.api_key, payload):
+                if send_reading(args.base_url, node.api_key, payload, node.logical_node_id):
                     node.sent += 1
                     _print_line(
                         prefix=f"[OK #{node.sent}]",

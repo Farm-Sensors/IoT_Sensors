@@ -75,7 +75,7 @@ Los siguientes datos son los de mayor importancia para el cliente y deben tener 
 
 **Autenticación y Seguridad:**
 - **Usuarios (Admin/Cliente):** JWT (JSON Web Tokens). Login retorna access token + refresh token. El frontend envía el token en el header `Authorization: Bearer <token>`.
-- **Nodos IoT:** Cada nodo tiene una **API Key fija** (string único) asignada al registrarse. El simulador la envía en el header `X-API-Key: <key>` en cada POST. El backend valida la key contra la BD y asocia la lectura al nodo correspondiente.
+- **Gateways Agro.io:** cada predio tiene una credencial de gateway. El simulador/edge envía `X-API-Key` (gateway) + `X-Logical-Node-Id` + `X-Event-ID`. Las API keys por nodo ya no autentican telemetría.
 
 **Convenciones del API:**
 - URLs en **inglés**, plural, versionadas: `/api/v1/clients`, `/api/v1/properties`, `/api/v1/irrigation-areas`, `/api/v1/nodes`, `/api/v1/readings`, `/api/v1/crop-cycles`, `/api/v1/crop-types`.
@@ -85,7 +85,7 @@ Los siguientes datos son los de mayor importancia para el cliente y deben tener 
 - Presets de fecha resueltos en el **frontend** (semana/mes/año se traducen a start_date/end_date antes de llamar al API).
 
 **Estructura del Payload del Sensor (JSON exacto):**
-El simulador envía un POST a `/api/v1/readings` con el header `X-API-Key` y el siguiente body:
+El simulador/edge envía un POST a `/api/v1/readings` con `X-API-Key` (gateway), `X-Logical-Node-Id`, `X-Event-ID` y el siguiente body:
 
 ```json
 {

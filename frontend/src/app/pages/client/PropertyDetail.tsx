@@ -3,6 +3,8 @@ import { useEffect, useState } from "react";
 import { BentoCard } from "../../components/BentoCard";
 import { EmptyState } from "../../components/EmptyState";
 import { FreshnessIndicator } from "../../components/FreshnessIndicator";
+import { GatewayStatusBadge } from "../../components/GatewayStatusBadge";
+import { usePropertyGatewayStatus } from "../../hooks/usePropertyGatewayStatus";
 import { PageTransition } from "../../components/PageTransition";
 import { cropIcons } from "../../components/icons/CropIcons";
 import { useSelection } from "../../context/SelectionContext";
@@ -155,6 +157,7 @@ function NodesPanel({ areas }: { areas: any[] }) {
 
 export function PropertyDetail() {
   const { selectedProperty, areas } = useSelection();
+  const gatewayStatus = usePropertyGatewayStatus(selectedProperty?.id);
 
   if (!selectedProperty) {
     return (
@@ -172,6 +175,9 @@ export function PropertyDetail() {
           <div className="flex items-center gap-2 text-[var(--text-subtle)]">
             <MapPin className="w-4 h-4" />
             <span>{selectedProperty.location || "Chihuahua, Chihuahua"}</span>
+            {gatewayStatus && (
+              <GatewayStatusBadge status={gatewayStatus.status} edgeStatus={gatewayStatus.edge_status} />
+            )}
           </div>
         </div>
 

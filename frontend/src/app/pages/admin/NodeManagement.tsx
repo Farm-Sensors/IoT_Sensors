@@ -16,7 +16,6 @@ interface IrrigationArea {
 interface NodeData {
   id: number;
   irrigation_area_id: number;
-  api_key?: string;
   serial_number: string | null;
   name: string | null;
   latitude: number | null;
@@ -105,13 +104,7 @@ export function NodeManagement() {
         longitude,
         is_active: true,
       });
-      const newKey = res.data?.api_key;
-      showToast(
-        newKey
-          ? `Nodo creado. API Key: ${newKey} (se muestra solo una vez)`
-          : "Nodo creado correctamente",
-        "success",
-      );
+      showToast("Nodo creado. La telemetría se autentica con el gateway del predio.", "success");
       setShowCreateForm(false);
       setFormName("");
       setFormSerialNumber("");

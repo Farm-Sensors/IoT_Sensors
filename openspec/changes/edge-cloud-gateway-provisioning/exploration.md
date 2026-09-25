@@ -61,7 +61,7 @@ New `gateways` (property-scoped credential), `install_codes` (24h, single use), 
 
 - Pros: Matches product; one secret to rotate; matches “one Raspberry per property”.
 - Cons: Breaks current contract, simulator, C2 identity scope, H1 manifests in one program of work.
-- Effort: High (must slice under 400-line PRs).
+- Effort: High (one complete PR per GitHub issue).
 
 ### 2. Dual-auth window (gateway + legacy node keys)
 
@@ -112,7 +112,7 @@ Raspberry holds N keys and POSTs as today.
 
 ## Recommendation
 
-Proceed to **proposal** with Approach 1. Keep engine choice as an explicit design spike. Slice delivery (`ask-on-risk`, 400-line budget): (1) domain + gateway auth + install codes, (2) config poll + bindings, (3) ingest/idempotency/NDVI header change, (4) heartbeat/status UX, (5) doc/contract/simulator cutover.
+Proceed to **proposal** with Approach 1. Keep engine choice as an explicit design spike. Deliver one complete PR per GitHub issue: (1) domain + gateway auth + install codes, (2) config poll + bindings, (3) ingest/idempotency/NDVI header change, (4) heartbeat/status UX, (5) doc/contract/simulator cutover.
 
 Agro.io owns local UI, cache, pending disk policy, image; this repo owns cloud provisioning, credentials, canonical history, status for clients.
 

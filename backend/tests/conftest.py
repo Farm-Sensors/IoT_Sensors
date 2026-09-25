@@ -15,6 +15,7 @@ Compatibilidad SQLite:
 """
 
 import os
+import hashlib
 
 # Fase 2 flags: la suite asume alerting y AI habilitados (comportamiento previo).
 # Los tests individuales apagan flags con monkeypatch para probar el estado dormido.
@@ -36,6 +37,11 @@ from app.models import (  # noqa: F401 – importar todos para que Base los regi
     Client,
     CropCycle,
     CropType,
+    Gateway,
+    GatewayConfig,
+    GatewaySlot,
+    GatewayUpdateAuthorization,
+    GatewayUpdateConfirmation,
     IrrigationArea,
     Node,
     NotificationPreference,
@@ -282,8 +288,67 @@ def sample_node(db, sample_irrigation_area):
 
 
 @pytest.fixture()
-def node_headers(sample_node):
-    """Headers con API Key válida para ingesta de sensores."""
+def sample_gateway(db, sample_node):
+    """Gateway activo y configuración que autoriza el nodo IoT de prueba."""
+    credential = "gk_test_gateway_000"
+    gateway = Gateway(
+        predio_id=sample_node.irrigation_area.predio_id,
+        estado="active",
+        credencial_hash=hashlib.sha256(credential.encode()).hexdigest(),
+        credencial_prefijo=credential[:12],
+        config_version_activa=1,
+    )
+    db.add(gateway)
+    db.flush()
+    slot = GatewaySlot(
+        pasarela_id=gateway.id,
+        nodo_id=sample_node.id,
+        area_riego_id=sample_node.area_riego_id,
+    )
+    db.add(slot)
+    db.flush()
+    db.add(
+        GatewayConfig(
+            predio_id=gateway.predio_id,
+            pasarela_id=gateway.id,
+            version=1,
+            snapshot={
+                "gateway_id": gateway.id,
+                "property_id": gateway.predio_id,
+                "slots": [
+                    {
+                        "slot_id": slot.id,
+                        "logical_node_id": sample_node.id,
+                        "irrigation_area_id": sample_node.area_riego_id,
+                        "hardware_profile_code": None,
+                    }
+                ],
+            },
+        )
+    )
+    db.commit()
+    db.refresh(gateway)
+    return gateway, credential
+
+
+@pytest.fixture()
+def gateway_headers(sample_gateway):
+    """Headers con credencial de gateway para telemetría v2."""
+    return {
+        "X-API-Key": sample_gateway[1],
+        "X-Logical-Node-Id": str(sample_gateway[0].slots[0].nodo_id),
+    }
+
+
+@pytest.fixture()
+def node_headers(gateway_headers):
+    """Alias histórico: las pruebas de ingestión usan ya autenticación gateway."""
+    return gateway_headers
+
+
+@pytest.fixture()
+def legacy_node_headers(sample_node):
+    """Credencial directa antigua, solo para verificar su rechazo en ingestión."""
     return {"X-API-Key": sample_node.api_key}
 
 

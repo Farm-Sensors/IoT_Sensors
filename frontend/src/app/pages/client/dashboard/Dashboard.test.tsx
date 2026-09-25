@@ -47,6 +47,18 @@ function respond(path: string) {
   if (path === "/readings/priority-status") return Promise.resolve({ data: { items: [] } });
   if (path === "/weather/current") return Promise.resolve({ data: weatherFresh });
   if (path === "/ndvi-snapshots/latest") return Promise.resolve({ data: ndvi });
+  if (typeof path === "string" && path.includes("/gateway/status")) {
+    return Promise.resolve({
+      data: {
+        gateway_id: 1,
+        status: "recently_seen",
+        edge_status: "connected",
+        last_heartbeat_at: null,
+        config_version: 1,
+        slots: [],
+      },
+    });
+  }
   return Promise.reject(new Error(`Unexpected request ${path}`));
 }
 beforeEach(() => {

@@ -1,5 +1,7 @@
 # User Authentication
 
+> Machine ingest cutover is specified in `openspec/changes/edge-cloud-gateway-provisioning/specs/security/spec.md`: gateway credentials replace node API keys. User JWT remains unchanged.
+
 ## Purpose
 
 Defines authentication and authorization for web users: JWT access + refresh tokens, two roles (admin, client), password recovery, and the multi-tenant ownership model that scopes clients to their own data.

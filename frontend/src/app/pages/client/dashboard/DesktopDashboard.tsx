@@ -3,6 +3,7 @@ import { Droplets, Sun, Wind, Zap } from "lucide-react";
 import { Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { BentoCard } from "../../../components/BentoCard";
 import { FreshnessIndicator } from "../../../components/FreshnessIndicator";
+import { GatewayStatusBadge } from "../../../components/GatewayStatusBadge";
 import { MetricCard } from "../../../components/MetricCard";
 import {
   getIrrigationDisplayState,
@@ -250,7 +251,10 @@ export function DesktopDashboard({
             </ResponsiveContainer>
           </div>
           {currentReadings.lastUpdate && (
-            <FreshnessIndicator lastUpdate={currentReadings.lastUpdate} />
+            <div className="flex flex-wrap items-center gap-3">
+              <FreshnessIndicator lastUpdate={currentReadings.lastUpdate} />
+              <GatewayStatusBadge />
+            </div>
           )}
         </BentoCard>
       </div>

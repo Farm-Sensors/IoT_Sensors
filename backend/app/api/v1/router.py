@@ -9,6 +9,12 @@ from app.api.v1.endpoints import (
     clients,
     crop_cycles,
     crop_types,
+    gateways,
+    hardware_profiles,
+    gateway_templates,
+    gateway_lifecycle,
+    gateway_template_lifecycle,
+    gateway_template_copy,
     irrigation_areas,
     ndvi_snapshots,
     nodes,
@@ -32,12 +38,34 @@ api_v1_router.include_router(
     crop_types.router, prefix="/crop-types", tags=["Crop Types"]
 )
 api_v1_router.include_router(
+    gateways.router, prefix="/gateways", tags=["Gateways"]
+)
+api_v1_router.include_router(
+    gateway_lifecycle.router, prefix="/gateways", tags=["Gateways"]
+)
+api_v1_router.include_router(
+    gateway_templates.router, prefix="/gateway-templates", tags=["Gateway Templates"]
+)
+api_v1_router.include_router(
+    gateway_template_lifecycle.router,
+    prefix="/gateway-templates",
+    tags=["Gateway Templates"],
+)
+api_v1_router.include_router(
+    gateway_template_copy.router,
+    prefix="/gateway-templates",
+    tags=["Gateway Templates"],
+)
+api_v1_router.include_router(
     irrigation_areas.router, prefix="/irrigation-areas", tags=["Irrigation Areas"]
 )
 api_v1_router.include_router(
     crop_cycles.router, prefix="/crop-cycles", tags=["Crop Cycles"]
 )
 api_v1_router.include_router(nodes.router, prefix="/nodes", tags=["Nodes"])
+api_v1_router.include_router(
+    hardware_profiles.router, prefix="/hardware-profiles", tags=["Hardware Profiles"]
+)
 api_v1_router.include_router(
     notification_preferences.router,
     prefix="/notification-preferences",

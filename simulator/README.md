@@ -11,26 +11,26 @@ pip install -r requirements.txt
 
 ## Uso
 
-### 1. Obtener la API Key
-Desde el panel de Admin, crea un nodo y copia su API Key.
+### 1. Obtener la credencial de gateway
+Activa un gateway y usa su credencial más el ID del nodo lógico. `--api-key` de nodo ya no se acepta.
 
 ### 2. Ejecutar el simulador
 
 ```bash
 # Modo normal (envía cada 10 min)
-python simulator.py --api-key ak_n01_xxxxxx
+python simulator.py --gateway-key gk_xxxxxx --logical-node-id 12
 
 # Modo rápido para pruebas (cada 30 seg)
-python simulator.py --api-key ak_n01_xxxxxx --interval 30
+python simulator.py --gateway-key gk_xxxxxx --logical-node-id 12 --interval 30
 
 # Generar 7 días de historial + iniciar loop
-python simulator.py --api-key ak_n01_xxxxxx --backfill 7
+python simulator.py --gateway-key gk_xxxxxx --logical-node-id 12 --backfill 7
 
 # Solo ver qué datos generaría (sin enviar)
-python simulator.py --api-key ak_n01_xxxxxx --dry-run
+python simulator.py --gateway-key gk_xxxxxx --logical-node-id 12 --dry-run
 
 # Apuntar a otro servidor
-python simulator.py --api-key ak_n01_xxxxxx --base-url https://mi-servidor.com/api/v1
+python simulator.py --gateway-key gk_xxxxxx --logical-node-id 12 --base-url https://mi-servidor.com/api/v1
 ```
 
 ### 3. Simulador rápido multi-nodo (demo en vivo)

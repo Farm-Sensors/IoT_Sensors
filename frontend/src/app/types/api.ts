@@ -48,7 +48,6 @@ export interface UserProfile {
 export interface NodeItem {
   id: number;
   irrigation_area_id: number;
-  api_key: string;
   serial_number: string | null;
   name: string | null;
   latitude: number | null;

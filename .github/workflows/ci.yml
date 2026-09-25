@@ -39,6 +39,34 @@ jobs:
       - name: Test (pytest)
         run: uv run pytest -q
 
+  gateway-mysql:
+    name: Gateway migrations (MySQL 8)
+    runs-on: ubuntu-latest
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ALLOW_EMPTY_PASSWORD: "yes"
+          MYSQL_DATABASE: issue29_ci
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping --silent"
+          --health-interval=5s --health-timeout=5s --health-retries=30
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+        with:
+          python-version: "3.13"
+      - run: uv sync --frozen
+      - name: Empty migration, preservation, constraints and rollback
+        env:
+          GATEWAY_MYSQL_TEST_URL: mysql+pymysql://root@127.0.0.1:3306/issue29_ci
+        run: uv run pytest tests/mysql/test_gateway_migrations.py -q
+
   frontend:
     name: Frontend (typecheck + vitest + build)
     runs-on: ubuntu-latest

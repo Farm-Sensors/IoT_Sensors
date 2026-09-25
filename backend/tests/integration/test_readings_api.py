@@ -71,7 +71,12 @@ def test_get_reading_matches_v1_contract(
         reading = response.json()["data"][0]
 
     # Only the two API wrapper IDs may extend the telemetry contract.
-    assert set(reading) == set(TELEMETRY_SCHEMA["required"]) | {"id", "node_id"}
+    assert set(reading) == set(TELEMETRY_SCHEMA["required"]) | {
+        "id",
+        "node_id",
+        "timestamp_suspicious",
+    }
+    assert isinstance(reading["timestamp_suspicious"], bool)
     assert reading["id"] == created.json()["id"]
     assert reading["node_id"] == sample_node.id
     assert reading["timestamp"] == payload["timestamp"]
@@ -109,7 +114,7 @@ def test_reading_serializer_normalizes_utc_and_preserves_precision(timestamp):
 
 
 class TestPostReading:
-    def test_ingest_reading_valid_api_key(self, client, sample_node, node_headers):
+    def test_ingest_reading_valid_gateway_credential(self, client, sample_node, node_headers):
         resp = client.post(
             "/api/v1/readings", json=SENSOR_PAYLOAD, headers={"X-Event-ID": str(uuid4()), **node_headers}
         )
@@ -126,9 +131,9 @@ class TestPostReading:
         )
         assert resp.status_code == 401
 
-    def test_ingest_reading_missing_api_key_returns_422(self, client):
+    def test_ingest_reading_missing_gateway_credential_returns_401(self, client):
         resp = client.post("/api/v1/readings", json=SENSOR_PAYLOAD)
-        assert resp.status_code == 422
+        assert resp.status_code == 401
 
     def test_ingest_reading_missing_timestamp_returns_422(self, client, node_headers):
         payload = {k: v for k, v in SENSOR_PAYLOAD.items() if k != "timestamp"}

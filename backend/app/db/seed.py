@@ -31,6 +31,7 @@ from app.models.client import Client
 from app.models.crop_type import CropType
 from app.models.irrigation_area import IrrigationArea
 from app.models.node import Node
+from app.models.hardware_profile import HardwareProfile
 from app.models.property import Property
 from app.models.user import User
 
@@ -142,6 +143,12 @@ LEGACY_DEMO_NODE_NAMES = {
     "Nodo Prueba E2E",
 }
 
+HARDWARE_PROFILES = [
+    {"codigo": "soil-irrigation-v1", "nombre": "Soil and irrigation sensors"},
+    {"codigo": "environmental-v1", "nombre": "Environmental sensors"},
+    {"codigo": "full-telemetry-v1", "nombre": "Full telemetry sensor profile"},
+]
+
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -235,6 +242,17 @@ def seed():
         for nombre in CROP_TYPES:
             _, created = get_or_create(db, CropType, {"nombre": nombre})
             print(f"    {'+ Creado' if created else '✓ Ya existe'}: {nombre}")
+
+        # Hardware profiles are identifiers and labels only; they contain no credentials.
+        print("\n  🔧 Gateway hardware profiles:")
+        for item in HARDWARE_PROFILES:
+            _, created = get_or_create(
+                db,
+                HardwareProfile,
+                {"codigo": item["codigo"]},
+                {"nombre": item["nombre"], "activo": True},
+            )
+            print(f"    {'+ Creado' if created else '✓ Ya existe'}: {item['codigo']}")
 
         # 2. Usuarios
         print("\n  👥 Usuarios:")

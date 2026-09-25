@@ -85,8 +85,7 @@ class TestCreateNode:
         assert resp.status_code == 201
         data = resp.json()
         assert data["name"] == "Nodo API"
-        assert "api_key" in data
-        assert data["api_key"].startswith("ak_")
+        assert "api_key" not in data
 
     def test_create_second_node_same_area_returns_409(
         self, client, admin_headers, sample_irrigation_area, sample_node

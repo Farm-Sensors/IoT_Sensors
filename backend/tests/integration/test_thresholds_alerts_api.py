@@ -1,6 +1,7 @@
 """Integration tests for /api/v1/thresholds and /api/v1/alerts."""
 
 from uuid import uuid4
+import hashlib
 
 from datetime import UTC, datetime, timedelta
 
@@ -11,6 +12,9 @@ from app.models.irrigation_area import IrrigationArea
 from app.models.node import Node
 from app.models.property import Property
 from app.models.user import User
+from app.models.gateway import Gateway
+from app.models.gateway_config import GatewayConfig
+from app.models.gateway_slot import GatewaySlot
 from app.services import alert as alert_service
 
 SENSOR_PAYLOAD = {
@@ -321,10 +325,50 @@ class TestAlertsApi:
             activo=True,
         )
         db.add(foreign_node)
+        db.flush()
+        credential = "gk_foreign_alerts_gateway"
+        gateway = Gateway(
+            predio_id=foreign_property.id,
+            estado="active",
+            credencial_hash=hashlib.sha256(credential.encode()).hexdigest(),
+            credencial_prefijo=credential[:12],
+            config_version_activa=1,
+        )
+        db.add(gateway)
+        db.flush()
+        slot = GatewaySlot(
+            pasarela_id=gateway.id,
+            nodo_id=foreign_node.id,
+            area_riego_id=foreign_area.id,
+        )
+        db.add(slot)
+        db.flush()
+        db.add(
+            GatewayConfig(
+                predio_id=foreign_property.id,
+                pasarela_id=gateway.id,
+                version=1,
+                snapshot={
+                    "gateway_id": gateway.id,
+                    "property_id": foreign_property.id,
+                    "slots": [
+                        {
+                            "slot_id": slot.id,
+                            "logical_node_id": foreign_node.id,
+                            "irrigation_area_id": foreign_area.id,
+                            "hardware_profile_code": None,
+                        }
+                    ],
+                },
+            )
+        )
         db.commit()
         db.refresh(foreign_area)
         db.refresh(foreign_node)
-        return foreign_area, foreign_node
+        return foreign_area, foreign_node, {
+            "X-API-Key": credential,
+            "X-Logical-Node-Id": str(foreign_node.id),
+        }
 
     def _create_threshold(
         self,
@@ -566,14 +610,14 @@ class TestAlertsApi:
         client_headers,
         sample_crop_type,
     ):
-        foreign_area, foreign_node = self._create_foreign_area_node(
+        foreign_area, foreign_node, foreign_headers = self._create_foreign_area_node(
             db, sample_crop_type.id
         )
         self._create_threshold(client, admin_headers, foreign_area.id)
 
         ingest = client.post(
             "/api/v1/readings",
-            headers={"X-Event-ID": str(uuid4()), **{"X-API-Key": foreign_node.api_key}},
+            headers={"X-Event-ID": str(uuid4()), **foreign_headers},
             json={
                 **SENSOR_PAYLOAD,
                 "timestamp": "2026-04-02T11:00:00Z",
@@ -607,7 +651,7 @@ class TestAlertsApi:
         client_headers,
         sample_crop_type,
     ):
-        foreign_area, foreign_node = self._create_foreign_area_node(
+        foreign_area, foreign_node, foreign_headers = self._create_foreign_area_node(
             db, sample_crop_type.id
         )
 
@@ -633,7 +677,7 @@ class TestAlertsApi:
         }
         ingest = client.post(
             "/api/v1/readings",
-            headers={"X-Event-ID": str(uuid4()), **{"X-API-Key": foreign_node.api_key}},
+            headers={"X-Event-ID": str(uuid4()), **foreign_headers},
             json=payload,
         )
         assert ingest.status_code == 201
@@ -683,13 +727,13 @@ class TestAlertsApi:
         )
         assert own_ingest.status_code == 201
 
-        foreign_area, foreign_node = self._create_foreign_area_node(
+        foreign_area, foreign_node, foreign_headers = self._create_foreign_area_node(
             db, sample_crop_type.id
         )
         self._create_threshold(client, admin_headers, foreign_area.id)
         foreign_ingest = client.post(
             "/api/v1/readings",
-            headers={"X-Event-ID": str(uuid4()), **{"X-API-Key": foreign_node.api_key}},
+            headers={"X-Event-ID": str(uuid4()), **foreign_headers},
             json={
                 **SENSOR_PAYLOAD,
                 "timestamp": "2026-04-03T10:05:00Z",
@@ -734,13 +778,13 @@ class TestAlertsApi:
         )
         assert own_ingest.status_code == 201
 
-        foreign_area, foreign_node = self._create_foreign_area_node(
+        foreign_area, foreign_node, foreign_headers = self._create_foreign_area_node(
             db, sample_crop_type.id
         )
         self._create_threshold(client, admin_headers, foreign_area.id)
         foreign_ingest = client.post(
             "/api/v1/readings",
-            headers={"X-Event-ID": str(uuid4()), **{"X-API-Key": foreign_node.api_key}},
+            headers={"X-Event-ID": str(uuid4()), **foreign_headers},
             json={
                 **SENSOR_PAYLOAD,
                 "timestamp": "2026-04-04T10:05:00Z",

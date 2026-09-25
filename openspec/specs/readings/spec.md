@@ -1,5 +1,7 @@
 # Readings
 
+> Gateway v2 cutover is specified in `openspec/changes/edge-cloud-gateway-provisioning`. After runtime cutover, `POST /api/v1/readings` authenticates a property gateway credential and a configured logical node; unavailable values are JSON `null`.
+
 ## Purpose
 
 Defines the full lifecycle of sensor reading data: ingestion from IoT nodes (write-only endpoint authenticated with a fixed per-node API key, unified JSON payload with the 3 dynamic categories) and the read-side API consumed by the frontend (history with filters, latest, availability, priority-status semaphores, freshness, and export).
