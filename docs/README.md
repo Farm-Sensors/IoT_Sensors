@@ -60,8 +60,9 @@ Comportamiento del sistema, por capacidad. Todo cambio de comportamiento parte d
 2. **Entender el producto**: `docs/product/README.md` → `vision.md` → `problem-context.md`.
 3. **Entender el comportamiento detallado**: `openspec/changes/edge-cloud-gateway-provisioning/` y `openspec/specs/`.
 4. **Entender la construcción**: `docs/stack.md` → `docs/architecture/overview.md` → `docs/architecture/backend.md` o `frontend.md`.
-4. **Antes de tocar un endpoint o una tabla**: `docs/api.md` + `openapi.yaml`, y `docs/data-model.md`.
-5. **Para cambiar el comportamiento**: crear un cambio OpenSpec (los specs son la fuente de verdad del "qué").
-6. **El contrato técnico**: `openapi.yaml` se regenera con `make openapi-sync` desde el backend activo.
+5. **Antes de tocar un endpoint o una tabla**: `docs/api.md` + `openapi.yaml`, y `docs/data-model.md`.
+6. **Para cambiar el comportamiento**: crear un cambio OpenSpec (los specs son la fuente de verdad del "qué").
+7. **El contrato técnico**: `openapi.yaml` se regenera con `make openapi-sync` desde el backend activo.
+8. **Para montar la prueba en Dokploy**: `docs/deployment.md`.
 
 > Contexto del agente: `AGENTS.md` (raíz) contiene las reglas y restricciones de desarrollo; `docs/test-data.md` las credenciales de prueba.

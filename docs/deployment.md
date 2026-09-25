@@ -1,45 +1,54 @@
 # Greenfield Dokploy acceptance deployment
 
-The first IoT_Sensors installation is a **pre-release acceptance deployment**. No production deployment, live users, or production data exist beforehand. Alan (Integrator) owns its Dokploy setup and CD and may designate this same stack as production only after all acceptance evidence is recorded and manually signed off. A separate staging stack is safer optional isolation, not a hard blocker.
+The first IoT_Sensors installation is a **pre-release acceptance stack**. No production users or production data exist beforehand. Dokploy deploys **only this cloud**. Agro.io stays on each Raspberry, or a headless harness, and calls this stack over HTTPS. Alan owns the Dokploy setup and may call the same stack production only after the sign-off in section 6.
 
-This guide does not contain secret values. Alan coordinates environment and secret configuration in Dokploy without copying values into repositories, issues, fixtures, logs, or documentation.
+How the system works: `docs/system.md`. Wire contract: `contracts/edge-cloud/v2/`. This guide has no secret values. Put credentials only in Dokploy.
 
-## 1. Pre-deployment gates
+## Quick path
 
-- Deploy accepted refs from `main` only after required PR checks and contract parity pass.
-- Record the canonical edge-cloud contract ref and prove its JSON files are byte-identical to Agro.io's vendored copy.
-- Use a new empty MySQL database and coordinate a clean `alembic upgrade head` proof before admitting application data.
-- Prepare the `Client → Property → Irrigation Area → Crop Type + IoT Node (1:1)` mappings and node API keys without exposing key values.
-- Keep full Agro.io/Avalonia/systemd off the VPS. CI or an ephemeral headless harness may simulate the edge path; ARM64 Raspberry remains the real device target.
-- Agro.io has no Dokploy or VPS CD path. Alan's deployment authority here applies only to IoT_Sensors.
+1. In Dokploy, create a Compose app from `Farm-Sensors/IoT_Sensors`, branch `main`, compose file `docker-compose.yml`.
+2. Set `DOMAIN`, `SECRET_KEY`, `DB_PASSWORD`, `FRONTEND_PUBLIC_URL`, and `PASSWORD_RESET_URL_BASE`. Leave Phase 2 flags off. Do not publish MySQL or the backend port.
+3. Deploy `main`. The backend container runs `alembic upgrade head` before Uvicorn. Use an empty database.
+4. Run `scripts/dokploy_smoke_check.sh <domain>`. HTTPS `/health` must be `{"status":"ok"}`.
+5. In the admin UI, create the hierarchy and one gateway per property. Node API keys do not authenticate.
+6. Point each sender at `https://<domain>`. Dokploy does not start those senders.
 
-## 2. Dokploy application
+Several Raspberries means several properties, each with one gateway. One property never has two gateways.
+
+## What this deploy does not do
+
+- It does not install Agro.io, LoRa, or a Raspberry image.
+- It does not create clients, properties, or readings by itself.
+- It does not enable a dual-auth window. After this stack is up, ingest is gateway-only.
+- It is not production until section 6.
+
+## 1. Dokploy application
 
 | Setting | Acceptance value |
 |---|---|
 | Project type | Compose |
-| Repository | `Alanzphy/IoT_Sensors` |
+| Repository | `Farm-Sensors/IoT_Sensors` |
 | Branch | `main` |
 | Compose path | `docker-compose.yml` |
-| Deployment state | Pre-release until manual sign-off |
+| Public host | `DOMAIN` (Traefik label default is `sensores.alanrz.bond` if unset) |
+| State | Pre-release until manual sign-off |
 
-Configure the deployment-specific domain and URL values (`DOMAIN`, `FRONTEND_PUBLIC_URL`, and `PASSWORD_RESET_URL_BASE`), strong application/database credentials, and loopback port bindings. Do not publish MySQL or backend ports directly; Traefik/Dokploy owns public routing and TLS.
+Traefik on the `dokploy-network` routes the host to the frontend container. That container proxies `/health` and `/api/` to the backend. Do not bind MySQL (`MYSQL_PORT_BIND`) or the backend (`BACKEND_PORT_BIND`) on a public address.
 
-## 2.1 Continuous delivery (IoT_Sensors only)
+Set these in Dokploy, not in the repo:
 
-Trigger from an accepted `main` ref only. Record the image and git ref. Rollback is redeploying the previous accepted `main` ref. There is no automatic production promotion.
+| Variable | Test value |
+|---|---|
+| `DOMAIN` | The acceptance hostname |
+| `FRONTEND_PUBLIC_URL` | `https://<domain>` |
+| `PASSWORD_RESET_URL_BASE` | `https://<domain>/restablecer-contrasena` |
+| `SECRET_KEY` | A long random value. Do not keep the compose default |
+| `DB_PASSWORD` | A strong database password. Do not keep `rootpass` |
+| `DB_NAME` | `sensores_riego` unless you change it on purpose |
 
-1. Deploy only a `main` ref that already passed required PR checks and contract parity.
-2. Record the deployed image digest/tag and git SHA before smoke.
-3. Run `scripts/dokploy_smoke_check.sh <domain>`. HTTPS `/health` must be exactly `{"status":"ok"}` (optional whitespace allowed). Docs and frontend checks stay required. A 2xx SPA HTML body is a failure.
-4. Keep weather off until commercial Open-Meteo credentials exist in Dokploy secrets (`OPEN_METEO_ENABLED=false`, empty API key). Never store that key in the repo.
-5. After smoke, the stack remains pre-release until the manual sign-off in section 6.
+## 2. Flags
 
-Agro.io has no Dokploy or VPS CD path.
-
-## 3. MVP feature flags
-
-The acceptance deployment runs the MVP only. These controlling gates must remain off:
+Do not start Compose with `--profile phase2`. A normal deploy starts only `mysql`, `backend`, and `frontend`.
 
 ```env
 DEBUG=false
@@ -57,43 +66,57 @@ OPEN_METEO_ENABLED=false
 OPEN_METEO_API_KEY=
 ```
 
-`.env.docker.example` could not be updated in this unit: agent `.env*` permissions deny read/write. Compose pass-through defaults match these MVP-off gates, including Open-Meteo disabled with an empty API key. Align that example file later with filesystem access; do not put commercial keys in the repository.
+Weather stays off until a commercial Open-Meteo key exists in Dokploy secrets. Never store that key in the repo.
 
-Do not start Compose with the `phase2` profile. A normal Compose deployment starts only the MVP services:
+## 3. Database
 
-- `mysql`
-- `backend`
-- `frontend`
+This installation is greenfield. There is no production database to preserve.
 
-The `inactivity_scheduler`, `notification_scheduler`, and `ai_report_scheduler` services run only through `docker compose --profile phase2 up` and are not part of MVP acceptance. Their credentials and provider settings are unnecessary while the profile and controlling gates remain off.
+1. Start from an empty MySQL 8 volume.
+2. Deploy. `backend/Dockerfile` runs `alembic upgrade head` and then Uvicorn.
+3. Record the git SHA, the Alembic revision, and that the database had no application rows before the first admin login.
+4. If the backend stays unhealthy, read its logs before redeploying. Do not point this stack at an old database.
 
-## 4. Fresh-database migration gate
+Gateway tables come from the `e29a*` migrations already on `main`. After go-live, later migrations must preserve data. This empty-database exception ends at sign-off.
 
-The historical flatten migration drops old category tables, but this confirmed greenfield installation has no existing database or production data to preserve. The current acceptance requirement is therefore:
+## 4. Prove the pair before calling it ready
 
-1. Start from an empty acceptance database.
-2. Run `alembic upgrade head` through the approved deployment procedure.
-3. Record the command, exit result, resulting Alembic revision, and absence of pre-existing application rows.
-4. Confirm the application can create and read the expected hierarchy and one contract-valid telemetry event.
+Cloud code on `main` is enough to boot the stack. It is not proof that a Raspberry build matches it.
 
-After go-live, this greenfield exception ends. Future migrations must preserve existing data, avoid destructive drop/rewrite behavior without an approved copy-and-verify path, and include backup, rollback/recovery, and row-count evidence.
+Compare `contracts/edge-cloud/v2/` on the deployed git SHA with `contracts/iot-sensors/v2/` on Agro.io `integration/iot-v2`. The JSON files must be byte-identical. A local copy is not a cutover. Agro.io has no Dokploy path.
 
-## 5. Acceptance checks
+## 5. Senders
 
-Alan records exact refs, commands, response codes, counts, and observed results:
+Dokploy does not run the edge. After smoke and an admin login, create client, property, irrigation area, logical node, and a one-time activation reference. Each additional Raspberry is another property and another gateway.
+
+| Sender | Where it runs | Identity |
+|---|---|---|
+| Agro.io `integration/iot-v2` | Raspberry, or a headless harness | Activates with `ar_…`, then sends `X-API-Key: gk_…` |
+| `simulator/simulator.py` | Any machine that can reach the domain | `--gateway-key` and `--logical-node-id`. `--api-key` is rejected |
+
+Telemetry is `POST /api/v1/readings` with `X-Logical-Node-Id` and `X-Event-ID`. The same gateway, logical node, event id, and body returns `200`. The same id with a different body returns `409`. NDVI, if tested, is `POST /api/v1/ndvi-snapshots` and never a telemetry field.
+
+## 6. Checks
+
+Record the deployed SHA, the domain, and the observed results.
+
+Required before using the stack as a test target:
 
 - `/health` returns `{"status":"ok"}` over HTTPS.
-- `/api/v1/docs` and the frontend load over HTTPS through Traefik.
-- JWT user access and gateway `X-API-Key` ingestion remain separate authentication boundaries.
-- Nested reading JSON contains `soil`, `irrigation`, and `environmental` with exactly 12 dynamic fields and uppercase UTC `Z` timestamps.
-- The same node/endpoint/`X-Event-ID` and body produces one canonical MySQL row; the same ID with a different body returns `409` without mutation.
-- One-node, 8-node, and 16-node harness counts reconcile. The 16-node run includes a forced HTTPS failure and same-ID retry.
-- Latest/history/export/freshness/dashboard use canonical cloud data.
-- Phase 2, notification, and AI gates are false; no `phase2` scheduler service is running.
-- Latest point NDVI, if included in acceptance, uses its separate event/storage path with Sentinel-2 provenance and never appears in telemetry.
+- `/api/v1/docs` and the frontend load over HTTPS.
+- JWT login and gateway `X-API-Key` stay separate.
+- Phase 2 services are not running.
 
-Central weather and latest point NDVI are independent lanes. They do not block core telemetry, and they cannot replace a failed core E2E gate.
+Required before calling the stack production:
 
-## 6. Manual production designation
+- One contract-valid reading lands in MySQL and appears in latest, history, and the dashboard.
+- Idempotency behaves as in section 5.
+- Latest-point NDVI, if included, uses its own event and storage.
+- Contract files match the Agro.io ref you will run.
+- Alan records the accepted refs and the sign-off time.
 
-Until manual sign-off, label the stack and all evidence **pre-release acceptance** and admit no client traffic or production data. After all required gates pass, Alan records the accepted refs and time of sign-off, then may designate the same stack as production. If acceptance fails, keep it pre-release, correct the bounded work unit, and repeat only the affected evidence gate.
+The 1-node, 8-node, and 16-node harness counts are sign-off evidence, not a requirement to boot Dokploy. Weather and NDVI do not block core telemetry, and they do not replace a failed core check.
+
+## 7. Rollback
+
+Rollback is redeploying the previous `main` SHA. There is no automatic production promotion. If acceptance fails, keep the label **pre-release**, fix the bounded change, and repeat only the failed check.
