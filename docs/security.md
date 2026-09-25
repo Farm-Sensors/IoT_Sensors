@@ -29,6 +29,6 @@
 ## Pendientes conocidos
 
 - Refresh tokens **sin rotación** ni detección de reuso (se revocan en logout/cambio de password).
-- API keys de nodos en **texto plano** en BD (`nodos.api_key`) — hash/rotación pendiente.
+- Columna legado `nodos.api_key` puede existir para observación; **no autentica**. Las credenciales de gateway se almacenan hasheadas.
 - Rate-limit de login en memoria (no distribuye entre múltiples workers de uvicorn).
 - Auditoría (`audit_log`) no cubre los CRUD base (clientes, predios, áreas, nodos) — solo Fase 2/umbrales/IA.

@@ -84,7 +84,7 @@ Alan records exact refs, commands, response codes, counts, and observed results:
 
 - `/health` returns `{"status":"ok"}` over HTTPS.
 - `/api/v1/docs` and the frontend load over HTTPS through Traefik.
-- JWT user access and `X-API-Key` node ingestion remain separate authentication boundaries.
+- JWT user access and gateway `X-API-Key` ingestion remain separate authentication boundaries.
 - Nested reading JSON contains `soil`, `irrigation`, and `environmental` with exactly 12 dynamic fields and uppercase UTC `Z` timestamps.
 - The same node/endpoint/`X-Event-ID` and body produces one canonical MySQL row; the same ID with a different body returns `409` without mutation.
 - One-node, 8-node, and 16-node harness counts reconcile. The 16-node run includes a forced HTTPS failure and same-ID retry.

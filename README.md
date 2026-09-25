@@ -59,11 +59,11 @@ uv run uvicorn app.main:app --reload --port 5050
 # Paso 3 — Frontend (http://localhost:5173)
 cd frontend && npm install && npm run dev
 
-# Paso 4 — Simulador IoT (keys en docs/test-data.md)
-cd simulator && python3 simulator.py --api-key ak_partner_granja_hogar_001
+# Paso 4 — Simulador IoT (credencial de gateway)
+cd simulator && python3 simulator.py --gateway-key gk_... --logical-node-id 12
 ```
 
-> El seed crea el admin, el cliente de prueba y los nodos con sus API Keys. Es seguro ejecutarlo varias veces. Más opciones del simulador en [`docs/operations.md`](docs/operations.md).
+> El seed crea el admin, el cliente de prueba y los nodos lógicos. La ingesta usa la credencial del gateway del predio. Más opciones del simulador en [`docs/operations.md`](docs/operations.md) y el corte v2 en [`docs/integration/README.md`](docs/integration/README.md).
 
 ## Demo Rápida
 

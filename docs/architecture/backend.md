@@ -37,7 +37,7 @@ app/
 - **API en inglés** (URLs plurales versionadas `/api/v1/...`), **BD en español** (`nodos`, `areas_riego`, `marca_tiempo`).
 - **Soft delete** uniforme (`eliminado_en`) en entidades principales; timestamps `creado_en`/`actualizado_en` en UTC.
 - **Paginación** obligatoria en listados (`page`/`per_page`, default 50, cap 200).
-- **Auth**: JWT (usuarios) + API Key fija por nodo (`X-API-Key`); ownership multi-tenant en la capa de servicio (`core/authz.py`).
+- **Auth**: JWT (usuarios) + credencial de gateway (`X-API-Key`) con `X-Logical-Node-Id`; ownership multi-tenant en la capa de servicio (`core/authz.py`).
 - **Fase 2 dormida**: flags en `core/config.py` (`ALERTS_ENABLED`, `AI_ASSISTANT_ENABLED`, `AI_REPORTS_ENABLED`, `NOTIFICATIONS_ENABLED`...); schedulers detrás del profile `phase2` de compose. Ver `docs/architecture/decisions.md` (ADR-004).
 
 ## Datos

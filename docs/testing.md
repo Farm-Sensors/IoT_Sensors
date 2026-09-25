@@ -45,7 +45,7 @@ backend/tests/
 | `admin_user` / `client_user` | Registros instanciados en BD |
 | `admin_token` / `client_token` | JWTs literales para flujos de autenticación |
 | `admin_headers` / `client_headers` | Headers HTTP listos para `client.post(..., headers=...)` |
-| `node_headers` | Emula el header `X-API-Key` de los dispositivos IoT |
+| `node_headers` | Emula credencial de gateway + `X-Logical-Node-Id` |
 | `sample_*` (cascada) | Pide `sample_crop_cycle` y crea en cadena User → Property → CropType → IrrigationArea → CropCycle |
 
 ### Cobertura

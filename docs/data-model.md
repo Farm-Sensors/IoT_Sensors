@@ -522,7 +522,7 @@ Cuando un cliente selecciona un ciclo (ej. "Ciclo 2025" que va del 1-Mar-2025 al
 | Columna | Qué guarda | Notas |
 |---------|-----------|-------|
 | `area_riego_id` | FK al área que monitorea | **UNIQUE** — cada nodo está vinculado a exactamente 1 área, y cada área tiene exactamente 1 nodo (relación 1:1). |
-| `api_key` | Credencial de autenticación | String largo y único (ej. `ak_n01_a1b2c3d4e5f6`). El simulador lo envía en el header `X-API-Key` de cada POST. Es la forma en que el servidor sabe qué nodo está hablando. **No expira.** |
+| `api_key` | Legado | Nullable. Ya **no autentica**. La ingesta usa la credencial hasheada del gateway (`pasarelas`). |
 | `numero_serie` | Identificador físico del dispositivo | Opcional. Para tracking de hardware. **UNIQUE** si se proporciona. |
 | `nombre` | Nombre descriptivo | Ej. "Sensor Nogal Norte". Opcional pero recomendado para identificarlo en el dashboard. |
 | `latitud` / `longitud` | Coordenadas GPS | Datos **estáticos** — se registran una sola vez al configurar el nodo. **NO** se envían en cada lectura. Servirán para la vista de mapas en Fase 2. |
@@ -531,13 +531,12 @@ Cuando un cliente selecciona un ciclo (ej. "Ciclo 2025" que va del 1-Mar-2025 al
 **Relación 1:1 con `areas_riego`:**
 Cada nodo vigila exactamente un área, y cada área es vigilada por exactamente un nodo. Si un área no tiene nodo asignado, no recibe datos. La restricción `UNIQUE` en `area_riego_id` asegura que no se puedan asignar 2 nodos a la misma área.
 
-**API Key — cómo funciona la autenticación del sensor:**
+**Gateway — cómo funciona la autenticación del sensor:**
 ```
-Simulador envía POST a /api/v1/readings
-  → Header: X-API-Key: ak_n01_a1b2c3d4e5f6
-  → El backend busca en la tabla nodos: WHERE api_key = 'ak_n01_...'
-  → Si existe y activo = true → acepta la lectura y la asocia al nodo
-  → Si no existe o activo = false → rechaza con error 401/403
+Edge/simulador envía POST a /api/v1/readings
+  → X-API-Key (gateway) + X-Logical-Node-Id + X-Event-ID
+  → El backend valida el hash en `pasarelas` y autoriza el nodo lógico
+  → Si el gateway no es activo o el nodo no está en su config → 401/403
 ```
 
 ---
