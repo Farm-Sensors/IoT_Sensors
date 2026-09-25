@@ -8,6 +8,8 @@ import { usePageVisibility } from "../../hooks/usePageVisibility";
 import { api } from "../../services/api";
 import { EmptyState } from "../../components/EmptyState";
 import { FreshnessIndicator } from "../../components/FreshnessIndicator";
+import { GatewayStatusBadge } from "../../components/GatewayStatusBadge";
+import { usePropertyGatewayStatus } from "../../hooks/usePropertyGatewayStatus";
 import type { PaginatedResponse, ReadingResponse } from "../../types/api";
 import { toCurrentReadings, toChartReadings, type ChartReading } from "./dashboard/readings";
 import { ExternalDataCards } from "./dashboard/ExternalDataCards";
@@ -32,6 +34,7 @@ export function ClientDashboard() {
     setSelectedArea
   } = useSelection();
 
+  const gatewayStatus = usePropertyGatewayStatus(selectedProperty?.id);
   const filteredAreas = selectedProperty
     ? areas.filter(a => a.property_id === selectedProperty.id)
     : [];
@@ -167,7 +170,12 @@ export function ClientDashboard() {
             </div>
           )}
 
-          {currentReadings.lastUpdate && <FreshnessIndicator lastUpdate={currentReadings.lastUpdate} />}
+          <div className="flex flex-wrap items-center gap-3">
+            {currentReadings.lastUpdate && <FreshnessIndicator lastUpdate={currentReadings.lastUpdate} />}
+            {gatewayStatus && (
+              <GatewayStatusBadge status={gatewayStatus.status} edgeStatus={gatewayStatus.edge_status} />
+            )}
+          </div>
 
         </div>
       </div>

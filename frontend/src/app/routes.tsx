@@ -36,6 +36,7 @@ import { CropCycleManagement } from "./pages/admin/CropCycleManagement";
 import { CropTypeManagement } from "./pages/admin/CropTypeManagement";
 import { IrrigationAreaManagement } from "./pages/admin/IrrigationAreaManagement";
 import { NodeDetail } from "./pages/admin/NodeDetail";
+import { GatewayManagement } from "./pages/admin/GatewayManagement";
 import { NodeManagement } from "./pages/admin/NodeManagement";
 import { PropertyManagement } from "./pages/admin/PropertyManagement";
 
@@ -185,6 +186,10 @@ export const router = createBrowserRouter([
               {
                 path: "nodos",
                 Component: NodeManagement,
+              },
+              {
+                path: "gateways",
+                Component: GatewayManagement,
               },
               {
                 path: "mapa",

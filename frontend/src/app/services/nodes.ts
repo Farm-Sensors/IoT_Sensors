@@ -10,7 +10,6 @@ export interface GeoNode {
   client_company_name: string;
   crop_type_id: number;
   crop_type_name: string;
-  api_key?: string;
   serial_number: string | null;
   name: string | null;
   latitude: number | null;

@@ -4,6 +4,7 @@ import { Link, useParams } from "react-router";
 import { Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { BentoCard } from "../../components/BentoCard";
 import { FreshnessIndicator } from "../../components/FreshnessIndicator";
+import { GatewayStatusBadge } from "../../components/GatewayStatusBadge";
 import { MetricCard } from "../../components/MetricCard";
 import { PageTransition } from "../../components/PageTransition";
 import { PillButton } from "../../components/PillButton";
@@ -235,25 +236,12 @@ export function NodeDetail() {
               </div>
             </div>
 
-            <div>
+            <div className="flex flex-wrap items-center gap-3">
               <FreshnessIndicator lastUpdate={lastUpdateStr} />
+              <GatewayStatusBadge />
             </div>
           </div>
         </BentoCard>
-
-        {/* API Key */}
-        <div className="lg:col-span-2">
-          <BentoCard variant="sand">
-            <h3 className="text-lg font-serif text-[var(--text-title)] mb-4">API Key (Solo Admin)</h3>
-            <div className="bg-[var(--surface-panel)] border border-[var(--border-subtle)] p-4 rounded-[24px]">
-              <p className="text-sm text-[var(--text-muted)]">
-                La API Key se muestra una sola vez al crear el nodo (respuesta del POST
-                /api/v1/nodes). Si la pierdes, genera una nueva o consulta el seed del
-                entorno de prueba (docs/test-data.md).
-              </p>
-            </div>
-          </BentoCard>
-        </div>
       </div>
 
       {/* Real-time data */}

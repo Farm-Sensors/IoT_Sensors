@@ -4,6 +4,7 @@ import { useNavigate } from "react-router";
 import { BentoCard } from "../../components/BentoCard";
 import { EmptyState } from "../../components/EmptyState";
 import { FreshnessIndicator } from "../../components/FreshnessIndicator";
+import { GatewayStatusBadge } from "../../components/GatewayStatusBadge";
 import { PageTransition } from "../../components/PageTransition";
 import { SkeletonCard } from "../../components/SkeletonCard";
 import { cropIcons } from "../../components/icons/CropIcons";
@@ -102,7 +103,10 @@ function AreaCard({
           </div>
         </div>
 
-        {lastUpdate && <FreshnessIndicator lastUpdate={lastUpdate} />}
+        <div className="flex flex-wrap items-center gap-2">
+          {lastUpdate && <FreshnessIndicator lastUpdate={lastUpdate} />}
+          <GatewayStatusBadge />
+        </div>
       </BentoCard>
     </div>
   );
