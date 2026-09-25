@@ -6,9 +6,13 @@ vi.mock("../../components/Toast", () => ({
   useToast: () => ({ showToast: vi.fn() }),
 }));
 
+vi.mock("qrcode", () => ({
+  default: { toDataURL: vi.fn().mockResolvedValue("data:image/png;base64,demo") },
+}));
+
 vi.mock("../../services/gateways", () => ({
   listGateways: vi.fn().mockResolvedValue({
-    data: [{ id: 7, property_id: 3, status: "active", configuration_version: 1, bindings_revision: 1, activated_at: null, revoked_at: null, slots: [] }],
+    data: [{ id: 7, property_id: 3, status: "pending_activation", configuration_version: 0, bindings_revision: 0, activated_at: null, revoked_at: null, slots: [] }],
   }),
   provisionGateway: vi.fn(),
   issueActivationReference: vi.fn().mockResolvedValue({

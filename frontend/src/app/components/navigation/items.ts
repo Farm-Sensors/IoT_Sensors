@@ -46,7 +46,6 @@ export const adminNavItems: NavItem[] = [
   { path: "/admin/clientes",  icon: Users,            label: "Clientes" },
   { path: "/admin/mapa",      icon: MapPin,           label: "Mapa" },
   { path: "/admin/nodos",     icon: Radio,            label: "Nodos" },
-  { path: "/admin/recorrido-v2", icon: ClipboardList, label: "Recorrido v2" },
   { path: "/admin/gateways",  icon: Router,           label: "Gateways" },
   { path: "/admin/cultivos",  icon: Sprout,           label: "Catálogo" },
   { path: "/admin/umbrales",  icon: SlidersHorizontal, label: "Umbrales" },
