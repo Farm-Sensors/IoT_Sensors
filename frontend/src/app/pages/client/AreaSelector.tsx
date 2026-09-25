@@ -9,6 +9,7 @@ import { PageTransition } from "../../components/PageTransition";
 import { SkeletonCard } from "../../components/SkeletonCard";
 import { cropIcons } from "../../components/icons/CropIcons";
 import { IrrigationArea, useSelection } from "../../context/SelectionContext";
+import { usePropertyGatewayStatus } from "../../hooks/usePropertyGatewayStatus";
 import { api } from "../../services/api";
 import { parseBackendTimestamp } from "../../utils/datetime";
 
@@ -21,6 +22,7 @@ function AreaCard({
   onClick: () => void;
   animationDelay?: number;
 }) {
+  const gatewayStatus = usePropertyGatewayStatus(area.property_id);
   const [humidity, setHumidity] = useState<number | null>(null);
   const [lastUpdate, setLastUpdate] = useState<Date | null>(null);
 
@@ -105,7 +107,7 @@ function AreaCard({
 
         <div className="flex flex-wrap items-center gap-2">
           {lastUpdate && <FreshnessIndicator lastUpdate={lastUpdate} />}
-          <GatewayStatusBadge />
+          <GatewayStatusBadge status={gatewayStatus?.status} edgeStatus={gatewayStatus?.edge_status} />
         </div>
       </BentoCard>
     </div>

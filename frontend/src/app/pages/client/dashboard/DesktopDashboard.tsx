@@ -20,11 +20,15 @@ export function DesktopDashboard({
   currentReadings,
   prioritySemaphore,
   connectionState,
+  gatewayStatus,
+  gatewayEdgeStatus,
 }: {
   historicalData: ChartReading[];
   currentReadings: CurrentReadings;
   prioritySemaphore: Record<PriorityKey, SemaphoreLevel>;
   connectionState: ConnectionState;
+  gatewayStatus?: string | null;
+  gatewayEdgeStatus?: string | null;
 }) {
   const irrigationDisplayState = getIrrigationDisplayState(
     currentReadings.irrigationActive,
@@ -253,7 +257,7 @@ export function DesktopDashboard({
           {currentReadings.lastUpdate && (
             <div className="flex flex-wrap items-center gap-3">
               <FreshnessIndicator lastUpdate={currentReadings.lastUpdate} />
-              <GatewayStatusBadge />
+              <GatewayStatusBadge status={gatewayStatus} edgeStatus={gatewayEdgeStatus} />
             </div>
           )}
         </BentoCard>

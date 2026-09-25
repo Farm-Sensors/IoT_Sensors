@@ -205,6 +205,8 @@ export function ClientDashboard() {
               currentReadings={currentReadings}
               prioritySemaphore={activeSnapshot.semaphore}
               connectionState={connectionState}
+              gatewayStatus={gatewayStatus?.status}
+              gatewayEdgeStatus={gatewayStatus?.edge_status}
             />
           )}
           <ExternalDataCards key={selectedArea.id} areaId={selectedArea.id} />
