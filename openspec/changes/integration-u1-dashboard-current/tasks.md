@@ -1,6 +1,6 @@
 # Tasks
 
-- [ ] Render current nested telemetry from existing readings OpenAPI. Keep units. Distinguish JSON `null` from measured `0`. Emphasize soil humidity, flow, and ETO. Tolerate current nullable OpenAPI categories until C1 merges.
-- [ ] Show freshness using existing `FRESH_MINUTES_THRESHOLD` mapped to current/stale; do not invent a vocabulary that fights `helpers.ts`. Cover loading, empty, and error.
-- [ ] Show weather and latest-point NDVI cards from `docs/integration/frontend-evidence/` 200 fixtures, visually separate from telemetry. NDVI is not a 13th field. Errors use existing UI error state; no extra fixtures required.
-- [ ] Add focused component tests. Run the proposal verification commands. Stay frontend-only. PR `Closes #N` when an issue exists.
+- [x] Render current nested telemetry from existing readings OpenAPI. Keep units. Distinguish JSON `null` from measured `0`. Emphasize soil humidity, flow, and ETO. Tolerate current nullable OpenAPI categories until C1 merges. — Already on `main`: `pages/client/dashboard/readings.ts:4-22`, Desktop/MobileDashboard units; `Dashboard.test.tsx:69-84`. _(Audited 2026-10-02.)_
+- [x] Show freshness using existing `FRESH_MINUTES_THRESHOLD` mapped to current/stale; do not invent a vocabulary that fights `helpers.ts`. Cover loading, empty, and error. — Already on `main`: `components/FreshnessIndicator.tsx:32`, `ClientDashboard.tsx:174,188-194`; `Dashboard.test.tsx:87-98,124-135`. _(Audited 2026-10-02.)_
+- [x] Show weather and latest-point NDVI cards from `docs/integration/frontend-evidence/` 200 fixtures, visually separate from telemetry. NDVI is not a 13th field. Errors use existing UI error state; no extra fixtures required. — Already on `main`: `ExternalDataCards.tsx`, rendered at `ClientDashboard.tsx:212`; `Dashboard.test.tsx:100-122` (frozen fixtures). _(Audited 2026-10-02.)_
+- [x] Add focused component tests. Run the proposal verification commands. Stay frontend-only. PR `Closes #N` when an issue exists. — `Dashboard.test.tsx`; `npx vitest run` 58/58 pass and `npm run typecheck` pass (2026-10-02). No issue number recorded for `Closes #N`. _(Audited 2026-10-02.)_
