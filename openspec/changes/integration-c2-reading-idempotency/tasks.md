@@ -1,3 +1,5 @@
+> **Status: superseded (2026-10-02).** Event-ID idempotency shipped with the gateway cutover, scoped to gateway + logical node + `X-Event-ID` (not per-node API keys): migrations `d4a8c2e67190` and `e29a02c7b902`, `backend/app/api/v1/endpoints/readings.py:54-75`, tests in `backend/tests/integration/test_reading_concurrency.py`. Do not implement this brief as written; archive it with the gateway change.
+
 # Tasks
 
 - [ ] Confirm C1 is merged on `main`. Stop if it is not.
