@@ -1,4 +1,7 @@
 const LABELS: Record<string, string> = {
+  pending_activation: "Gateway pendiente de activación",
+  active: "Gateway activo",
+  revoked: "Gateway revocado",
   pending: "Gateway pendiente",
   connected: "Gateway conectado",
   delayed: "Gateway retrasado",

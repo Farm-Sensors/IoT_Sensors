@@ -12,6 +12,15 @@ describe("GatewayStatusBadge", () => {
     expect(screen.getByTestId("gateway-status-badge")).toHaveTextContent("Gateway pendiente");
   });
 
+  it("maps direct gateway model states to lifecycle labels", () => {
+    const { rerender } = render(<GatewayStatusBadge status="pending_activation" />);
+    expect(screen.getByTestId("gateway-status-badge")).toHaveTextContent("Gateway pendiente de activación");
+    rerender(<GatewayStatusBadge status="active" />);
+    expect(screen.getByTestId("gateway-status-badge")).toHaveTextContent("Gateway activo");
+    rerender(<GatewayStatusBadge status="revoked" />);
+    expect(screen.getByTestId("gateway-status-badge")).toHaveTextContent("Gateway revocado");
+  });
+
   it("does not render secrets", () => {
     render(<GatewayStatusBadge edgeStatus="connected" />);
     expect(screen.queryByText(/api_key|credential|gk_/i)).toBeNull();
