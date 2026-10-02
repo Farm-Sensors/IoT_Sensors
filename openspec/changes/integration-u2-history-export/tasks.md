@@ -1,6 +1,6 @@
 # Tasks
 
-- [ ] Confirm U1 is merged on `main`. Stop if it is not.
-- [ ] In `HistoricalData.tsx` and `ReadingDateRangeSelector.tsx`, resolve week/month/year/custom ranges to exact `start_date`/`end_date`. Keep cycle filter, pagination, and area scope.
-- [ ] In `ExportData.tsx`, trigger CSV/XLSX/PDF via the existing export endpoint and query. Do not generate files in the backend. Surface failures.
-- [ ] Preserve units and `null` semantics; cover loading, empty, error, and page/range changes. Run the proposal verification commands. PR `Closes #N` when an issue exists.
+- [x] Confirm U1 is merged on `main`. Stop if it is not. — U1 audited as satisfied on `main` (2026-10-02). _(Audited 2026-10-02.)_
+- [x] In `HistoricalData.tsx` and `ReadingDateRangeSelector.tsx`, resolve week/month/year/custom ranges to exact `start_date`/`end_date`. Keep cycle filter, pagination, and area scope. — Already on `main`: `utils/readingFilters.ts:3-20`, `services/useReadingFilters.ts:6-27`, `ReadingDateRangeSelector.tsx:183-201`; week preset is "Últimos 7 días", month/year are calendar month/year. _(Audited 2026-10-02.)_
+- [x] In `ExportData.tsx`, trigger CSV/XLSX/PDF via the existing export endpoint and query. Do not generate files in the backend. Surface failures. — Already on `main`: `ExportData.tsx:38-50`, `HistoricalData.tsx:161-172` via `/readings/export`; failures surfaced. _(Audited 2026-10-02.)_
+- [x] Preserve units and `null` semantics; cover loading, empty, error, and page/range changes. Run the proposal verification commands. PR `Closes #N` when an issue exists. — Already on `main`: `HistoricalData.tsx:22-40`; `HistoryExport.test.tsx`, `utils/readingFilters.test.ts`. `npx vitest run` 58/58 and `npm run typecheck` pass (2026-10-02). No issue number recorded for `Closes #N`. _(Audited 2026-10-02.)_
