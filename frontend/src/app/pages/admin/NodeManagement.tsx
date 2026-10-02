@@ -96,7 +96,7 @@ export function NodeManagement() {
       const latitude = parseCoordinateInput(formLat, "Latitud", -90, 90);
       const longitude = parseCoordinateInput(formLng, "Longitud", -180, 180);
 
-      const res = await api.post("/nodes", {
+      await api.post("/nodes", {
         irrigation_area_id: parseInt(formAreaId),
         name: formName.trim() || null,
         serial_number: formSerialNumber.trim() || null,
