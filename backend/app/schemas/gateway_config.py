@@ -18,10 +18,11 @@ class GatewayConfigurationSnapshot(BaseModel):
 
 
 class BindingMetadata(BaseModel):
-    uid: str
-    serial: str
-    proposed_at: datetime | None = None
-    confirmed_at: datetime | None = None
+    candidate_id: int = Field(ge=1)
+    uid: str = Field(min_length=1)
+    serial: str = Field(min_length=1)
+    submitted_at: datetime
+    confirmed_at: datetime | None
 
 
 class BindingOverlaySlot(BaseModel):

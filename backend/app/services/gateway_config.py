@@ -66,6 +66,19 @@ def publish_configuration(db: Session, gateway_id: int, publisher_id: int) -> Ga
     return configuration
 
 
+def _binding(record: PhysicalBinding | None) -> dict | None:
+    if record is None:
+        return None
+    # candidate_id is the row id the edge echoes on /binding-candidates/{candidate_id}/confirm.
+    return {
+        "candidate_id": record.id,
+        "uid": record.uid,
+        "serial": record.numero_serie,
+        "submitted_at": _utc(record.propuesto_en),
+        "confirmed_at": _utc(record.confirmado_en) if record.estado == "confirmed" else None,
+    }
+
+
 def _overlay(db: Session, gateway: Gateway, snapshot: dict) -> dict:
     result = []
     for configured_slot in snapshot.get("slots", []):
@@ -93,26 +106,8 @@ def _overlay(db: Session, gateway: Gateway, snapshot: dict) -> dict:
                 "logical_node_id": configured_slot["logical_node_id"],
                 "irrigation_area_id": configured_slot["irrigation_area_id"],
                 "binding_status": binding_status,
-                "current_binding": (
-                    {
-                        "uid": current.uid,
-                        "serial": current.numero_serie,
-                        "proposed_at": _utc(current.propuesto_en),
-                        "confirmed_at": _utc(current.confirmado_en),
-                    }
-                    if current
-                    else None
-                ),
-                "pending_binding": (
-                    {
-                        "uid": pending.uid,
-                        "serial": pending.numero_serie,
-                        "proposed_at": _utc(pending.propuesto_en),
-                        "confirmed_at": None,
-                    }
-                    if pending
-                    else None
-                ),
+                "current_binding": _binding(current),
+                "pending_binding": _binding(pending),
             }
         )
     return {"slots": result}

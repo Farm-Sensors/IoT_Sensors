@@ -2,7 +2,7 @@ from datetime import UTC, datetime, timedelta
 
 import pytest
 
-from app.models import Gateway, GatewayConfig, GatewaySlot, HardwareProfile
+from app.models import Gateway, GatewayConfig, GatewaySlot, HardwareProfile, PhysicalBinding
 from app.services.gateway_config import poll_configuration, publish_configuration
 from app.services.gateway_heartbeat import EDGE_STATUS
 
@@ -98,3 +98,51 @@ def test_poll_payload_reports_cloud_and_edge_status_from_heartbeat(
     _, payload = poll_configuration(db, gateway, None, None)
     assert payload["cloud_status"] == "disconnected"
     assert payload["edge_status"] == "disconnected"
+
+
+def test_poll_binding_objects_expose_exact_contract_keys(db, gateway, slot, admin_user):
+    publish_configuration(db, gateway.id, admin_user.id)
+    proposed = datetime(2026, 1, 2, 3, 4, 5)
+    confirmed = datetime(2026, 1, 2, 3, 9, 5)
+    current = PhysicalBinding(
+        pasarela_id=gateway.id,
+        ranura_id=slot.id,
+        nodo_id=slot.nodo_id,
+        area_riego_id=slot.area_riego_id,
+        uid="uid-current",
+        numero_serie="serial-current",
+        estado="confirmed",
+        propuesto_en=proposed,
+        confirmado_en=confirmed,
+        confirmado_por_pasarela_id=gateway.id,
+    )
+    pending = PhysicalBinding(
+        pasarela_id=gateway.id,
+        ranura_id=slot.id,
+        nodo_id=slot.nodo_id,
+        area_riego_id=slot.area_riego_id,
+        uid="uid-pending",
+        numero_serie="serial-pending",
+        estado="pending",
+        propuesto_en=confirmed,
+    )
+    db.add_all([current, pending])
+    db.flush()
+
+    _, payload = poll_configuration(db, gateway, None, None)
+    overlay_slot = payload["binding_overlay"]["slots"][0]
+    assert overlay_slot["binding_status"] == "pending_reassignment"
+    assert overlay_slot["current_binding"] == {
+        "candidate_id": current.id,
+        "uid": "uid-current",
+        "serial": "serial-current",
+        "submitted_at": "2026-01-02T03:04:05Z",
+        "confirmed_at": "2026-01-02T03:09:05Z",
+    }
+    assert overlay_slot["pending_binding"] == {
+        "candidate_id": pending.id,
+        "uid": "uid-pending",
+        "serial": "serial-pending",
+        "submitted_at": "2026-01-02T03:09:05Z",
+        "confirmed_at": None,
+    }

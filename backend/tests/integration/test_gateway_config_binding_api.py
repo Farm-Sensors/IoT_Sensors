@@ -86,6 +86,14 @@ def _active_gateway(db, property_id, node, *, credential=None):
     return gateway, slot, {"X-API-Key": credential}
 
 
+def _contract_valid_configuration(client, headers):
+    response = client.get("/api/v1/gateways/me/configuration", headers=headers)
+    assert response.status_code == 200
+    payload = response.json()
+    assert _contract_errors(payload, MACHINE_SCHEMA["$defs"]["configurationResponse"]) == []
+    return payload
+
+
 def _publish(client, gateway, admin_headers):
     return client.post(
         f"/api/v1/gateways/{gateway.id}/configuration", headers=admin_headers
@@ -246,6 +254,12 @@ def test_reassignment_keeps_current_binding_until_confirmation_and_preserves_his
         headers=headers | {"X-Event-ID": "proposal-initial"},
         json=_candidate(slot),
     ).json()
+    initial_overlay = _contract_valid_configuration(client, headers)
+    overlay_slot = initial_overlay["binding_overlay"]["slots"][0]
+    assert overlay_slot["binding_status"] == "pending_initial"
+    assert overlay_slot["current_binding"] is None
+    assert overlay_slot["pending_binding"]["candidate_id"] == first_candidate["candidate_id"]
+    assert overlay_slot["pending_binding"]["confirmed_at"] is None
     first_time = (datetime.now(UTC) + timedelta(minutes=2)).isoformat().replace("+00:00", "Z")
     client.post(
         f"/api/v1/gateways/me/binding-candidates/{first_candidate['candidate_id']}/confirm",
@@ -260,11 +274,13 @@ def test_reassignment_keeps_current_binding_until_confirmation_and_preserves_his
     )
     assert replacement.status_code == 201
     assert replacement.json()["binding_status"] == "pending_reassignment"
-    pending_overlay = client.get("/api/v1/gateways/me/configuration", headers=headers)
-    overlay_slot = pending_overlay.json()["binding_overlay"]["slots"][0]
+    pending_overlay = _contract_valid_configuration(client, headers)
+    overlay_slot = pending_overlay["binding_overlay"]["slots"][0]
     assert overlay_slot["binding_status"] == "pending_reassignment"
     assert overlay_slot["current_binding"]["uid"] == "physical-uid-1"
     assert overlay_slot["pending_binding"]["uid"] == "physical-uid-2"
+    assert overlay_slot["current_binding"]["candidate_id"] == first_candidate["candidate_id"]
+    assert overlay_slot["pending_binding"]["candidate_id"] == replacement.json()["candidate_id"]
 
     second_time = (datetime.now(UTC) + timedelta(minutes=5)).isoformat().replace("+00:00", "Z")
     client.post(
@@ -278,10 +294,13 @@ def test_reassignment_keeps_current_binding_until_confirmation_and_preserves_his
     assert records[1].uid == "physical-uid-2"
     assert sample_node.id == records[0].nodo_id == records[1].nodo_id
 
-    current_overlay = client.get("/api/v1/gateways/me/configuration", headers=headers).json()
+    current_overlay = _contract_valid_configuration(client, headers)
     overlay_slot = current_overlay["binding_overlay"]["slots"][0]
     assert overlay_slot["binding_status"] == "confirmed"
     assert overlay_slot["current_binding"]["uid"] == "physical-uid-2"
+    assert overlay_slot["current_binding"]["candidate_id"] == replacement.json()["candidate_id"]
+    assert overlay_slot["current_binding"]["confirmed_at"] is not None
+    assert overlay_slot["pending_binding"] is None
 
 
 def test_candidate_requires_explicit_configured_slot_and_rejects_invalid_confirmation(
