@@ -1,7 +1,10 @@
+from datetime import UTC, datetime, timedelta
+
 import pytest
 
 from app.models import Gateway, GatewayConfig, GatewaySlot, HardwareProfile
 from app.services.gateway_config import poll_configuration, publish_configuration
+from app.services.gateway_heartbeat import EDGE_STATUS
 
 
 @pytest.fixture
@@ -64,3 +67,34 @@ def test_poll_only_returns_not_modified_when_both_revisions_match(db, gateway, s
     assert code == 200 and payload is not None
     code, payload = poll_configuration(db, gateway, 1, 0)
     assert code == 304 and payload is None
+
+
+def test_poll_payload_reports_cloud_and_edge_status_from_heartbeat(
+    db, gateway, slot, admin_user
+):
+    publish_configuration(db, gateway.id, admin_user.id)
+
+    gateway.estado = "pending_activation"
+    db.flush()
+    _, payload = poll_configuration(db, gateway, None, None)
+    assert payload["cloud_status"] == "inactive"
+    assert payload["edge_status"] == EDGE_STATUS["inactive"] == "pending"
+
+    gateway.estado = "active"
+    gateway.ultimo_heartbeat_en = None
+    db.flush()
+    _, payload = poll_configuration(db, gateway, None, None)
+    assert payload["cloud_status"] == "never_seen"
+    assert payload["edge_status"] == "pending"
+
+    gateway.ultimo_heartbeat_en = datetime.now(UTC).replace(tzinfo=None)
+    db.flush()
+    _, payload = poll_configuration(db, gateway, None, None)
+    assert payload["cloud_status"] == "recently_seen"
+    assert payload["edge_status"] == EDGE_STATUS[payload["cloud_status"]] == "connected"
+
+    gateway.ultimo_heartbeat_en = (datetime.now(UTC) - timedelta(days=1)).replace(tzinfo=None)
+    db.flush()
+    _, payload = poll_configuration(db, gateway, None, None)
+    assert payload["cloud_status"] == "disconnected"
+    assert payload["edge_status"] == "disconnected"

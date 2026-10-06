@@ -1,4 +1,5 @@
 from datetime import datetime
+from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -42,6 +43,8 @@ class GatewayConfigurationResponse(BaseModel):
     property_id: int
     configuration: GatewayConfigurationSnapshot
     binding_overlay: BindingOverlay
+    cloud_status: Literal["inactive", "never_seen", "recently_seen", "stale", "disconnected"]
+    edge_status: Literal["pending", "connected", "delayed", "disconnected"]
 
 
 class BindingCandidateCreate(BaseModel):

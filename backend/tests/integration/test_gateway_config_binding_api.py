@@ -1,7 +1,66 @@
 import hashlib
+import json
+import re
 from datetime import UTC, datetime, timedelta
+from pathlib import Path
 
 from app.models import Gateway, GatewaySlot, IrrigationArea, Node, PhysicalBinding, Property
+from app.services.gateway_heartbeat import EDGE_STATUS
+
+MACHINE_SCHEMA = json.loads(
+    (
+        Path(__file__).resolve().parents[3] / "contracts/edge-cloud/v2/machine.schema.json"
+    ).read_text()
+)
+_SUPPORTED_KEYWORDS = {
+    "type", "additionalProperties", "required", "properties", "enum", "$ref",
+    "anyOf", "minimum", "minLength", "items", "pattern", "format",
+}
+
+
+def _contract_errors(value, schema, path="$"):
+    """Validate the keyword subset used by machine.schema.json (jsonschema is not a backend dep)."""
+    unsupported = set(schema) - _SUPPORTED_KEYWORDS
+    assert not unsupported, f"validator does not support {unsupported} at {path}"
+    if "$ref" in schema:
+        name = schema["$ref"].removeprefix("#/$defs/")
+        return _contract_errors(value, MACHINE_SCHEMA["$defs"][name], path)
+    if "anyOf" in schema:
+        if any(not _contract_errors(value, option, path) for option in schema["anyOf"]):
+            return []
+        return [f"{path}: matches no anyOf branch"]
+    errors = []
+    if "enum" in schema and value not in schema["enum"]:
+        errors.append(f"{path}: {value!r} not in {schema['enum']}")
+    expected = schema.get("type")
+    checks = {
+        "object": lambda v: isinstance(v, dict),
+        "array": lambda v: isinstance(v, list),
+        "integer": lambda v: isinstance(v, int) and not isinstance(v, bool),
+        "string": lambda v: isinstance(v, str),
+        "null": lambda v: v is None,
+    }
+    if expected is not None and not checks[expected](value):
+        return [f"{path}: expected {expected}, got {value!r}"]
+    if expected == "integer" and "minimum" in schema and value < schema["minimum"]:
+        errors.append(f"{path}: {value} < {schema['minimum']}")
+    if expected == "string":
+        if len(value) < schema.get("minLength", 0):
+            errors.append(f"{path}: shorter than minLength")
+        if "pattern" in schema and not re.search(schema["pattern"], value):
+            errors.append(f"{path}: {value!r} does not match pattern")
+    if expected == "object":
+        properties = schema.get("properties", {})
+        errors += [f"{path}: missing {key}" for key in schema.get("required", []) if key not in value]
+        if schema.get("additionalProperties") is False:
+            errors += [f"{path}: unexpected {key}" for key in value if key not in properties]
+        for key, item in value.items():
+            if key in properties:
+                errors += _contract_errors(item, properties[key], f"{path}.{key}")
+    if expected == "array" and "items" in schema:
+        for index, item in enumerate(value):
+            errors += _contract_errors(item, schema["items"], f"{path}[{index}]")
+    return errors
 
 
 def _active_gateway(db, property_id, node, *, credential=None):
@@ -60,6 +119,11 @@ def test_poll_auth_is_scoped_and_304_requires_both_exact_revisions(
         }
     ]
     assert first.json()["binding_overlay"]["slots"][0]["binding_status"] == "unbound"
+    assert first.json()["cloud_status"] == "never_seen"
+    assert first.json()["edge_status"] == EDGE_STATUS["never_seen"] == "pending"
+    assert _contract_errors(
+        first.json(), MACHINE_SCHEMA["$defs"]["configurationResponse"]
+    ) == []
 
     no_binding_revision = client.get(
         "/api/v1/gateways/me/configuration",

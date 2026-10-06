@@ -7,6 +7,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.models import Gateway, GatewayConfig, GatewaySlot, HardwareProfile, PhysicalBinding
+from app.services.gateway_heartbeat import EDGE_STATUS, compute_gateway_status
 
 
 def _utc(value: datetime | None) -> str | None:
@@ -141,11 +142,14 @@ def poll_configuration(
         and bindings_revision == gateway.bindings_revision
     ):
         return 304, None
+    cloud_status = compute_gateway_status(gateway)
     payload = {
         "configuration_version": row.version,
         "bindings_revision": gateway.bindings_revision,
         "property_id": gateway.predio_id,
         "configuration": row.snapshot,
         "binding_overlay": _overlay(db, gateway, row.snapshot),
+        "cloud_status": cloud_status,
+        "edge_status": EDGE_STATUS[cloud_status],
     }
     return 200, payload
