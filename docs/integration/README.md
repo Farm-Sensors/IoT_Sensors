@@ -15,7 +15,7 @@ Issue #28 delivers the contract package under `contracts/edge-cloud/v2/`. Its ac
 | Prepared-image update | #34: own authorization retrieval and matching technician confirmation, no software execution | JP + Fabián: local prepared-image workflow and technician confirmation without edge JWT |
 | UI and operational preparation | Fabián #35: management/status UI; Ricky #36: simulator/manifests; Fabián #37: documentation/runbook | Local UI first; phone assistance deferred; complete paired validation evidence |
 
-Alan coordinates dependency acceptance and merge order; he is not an implementation owner. Each later package waits for all predecessors listed in its issue to be accepted. No Agro.io files are modified from this repository.
+Alan coordinates dependency acceptance and merge order; he is not an implementation owner. Each later package waits for all predecessors listed in its issue to be accepted. Agro.io changes may be made from this workspace, but only on branches based on `integration/iot-v2`; nothing is committed or pushed to Agro.io `main`.
 
 ## Runtime remains deferred
 
@@ -25,4 +25,4 @@ There is **no dual-auth window**: after the coordinated switch, legacy node keys
 
 OTA delivery, automated rollback, gradual rollout, phone helpers, AI, schedulers, active alerts and notifications remain out of scope. NDVI remains latest-point-only and separate from telemetry.
 
-The cutover/rollback steps live in [`gateway-v2-cutover-runbook.md`](gateway-v2-cutover-runbook.md).
+The cutover/rollback steps live in [`gateway-v2-cutover-runbook.md`](gateway-v2-cutover-runbook.md). How Agro.io builds, publishes and installs releases on a Raspberry Pi is in [`agro-release-and-update.md`](agro-release-and-update.md).

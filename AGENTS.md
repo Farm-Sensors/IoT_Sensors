@@ -10,7 +10,7 @@ The latest **point-sampled NDVI** result from Agro.io is approved as a bounded i
 
 ### Integration agent
 
-Si el trabajo asignado es una carpeta `openspec/changes/integration-*`, esa carpeta es el brief. Lee también las rutas de Scope de esa proposal y los contratos o evidencia que nombra. Implementa `tasks.md`. No sigas `docs/integration/week-plan.md` ni Agro.io. No sigas `docs/integration/work-packets/` para implementar. Si te bloqueas, detente. Los PRs de IoT siguen la política ordinaria de IoT_Sensors (este repo no es producción Agro; no apliques la regla de Agro sobre `main`). **No** trates `main` de Agro.io como destino de merge. Si el cambio asignado está en Agro.io (no debería ocurrir desde este repo), detente. El PR usa `Closes #N` cuando exista un issue; el issue solo nombra esa carpeta.
+Si el trabajo asignado es una carpeta `openspec/changes/integration-*`, esa carpeta es el brief. Lee también las rutas de Scope de esa proposal y los contratos o evidencia que nombra. Implementa `tasks.md`. No sigas `docs/integration/week-plan.md` ni Agro.io. No sigas `docs/integration/work-packets/` para implementar. Si te bloqueas, detente. Los PRs de IoT siguen la política ordinaria de IoT_Sensors (este repo no es producción Agro; no apliques la regla de Agro sobre `main`). **No** trates `main` de Agro.io como destino de merge. Desde este workspace se permite modificar Agro.io (`../Agro.io` o un worktree suyo) en ramas basadas en `integration/iot-v2`; nunca hagas commit ni push a `main` de Agro.io. El PR usa `Closes #N` cuando exista un issue; el issue solo nombra esa carpeta.
 
 2. ARQUITECTURA TÉCNICA
 El sistema sigue una arquitectura cliente-servidor tradicional, separando la recolección de datos, el backend y el frontend.
