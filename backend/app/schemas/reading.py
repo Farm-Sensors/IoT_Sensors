@@ -1,9 +1,20 @@
 from datetime import UTC, date, datetime, timezone
-from typing import Literal
+from typing import Annotated, Literal
 
-from pydantic import BaseModel, ConfigDict, Field, field_serializer, field_validator
+from pydantic import BaseModel, ConfigDict, Field, PlainSerializer, field_validator
 
 from app.models.reading import Reading
+
+
+def _utc_z(value: datetime) -> str:
+    # MySQL DATETIME stores UTC without timezone information.
+    if value.tzinfo is None:
+        value = value.replace(tzinfo=timezone.utc)
+    return value.astimezone(timezone.utc).isoformat().replace("+00:00", "Z")
+
+
+UtcDateTime = Annotated[datetime, PlainSerializer(_utc_z, return_type=str, when_used="json")]
+"""Datetime serialized to JSON as ISO 8601 UTC with a trailing Z (naive values are UTC)."""
 
 
 # ---------- Input sub-schemas (sensor payload) ----------
@@ -121,8 +132,8 @@ class ReadingCreateResponse(BaseModel):
 
     id: int
     node_id: int = Field(validation_alias="nodo_id")
-    timestamp: datetime = Field(validation_alias="marca_tiempo")
-    created_at: datetime = Field(validation_alias="creado_en")
+    timestamp: UtcDateTime = Field(validation_alias="marca_tiempo")
+    created_at: UtcDateTime = Field(validation_alias="creado_en")
 
 
 class ReadingResponse(BaseModel):
@@ -132,7 +143,7 @@ class ReadingResponse(BaseModel):
 
     id: int
     node_id: int = Field(validation_alias="nodo_id")
-    timestamp: datetime = Field(validation_alias="marca_tiempo")
+    timestamp: UtcDateTime = Field(validation_alias="marca_tiempo")
     timestamp_suspicious: bool = Field(
         default=False, validation_alias="marca_tiempo_sospechosa"
     )
@@ -154,13 +165,6 @@ class ReadingResponse(BaseModel):
             irrigation=IrrigationResponse.model_validate(reading),
             environmental=EnvironmentalResponse.model_validate(reading),
         )
-
-    @field_serializer("timestamp", when_used="json")
-    def serialize_timestamp(self, value: datetime) -> str:
-        # MySQL DATETIME stores UTC without timezone information.
-        if value.tzinfo is None:
-            value = value.replace(tzinfo=timezone.utc)
-        return value.astimezone(timezone.utc).isoformat().replace("+00:00", "Z")
 
 
 class ReadingAvailabilityResponse(BaseModel):
