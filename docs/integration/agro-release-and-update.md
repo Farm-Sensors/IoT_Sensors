@@ -1,6 +1,6 @@
 # How Agro.io is released and updated
 
-Agro.io is an external repository (`LastbornTen619/Agro.io`) and is not modified from this repository. This page records how its release and update pipeline works, so cloud-side work can plan around it. Facts were verified on 2026-10-06 against the Agro.io `main` branch and one live Raspberry Pi; anything not verified is marked as such.
+Agro.io is an external repository (`LastbornTen619/Agro.io`). Changes to it from this workspace follow the rule in [`README.md`](README.md): only on branches based on `integration/iot-v2`, never on Agro.io `main`. This page records how its release and update pipeline works, so cloud-side work can plan around it. Facts were verified on 2026-10-06 against the Agro.io `main` branch and one live Raspberry Pi; anything not verified is marked as such.
 
 ## Summary
 
