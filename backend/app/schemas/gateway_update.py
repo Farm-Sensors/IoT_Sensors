@@ -2,6 +2,8 @@ from datetime import datetime
 
 from pydantic import BaseModel, ConfigDict, Field
 
+from app.schemas.reading import UtcDateTime
+
 
 class UpdateAuthorizationCreate(BaseModel):
     image_version: str = Field(min_length=1, max_length=128)
@@ -27,8 +29,9 @@ class UpdateConfirmationCreate(BaseModel):
 
 
 class UpdateConfirmationResponse(BaseModel):
+    id: int
     authorization_id: str
     image_version: str
     image_digest: str
+    technician_confirmed_at: UtcDateTime
     result: str
-    recorded_at: datetime

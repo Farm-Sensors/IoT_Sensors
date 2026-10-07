@@ -246,13 +246,14 @@ def confirm_update(
         raise HTTPException(status_code=422, detail="X-Event-ID is required")
     row, code = update_service.record_confirmation(db, gateway, x_event_id, data)
     response.status_code = code
-    recorded = row.creado_en
-    if recorded.tzinfo is None:
-        recorded = recorded.replace(tzinfo=UTC)
+    confirmed_at = row.technician_confirmed_at
+    if confirmed_at.tzinfo is None:
+        confirmed_at = confirmed_at.replace(tzinfo=UTC)
     return UpdateConfirmationResponse(
+        id=row.id,
         authorization_id=row.authorization_id,
         image_version=row.image_version,
         image_digest=row.image_digest,
         result=row.result,
-        recorded_at=recorded,
+        technician_confirmed_at=confirmed_at,
     )

@@ -4,6 +4,7 @@ from sqlalchemy import select
 
 from app.models import Gateway, Reading
 from app.models.gateway_update import GatewayUpdateAuthorization, GatewayUpdateConfirmation
+from tests.helpers.contract import MACHINE_SCHEMA, contract_errors
 
 
 def _provision_and_activate(client, db, admin_headers, sample_property, sample_node):
@@ -146,3 +147,42 @@ def test_update_authorization_and_confirmation_replay(
     assert client.get(
         "/api/v1/gateways/me/update-authorization", headers={"X-API-Key": credential}
     ).status_code == 204
+
+
+def test_update_confirmation_response_matches_contract(
+    client, db, admin_headers, sample_property, sample_node
+):
+    gateway, credential = _provision_and_activate(
+        client, db, admin_headers, sample_property, sample_node
+    )
+    authorization_id = client.post(
+        f"/api/v1/gateways/{gateway.id}/update-authorizations",
+        headers=admin_headers,
+        json={
+            "image_version": "agro-0.8.3",
+            "image_digest": "sha256:def",
+            "expires_at": (datetime.now(UTC) + timedelta(hours=6)).isoformat().replace("+00:00", "Z"),
+        },
+    ).json()["authorization_id"]
+    confirmed_at = "2026-03-01T10:20:30Z"
+    payload = {
+        "authorization_id": authorization_id,
+        "image_version": "agro-0.8.3",
+        "image_digest": "sha256:def",
+        "technician_confirmed_at": confirmed_at,
+        "result": "confirmed",
+    }
+    headers = {"X-API-Key": credential, "X-Event-ID": "evt-update-contract"}
+    schema = MACHINE_SCHEMA["$defs"]["updateConfirmationResponse"]
+
+    created = client.post("/api/v1/gateways/me/update-confirmations", headers=headers, json=payload)
+    assert created.status_code == 201
+    assert contract_errors(created.json(), schema) == []
+    assert created.json()["technician_confirmed_at"] == confirmed_at
+    row = db.scalar(select(GatewayUpdateConfirmation))
+    assert created.json()["id"] == row.id
+
+    replayed = client.post("/api/v1/gateways/me/update-confirmations", headers=headers, json=payload)
+    assert replayed.status_code == 200
+    assert contract_errors(replayed.json(), schema) == []
+    assert replayed.json() == created.json()

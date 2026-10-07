@@ -1,5 +1,0 @@
-# API keys demo locales (seed)
-99189486-8181-4e8c-8c6d-b3da66e6712b
-c1f5cd79-e760-4a9f-92ea-31ea685a3add
-02b21674-0099-4470-a8dd-b4ebd7d8c2b0
-ak_b2727bc1d95e342932612ee5573fdb18

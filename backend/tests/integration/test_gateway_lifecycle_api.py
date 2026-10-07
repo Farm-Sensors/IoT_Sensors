@@ -125,3 +125,38 @@ def test_lifecycle_routes_require_admin(client, client_headers, sample_property,
     assert client.post(
         f"/api/v1/gateways/{gateway.id}/revoke", headers=client_headers
     ).status_code == 403
+
+
+def test_active_gateway_cannot_receive_or_use_another_activation_reference(
+    client, db, admin_headers, admin_user, sample_property
+):
+    gateway = _gateway(db, sample_property)
+    first = client.post(
+        f"/api/v1/gateways/{gateway.id}/activation-references", headers=admin_headers
+    ).json()["activation_reference"]
+    assert _activate(client, first).status_code == 200
+
+    reissue = client.post(
+        f"/api/v1/gateways/{gateway.id}/activation-references", headers=admin_headers
+    )
+    assert reissue.status_code == 409
+    assert reissue.json()["detail"] == "Gateway is not awaiting activation"
+
+    stale = "ar_" + "s" * 48
+    now = db.scalar(select(ActivationReference.creado_en))
+    db.add(
+        ActivationReference(
+            pasarela_id=gateway.id,
+            emitido_por_usuario_id=admin_user.id,
+            referencia_hash=hashlib.sha256(stale.encode()).hexdigest(),
+            creado_en=now,
+            expira_en=now + timedelta(hours=24),
+        )
+    )
+    db.commit()
+    credential_hash = gateway.credencial_hash
+    second = _activate(client, stale)
+    assert second.status_code == 401
+    assert second.json() == {"code": "invalid_activation_reference", "message": "Activation failed"}
+    db.refresh(gateway)
+    assert gateway.credencial_hash == credential_hash

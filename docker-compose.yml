@@ -7,7 +7,7 @@
 #   3. frontend  — React SPA (Nginx interno sirviendo build estático)
 #
 # Deployment:
-#   - En Dokploy: define dominio/rutas desde la UI de Domains (sin labels).
+#   - En Dokploy: el servicio frontend incluye labels de Traefik como respaldo (Host ${DOMAIN}, TLS letsencrypt); las rutas tambien pueden definirse en la UI de Domains.
 #   - Local: Usa los ports mapeados en localhost.
 #
 # Uso local:
