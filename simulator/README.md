@@ -35,44 +35,37 @@ python simulator.py --gateway-key gk_xxxxxx --logical-node-id 12 --base-url http
 
 ### 3. Simulador rápido multi-nodo (demo en vivo)
 
-`simulator_fast.py` incluye soporte para varios nodos en paralelo, modo de picos controlados para demo y carga de API keys desde archivo.
+`simulator_fast.py` incluye soporte para varios nodos en paralelo, modo de picos controlados para demo y y flags de demo (picos de alertas, dispatch, reporte IA).
 
 ```bash
-# Demo total de un comando (usa preset partner-socio y despacha notificaciones)
-python simulator_fast.py --quick-demo
+# Demo de un comando (modo demo-alerts + dispatch + reporte IA; requiere credencial y nodo)
+python simulator_fast.py --gateway-key gk_xxxxxx --logical-node-id 12 --quick-demo
 
-# 2 nodos en paralelo (intervalo 2s)
-python simulator_fast.py \
-  --preset partner-socio \
-  --interval 2
+# 2 nodos lógicos del mismo gateway en paralelo (--logical-node-id es repetible)
+python simulator_fast.py --gateway-key gk_xxxxxx --logical-node-id 12 --logical-node-id 13 --interval 2
 
 # Modo demo de alertas controladas
-python simulator_fast.py \
-  --preset partner-socio \
-  --mode demo-alerts \
-  --demo-spike-every 6 \
-  --interval 2
-
-# Cargar API keys desde archivo (una por linea)
-python simulator_fast.py --api-keys-file ./keys.txt --mode demo-alerts
+python simulator_fast.py --gateway-key gk_xxxxxx --logical-node-id 12 \
+  --mode demo-alerts --demo-spike-every 6 --interval 2
 
 # Backfill por cada nodo y luego loop en vivo
-python simulator_fast.py --api-keys-file ./keys.txt --backfill 7 --interval 2
+python simulator_fast.py --gateway-key gk_xxxxxx --logical-node-id 12 --backfill 7 --interval 2
 ```
 
+Flags de identidad (`simulator.py` y `simulator_fast.py`): `--gateway-key` (o `SIMULATOR_GATEWAY_KEY`), `--logical-node-id` (o `SIMULATOR_LOGICAL_NODE_ID`), `--base-url`, `--interval`, `--backfill`, `--dry-run`. `--api-key`, `--api-keys-file` y las variables `SIMULATOR_API_KEY(S)` ya no son válidos: el simulador termina con código 2. `--preset` se conserva solo como etiqueta legado y no carga keys.
+
 `--quick-demo` habilita:
-- preset `partner-socio` (Granja Hogar + Campus Reforestado)
 - modo `demo-alerts`
 - dispatch automatico de notificaciones cada 20s
 - trigger automatico de reporte IA semanal (ventana 7 dias)
-- generacion de reporte IA por cada area asociada a las API keys activas
+- generacion de reporte IA por cada área de los nodos lógicos indicados
 - login admin local por defecto (`admin@sensores.com` / `admin123`)
 
 Ejemplo con trigger IA manual:
 
 ```bash
 python simulator_fast.py \
-  --api-keys-file ./keys.txt \
+  --gateway-key gk_xxxxxx --logical-node-id 12 \
   --mode demo-alerts \
   --interval 2 \
   --ai-weekly-report \
@@ -91,22 +84,19 @@ Para no copiar el comando largo cada vez:
 
 ```bash
 cd simulator
-SIM_ADMIN_PASSWORD='TU_PASSWORD_ADMIN' ./run_partner_vps.sh
+SIM_GATEWAY_KEY='gk_...' SIM_LOGICAL_NODE_IDS='12,13' SIM_ADMIN_PASSWORD='TU_PASSWORD_ADMIN' ./run_partner_vps.sh
 ```
 
 Atajo desde la raíz del repo:
 
 ```bash
-SIM_ADMIN_PASSWORD='TU_PASSWORD_ADMIN' make demo-live-partner-vps
+SIM_GATEWAY_KEY='gk_...' SIM_LOGICAL_NODE_IDS='12,13' SIM_ADMIN_PASSWORD='TU_PASSWORD_ADMIN' make demo-live-partner-vps
 ```
 
 ### Variables de entorno (alternativa a CLI)
 ```bash
-export SIMULATOR_API_KEY=ak_n01_xxxxxx
-export SIMULATOR_API_KEYS="key1,key2,key3"
-export SIMULATOR_PRESET=seed-demo
-# Preset alterno para nodos productivos del socio (local seed)
-# export SIMULATOR_PRESET=partner-socio
+export SIMULATOR_GATEWAY_KEY=gk_xxxxxx
+export SIMULATOR_LOGICAL_NODE_ID=12   # simulator_fast.py: usa --logical-node-id repetido para varios nodos
 export SIMULATOR_ADMIN_EMAIL=admin@sensores.com
 export SIMULATOR_ADMIN_PASSWORD=admin123
 export SIMULATOR_BASE_URL=http://localhost:5050/api/v1

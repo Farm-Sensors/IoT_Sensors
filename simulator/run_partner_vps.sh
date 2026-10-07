@@ -2,7 +2,8 @@
 set -euo pipefail
 
 BASE_URL="${SIM_BASE_URL:-https://sensores.alanrz.bond/api/v1}"
-KEYS_FILE="${SIM_KEYS_FILE:-./keys_partner_vps.txt}"
+GATEWAY_KEY="${SIM_GATEWAY_KEY:-}"
+LOGICAL_NODE_IDS="${SIM_LOGICAL_NODE_IDS:-}"  # comma-separated
 ADMIN_EMAIL="${SIM_ADMIN_EMAIL:-admin@sensores.com}"
 ADMIN_PASSWORD="${SIM_ADMIN_PASSWORD:-}"
 INTERVAL="${SIM_INTERVAL:-2}"
@@ -19,20 +20,27 @@ if [[ -z "${ADMIN_PASSWORD}" ]]; then
   exit 1
 fi
 
-if [[ ! -f "${KEYS_FILE}" ]]; then
-  echo "No existe el archivo de keys: ${KEYS_FILE}"
-  echo "Generalo con:"
-  echo "  python3 scripts/setup_partner_locations.py --base-url ${BASE_URL} --admin-email ${ADMIN_EMAIL} --admin-password 'TU_PASSWORD' --write-keys-file simulator/keys_partner_vps.txt"
+if [[ -z "${GATEWAY_KEY}" || -z "${LOGICAL_NODE_IDS}" ]]; then
+  echo "Faltan SIM_GATEWAY_KEY y/o SIM_LOGICAL_NODE_IDS (lista separada por comas)."
+  echo "Ejemplo:"
+  echo "  SIM_GATEWAY_KEY='gk_...' SIM_LOGICAL_NODE_IDS='node-01,node-02' SIM_ADMIN_PASSWORD='TU_PASSWORD' ./run_partner_vps.sh"
   exit 1
 fi
 
+NODE_ARGS=()
+IFS=',' read -ra _ids <<< "${LOGICAL_NODE_IDS}"
+for id in "${_ids[@]}"; do
+  NODE_ARGS+=(--logical-node-id "${id}")
+done
+
 echo "Iniciando simulador partner VPS..."
 echo "  BASE_URL=${BASE_URL}"
-echo "  KEYS_FILE=${KEYS_FILE}"
+echo "  LOGICAL_NODE_IDS=${LOGICAL_NODE_IDS}"
 echo "  ADMIN_EMAIL=${ADMIN_EMAIL}"
 
 python3 simulator_fast.py \
-  --api-keys-file "${KEYS_FILE}" \
+  --gateway-key "${GATEWAY_KEY}" \
+  "${NODE_ARGS[@]}" \
   --base-url "${BASE_URL}" \
   --mode demo-alerts \
   --interval "${INTERVAL}" \

@@ -3,7 +3,7 @@
 IoT Simulator (fast) with multi-node live mode.
 
 Features:
-- Multiple API keys (`--api-key` repeatable and `--api-keys-file`)
+- One gateway credential (`--gateway-key`) with repeatable `--logical-node-id`
 - Per-node independent sensor state
 - Backfill mode
 - Demo alert mode with periodic controlled spikes
@@ -96,16 +96,15 @@ def get_config():
     parser.add_argument(
         "--api-keys-file",
         default="",
-        help="Archivo con API keys (una por linea; # para comentarios)",
+        help=argparse.SUPPRESS,  # removed: node API keys no longer authenticate telemetry
     )
     parser.add_argument(
         "--preset",
         choices=["none", "seed-demo", "partner-socio"],
         default=os.getenv("SIMULATOR_PRESET", "none"),
         help=(
-            "Preset de API keys. "
-            "'seed-demo' carga 4 keys demo, "
-            "'partner-socio' carga 2 keys productivas del socio local."
+            "Preset de demo (legado). Las API keys por nodo ya no autentican; "
+            "usa --gateway-key y --logical-node-id."
         ),
     )
     parser.add_argument(

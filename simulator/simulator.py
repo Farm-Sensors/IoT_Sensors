@@ -8,10 +8,10 @@ Genera datos matemáticamente coherentes según la hora del día.
 Zero dependencias externas — usa solo la librería estándar de Python.
 
 Uso:
-  python simulator.py --api-key ak_n01_abc123
-  python simulator.py --api-key ak_n01_abc123 --interval 30      # cada 30s (pruebas)
-  python simulator.py --api-key ak_n01_abc123 --backfill 7       # genera 7 días de historial
-  python simulator.py --api-key ak_n01_abc123 --dry-run          # sin enviar
+  python simulator.py --gateway-key gk_example --logical-node-id node-01
+  python simulator.py --gateway-key gk_example --logical-node-id node-01 --interval 30      # cada 30s (pruebas)
+  python simulator.py --gateway-key gk_example --logical-node-id node-01 --backfill 7       # genera 7 días de historial
+  python simulator.py --gateway-key gk_example --logical-node-id node-01 --dry-run          # sin enviar
 """
 
 import argparse
