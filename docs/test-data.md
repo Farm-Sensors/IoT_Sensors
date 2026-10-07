@@ -50,4 +50,4 @@ Las columnas `API Key` de las tablas siguientes listan las claves de nodo **lega
 | Nodo DEMO - Alfalfa Este | DEMO - Alfalfa Este (DEMO - Rancho Norte) | `c1f5cd79-e760-4a9f-92ea-31ea685a3add` |
 | Nodo DEMO - Chile Principal | DEMO - Chile Principal (DEMO - Rancho Norte) | `02b21674-0099-4470-a8dd-b4ebd7d8c2b0` |
 
-> **Nota para el simulador:** Usa la credencial de gateway del predio (`--gateway-key` / `SIM_GATEWAY_KEY`) y el ID de nodo lógico (`--logical-node-id` / `SIMULATOR_LOGICAL_NODE_ID`, repetible para varios nodos). Las keys `ak_partner_*` y las demo son legado: no envían telemetría.
+> **Nota para el simulador:** Usa la credencial de gateway del predio (`--gateway-key` / `SIM_GATEWAY_KEY`) y el ID de nodo lógico (`--logical-node-id`, repetible una vez por nodo; la variable `SIMULATOR_LOGICAL_NODE_ID` acepta un solo ID). Las keys `ak_partner_*` y las demo son legado: no envían telemetría.
