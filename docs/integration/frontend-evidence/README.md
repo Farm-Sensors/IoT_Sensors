@@ -2,7 +2,7 @@
 
 Truthful 200 bodies for Fabián. Do not invent API shape. Telemetry stays on `/api/v1/readings*`. Weather is disabled-by-default commercial Open-Meteo (`OPEN_METEO_ENABLED=false`). NDVI has no `X-Event-ID`; replay uses scene identity plus payload.
 
-U1 uses these 200 fixtures. Agent briefs: `openspec/changes/integration-u1-dashboard-current/` and `openspec/changes/integration-u2-history-export/`. Ignore work packets.
+U1 uses these 200 fixtures. Agent briefs: `openspec/changes/archive/2026-10-07-integration-u1-dashboard-current/` and `openspec/changes/archive/2026-10-07-integration-u2-history-export/`. Ignore work packets.
 
 ## Routes
 

@@ -14,6 +14,8 @@ This runbook is operational documentation only. It does not authorize production
 
 Legacy `nodos.api_key` columns may remain populated for rollback observation. They must not authenticate.
 
+Cloud gateway status derives from the last heartbeat (`backend/app/services/gateway_heartbeat.py`): `recently_seen` up to `GATEWAY_STATUS_RECENT_SECONDS` (450 s), `stale` up to `GATEWAY_STATUS_STALE_SECONDS` (900 s), then `disconnected`. Both defaults live in `backend/app/core/config.py`.
+
 ## Rollback
 
 1. Stop gateway traffic.

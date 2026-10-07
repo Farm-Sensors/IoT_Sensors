@@ -68,7 +68,7 @@ cd simulator
 python3 simulator_fast.py --gateway-key gk_... --logical-node-id 12 --quick-demo
 ```
 
-`make demo-live` ejecuta `simulator_fast.py --quick-demo` **sin** credenciales y termina con error hasta que se pasen `--gateway-key` y `--logical-node-id`.
+`make demo-live` ejecuta `simulator_fast.py --quick-demo` con `SIM_GATEWAY_KEY` y `SIM_LOGICAL_NODE_IDS` (lista separada por comas, igual que `run_partner_vps.sh`); si faltan, el target falla con un mensaje explícito antes de arrancar.
 
 `--quick-demo` activa: modo `demo-alerts`, despacho periódico de notificaciones, trigger de reporte IA semanal (ventana 7 días), credenciales admin locales (`admin@sensores.com` / `admin123`).
 

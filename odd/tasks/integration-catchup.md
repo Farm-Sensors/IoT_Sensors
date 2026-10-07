@@ -5,7 +5,7 @@ Unblock frontend verification, reconcile stale OpenSpec task lists with `main`, 
 
 ## Problem / Why
 - `npm run typecheck` fails (TS6133 in `frontend/src/app/pages/admin/NodeManagement.tsx:99`), which blocks the U1/U2 verification commands.
-- `edge-cloud-gateway-provisioning` tasks 4.4/4.5 and `integration-c1`/`integration-c2` do not reflect code already on `main`.
+- `edge-cloud-gateway-provisioning` tasks 4.4/4.5 and `openspec/changes/integration-c1-reading-serializer/`/`openspec/changes/archive/2026-10-07-integration-c2-reading-idempotency/` do not reflect code already on `main`.
 - U1/U2 (originally owned by Fabián) were authorized by the user to be implemented here.
 
 ## Scope
@@ -22,8 +22,8 @@ Unblock frontend verification, reconcile stale OpenSpec task lists with `main`, 
 ## Tasks
 - [x] T1 Fix unused `res` in `NodeManagement.tsx` so `npm run typecheck` passes. Route: inline (one mechanical line).
 - [x] T2 Reconcile OpenSpec task lists: mark gateway 4.4/4.5 with evidence; verify C1 against code/tests; mark C2 superseded with evidence. Route: inline (doc edits after verification).
-- [x] T3 U1 dashboard current (`openspec/changes/integration-u1-dashboard-current/tasks.md`). Route: delegated writer (2+ non-trivial files).
-- [x] T4 U2 history/export (`openspec/changes/integration-u2-history-export/tasks.md`), after T3 on `main`. Route: delegated writer.
+- [x] T3 U1 dashboard current (`openspec/changes/archive/2026-10-07-integration-u1-dashboard-current/tasks.md`). Route: delegated writer (2+ non-trivial files).
+- [x] T4 U2 history/export (`openspec/changes/archive/2026-10-07-integration-u2-history-export/tasks.md`), after T3 on `main`. Route: delegated writer.
 
 ## Checks
 - `cd frontend && npm test -- --run`
