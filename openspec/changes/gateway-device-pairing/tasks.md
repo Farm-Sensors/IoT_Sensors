@@ -29,7 +29,7 @@ Branches: IoT_Sensors work branches from `main`; Agro.io work branches from `int
 - [ ] B2 **Pairing service** — Add `backend/app/services/gateway_pairing.py`: code generation and normalization, HMAC/hash, guarded transitions, lazy expiry, `slow_down`, redemption that reuses the activation transition from `gateway_lifecycle.py` (extract a shared `_activate_gateway` helper without changing `activate` behavior) and revokes outstanding references. Add settings to `app/core/config.py`. ~350 lines.
   - Test: `cd backend && uv run pytest -q tests/unit/test_gateway_pairing_service.py tests/integration/test_gateway_lifecycle_api.py`
 - [ ] B2b **Re-pair with credential rotation (decision 7)** — Allow approval for an `active` gateway only with `replace_credential: true`; redemption issues a new `gk_` credential, revokes the previous one in the same transaction, and keeps the gateway, slots and bindings. Reject `replace_credential: true` for `pending_activation` gateways and reject `active` gateways without it. ~200 lines.
-  - Test: `cd backend && uv run pytest -q tests/unit/test_gateway_pairing_service.py tests/integration/test_gateway_pairing_api.py`
+  - Test: `cd backend && uv run pytest -q tests/unit/test_gateway_pairing_service.py` (the API-level rotation scenario is added with B4).
 - [ ] B3 **Machine routes** — Add `backend/app/api/v1/endpoints/gateway_pairing.py` start and token routes, schemas in `app/schemas/gateway_pairing.py`, router wiring, `GATEWAY_PAIRING_ENABLED` gate, per-IP start limit and pending cap. ~300 lines.
   - Test: `cd backend && uv run pytest -q tests/integration/test_gateway_pairing_api.py`
 - [ ] B4 **Admin routes and abuse limits** — Add lookup, approve, and deny routes (admin JWT), per-admin/per-IP failure lockout, per-session wrong-code denial, uniform not-found, and a log-redaction test (caplog). ~350 lines.
@@ -79,7 +79,7 @@ Decided 2026-10-07: deliver the biggest field improvement first. Binding happens
 
 1. **Phase 1 — On-screen node binding (no contract change).** A2 (only `submit_binding`; `pair`/`cancel_pair` come in phase 2), I1 (without pairing reads), I2 limited to step 1 as reference entry (typed `ar_` reference written to the payload file) plus step 2 (node list with preview and signal), I3. F1 and F2 make the reference fallback usable from the cloud side.
    - Acceptance: on the Pi 5, InstallView activates with a reference, lists detected nodes, binds two nodes in one bulk confirm, and the dashboard shows their readings.
-2. **Phase 2 — Device-authorization pairing.** C1 → C2 → B1 → B2 → B2b → B3 → B4 → F3 → F4 → B5 → A1 → A2 (add `pair`, `cancel_pair`) → A3 → A4 → I2 (pairing step: QR, code, countdown, retry).
+2. **Phase 2 — Device-authorization pairing.** C1 → C2 → B1 → B2 → B2b → B3 → B4 (includes the API rotation scenario) → F3 → F4 → B5 → A1 → A2 (add `pair`, `cancel_pair`) → A3 → A4 → I2 (pairing step: QR, code, countdown, retry).
    - Acceptance: on the Pi 5, InstallView pairs by phone approval without typing a reference; a re-pair with `replace_credential` keeps the existing bindings; the reference fallback still activates a second test gateway.
 
 Each work unit keeps its focused test or checklist; docs (`docs/system.md`, integration runbooks, this change) are updated in the same unit as the behavior they describe.

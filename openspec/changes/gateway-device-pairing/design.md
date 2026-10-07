@@ -60,12 +60,13 @@ Technician      Agro InstallView     Agro agent (Python)          IoT_Sensors AP
      |                               +---------+                  +----------+
      +--- edge cancel ---> denied (reason=cancelled)              | consumed | (terminal)
                                                                   +----------+
-   approved --token poll finds gateway no longer pending_activation--> denied (reason=gateway_unavailable)
+   approved --token poll finds the gateway no longer in the approved target state--> denied (reason=gateway_unavailable)
 ```
 
 - Only `pending → approved`, `pending → denied`, `pending|approved → expired`, `approved → consumed`, and `approved → denied` are valid. Every transition is a guarded `UPDATE ... WHERE estado = <expected>` with a rowcount check, matching `activate` in `backend/app/services/gateway_lifecycle.py`.
 - `expired` is evaluated lazily (`expira_en <= now`) on every read; no scheduler is added.
-- `consumed` happens in the same transaction that moves the gateway from `pending_activation` to `active`, sets `credencial_hash`, and revokes any outstanding `issued` activation references for that gateway.
+- Approval records the session's purpose: `activation` (gateway was `pending_activation`) or `rotation` (gateway was `active` and the admin set `replace_credential: true`). The token poll re-checks that the gateway is still in that state; otherwise the session ends as `denied` (`gateway_unavailable`).
+- `consumed` happens in one transaction. For `activation` it moves the gateway from `pending_activation` to `active`, sets `credencial_hash`, and revokes any outstanding `issued` activation references for that gateway. For `rotation` it replaces `credencial_hash` (the previous credential stops working) and leaves the gateway state, slots, configuration and bindings unchanged.
 
 ## API shapes
 

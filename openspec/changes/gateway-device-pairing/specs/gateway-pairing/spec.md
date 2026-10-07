@@ -83,10 +83,10 @@ Only an authenticated administrator MUST be able to look up, approve, or deny a 
 - WHEN a client user or an unauthenticated caller attempts lookup or approval
 - THEN the system rejects the request and the session stays pending
 
-#### Scenario: Approval targets an active gateway
+#### Scenario: Approval targets an active gateway without rotation
 
 - GIVEN a pending session and a gateway that is already `active`
-- WHEN an administrator attempts to approve the session for that gateway
+- WHEN an administrator attempts to approve the session for that gateway without `replace_credential: true`
 - THEN the system returns `409` and the session stays pending
 
 #### Scenario: Admin denies a session
@@ -119,7 +119,7 @@ Introducing pairing MUST NOT change the request, response, error, or retry behav
 
 - GIVEN pairing is enabled and a gateway has an unused activation reference
 - WHEN the gateway activates with that reference
-- THEN activation succeeds exactly as before and any pending pairing session for that gateway later ends as `access_denied`
+- THEN activation succeeds exactly as before, and a session already approved for that gateway's activation ends as `access_denied` on its next token poll
 
 ### Requirement: Re-pair with credential rotation
 
