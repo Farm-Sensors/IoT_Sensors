@@ -34,7 +34,7 @@ def main() -> None:
     timeout_seconds = int(os.getenv("AI_REPORTS_HTTP_TIMEOUT_SECONDS", "30"))
 
     enabled = os.getenv("AI_REPORTS_SCHEDULER_ENABLED", "false").lower() == "true"
-    notify = os.getenv("AI_REPORTS_DEFAULT_NOTIFY", "true").lower() == "true"
+    notify = os.getenv("AI_REPORTS_DEFAULT_NOTIFY", "false").lower() == "true"
     force = os.getenv("AI_REPORTS_SCHEDULER_FORCE", "false").lower() == "true"
     poll_seconds = int(os.getenv("AI_REPORTS_SCHEDULER_POLL_SECONDS", "60"))
     schedule_hour = int(os.getenv("AI_REPORTS_SCHEDULE_HOUR_UTC", "2"))
