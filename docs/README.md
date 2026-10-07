@@ -29,7 +29,7 @@ Comportamiento del sistema, por capacidad. Todo cambio de comportamiento parte d
 | Capacidad | Qué especifica |
 |---|---|
 | `readings` | Ingesta de lecturas + consulta, histórico, export, frescura, prioridad |
-| `security` | Auth (JWT + API keys), roles, ownership, hardening |
+| `security` | Auth (JWT para usuarios + credencial de gateway; las API keys de nodo ya no autentican), roles, ownership, hardening |
 | `data-model` | Jerarquía Cliente→Predio→Área→Nodo, lecturas wide table, ciclos, catálogos |
 | `alerting` | Umbrales, alertas, inactividad, notificaciones (Fase 2, dormido) |
 | `ai-modules` | Asistente IA, reportes, uso (Fase 2, dormido) |
@@ -49,7 +49,10 @@ Comportamiento del sistema, por capacidad. Todo cambio de comportamiento parte d
 | `data-model.md` | Modelo de datos: tablas, relaciones, ERD, consultas de referencia |
 | `security.md` | Mecanismos de seguridad y pendientes |
 | `design-system.md` | Design system del frontend (tokens reales) |
-| `deployment.md` | Despliegue en Dokploy |
+| `deployment.md` | Despliegue en Dokploy (manual: un push a `main` no redespliega) |
+| `integration/README.md` | Integración gateway v2 con Agro.io: flujo verificado y responsables |
+| `integration/gateway-v2-cutover-runbook.md` | Verificación de corte y rollback |
+| `integration/agro-release-and-update.md` | Cómo Agro.io publica/instala releases y la línea v2 |
 | `operations.md` | Operación: demo reproducible, simulador, schedulers, scripts |
 | `testing.md` | Estrategia de testing (pytest, vitest) + CI + pendientes |
 | `deliverables/` | Entregables al cliente (SRS, Reporte QA, Entregable Word) — congelados |

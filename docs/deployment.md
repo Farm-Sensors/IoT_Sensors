@@ -7,13 +7,27 @@ How the system works: `docs/system.md`. Wire contract: `contracts/edge-cloud/v2/
 ## Quick path
 
 1. In Dokploy, create a Compose app from `Farm-Sensors/IoT_Sensors`, branch `main`, compose file `docker-compose.yml`.
-2. Set `DOMAIN`, `SECRET_KEY`, `DB_PASSWORD`, `FRONTEND_PUBLIC_URL`, and `PASSWORD_RESET_URL_BASE`. Leave Phase 2 flags off. Do not publish MySQL or the backend port.
-3. Deploy `main`. The backend container runs `alembic upgrade head` before Uvicorn. Use an empty database.
+2. Set `DOMAIN` (when a domain exists), `SECRET_KEY`, `DB_PASSWORD`, `FRONTEND_PUBLIC_URL`, and `PASSWORD_RESET_URL_BASE`. Leave Phase 2 flags off. Do not publish MySQL or the backend port.
+3. Deploy `main` manually (see "Current installation and manual deploy"). The backend container runs `alembic upgrade head` before Uvicorn. Use an empty database.
 4. Run `scripts/dokploy_smoke_check.sh <domain>`. HTTPS `/health` must be `{"status":"ok"}`.
 5. In the admin UI, create the hierarchy and one gateway per property. Node API keys do not authenticate.
 6. Point each sender at `https://<domain>`. Dokploy does not start those senders.
 
 Several Raspberries means several properties, each with one gateway. One property never has two gateways.
+
+## Current installation and manual deploy
+
+The running stack lives in Dokploy at `http://10.32.81.230:3000`, project **IoT_Sensors**, environment **development**, compose **iot-sensors**. It sits on the ITESM private network, is served over **plain HTTP**, and has **no public domain** yet. Because of that, the HTTPS-only wording below (`https://<domain>`, Traefik certificates) applies once a domain exists.
+
+**A push to `main` does NOT redeploy.** GitHub autodeploy cannot reach the private Dokploy host, so every deploy is manual:
+
+1. Log in to Dokploy, open IoT_Sensors, then development, then compose `iot-sensors`, and press **Deploy** (or use the Dokploy MCP `compose-deploy` call for the same compose).
+2. Wait until the deployment status is `done`. The backend runs `alembic upgrade head` before Uvicorn.
+3. Run `scripts/dokploy_smoke_check.sh <host>`. The script builds `https://<host>` URLs; on the plain-HTTP stack run the same three checks (`/health`, `/api/v1/docs`, `/`) with `curl` against `http://<host>` until a domain with TLS exists.
+
+Insecure compose defaults must be overridden in Dokploy: `DB_PASSWORD` defaults to `rootpass`, and `SECRET_KEY` defaults to a known dev value. With `DEBUG=false` the backend **refuses to start** when `SECRET_KEY` is one of the known insecure defaults (`backend/app/core/config.py`), but nothing rejects the default `DB_PASSWORD`, so set it explicitly.
+
+The frontend service carries Traefik labels that read `DOMAIN` (default `sensores.alanrz.bond`); routes can also be defined in the Dokploy Domains UI.
 
 ## What this deploy does not do
 
@@ -119,4 +133,4 @@ The 1-node, 8-node, and 16-node harness counts are sign-off evidence, not a requ
 
 ## 7. Rollback
 
-Rollback is redeploying the previous `main` SHA. There is no automatic production promotion. If acceptance fails, keep the label **pre-release**, fix the bounded change, and repeat only the failed check.
+Rollback is manual: check out the previous known-good `main` SHA in the Dokploy compose source (or revert on `main`), then press **Deploy** again and re-run the smoke check. A redeploy does not undo database migrations: Alembic revisions already applied stay applied, so a rollback past a schema change needs a database restore or a forward fix. For the gateway v2 cutover, rollback means stopping traffic and redeploying the last compatible cloud/producer pair (see `integration/gateway-v2-cutover-runbook.md`). There is no automatic production promotion. If acceptance fails, keep the label **pre-release**, fix the bounded change, and repeat only the failed check.

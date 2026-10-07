@@ -8,7 +8,7 @@ Estrategia de **pirámide de dos niveles** contra la API REST, sin dependencias 
 
 - **Integración** — HTTP end-to-end con `TestClient` de FastAPI: flujos request→BD, roles y permisos (401/403), rutas REST.
 - **Unitario** — Lógica de negocio aislada en la capa de servicios (con BD en memoria).
-- **Principios**: aislamiento entre tests (transacciones con rollback), 327 tests en ~1 minuto, fixtures reutilizables en `conftest.py`.
+- **Principios**: aislamiento entre tests (transacciones con rollback), 433 funciones `def test_` en backend (ver conteo abajo), fixtures reutilizables en `conftest.py`.
 
 ### Stack
 
@@ -32,8 +32,12 @@ uv run pytest tests/ -x                    # Detener al primer fallo
 backend/tests/
 ├── conftest.py          # Fixtures globales: BD, TestClient, tokens, entidades default
 ├── unit/                # Tests de la capa de servicios (security, users, clients, readings...)
-└── integration/         # Tests HTTP de red (auth, readings, users, permissions...)
+├── integration/         # Tests HTTP de red (auth, readings, gateways, ndvi, users, permissions...)
+├── mysql/               # Aceptación opt-in contra MySQL 8 vacío (migraciones de gateway)
+└── helpers/             # Utilidades compartidas (p.ej. `contract.py`)
 ```
+
+Conteo (por texto, `grep -rE "^\s*(async )?def test_"` sobre `backend/tests/`; no cuenta casos parametrizados): **433** funciones = 154 en `unit/` + 278 en `integration/` + 1 en `mysql/`. El número real de casos que reporta pytest puede ser mayor. Para el total exacto ejecuta `uv run pytest --collect-only -q`.
 
 ### Fixtures principales (`conftest.py`)
 
@@ -45,12 +49,33 @@ backend/tests/
 | `admin_user` / `client_user` | Registros instanciados en BD |
 | `admin_token` / `client_token` | JWTs literales para flujos de autenticación |
 | `admin_headers` / `client_headers` | Headers HTTP listos para `client.post(..., headers=...)` |
-| `node_headers` | Emula credencial de gateway + `X-Logical-Node-Id` |
+| `node_headers` | Nombre histórico del fixture (no renombrado): emula credencial de gateway + `X-Logical-Node-Id`, no una API key de nodo |
 | `sample_*` (cascada) | Pide `sample_crop_cycle` y crea en cadena User → Property → CropType → IrrigationArea → CropCycle |
 
 ### Cobertura
 
-Suite de 327 tests al 100% de éxito, cobertura transaccional >80% (excluyendo migraciones Alembic y seed). Cubre flujos positivos y restrictivos (404/401/422/409).
+Suite backend sin dependencias externas (los tests de `tests/mysql/` se omiten sin MySQL), cobertura transaccional >80% (excluyendo migraciones Alembic y seed). Cubre flujos positivos y restrictivos (404/401/422/409).
+
+### MySQL de gateways (opt-in)
+
+`tests/mysql/test_gateway_migrations.py` valida migraciones y constraints contra una base MySQL 8 **vacía y desechable**; se omite si falta la variable. CI lo corre en el job `gateway-mysql`:
+
+```bash
+GATEWAY_MYSQL_TEST_URL=mysql+pymysql://root@127.0.0.1:3306/issue29_test \
+  uv run pytest tests/mysql/test_gateway_migrations.py -q
+```
+
+### Contrato edge-cloud v2 y harness (`scripts/integration/`, desde la raíz)
+
+```bash
+python -m pip install -r scripts/integration/contract-requirements.txt
+python scripts/integration/validate_v2_contract.py                                   # paquete v2 + v1 congelado
+python -m unittest discover -s scripts/integration -p 'test_v2_contract.py'          # regresión del contrato
+python -m unittest discover -s scripts/integration -p 'test_h0_harness.py' -v        # harness H0 (offline)
+python -m unittest discover -s scripts/integration -p 'test_h1_harness.py' -v        # harness H1 (plan-only)
+```
+
+El job `edge-cloud-contract` de CI ejecuta los dos primeros. Detalle de los harness en `scripts/integration/README.md`.
 
 ## Frontend (vitest)
 
@@ -81,7 +106,9 @@ npm run build           # Vite/Rollup: detecta imports rotos y dependencias muer
 
 `.github/workflows/ci.yml` corre en cada push a `main` y PR:
 
-- **Backend** — `uv sync --frozen` → `ruff check app tests` → `uv run pytest -q`.
+- **Contrato v2** — `validate_v2_contract.py` + `test_v2_contract.py` (Python 3.13).
+- **Backend** — `uv sync --frozen` → `ruff check app tests` → `uv run pytest -q` (Python 3.13).
+- **Gateway MySQL** — `tests/mysql/test_gateway_migrations.py` contra un servicio `mysql:8.0`.
 - **Frontend** — `npm ci` → `npm run typecheck` → `npm run test -- --run` → `npm run build`.
 
 ## Pendientes conocidos

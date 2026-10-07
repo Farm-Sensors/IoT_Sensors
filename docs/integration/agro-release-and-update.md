@@ -51,8 +51,17 @@ tag x.y.z pushed  ──►  release-rpi.yml  ──►  GitHub Release (agroio-
 
 - A device running `0.9.4` sends nothing to this cloud. It uses the old `http_sync` path and has no activation, binding, outbox or heartbeat code.
 - For a device to talk to this cloud, a release containing the wired gateway v2 must be **tagged and published**, then **installed manually** on that device.
-- Agro.io `integration/iot-v2` currently holds the gateway code but does not call it from the agent loop, so tagging that branch alone would not make telemetry flow. See [`gateway-v2-cutover-runbook.md`](gateway-v2-cutover-runbook.md) for the cutover and rollback rules.
+- When this page was verified (2026-10-06), Agro.io `integration/iot-v2` held the gateway code but did not call it from the agent loop, so tagging that branch alone would not have made telemetry flow. The v2 line has since been wired (headless harness smoke on 2026-10-06, evidence in Agro.io `odd/tasks/wire-gateway-v2.md`); that wiring was not re-verified from this repository. See [`gateway-v2-cutover-runbook.md`](gateway-v2-cutover-runbook.md) for the cutover and rollback rules.
 - Because updates are manual, a paired staging smoke (task 7.4 of `edge-cloud-gateway-provisioning`) needs someone to publish the release and trigger the install on the test device.
+
+## v2 line
+
+- Agro.io v2 grows on `integration/iot-v2`, by versions. It is **never merged to Agro.io `main`**, and nothing from it is pushed to `main`.
+- Releases of the v2 line use pre-release tags `2.0.0-alpha.N`. This is a decision taken on 2026-10-07, recorded here; it is **to be implemented** in Agro.io's release workflow, which will mark any tag containing `-` as a GitHub pre-release so that `releases/latest` ignores it.
+- Production Raspberries running `0.9.x` never receive v2: they follow `releases/latest`, which stays on the `0.9.x` line.
+- The test Raspberry is updated with `ops/scripts/deploy-release-to-rpi.sh <user@host> <version>`, not through the UI check.
+
+Packaging gaps verified on 2026-10-06 and **being fixed on the v2 line** (not yet confirmed fixed): the release package omits `contracts/`, and the install defines no `RuntimeDirectory` or secrets directory for the gateway credential.
 
 ## Open questions
 

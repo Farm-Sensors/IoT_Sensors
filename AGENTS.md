@@ -10,7 +10,7 @@ The latest **point-sampled NDVI** result from Agro.io is approved as a bounded i
 
 ### Integration agent
 
-Si el trabajo asignado es una carpeta `openspec/changes/integration-*`, esa carpeta es el brief. Lee también las rutas de Scope de esa proposal y los contratos o evidencia que nombra. Implementa `tasks.md`. No sigas `docs/integration/week-plan.md` ni Agro.io. No sigas `docs/integration/work-packets/` para implementar. Si te bloqueas, detente. Los PRs de IoT siguen la política ordinaria de IoT_Sensors (este repo no es producción Agro; no apliques la regla de Agro sobre `main`). **No** trates `main` de Agro.io como destino de merge. Desde este workspace se permite modificar Agro.io (`../Agro.io` o un worktree suyo) en ramas basadas en `integration/iot-v2`; nunca hagas commit ni push a `main` de Agro.io. El PR usa `Closes #N` cuando exista un issue; el issue solo nombra esa carpeta.
+Si el trabajo asignado es una carpeta `openspec/changes/integration-*`, esa carpeta es el brief. Lee también las rutas de Scope de esa proposal y los contratos o evidencia que nombra. Implementa `tasks.md`. No uses Agro.io como brief. Si te bloqueas, detente. Los PRs de IoT siguen la política ordinaria de IoT_Sensors (este repo no es producción Agro; no apliques la regla de Agro sobre `main`). **No** trates `main` de Agro.io como destino de merge. Desde este workspace se permite modificar Agro.io (`../Agro.io` o un worktree suyo) en ramas basadas en `integration/iot-v2`; nunca hagas commit ni push a `main` de Agro.io. El PR usa `Closes #N` cuando exista un issue; el issue solo nombra esa carpeta.
 
 2. ARQUITECTURA TÉCNICA
 El sistema sigue una arquitectura cliente-servidor tradicional, separando la recolección de datos, el backend y el frontend.
@@ -68,7 +68,7 @@ Los siguientes datos son los de mayor importancia para el cliente y deben tener 
 2.4. DECISIONES TÉCNICAS DE IMPLEMENTACIÓN
 
 **Stack Tecnológico:**
-- **Backend:** Python 3.11+ con **FastAPI** (async, tipado estricto, documentación automática Swagger/OpenAPI).
+- **Backend:** Python 3.13+ con **FastAPI** (async, tipado estricto, documentación automática Swagger/OpenAPI).
 - **Frontend:** **React** (SPA desacoplada que consume la API REST).
 - **Base de Datos:** **MySQL 8** (puerto 3306). ORM: **SQLAlchemy** con **Alembic** para migraciones.
 - **Deployment:** **Docker + Docker Compose** en la VPS Linux gestionado vía **Dokploy**. Contenedores: MySQL, Backend (FastAPI + Uvicorn), Frontend (Build estático servido por Nginx interno). **Traefik (Dokploy)** actúa como reverse proxy público y service discovery, ruteando `/api/*` al backend y `/` al frontend, además de gestionar los certificados SSL automáticamente.
@@ -206,7 +206,7 @@ La arquitectura de la base de datos y la API del MVP deben diseñarse preparando
 - En el MVP el Cliente es solo visor (dashboard, histórico, exportación). En Fase 2, el Cliente podrá configurar sus propios umbrales de alertas y preferencias de notificación por área de riego.
 
 4.10. REQUISITO DE DISEÑO ACTUAL (para soportar Fase 2)
-- Para soportar todas las modalidades futuras, la base de datos del MVP debe estar perfectamente normalizada. Las tablas y endpoints de la API deben garantizar trazabilidad total (timestamps precisos en cada lectura, IDs de cultivos/nodos/predios/áreas) y permitir tanto consultas rápidas filtradas (para el chat de IA) como extracciones masivas de datos históricos (para los reportes nocturnos). El volumen estimado es de **3 categorías × 12 campos dinámicos × 144 lecturas/día × N nodos**, lo cual debe considerarse en el diseño de índices y particionamiento.
+- Para soportar todas las modalidades futuras, la base de datos del MVP debe estar perfectamente normalizada. Las tablas y endpoints de la API deben garantizar trazabilidad total (timestamps precisos en cada lectura, IDs de cultivos/nodos/predios/áreas) y permitir tanto consultas rápidas filtradas (para el chat de IA) como extracciones masivas de datos históricos (para los reportes nocturnos). El volumen estimado es de **12 campos dinámicos (en 3 categorías) × 144 lecturas/día × N nodos**, lo cual debe considerarse en el diseño de índices y particionamiento.
 
 > **IMPORTANT:** When the remaining Phase 2 work is implemented, update the database schema (new `umbrales`, `alertas`, and `audit_log` tables; separate NDVI snapshot storage, never a telemetry field), SRS, use cases, and activity diagrams.
 
@@ -214,7 +214,7 @@ La arquitectura de la base de datos y la API del MVP deben diseñarse preparando
 - Cuando te pida diagramas, código, o diseño de base de datos/endpoints, apégate a esta arquitectura y la jerarquía: **Cliente → Predios → Áreas de Riego (→ Tipo de Cultivo + Nodo IoT 1:1)**.
 - **Stack:** Python/FastAPI (backend), React (frontend), MySQL 8 (BD), Docker Compose (deploy). Ver sección 2.4 para detalles.
 - Mantén las soluciones simples y modulares para un entorno Linux.
-- When designing sensor payloads, use the **three dynamic categories** in section 2.1 with the exact JSON keys from section 2.4. Do not include static crop, size, or GPS data. Unavailable values may be `0` or `null` in the legacy baseline; the edge-cloud v1 contract requires `null`. NDVI is never telemetry and uses its separate latest-point contract.
+- When designing sensor payloads, use the **three dynamic categories** in section 2.1 with the exact JSON keys from section 2.4. Do not include static crop, size, or GPS data. Unavailable values may be `0` or `null` in the legacy baseline; the edge-cloud v2 contract (`contracts/edge-cloud/v2/`) requires `null`. NDVI is never telemetry and uses its separate latest-point contract.
 - El catálogo de cultivos es **administrable** por el Admin (CRUD). Valores iniciales de seed: **Nogal, Alfalfa, Manzana, Maíz, Chile, Algodón**.
 - Toda lectura debe llevar `timestamp` (ISO 8601 UTC). Todo endpoint de consulta debe soportar filtros por rango de fechas (`start_date`, `end_date`).
 - Contempla el indicador de frescura de datos (último timestamp + tiempo transcurrido) en diseños de dashboard.

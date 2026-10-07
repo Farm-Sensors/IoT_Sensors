@@ -100,11 +100,11 @@ sequenceDiagram
     participant B as 🐍 Backend (FastAPI)
     participant DB as 🗄️ MySQL
 
-    S->>N: POST /api/v1/readings<br/>Header: X-API-Key: <key><br/>Body: JSON (3 categorías)
+    S->>N: POST /api/v1/readings<br/>Headers: X-API-Key (gateway), X-Logical-Node-Id, X-Event-ID<br/>Body: JSON (3 categorías)
     N->>B: Proxy pass → :5050
 
-    B->>B: Validar API Key
-    alt API Key inválida
+    B->>B: Validar credencial de gateway y nodo lógico
+    alt Credencial inválida (401) / nodo no autorizado (403)
         B-->>N: 401 Unauthorized
         N-->>S: 401 Unauthorized
     end
@@ -113,12 +113,12 @@ sequenceDiagram
     Note right of B: ✅ timestamp (ISO 8601 UTC)<br/>✅ soil (4 campos)<br/>✅ irrigation (3 campos)<br/>✅ environmental (5 campos)<br/>⚠️ Campos null/0 = aceptados<br/>❌ NDVI = ignorado
 
     alt Payload inválido
-        B-->>N: 400 Bad Request
-        N-->>S: 400 Bad Request
+        B-->>N: 422 Unprocessable Entity
+        N-->>S: 422 Unprocessable Entity
     end
 
-    B->>DB: INSERT lecturas (marca_tiempo, nodo_id, + 12 variables de estado)
-    B-->>N: 201 Created
+    B->>DB: INSERT lecturas (marca_tiempo, nodo_id, + 12 variables de estado)<br/>idempotente por gateway + nodo + event ID
+    B-->>N: 201 Created (200 reintento exacto, 409 body distinto)
     N-->>S: 201 Created
 ```
 
@@ -319,7 +319,7 @@ graph TD
 | Capa | Tecnología | Rol |
 |------|-----------|-----|
 | **Frontend** | React (SPA) | Interfaz web. Build estático servido por Nginx. Dashboard, histórico, exportación. |
-| **Backend** | Python 3.11+ / FastAPI / Uvicorn | API REST. Recibe lecturas de sensores + atiende CRUD del frontend. Async. |
+| **Backend** | Python 3.13 / FastAPI / Uvicorn | API REST. Recibe lecturas de sensores + atiende CRUD del frontend. Async. |
 | **Base de Datos** | MySQL 8 | Almacenamiento relacional. 14 tablas activas en el estado actual. ORM: SQLAlchemy. Migraciones: Alembic. |
 | **Reverse Proxy** | Nginx | Punto de entrada público. SSL termination. Rutea `/` → frontend, `/api/v1/*` → backend. |
 | **Contenedores** | Docker + Docker Compose | Orquestación de Frontend+Nginx, Backend, MySQL y schedulers opcionales para inactividad/notificaciones en la VPS. |

@@ -8,7 +8,7 @@ Read this folder, named contracts/evidence, and every Allowed/Scope path in this
 
 - `openapi.yaml` (GET `/api/v1/readings` and GET `/api/v1/readings/export`)
 
-Do not follow `docs/integration/week-plan.md` or Agro.io as the brief. Implement `tasks.md`. Stop if U1 is not merged or if blocked. Do not generate exports in the backend. PR `Closes #N` when an issue exists; the issue names this folder only.
+Do not use Agro.io as the brief. Implement `tasks.md`. Stop if U1 is not merged or if blocked. Do not generate exports in the backend. PR `Closes #N` when an issue exists; the issue names this folder only.
 
 ## Why
 

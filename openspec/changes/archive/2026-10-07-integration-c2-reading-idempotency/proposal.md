@@ -1,5 +1,7 @@
 # Change: integration-c2-reading-idempotency
 
+> **Archived 2026-10-07. Superseded by gateway idempotency** (gateway + logical node + `X-Event-ID`, implemented under `edge-cloud-gateway-provisioning`). Tasks below are kept unchanged as history.
+
 ## Agent start
 
 Owner: Ricky. This folder is the brief. Depends on C1 merged on `main`.
@@ -9,7 +11,7 @@ Read this folder, named contracts/evidence, and every Allowed/Scope path in this
 - `contracts/edge-cloud/v1/telemetry.schema.json`
 - `contracts/edge-cloud/v1/README.md`
 
-Do not follow `docs/integration/week-plan.md` or Agro.io as the brief. Implement `tasks.md`. Stop if C1 is not merged or if blocked. PR `Closes #N` when an issue exists; the issue names this folder only.
+Do not use Agro.io as the brief. Implement `tasks.md`. Stop if C1 is not merged or if blocked. PR `Closes #N` when an issue exists; the issue names this folder only.
 
 ## Why
 

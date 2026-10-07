@@ -10,7 +10,7 @@ The cloud-first hierarchy is unchanged: the administrator still defines the clie
 
 - **The field device cannot consume the current reference.** The Agro test Raspberry is a Pi 5 with a 7" USB touchscreen and no camera. Technicians operate the Agro screen on site.
 - **The cloud shows the reference only as a QR.** `frontend/src/app/pages/admin/GatewayManagement.tsx` renders the single-use activation reference as a QR image; the reference text is present only inside an `sr-only` element (`data-testid="one-time-secret"`). The reference is `"ar_" + secrets.token_urlsafe(32)` (`backend/app/services/gateway_lifecycle.py`, `issue_reference`), about 46 characters. Typing it on a touchscreen is error-prone, and the device cannot scan the QR.
-- **The only working path today is headless.** On 2026-10-06 the first end-to-end harness run succeeded only through the headless CLI (`services/edge-agent-python/gateway/cli.py activate --reference-file`, documented in Agro `docs/integration/headless-harness.md`), with the reference issued through the admin API and written to a file.
+- **The only working path today is headless.** On 2026-10-06 the first end-to-end harness run succeeded only through the headless CLI (`services/edge-agent-python/gateway/cli.py activate --reference-file`, documented in Agro.io's `docs/integration/headless-harness.md`, an Agro-side path), with the reference issued through the admin API and written to a file.
 - **The install UI does not exist yet.** Agro tasks 2.5/2.6 (`openspec/changes/integration-gateway-v2/tasks.md`, InstallView) are open; only `GatewayUpdateView` exists. Designing the pairing flow now lets InstallView be built once, against the final flow.
 - **Device authorization fits the hardware.** The edge has a screen but no camera; the administrator's phone has a camera and a logged-in session. Showing a short code on the device and approving it on the phone uses each device for what it can do, and never puts a long-lived secret on a screen.
 - **Admin UX gaps block fallback use.** `handleProvision` in `GatewayManagement.tsx` has no error handling, so a `422` from provisioning (for example "Every slot must reference an existing area and active logical node in this property", `backend/app/services/gateway.py`) is silently swallowed.
@@ -40,7 +40,7 @@ The `ar_` reference and `POST /api/v1/gateways/activate` are unchanged and remai
 - `contracts/iot-sensors/v2/`, `contracts/iot-sensors/SOURCE.md` (re-vendor only).
 - `services/edge-agent-python/gateway/` (`pairing.py`, `schema.py`, `cli.py`, `runtime.py`, `activation.py` shared identity storage), `tests/`.
 - `apps/ui-csharp/src/AgroIo.Ui/` (InstallView, `GatewayInstallViewModel`, `IGatewayInstallService`, `SqliteGatewayInstallService`, navigation).
-- `docs/integration/headless-harness.md`.
+- Agro.io `docs/integration/headless-harness.md` (Agro-side path; not in this repository).
 
 ## Out of Scope
 

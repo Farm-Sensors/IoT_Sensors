@@ -24,11 +24,13 @@
 | Contraseñas | Hash bcrypt |
 | Refresh tokens | Revocados en logout y en cambio de contraseña (incl. reset) |
 | Password reset | Token SHA-256, single-use, con rate-limit por email/IP (3/email, 20/IP por 15 min) |
-| API keys de nodos | Únicas por nodo; no expuestas en respuestas de lectura |
+| Credencial de gateway | Una por predio; se muestra una sola vez al activar/rotar, se guarda solo como hash SHA-256 (`pasarelas.credencial_hash`, UNIQUE), se puede rotar y revocar; la autenticación exige gateway `active` |
+| Idempotencia de ingesta | `X-Event-ID` por gateway + nodo lógico; mismo cuerpo 200, cuerpo distinto 409 |
+| Referencia de activación | Un solo uso, 24 h, guardada como hash (`referencias_activacion`); respuestas 401 uniformes |
 
 ## Pendientes conocidos
 
 - Refresh tokens **sin rotación** ni detección de reuso (se revocan en logout/cambio de password).
-- Columna legado `nodos.api_key` puede existir para observación; **no autentica**. Las credenciales de gateway se almacenan hasheadas.
+- Columna legado `nodos.api_key` puede existir para observación/rollback; **no autentica** y no se usa en ninguna ruta. Las credenciales de gateway se almacenan hasheadas.
 - Rate-limit de login en memoria (no distribuye entre múltiples workers de uvicorn).
 - Auditoría (`audit_log`) no cubre los CRUD base (clientes, predios, áreas, nodos) — solo Fase 2/umbrales/IA.

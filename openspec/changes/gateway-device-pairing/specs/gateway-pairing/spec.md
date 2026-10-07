@@ -31,7 +31,7 @@ The system MUST allow a caller without credentials to start a pairing session wh
 
 ### Requirement: Token polling
 
-The system MUST accept token polls carrying `device_code`. It MUST return `authorization_pending` while pending, `slow_down` with an increased interval when polled faster than the session interval, `expired_token` after expiry, and `access_denied` after denial, cancellation, or loss of the target gateway's pending state. Unknown, malformed, or consumed `device_code` values MUST return the same `401` response. On the first poll after approval, the system MUST atomically consume the session, move the approved gateway from `pending_activation` to `active`, issue a new gateway credential, revoke outstanding activation references for that gateway, and return a body identical in shape to the activation response.
+The system MUST accept token polls carrying `device_code`. It MUST return `authorization_pending` while pending, `slow_down` with an increased interval when polled faster than the session interval, `expired_token` after expiry, and `access_denied` after denial, cancellation, or loss of the target gateway's pending state. Unknown, malformed, or consumed `device_code` values MUST return the same `401` response. On the first poll after approval, the system MUST first re-check that the gateway is still in the state the session was approved for: `pending_activation` for an activation session, `active` for a rotation session; otherwise the poll returns `access_denied`. It MUST then atomically consume the session and issue a new gateway credential, and return a body identical in shape to the activation response. For an activation session it also moves the gateway from `pending_activation` to `active` and revokes outstanding activation references for that gateway. For a rotation session it replaces the previous credential in the same transaction and leaves the gateway state, slots, configuration and bindings unchanged.
 
 #### Scenario: Pending session
 
@@ -45,6 +45,7 @@ The system MUST accept token polls carrying `device_code`. It MUST return `autho
 - WHEN the device polls again
 - THEN the system returns `400` with code `slow_down` and `interval` 10
 - AND later polls faster than 10 seconds also return `slow_down`
+- AND each `slow_down` increases the persisted session interval by 5 seconds, up to a maximum of 60 seconds
 
 #### Scenario: Approved session is redeemed once
 
@@ -69,7 +70,7 @@ The system MUST accept token polls carrying `device_code`. It MUST return `autho
 
 ### Requirement: Administrator approval and denial
 
-Only an authenticated administrator MUST be able to look up, approve, or deny a session. Lookup MUST accept a typed or URL-provided `user_code`, normalize it, and return the session's public id, status, request and expiry times, device-reported metadata, and coarse source network. Unknown, expired, consumed, and denied codes MUST produce the same not-found response. Approval MUST require the matching `user_code`, an explicit confirmation flag, and a gateway in `pending_activation`. Denial MUST require the matching `user_code`.
+Only an authenticated administrator MUST be able to look up, approve, or deny a session. Lookup MUST accept a typed or URL-provided `user_code`, normalize it, and return the session's public id, status, request and expiry times, device-reported metadata, and coarse source network. Unknown, expired, consumed, and denied codes MUST produce the same not-found response. Approval MUST require the matching `user_code`, an explicit confirmation flag, and a gateway that is either in `pending_activation`, or `active` with `replace_credential: true` (credential rotation). Denial MUST require the matching `user_code`.
 
 #### Scenario: Admin approves a pending session
 

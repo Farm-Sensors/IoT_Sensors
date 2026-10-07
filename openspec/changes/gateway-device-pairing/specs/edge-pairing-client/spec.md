@@ -8,7 +8,7 @@ Defines how the Agro.io edge agent and CLI consume the pairing operations of edg
 
 ### Requirement: Start and display a pairing session
 
-The agent MUST start a pairing session only when the v2 lane is enabled, the vendored contract is valid, and the gateway identity is not active. It MUST keep `device_code` only in a 0600 file in the run directory and MUST expose only `user_code`, `verification_uri_complete`, expiry, and state to local display storage.
+The agent MUST start a pairing session only when the v2 lane is enabled, the vendored contract is valid, and either the gateway identity is not active, or its credential file is missing or unreadable, or the technician explicitly requests re-pairing. It MUST keep `device_code` only in a 0600 file in the agent data directory (not under `/run`, which is tmpfs and is cleared on reboot); that file expires with the session and MUST expose only `user_code`, `verification_uri_complete`, expiry, and state to local display storage.
 
 #### Scenario: Technician requests pairing
 
@@ -16,6 +16,12 @@ The agent MUST start a pairing session only when the v2 lane is enabled, the ven
 - WHEN a `pair` command is queued
 - THEN the agent starts a session and the display storage shows the code, URI, and expiry
 - AND SQLite, logs, and status output contain no `device_code`
+
+#### Scenario: Interrupted session
+
+- GIVEN a pending session whose agent restarted or whose device rebooted
+- WHEN the agent finds the `device_code` file past its session expiry, or cannot read it
+- THEN the agent clears the file and the display state, and the technician simply starts a new pairing session
 
 #### Scenario: Gateway already active
 
@@ -31,13 +37,14 @@ The agent MUST start a pairing session only when the v2 lane is enabled, the ven
 
 ### Requirement: Poll at the server interval
 
-The agent MUST poll no faster than the current interval, MUST increase the interval when told `slow_down`, and MUST stop and clear the `device_code` file on `expired_token`, `access_denied`, or `401`.
+The agent MUST poll no faster than the current interval, MUST increase the interval by 5 seconds each time it is told `slow_down` (capped at 60 seconds) and add up to 10% random jitter to every wait, and MUST stop and clear the `device_code` file on `expired_token`, `access_denied`, or `401`.
 
 #### Scenario: Slow down
 
 - GIVEN a pending session with interval 5 seconds
 - WHEN the cloud returns `slow_down` with interval 10
-- THEN the next poll happens no earlier than 10 seconds later
+- THEN the next poll happens no earlier than 10 seconds later, plus up to 10% random jitter
+- AND a further `slow_down` raises the interval by another 5 seconds, never beyond 60 seconds
 
 #### Scenario: Denied
 

@@ -11,7 +11,7 @@ Read this folder, named contracts/evidence, and every Allowed/Scope path in this
 
 Tolerate current nullable OpenAPI categories until C1 merges. Weather/NDVI cards use the frozen 200 fixtures; errors use existing UI error state (no extra fixtures). Freshness may reuse `FRESH_MINUTES_THRESHOLD` mapped to current/stale; do not invent a vocabulary that fights `helpers.ts`.
 
-Do not follow `docs/integration/week-plan.md` or Agro.io as the brief. Implement `tasks.md`. Stop if blocked. Do not change backend. PR `Closes #N` when an issue exists; the issue names this folder only.
+Do not use Agro.io as the brief. Implement `tasks.md`. Stop if blocked. Do not change backend. PR `Closes #N` when an issue exists; the issue names this folder only.
 
 ## Why
 

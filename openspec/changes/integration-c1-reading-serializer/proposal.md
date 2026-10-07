@@ -8,7 +8,7 @@ Read this folder, named contracts/evidence, and every Allowed/Scope path in this
 
 - `contracts/edge-cloud/v1/telemetry.schema.json`
 
-Do not follow `docs/integration/week-plan.md` or Agro.io as the brief. Implement `tasks.md`. Stop if blocked. PR `Closes #N` when an issue exists; the issue names this folder only.
+Do not use Agro.io as the brief. Implement `tasks.md`. Stop if blocked. PR `Closes #N` when an issue exists; the issue names this folder only.
 
 ## Why
 

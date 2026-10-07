@@ -9,7 +9,7 @@
 | **Frontend** | React 18 (SPA) / Vite 6 / TypeScript / react-router 7 / Tailwind CSS v4 / shadcn-ui (Radix) |
 | **Gráficos y mapas** | Recharts / MapLibre GL JS (+ OpenFreeMap) |
 | **Despliegue** | Docker + Docker Compose / Dokploy / Traefik (SSL automático) / Nginx interno (frontend) |
-| **Servidor** | VPS Linux ("Servidor Grogu") |
+| **Servidor** | VPS Linux ("Servidor Grogu") en el diseño; la instalación actual corre en Dokploy dentro de la red privada ITESM, sin dominio, ver `deployment.md` |
 | **CI** | GitHub Actions (ruff + pytest / typecheck + vitest + build) |
 | **Contrato edge** | `contracts/edge-cloud/v2/` (IoT canónico; Agro.io vende copia) |
 

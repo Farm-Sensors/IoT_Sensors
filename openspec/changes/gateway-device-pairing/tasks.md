@@ -60,7 +60,7 @@ Test command form: `python3 -m unittest tests/<file>.py -v` from the Agro.io rep
   - Test: `python3 -m unittest tests/test_gateway_schema.py -v`
 - [ ] A3 **Pairing module** — Add `gateway/pairing.py` (start, poll with interval/slow_down, terminal states, 0600 `device_code` state file, display rows) and extract shared identity storage from `activation.py` without behavior change; wire it into the agent tick in `runtime.py`; process `submit_binding` commands via `discovery.submit_candidate`. ~400 lines.
   - Test: `python3 -m unittest tests/test_gateway_pairing.py tests/test_gateway_activation.py -v`
-- [ ] A4 **CLI and harness doc** — Add `pair`, `pair --wait`, `pair-status`, `pair-cancel` to `gateway/cli.py`; update `docs/integration/headless-harness.md` so pairing is the default and the reference file is the fallback. ~200 lines.
+- [ ] A4 **CLI and harness doc** — Add `pair`, `pair --wait`, `pair-status`, `pair-cancel` to `gateway/cli.py`; update Agro.io's `docs/integration/headless-harness.md` (Agro-side path, not in this repository) so pairing is the default and the reference file is the fallback. ~200 lines.
   - Test: `python3 -m unittest tests/test_gateway_cli.py -v`
 
 ## Agro.io — InstallView (supersedes the shape of `integration-gateway-v2` tasks 2.5/2.6)

@@ -123,7 +123,7 @@ Content-Type: application/json
 | Approved | `200` | `{"gateway_id": 0, "property_id": 0, "credential": "<gateway-credential>"}` |
 
 - The success body is exactly `activationResponse` from `machine.schema.json`. The credential is returned once; a later poll returns `401`.
-- Error codes follow RFC 8628 names inside the common v2 error envelope. `slow_down` adds 5 s to the session interval, persisted on the session.
+- Error codes follow RFC 8628 names inside the common v2 error envelope. `slow_down` adds 5 s to the session interval, persisted on the session and capped at 60 s. The edge mirrors this: +5 s per `slow_down`, cap 60 s, and up to 10% random jitter on each wait.
 - Retry: the client polls no faster than `interval`, stops on `expired_token`, `access_denied`, or `401`, and treats the `200` as non-repeatable (same rule as activation).
 
 ### Admin operations (JWT, not part of the machine contract)
@@ -209,7 +209,7 @@ Per-IP counters reuse the in-memory sliding window used by login (`backend/app/a
 
 - New module `services/edge-agent-python/gateway/pairing.py`, structured like `activation.py`: loads the vendored contract, uses the same transport, and never logs codes or credentials.
 - Command queue: `gateway_commands.command_type` gains `pair`, `cancel_pair`, and `submit_binding`. The current `CHECK (command_type IN ('activate', 'confirm_binding', 'confirm_update'))` in `gateway/schema.py` requires an additive SQLite migration that rebuilds the table and copies rows.
-- `pair` processing: start the session, write `device_code` to a 0600 file in the run directory (`/run/agroio/gateway/pairing.state`), and write display-only data (`user_code`, `verification_uri_complete`, `expires_at`, state) to a new `pairing_display` table for the UI. Each agent tick polls once if `interval` has elapsed. On success, the shared identity-storage function (extracted from `activation._attempt`) writes the credential with `secrets.write_credential` and upserts `gateway_identity`; then the state file is removed and `pairing_display` becomes `paired`.
+- `pair` processing: start the session, write `device_code` to a 0600 file in the agent data directory (for example `<data dir>/pairing.state`; not `/run`, which is tmpfs and is lost on reboot, and a systemd `RuntimeDirectory` is not used for the same reason). The file expires with the session; an interrupted session is simply restarted by the technician, and write display-only data (`user_code`, `verification_uri_complete`, `expires_at`, state) to a new `pairing_display` table for the UI. Each agent tick polls once if `interval` has elapsed. On success, the shared identity-storage function (extracted from `activation._attempt`) writes the credential with `secrets.write_credential` and upserts `gateway_identity`; then the state file is removed and `pairing_display` becomes `paired`.
 - Terminal results (`expired_token`, `access_denied`, `401`) clear the state file and set `pairing_display.state` so the UI offers "Try again".
 - CLI: `gateway.cli pair` (start and print code and URL), `pair --wait` (poll in-process until a terminal result, for the headless harness), `pair-status`, and `pair-cancel`. `activate --reference-file` stays.
 

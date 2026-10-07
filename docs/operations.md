@@ -2,46 +2,9 @@
 
 > Guía operativa: demo reproducible, simulador, ubicaciones del socio, schedulers de Fase 2, scripts de mantenimiento. El despliegue en producción está en `docs/deployment.md`.
 
-## 1. Modelado de ubicaciones del socio (sin fallback)
+## 1. Ubicaciones del socio (estado actual)
 
-Script idempotente para crear la estructura real del socio en el cliente `alan2203mx@gmail.com`:
-
-- Predio `Granja Hogar` + área `Area Granja Hogar` + `Nodo Granja Hogar`
-- Predio `Campus Reforestado` + área `Area Campus Reforestado` + `Nodo Campus Reforestado`
-- Renombra estructura legado a `DEMO - ...` (sin cambios de esquema)
-- Clona lecturas y umbrales desde el área demo fuente (`DEMO - Nogal Norte` por default)
-- Opcional: clona preferencias de notificación si pasas password del cliente
-
-```bash
-# Local
-python3 scripts/setup_partner_locations.py \
-  --base-url http://localhost:5050/api/v1 \
-  --admin-email admin@sensores.com \
-  --admin-password admin123 \
-  --write-keys-file simulator/keys_partner_local.txt
-
-# VPS
-python3 scripts/setup_partner_locations.py \
-  --base-url https://sensores.alanrz.bond/api/v1 \
-  --admin-email admin@sensores.com \
-  --admin-password TU_PASSWORD \
-  --client-password PASSWORD_CLIENTE_ALAN \
-  --write-keys-file simulator/keys_partner_vps.txt
-
-# Con otra área demo como fuente
-python3 scripts/setup_partner_locations.py \
-  --base-url https://sensores.alanrz.bond/api/v1 \
-  --admin-email admin@sensores.com \
-  --admin-password TU_PASSWORD \
-  --source-demo-area-name "DEMO - Alfalfa Este"
-```
-
-Luego usa esas keys en el simulador:
-
-```bash
-cd simulator
-python3 simulator_fast.py --api-keys-file ./keys_partner_local.txt --mode demo-alerts --interval 2
-```
+`scripts/setup_partner_locations.py` y los archivos de keys de nodo (`simulator/keys_*.txt`) se retiraron: las API keys por nodo ya no autentican telemetría. Para crear la estructura de un rancho usa el panel Admin: cliente, predio, áreas, nodos lógicos, gateway (`/admin/gateways`) y referencia de activación. Para simular, necesitas la credencial de gateway (`gk_...`) y los IDs numéricos de los nodos lógicos (ver sección 2).
 
 ## 2. Simulador IoT
 
@@ -56,7 +19,7 @@ python3 simulator.py --gateway-key gk_... --logical-node-id 12 --interval 30
 python3 simulator.py --gateway-key gk_... --logical-node-id 12 --backfill 7
 ```
 
-La key del ejemplo corresponde al **Nodo Granja Hogar**, vinculado a `alan2203mx@gmail.com`.
+`--gateway-key` es la credencial del gateway del predio y `--logical-node-id` el ID del nodo lógico (slot) que ese gateway tiene autorizado; ambos se obtienen del panel Admin tras activar el gateway. También se aceptan `SIMULATOR_GATEWAY_KEY` y `SIMULATOR_LOGICAL_NODE_ID`.
 
 ## 3. Demo Rápida (Reproducible)
 
@@ -102,19 +65,22 @@ Preflight obligatorio: confirmar usuario objetivo, lista de áreas/nodos activos
 
 ```bash
 cd simulator
-python3 simulator_fast.py --quick-demo     # o desde raíz: make demo-live
+python3 simulator_fast.py --gateway-key gk_... --logical-node-id 12 --quick-demo
 ```
 
-`--quick-demo` activa: preset de 4 nodos del seed local, modo `demo-alerts`, despacho periódico de notificaciones, trigger de reporte IA semanal (ventana 7 días), credenciales admin locales (`admin@sensores.com` / `admin123`).
+`make demo-live` ejecuta `simulator_fast.py --quick-demo` **sin** credenciales y termina con error hasta que se pasen `--gateway-key` y `--logical-node-id`.
+
+`--quick-demo` activa: modo `demo-alerts`, despacho periódico de notificaciones, trigger de reporte IA semanal (ventana 7 días), credenciales admin locales (`admin@sensores.com` / `admin123`).
 
 Alternativas:
 
 ```bash
-# Breaches visibles de umbral en dashboard/alertas:
-python3 simulator_fast.py --preset seed-demo --mode demo-alerts --demo-spike-every 6 --interval 2
+# Varios nodos lógicos del mismo gateway, con picos controlados (--logical-node-id es repetible):
+python3 simulator_fast.py --gateway-key gk_... --logical-node-id 12 --logical-node-id 13 \
+  --mode demo-alerts --demo-spike-every 6 --interval 2
 
-# Demo ejecutiva de ubicaciones productivas del socio:
-python3 simulator_fast.py --preset partner-socio --mode demo-alerts --interval 2
+# Backfill de 7 días por nodo y luego loop en vivo:
+python3 simulator_fast.py --gateway-key gk_... --logical-node-id 12 --backfill 7 --interval 2
 ```
 
 ### Trigger manual del Reporte IA semanal
@@ -122,7 +88,7 @@ python3 simulator_fast.py --preset partner-socio --mode demo-alerts --interval 2
 ```bash
 cd simulator
 python3 simulator_fast.py \
-  --api-keys-file ./keys.txt \
+  --gateway-key gk_... --logical-node-id 12 \
   --mode demo-alerts \
   --interval 2 \
   --ai-weekly-report \
@@ -140,7 +106,7 @@ Opcional para reducir scope: `--ai-weekly-report-client-id <ID>` y `--ai-weekly-
 
 1. `make demo-seed`.
 2. Iniciar backend y frontend.
-3. `simulator_fast.py` con las 4 API keys.
+3. `simulator_fast.py` con `--gateway-key` y uno o más `--logical-node-id`.
 4. Dashboard/centro de alertas: aumentan lecturas y alertas.
 5. Alertas de umbral en ingesta: `ALERTS_ENABLED=true` en `backend/.env`.
 6. Correo/WhatsApp: `NOTIFICATIONS_ENABLED=true`, `NOTIFICATIONS_EMAIL_ENABLED=true`, `NOTIFICATIONS_WHATSAPP_ENABLED=true` + credenciales SMTP/WhatsApp.

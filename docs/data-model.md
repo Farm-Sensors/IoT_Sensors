@@ -12,7 +12,7 @@
 2. [Conceptos Clave del Diseño](#2-conceptos-clave-del-diseño)
 3. [Tablas de Gestión de Usuarios](#3-tablas-de-gestión-de-usuarios) (4 tablas)
 4. [Tablas de Estructura del Campo](#4-tablas-de-estructura-del-campo) (4 tablas)
-5. [Tabla de Hardware IoT](#5-tabla-de-hardware-iot) (1 tabla)
+5. [Tabla de Hardware IoT](#5-tabla-de-hardware-iot) (1 tabla; gateway v2 en §5.2)
 6. [Tabla de Lecturas](#6-tabla-de-lecturas-unificada) (1 tabla)
 7. [Flujo de Datos: De Sensor a Pantalla](#7-flujo-de-datos-de-sensor-a-pantalla)
 8. [Tablas de Alertas y Auditoría](#8-tablas-de-alertas-y-auditoría-fase-2-lite)
@@ -24,7 +24,7 @@
 
 ## 1. Vista General
 
-### La base de datos tiene 15 tablas organizadas en 6 grupos:
+### La base de datos tiene 26 tablas organizadas en 8 grupos:
 
 | Grupo | Tablas | Propósito |
 |-------|--------|-----------|
@@ -33,6 +33,9 @@
 | **Hardware IoT** | `nodos` | Los sensores físicos (o simulados) instalados en campo |
 | **Lecturas de Sensores** | `lecturas` | Los datos que llegan cada 10 minutos desde los nodos — es el corazón del sistema |
 | **Alertas y Auditoría (Fase 2 Lite)** | `umbrales`, `alertas`, `preferencias_notificacion`, `audit_log` | Motor de alertas por umbral/inactividad, preferencias de despacho y trazabilidad operativa |
+| **Gateway v2 (integración Agro.io)** | `pasarelas`, `ranuras_logicas`, `vinculos_fisicos`, `referencias_activacion`, `configuraciones_pasarela`, `autorizaciones_actualizacion`, `confirmaciones_actualizacion` | Credencial de gateway por predio, slots lógicos, vínculos físicos UID/serie, activación, configuración publicada y actualizaciones de imagen (ver §5.2) |
+| **Plantillas y perfiles** | `plantillas_pasarela`, `versiones_plantilla_pasarela`, `perfiles_hardware` | Plantillas globales versionadas para aprovisionar gateways y catálogo de perfiles de hardware |
+| **NDVI** | `ndvi_ultimos` | Último NDVI puntual por área (evento separado; nunca columna de `lecturas`) |
 | **IA (Fase 2)** | `reportes_ia` | Reportes generados por la analítica asíncrona (resumen, hallazgos, recomendación por cliente/área) |
 
 ### Diagrama de Relaciones (ERD)
@@ -148,7 +151,7 @@ erDiagram
     nodos {
         INT id PK
         INT area_riego_id FK
-        VARCHAR api_key
+        VARCHAR api_key "legado, no autentica"
         VARCHAR numero_serie
         VARCHAR nombre
         DECIMAL latitud
@@ -522,7 +525,7 @@ Cuando un cliente selecciona un ciclo (ej. "Ciclo 2025" que va del 1-Mar-2025 al
 | Columna | Qué guarda | Notas |
 |---------|-----------|-------|
 | `area_riego_id` | FK al área que monitorea | **UNIQUE** — cada nodo está vinculado a exactamente 1 área, y cada área tiene exactamente 1 nodo (relación 1:1). |
-| `api_key` | Legado | Nullable. Ya **no autentica**. La ingesta usa la credencial hasheada del gateway (`pasarelas`). |
+| `api_key` | Legado | Nullable, UNIQUE. Ya **no autentica**: se conserva solo como observación/rollback. La ingesta usa la credencial hasheada del gateway (`pasarelas.credencial_hash`). |
 | `numero_serie` | Identificador físico del dispositivo | Opcional. Para tracking de hardware. **UNIQUE** si se proporciona. |
 | `nombre` | Nombre descriptivo | Ej. "Sensor Nogal Norte". Opcional pero recomendado para identificarlo en el dashboard. |
 | `latitud` / `longitud` | Coordenadas GPS | Datos **estáticos** — se registran una sola vez al configurar el nodo. **NO** se envían en cada lectura. Servirán para la vista de mapas en Fase 2. |
@@ -535,9 +538,31 @@ Cada nodo vigila exactamente un área, y cada área es vigilada por exactamente 
 ```
 Edge/simulador envía POST a /api/v1/readings
   → X-API-Key (gateway) + X-Logical-Node-Id + X-Event-ID
-  → El backend valida el hash en `pasarelas` y autoriza el nodo lógico
-  → Si el gateway no es activo o el nodo no está en su config → 401/403
+  → El backend calcula SHA-256 de la clave y la busca en `pasarelas.credencial_hash` (estado `active`, no eliminada)
+  → Autoriza el nodo lógico contra `ranuras_logicas` del gateway
+  → Credencial ausente/inválida o gateway no activo → 401; nodo fuera de su configuración → 403
+  → Idempotencia: índice único `(pasarela_id, nodo_id, event_id)` en `lecturas`
 ```
+
+### 5.2. Tablas de gateway v2 (modelos en `backend/app/models/`)
+
+Un gateway = una Raspberry = un predio. La credencial se guarda **solo como hash SHA-256** (nunca en claro).
+
+| Tabla | Qué guarda | Columnas y restricciones clave |
+|---|---|---|
+| `pasarelas` | Gateway del predio | `predio_id` UNIQUE (1 gateway por predio); `estado` ∈ `pending_activation`/`active`/`revoked`; `credencial_hash` CHAR(64) UNIQUE, `credencial_prefijo`; `config_version_activa`, `bindings_revision` (≥ 0); `ultimo_heartbeat_en` (hora de recepción), `activado_en`, `revocado_en`; soft delete |
+| `ranuras_logicas` | Slot = nodo lógico + área dentro de un gateway | `pasarela_id`; `nodo_id` UNIQUE; `area_riego_id` UNIQUE; `perfil_hardware_id` y `version_plantilla_id` opcionales |
+| `vinculos_fisicos` | Historial de vínculos UID/serie ↔ slot | `uid`, `numero_serie`; `estado` ∈ `pending`/`confirmed`/`closed`; `estado_propuesta` ∈ `pending_initial`/`pending_reassignment`; eventos y hashes de propuesta/confirmación (únicos por gateway); UNIQUE sobre nodo y UID **confirmados** (columnas calculadas) |
+| `referencias_activacion` | Referencia de activación de un solo uso | `referencia_hash` UNIQUE; `expira_en` (24 h); `resultado` ∈ `issued`/`consumed`/`revoked`; `emitido_por_usuario_id` |
+| `configuraciones_pasarela` | Configuración publicada, inmutable | `(predio_id, version)` UNIQUE; `snapshot` JSON; `publicado_en`, `publicado_por_usuario_id`; FK `(pasarela_id, predio_id)` |
+| `plantillas_pasarela` | Plantilla global | `nombre`; `estado` ∈ `draft`/`active`/`retired` |
+| `versiones_plantilla_pasarela` | Versión de plantilla | `(plantilla_id, version)` UNIQUE; `definicion` JSON (selectores de áreas, slots pendientes, perfiles; sin identidad física) |
+| `perfiles_hardware` | Catálogo de perfiles | `codigo` UNIQUE; `nombre`; `activo` |
+| `autorizaciones_actualizacion` | Autorización admin de imagen | `authorization_id` UNIQUE; `image_version`, `image_digest`; `expires_at`; `consumido_en` |
+| `confirmaciones_actualizacion` | Confirmación del técnico | `(pasarela_id, event_id)` UNIQUE; `payload_hash`; `result = 'confirmed'` |
+| `ndvi_ultimos` | Último NDVI puntual | PK = `area_riego_id`; `ndvi` ∈ [-1, 1]; `coleccion = 'sentinel-2-l2a'`; `metodo_muestreo = 'point'`; `cobertura_nubes_porcentaje` 0–100 |
+
+`lecturas` añade `pasarela_id`, `event_id`, `payload_hash` y `marca_tiempo_sospechosa` para idempotencia y orden por hora de captura.
 
 ---
 
@@ -584,12 +609,12 @@ Esta tabla es **el corazón del sistema** — aquí viven los millones de datos 
 │   (PC local)     │  con el JSON de lectura
 └──────┬──────────┘
        │ HTTP POST /api/v1/readings
-       │ Header: X-API-Key: ak_n01_abc123...
+       │ Headers: X-API-Key (gateway), X-Logical-Node-Id, X-Event-ID
        │ Body: { timestamp, soil:{...}, irrigation:{...}, environmental:{...} }
        ▼
 ┌─────────────────┐
-│   BACKEND        │  1. Busca el api_key en tabla `nodos`
-│   (FastAPI)      │  2. Verifica que el nodo está activo y no eliminado
+│   BACKEND        │  1. Busca el hash de la clave en `pasarelas`
+│   (FastAPI)      │  2. Verifica gateway activo y nodo lógico en `ranuras_logicas`
 │                  │  3. Abre una transacción de BD
 └──────┬──────────┘
        ▼
@@ -668,7 +693,9 @@ Estas tablas gestionan las notificaciones automáticas cuando algo va mal o se r
 |-------|--------|--------------------|
 | `lecturas` | `(nodo_id, marca_tiempo)` | **El índice más importante.** Acelera la consulta principal del sistema: "Dame las lecturas del nodo X entre fecha A y fecha B". Se usa en el dashboard y en el histórico. Es compuesto porque siempre filtramos por nodo Y por fecha al mismo tiempo. |
 | `lecturas` | `(marca_tiempo)` | Acelera extracciones masivas por rango de fecha sin filtrar por nodo específico. Pensado para las consultas de Fase 2 (reportes de IA que analizan datos de todos los nodos). |
-| `nodos` | `(api_key)` UNIQUE | Acelera la validación de cada POST del simulador. Cada 10 minutos, cada nodo envía una lectura, y el backend busca el `api_key` para identificarlo. Sin este índice, buscaría fila por fila en la tabla de nodos. |
+| `pasarelas` | `(credencial_hash)` UNIQUE | Acelera la validación de cada petición de gateway (ingesta, config, heartbeat): el backend busca el hash SHA-256 de `X-API-Key`. |
+| `lecturas` | `(pasarela_id, nodo_id, event_id)` UNIQUE | Garantiza idempotencia de la ingesta (201/200/409). |
+| `nodos` | `(api_key)` UNIQUE (legado) | Solo observación: la columna ya no autentica. |
 | `nodos` | `(area_riego_id)` UNIQUE | Además de garantizar la relación 1:1 (no se pueden asignar 2 nodos a la misma área), acelera la búsqueda "¿qué nodo tiene asignada el área X?". |
 | `ciclos_cultivo` | `(area_riego_id, fecha_fin)` | Acelera la búsqueda del ciclo activo: "Para el área X, ¿cuál ciclo tiene `fecha_fin` NULL?". |
 | `tokens_refresco` | `(token)` UNIQUE | Acelera la validación del refresh token cuando el frontend pide renovar la sesión. |
@@ -729,11 +756,11 @@ Estas reglas **no están en el SQL** (la base de datos no las valida por sí mis
 
 ### 11.2 Futuro (Fase 2 Completa)
 
-Además, se evaluará agregar un campo `ndvi` a `lecturas` cuando se defina una fuente estable de datos de vegetación.
+NDVI **nunca** se agrega a `lecturas`: el último NDVI puntual vive en `ndvi_ultimos` (evento separado). NDVI histórico/por polígono sigue diferido y, si se aprueba, usará almacenamiento propio.
 
 ---
 
-## Referencia Rápida — 15 Tablas Activas
+## Referencia Rápida — 26 Tablas
 
 | # | Tabla | Grupo | Propósito en una línea | ID tipo |
 |---|-------|-------|----------------------|---------|
@@ -745,13 +772,24 @@ Además, se evaluará agregar un campo `ndvi` a `lecturas` cuando se defina una 
 | 6 | `tipos_cultivo` | Campo | Catálogo administrable de cultivos (Nogal, Alfalfa...) | INT |
 | 7 | `areas_riego` | Campo | Parcelas con cultivo asignado — entidad central del sistema | INT |
 | 8 | `ciclos_cultivo` | Campo | Temporadas agrícolas (inicio/fin) por área | INT |
-| 9 | `nodos` | Hardware | Sensores IoT con API Key y coordenadas GPS | INT |
+| 9 | `nodos` | Hardware | Nodos lógicos con coordenadas GPS (`api_key` legado, no autentica) | INT |
 | 10 | `lecturas` | Lecturas | Registro centralizado con las 12 métricas dinámicas | BIGINT |
 | 11 | `umbrales` | Alertas | Rangos por parámetro para disparo automático | INT |
 | 12 | `alertas` | Alertas | Eventos de umbral/inactividad y estado de lectura | BIGINT |
 | 13 | `preferencias_notificacion` | Alertas | Preferencias por cliente/área/severidad/canal para notificaciones | INT |
 | 14 | `audit_log` | Auditoría | Registro de acciones de sistema y usuarios | BIGINT |
 | 15 | `reportes_ia` | IA | Reportes de analítica asíncrona (resumen/hallazgos/recomendación) | BIGINT |
+| 16 | `pasarelas` | Gateway v2 | Gateway por predio con credencial hasheada | INT |
+| 17 | `ranuras_logicas` | Gateway v2 | Slot nodo lógico + área por gateway | INT |
+| 18 | `vinculos_fisicos` | Gateway v2 | Vínculos UID/serie con historial | INT |
+| 19 | `referencias_activacion` | Gateway v2 | Referencias de activación de un solo uso | INT |
+| 20 | `configuraciones_pasarela` | Gateway v2 | Configuraciones publicadas inmutables | INT |
+| 21 | `plantillas_pasarela` | Plantillas | Plantillas globales | INT |
+| 22 | `versiones_plantilla_pasarela` | Plantillas | Versiones de plantilla | INT |
+| 23 | `perfiles_hardware` | Plantillas | Catálogo de perfiles de hardware | INT |
+| 24 | `autorizaciones_actualizacion` | Gateway v2 | Autorización de imagen por el admin | INT |
+| 25 | `confirmaciones_actualizacion` | Gateway v2 | Confirmación del técnico | INT |
+| 26 | `ndvi_ultimos` | NDVI | Último NDVI puntual por área | PK = área |
 
 ---
 
@@ -778,10 +816,11 @@ ORDER BY l.marca_tiempo ASC
 LIMIT ? OFFSET ?;
 ```
 
-**Validación de API Key en ingesta:**
+**Validación de credencial de gateway en ingesta:**
 ```sql
-SELECT n.id, n.area_riego_id, n.activo
-FROM nodos n
-WHERE n.api_key = ?
-  AND n.eliminado_en IS NULL;
+SELECT p.id, p.predio_id
+FROM pasarelas p
+WHERE p.credencial_hash = SHA2(?, 256)
+  AND p.estado = 'active'
+  AND p.eliminado_en IS NULL;
 ```

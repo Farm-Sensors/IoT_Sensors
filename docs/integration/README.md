@@ -17,11 +17,22 @@ Issue #28 delivers the contract package under `contracts/edge-cloud/v2/`. Its ac
 
 Alan coordinates dependency acceptance and merge order; he is not an implementation owner. Each later package waits for all predecessors listed in its issue to be accepted. Agro.io changes may be made from this workspace, but only on branches based on `integration/iot-v2`; nothing is committed or pushed to Agro.io `main`.
 
-## Runtime remains deferred
+## Gateway v2 is live and gateway-only
 
-The accepted v2 contract is the first gate. Final runtime cutover additionally requires a matching Agro.io build and cloud release, repository checks, byte-identical vendored provenance, and an explicitly passed paired staging smoke record. None is asserted by the offline fixtures. Until paired readiness is accepted, keep the active v1 producer/cloud pair and leave future gateway routes unused.
+The v2 runtime is implemented on `main` and is the only telemetry path (how it works: [`../system.md`](../system.md)). Node API keys never authenticate; retained `nodos.api_key` columns exist for rollback observation only. There is **no dual-auth window**: rollback means stopping traffic and redeploying the last compatible cloud/producer pair, never enabling both authentication paths in one process.
 
-There is **no dual-auth window**: after the coordinated switch, legacy node keys must never authenticate. Retained legacy columns are for rollback observation only. Rollback means stopping traffic and redeploying the last compatible cloud/producer pair, never enabling both authentication paths in one process. Activation, telemetry and configuration publication are not performed by #28.
+Verified flow (cloud endpoints in [`../api.md`](../api.md); wire contract in `contracts/edge-cloud/v2/`):
+
+1. **Activate**: an admin provisions the gateway and issues a single-use 24-hour reference; the edge calls `POST /api/v1/gateways/activate` and receives the gateway credential once.
+2. **Configuration poll**: `GET /api/v1/gateways/me/configuration` returns `200`, or `304` only when both `X-Config-Version` and `X-Bindings-Revision` match.
+3. **Bind**: the technician-selected slot is proposed with `POST /api/v1/gateways/me/binding-candidates` and confirmed with `.../{candidate_id}/confirm`.
+4. **Telemetry**: `POST /api/v1/readings` with `X-API-Key`, `X-Logical-Node-Id` and `X-Event-ID` returns `201` (new), `200` (exact retry) or `409` (same event ID, different body).
+5. **Heartbeat**: `POST /api/v1/gateways/me/heartbeat` returns `204`.
+6. **NDVI**: `POST /api/v1/ndvi-snapshots` carries the separate latest-point event; it is never a telemetry field.
+
+A paired smoke of this flow was run on 2026-10-06 through the Agro.io headless harness (activation, configuration poll, binding, telemetry `201`/`200`, heartbeat `204`). Full cutover acceptance still needs the real Raspberry validation recorded in task 7.4 of `edge-cloud-gateway-provisioning`; offline contract checks are not acceptance of a live producer. Agro.io changes are made only on branches based on `integration/iot-v2`; its v2 line grows there and is never merged to Agro.io `main` (see [`agro-release-and-update.md`](agro-release-and-update.md)).
+
+Deploys of this cloud are manual: a push to `main` does not redeploy the private Dokploy. See [`../deployment.md`](../deployment.md).
 
 OTA delivery, automated rollback, gradual rollout, phone helpers, AI, schedulers, active alerts and notifications remain out of scope. NDVI remains latest-point-only and separate from telemetry.
 
