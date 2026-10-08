@@ -62,7 +62,7 @@ y, para el dispositivo, en Agro.io `docs/integration/v2-release-line.md`.
 | Pieza | Dónde | Notas |
 |---|---|---|
 | Cloud (API + dashboard) | `http://10.32.81.230:3022` | Dokploy, compose `iot-sensors`; pairing **encendido** (`GATEWAY_PAIRING_ENABLED=true`, base de verificación por IP:puerto) |
-| Raspberry (gateway real) | `10.32.90.229` (`agroio@`) | release `2.0.0-alpha.7`, `mode: demo` con `demo_nodes: 0` (demo silencioso), gateway 7 / predio **Raspberry Campo** |
+| Raspberry (gateway real) | `10.32.90.229` (`agroio@`) | release `2.0.0-alpha.8`, `mode: demo` con `demo_nodes: 0` (demo silencioso), gateway 7 / predio **Raspberry Campo** |
 | Pantalla del appliance (visor) | `http://10.32.90.229:6080/vnc.html` | Xvfb + noVNC sobre la BD viva; **reiniciar `agroio-ui-webviewer` después de instalar una release**, o la pantalla muestra el build anterior |
 | Receptor de referencia | `http://10.32.81.230:8090/` | stand-in del backend del cliente para `http_sync` |
 | Fuente de demo | contenedor `iot-demo-simulator` en el servidor | ver abajo |
