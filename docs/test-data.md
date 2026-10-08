@@ -89,8 +89,13 @@ docker run -d --name iot-demo-simulator --restart unless-stopped --network host 
   -v "$PWD/simulator:/app" -w /app python:3.13-slim \
   python simulator_fast.py --base-url http://10.32.81.230:3022/api/v1 \
   --logical-node-id 11 --logical-node-id 13 --logical-node-id 14 \
-  --backfill 30 --interval 30 --seed 20261008
+  --backfill 0 --interval 30 --seed 20261008
 ```
+
+El `--backfill` es solo para el primer arranque: el simulador genera `X-Event-ID` con `uuid4`, así que
+repetir `--backfill 30` en un relanzamiento re-postea 30 días como filas nuevas (duplicados, no
+idempotentes). Para relanzar el contenedor (incluido un reinicio con `--restart unless-stopped`) usar
+siempre `--backfill 0`.
 
 Tres cosas aprendidas al montarlo: `--network host` es **obligatorio** (un contenedor en bridge no
 alcanza `10.32.81.230:3022` en esta red: timeouts); sin `PYTHONUNBUFFERED=1` el progreso y los
