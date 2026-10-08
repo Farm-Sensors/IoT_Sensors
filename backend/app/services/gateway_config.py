@@ -3,7 +3,7 @@
 from datetime import UTC, datetime
 
 from fastapi import HTTPException
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from app.models import Gateway, GatewayConfig, GatewaySlot, HardwareProfile, PhysicalBinding
@@ -47,7 +47,13 @@ def publish_configuration(db: Session, gateway_id: int, publisher_id: int) -> Ga
             for slot, profile_code in slots
         ],
     }
-    version = gateway.config_version_activa + 1
+    latest_version = db.scalar(
+        select(func.max(GatewayConfig.version)).where(
+            GatewayConfig.pasarela_id == gateway.id,
+            GatewayConfig.predio_id == gateway.predio_id,
+        )
+    )
+    version = (latest_version or 0) + 1
     configuration = GatewayConfig(
         predio_id=gateway.predio_id,
         pasarela_id=gateway.id,
