@@ -56,3 +56,57 @@ export function publishConfiguration(gatewayId: number) {
 export function getPropertyGatewayStatus(propertyId: number) {
   return api.get<GatewayStatus>(`/properties/${propertyId}/gateway/status`);
 }
+
+export interface PairingDevice {
+  hostname: string | null;
+  model: string | null;
+  agent_version: string | null;
+}
+
+export interface PairingSession {
+  session_id: string;
+  user_code: string;
+  status: string;
+  requested_at: string;
+  expires_at: string;
+  device: PairingDevice;
+  source_network?: string | null;
+}
+
+export interface PairingApprovalRequest {
+  user_code: string;
+  gateway_id: number;
+  confirm: true;
+  replace_credential?: boolean;
+}
+
+export interface PairingApproval {
+  session_id: string;
+  status: string;
+  gateway_id: number;
+  property_id: number;
+}
+
+export interface PairingDenial {
+  session_id: string;
+  status: string;
+}
+
+export function lookupPairing(userCode: string) {
+  return api.post<PairingSession>("/gateways/pairing-sessions/lookup", {
+    user_code: userCode,
+  });
+}
+
+export function approvePairing(sessionId: string, payload: PairingApprovalRequest) {
+  return api.post<PairingApproval>(
+    `/gateways/pairing-sessions/${sessionId}/approve`,
+    payload,
+  );
+}
+
+export function denyPairing(sessionId: string, userCode: string) {
+  return api.post<PairingDenial>(`/gateways/pairing-sessions/${sessionId}/deny`, {
+    user_code: userCode,
+  });
+}

@@ -1,5 +1,5 @@
 import { lazy, Suspense } from "react";
-import { Navigate, createBrowserRouter } from "react-router";
+import { Navigate, createBrowserRouter, useSearchParams } from "react-router";
 import { ErrorBoundary } from "./components/ErrorBoundary";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 import { AdminLayout } from "./layouts/AdminLayout";
@@ -37,6 +37,7 @@ import { CropTypeManagement } from "./pages/admin/CropTypeManagement";
 import { IrrigationAreaManagement } from "./pages/admin/IrrigationAreaManagement";
 import { NodeDetail } from "./pages/admin/NodeDetail";
 import { GatewayManagement } from "./pages/admin/GatewayManagement";
+import { PairDevice } from "./pages/admin/PairDevice";
 import { NodeManagement } from "./pages/admin/NodeManagement";
 import { PropertyManagement } from "./pages/admin/PropertyManagement";
 
@@ -60,6 +61,17 @@ function RootLayoutWithErrorBoundary() {
   );
 }
 
+/**
+ * Public entry point for the device `verification_uri`. Forwards to the admin
+ * verification page keeping the `?code=` carried by `verification_uri_complete`;
+ * the protected route then returns the visitor to login with that path intact.
+ */
+function PairRedirect() {
+  const [searchParams] = useSearchParams();
+  const query = searchParams.toString();
+  return <Navigate to={`/admin/gateways/pair${query ? `?${query}` : ""}`} replace />;
+}
+
 export const router = createBrowserRouter([
   {
     path: "/",
@@ -76,6 +88,10 @@ export const router = createBrowserRouter([
       {
         path: "restablecer-contrasena",
         Component: ResetPasswordPage,
+      },
+      {
+        path: "pair",
+        Component: PairRedirect,
       },
       {
         path: "cliente",
@@ -190,6 +206,10 @@ export const router = createBrowserRouter([
               {
                 path: "gateways",
                 Component: GatewayManagement,
+              },
+              {
+                path: "gateways/pair",
+                Component: PairDevice,
               },
               {
                 path: "recorrido-v2",
