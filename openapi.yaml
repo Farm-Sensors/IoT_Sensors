@@ -1275,6 +1275,101 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/gateways/pairing-sessions/lookup:
+    post:
+      tags:
+      - Gateways
+      summary: Lookup Pairing Session
+      operationId: lookup_pairing_session_api_v1_gateways_pairing_sessions_lookup_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PairingLookupRequest'
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PairingLookupResponse'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      security:
+      - OAuth2PasswordBearer: []
+  /api/v1/gateways/pairing-sessions/{session_id}/approve:
+    post:
+      tags:
+      - Gateways
+      summary: Approve Pairing Session
+      operationId: approve_pairing_session_api_v1_gateways_pairing_sessions__session_id__approve_post
+      security:
+      - OAuth2PasswordBearer: []
+      parameters:
+      - name: session_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Session Id
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PairingApproveRequest'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PairingApproveResponse'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/gateways/pairing-sessions/{session_id}/deny:
+    post:
+      tags:
+      - Gateways
+      summary: Deny Pairing Session
+      operationId: deny_pairing_session_api_v1_gateways_pairing_sessions__session_id__deny_post
+      security:
+      - OAuth2PasswordBearer: []
+      parameters:
+      - name: session_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Session Id
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PairingDenyRequest'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PairingDenyResponse'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
   /api/v1/gateway-templates:
     get:
       tags:
@@ -6139,6 +6234,141 @@ components:
       - total
       - data
       title: PaginatedResponse[UserResponse]
+    PairingApproveRequest:
+      properties:
+        user_code:
+          type: string
+          maxLength: 16
+          minLength: 1
+          title: User Code
+        gateway_id:
+          type: integer
+          exclusiveMinimum: 0.0
+          title: Gateway Id
+        confirm:
+          type: boolean
+          title: Confirm
+        replace_credential:
+          type: boolean
+          title: Replace Credential
+          default: false
+      additionalProperties: false
+      type: object
+      required:
+      - user_code
+      - gateway_id
+      - confirm
+      title: PairingApproveRequest
+    PairingApproveResponse:
+      properties:
+        session_id:
+          type: string
+          title: Session Id
+        status:
+          type: string
+          title: Status
+        gateway_id:
+          type: integer
+          title: Gateway Id
+        property_id:
+          type: integer
+          title: Property Id
+      type: object
+      required:
+      - session_id
+      - status
+      - gateway_id
+      - property_id
+      title: PairingApproveResponse
+    PairingDenyRequest:
+      properties:
+        user_code:
+          type: string
+          maxLength: 16
+          minLength: 1
+          title: User Code
+      additionalProperties: false
+      type: object
+      required:
+      - user_code
+      title: PairingDenyRequest
+    PairingDenyResponse:
+      properties:
+        session_id:
+          type: string
+          title: Session Id
+        status:
+          type: string
+          title: Status
+      type: object
+      required:
+      - session_id
+      - status
+      title: PairingDenyResponse
+    PairingDeviceResponse:
+      properties:
+        hostname:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Hostname
+        model:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Model
+        agent_version:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Agent Version
+      type: object
+      title: PairingDeviceResponse
+    PairingLookupRequest:
+      properties:
+        user_code:
+          type: string
+          maxLength: 16
+          minLength: 1
+          title: User Code
+      additionalProperties: false
+      type: object
+      required:
+      - user_code
+      title: PairingLookupRequest
+    PairingLookupResponse:
+      properties:
+        session_id:
+          type: string
+          title: Session Id
+        user_code:
+          type: string
+          title: User Code
+        status:
+          type: string
+          title: Status
+        requested_at:
+          type: string
+          title: Requested At
+        expires_at:
+          type: string
+          title: Expires At
+        device:
+          $ref: '#/components/schemas/PairingDeviceResponse'
+        source_network:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Source Network
+      type: object
+      required:
+      - session_id
+      - user_code
+      - status
+      - requested_at
+      - expires_at
+      - device
+      title: PairingLookupResponse
     PriorityStatusItem:
       properties:
         parameter:

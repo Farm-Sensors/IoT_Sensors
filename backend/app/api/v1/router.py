@@ -13,6 +13,7 @@ from app.api.v1.endpoints import (
     hardware_profiles,
     gateway_templates,
     gateway_lifecycle,
+    gateway_pairing,
     gateway_template_lifecycle,
     gateway_template_copy,
     irrigation_areas,
@@ -42,6 +43,9 @@ api_v1_router.include_router(
 )
 api_v1_router.include_router(
     gateway_lifecycle.router, prefix="/gateways", tags=["Gateways"]
+)
+api_v1_router.include_router(
+    gateway_pairing.router, prefix="/gateways", tags=["Gateways"]
 )
 api_v1_router.include_router(
     gateway_templates.router, prefix="/gateway-templates", tags=["Gateway Templates"]
