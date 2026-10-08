@@ -27,5 +27,5 @@ Cloud gateway status derives from the last heartbeat (`backend/app/services/gate
 
 - Frontend unit tests for gateway badge/management: run with `npm test`.
 - Backend heartbeat tests were added with issue #34.
-- Paired smoke via the Agro.io headless harness on 2026-10-06 (activation, configuration poll, binding, telemetry `201`/`200`, heartbeat `204`; evidence in Agro.io `odd/tasks/wire-gateway-v2.md`). The full cutover verification (task 7.4) stays open until the real Raspberry validation.
+- Real Raspberry validation completed on 2026-10-08 on the test device (`10.32.90.229`, release `2.0.0-alpha.2`, gateway 7 / property 8): activation, configuration poll, binding confirmed, telemetry `201`/`200`, heartbeat `204`, 1,700+ readings visible in the client dashboard. Checks: backend 490 passed, frontend typecheck clean and 58 tests passed, v2 contract validator PASS, `scripts/integration` 23 tests OK. Task 7.4 of `edge-cloud-gateway-provisioning` is closed with this evidence.
 - Contract v1 remains frozen; v2 is canonical for new producers.

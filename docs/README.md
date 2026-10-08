@@ -61,7 +61,7 @@ Comportamiento del sistema, por capacidad. Todo cambio de comportamiento parte d
 
 1. **Cómo funciona ahora**: `docs/system.md`.
 2. **Entender el producto**: `docs/product/README.md` → `vision.md` → `problem-context.md`.
-3. **Entender el comportamiento detallado**: `openspec/changes/edge-cloud-gateway-provisioning/` y `openspec/specs/`.
+3. **Entender el comportamiento detallado**: `openspec/changes/archive/2026-10-08-edge-cloud-gateway-provisioning/` y `openspec/specs/`.
 4. **Entender la construcción**: `docs/stack.md` → `docs/architecture/overview.md` → `docs/architecture/backend.md` o `frontend.md`.
 5. **Antes de tocar un endpoint o una tabla**: `docs/api.md` + `openapi.yaml`, y `docs/data-model.md`.
 6. **Para cambiar el comportamiento**: crear un cambio OpenSpec (los specs son la fuente de verdad del "qué").

@@ -3,7 +3,7 @@
 Este documento describe el sistema **tal como está en `main`**. Si un diagrama antiguo o un SRS de `docs/deliverables/` contradice esto, gana este archivo.
 
 Contrato de máquina: [`contracts/edge-cloud/v2/`](../contracts/edge-cloud/v2/).  
-Comportamiento detallado: `openspec/changes/edge-cloud-gateway-provisioning/` (aún no archivado a `openspec/specs/`).
+Comportamiento detallado: `openspec/changes/archive/2026-10-08-edge-cloud-gateway-provisioning/` (cerrado el 2026-10-08) y `openspec/specs/`.
 
 ## Qué es cada pieza
 

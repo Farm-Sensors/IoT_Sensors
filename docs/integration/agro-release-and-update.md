@@ -52,7 +52,7 @@ tag x.y.z pushed  ──►  release-rpi.yml  ──►  GitHub Release (agroio-
 - A device running `0.9.4` sends nothing to this cloud. It uses the old `http_sync` path and has no activation, binding, outbox or heartbeat code.
 - For a device to talk to this cloud, a release containing the wired gateway v2 must be **tagged and published**, then **installed manually** on that device.
 - When this page was verified (2026-10-06), Agro.io `integration/iot-v2` held the gateway code but did not call it from the agent loop, so tagging that branch alone would not have made telemetry flow. The v2 line has since been wired (headless harness smoke on 2026-10-06, evidence in Agro.io `odd/tasks/wire-gateway-v2.md`); that wiring was not re-verified from this repository. See [`gateway-v2-cutover-runbook.md`](gateway-v2-cutover-runbook.md) for the cutover and rollback rules.
-- Because updates are manual, a paired staging smoke (task 7.4 of `edge-cloud-gateway-provisioning`) needs someone to publish the release and trigger the install on the test device.
+- Because updates are manual, the advancing requirement (task 7.4 of `edge-cloud-gateway-provisioning`) needs someone to publish the release and trigger the install on the test device. That was done on 2026-10-08: release `2.0.0-alpha.2` was published and installed on the test device `10.32.90.229`, which produced the validated cutover recorded in [`gateway-v2-cutover-runbook.md`](gateway-v2-cutover-runbook.md).
 
 ## v2 line
 

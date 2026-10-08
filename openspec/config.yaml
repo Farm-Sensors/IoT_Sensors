@@ -3,7 +3,7 @@ schema: spec-driven
 context: |
   Language: en. Artifacts use English headings and RFC 2119 keywords.
   Stack: FastAPI/SQLAlchemy/MySQL backend; React Vite TypeScript frontend; Docker Compose.
-  Architecture: Client → Property → Irrigation Area (1 crop type + 1 IoT node). Gateway v2 replaces per-node X-API-Key ingest; see openspec/changes/edge-cloud-gateway-provisioning.
+  Architecture: Client → Property → Irrigation Area (1 crop type + 1 IoT node). Gateway v2 replaces per-node X-API-Key ingest; see openspec/changes/archive/2026-10-08-edge-cloud-gateway-provisioning.
   MVP: ingest, users, visualization. Phase 2 AI/alerts stay behind flags. NDVI is a separate event.
   Testing: project-local pytest and vitest; no workspace-wide test target.
 

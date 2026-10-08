@@ -30,7 +30,7 @@ Verified flow (cloud endpoints in [`../api.md`](../api.md); wire contract in `co
 5. **Heartbeat**: `POST /api/v1/gateways/me/heartbeat` returns `204`.
 6. **NDVI**: `POST /api/v1/ndvi-snapshots` carries the separate latest-point event; it is never a telemetry field.
 
-A paired smoke of this flow was run on 2026-10-06 through the Agro.io headless harness (activation, configuration poll, binding, telemetry `201`/`200`, heartbeat `204`). Full cutover acceptance still needs the real Raspberry validation recorded in task 7.4 of `edge-cloud-gateway-provisioning`; offline contract checks are not acceptance of a live producer. Agro.io changes are made only on branches based on `integration/iot-v2`; its v2 line grows there and is never merged to Agro.io `main` (see [`agro-release-and-update.md`](agro-release-and-update.md)).
+A paired smoke of this flow was run on 2026-10-06 through the Agro.io headless harness, and the full cutover verification (task 7.4 of the archived `2026-10-08-edge-cloud-gateway-provisioning` change) was completed on 2026-10-08 on the real Raspberry test device (activation, configuration poll, binding, telemetry `201`/`200`, heartbeat `204`; see [`gateway-v2-cutover-runbook.md`](gateway-v2-cutover-runbook.md)). Offline contract checks alone are not acceptance of a live producer. Agro.io changes are made only on branches based on `integration/iot-v2`; its v2 line grows there and is never merged to Agro.io `main` (see [`agro-release-and-update.md`](agro-release-and-update.md)).
 
 Deploys of this cloud are manual: a push to `main` does not redeploy the private Dokploy. See [`../deployment.md`](../deployment.md).
 

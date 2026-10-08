@@ -1,6 +1,6 @@
 # Readings
 
-> Gateway v2 cutover is specified in `openspec/changes/edge-cloud-gateway-provisioning`. After runtime cutover, `POST /api/v1/readings` authenticates a property gateway credential and a configured logical node; unavailable values are JSON `null`.
+> Gateway v2 cutover is specified in `openspec/changes/archive/2026-10-08-edge-cloud-gateway-provisioning`. After runtime cutover, `POST /api/v1/readings` authenticates a property gateway credential and a configured logical node; unavailable values are JSON `null`.
 
 ## Purpose
 

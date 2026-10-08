@@ -1,6 +1,6 @@
 # User Authentication
 
-> Machine ingest cutover is specified in `openspec/changes/edge-cloud-gateway-provisioning/specs/security/spec.md`: gateway credentials replace node API keys. User JWT remains unchanged.
+> Machine ingest cutover is specified in `openspec/changes/archive/2026-10-08-edge-cloud-gateway-provisioning/specs/security/spec.md`: gateway credentials replace node API keys. User JWT remains unchanged.
 
 ## Purpose
 
