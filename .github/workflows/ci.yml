@@ -10,7 +10,12 @@ jobs:
     name: Edge-cloud v2 contract
     runs-on: ubuntu-latest
     steps:
+      # El guard de regresión compara la revisión 2 contra la revisión 1 aceptada
+      # (`git show d7c2652:...`). El checkout por defecto es shallow (depth 1) y no
+      # trae ese objeto, así que este job necesita el historial completo.
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - uses: actions/setup-python@v5
         with:
           python-version: "3.13"
