@@ -338,7 +338,9 @@ def get_priority_status(db: Session, irrigation_area_id: int) -> dict[str, objec
         min_value: float | None = None
         max_value: float | None = None
         breached = False
-        level = "optimal"
+        # Sin umbral activo no hay veredicto: el nivel queda en null y la UI muestra
+        # "sin datos de umbral". "optimal" solo se emite con umbral y sin breach.
+        level: str | None = None
 
         if threshold is not None:
             threshold_id = threshold.id
@@ -356,6 +358,8 @@ def get_priority_status(db: Session, irrigation_area_id: int) -> dict[str, objec
             ):
                 breached = True
                 level = _priority_level_from_severity(threshold.severidad)
+            else:
+                level = "optimal"
 
         items.append(
             {

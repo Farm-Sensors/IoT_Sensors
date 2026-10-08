@@ -267,7 +267,7 @@ class TestGetPriorityStatus:
         )
         assert resp.status_code == 401
 
-    def test_priority_status_defaults_to_optimal_without_readings(
+    def test_priority_status_reports_null_levels_without_thresholds(
         self, client, admin_headers, sample_irrigation_area, sample_node
     ):
         resp = client.get(
@@ -280,9 +280,61 @@ class TestGetPriorityStatus:
         assert data["reading_timestamp"] is None
 
         by_param = {item["parameter"]: item for item in data["items"]}
+        assert by_param["soil.humidity"]["level"] is None
+        assert by_param["irrigation.flow_per_minute"]["level"] is None
+        assert by_param["environmental.eto"]["level"] is None
+        assert by_param["soil.humidity"]["breached"] is False
+        assert by_param["soil.humidity"]["threshold_id"] is None
+
+    def test_priority_status_reports_optimal_within_thresholds(
+        self,
+        client,
+        admin_headers,
+        node_headers,
+        sample_node,
+        sample_irrigation_area,
+    ):
+        created = client.post(
+            "/api/v1/thresholds",
+            headers=admin_headers,
+            json={
+                "irrigation_area_id": sample_irrigation_area.id,
+                "parameter": "soil.humidity",
+                "min_value": 20.0,
+                "max_value": 80.0,
+                "severity": "warning",
+            },
+        )
+        assert created.status_code == 201
+
+        reading_payload = {
+            **SENSOR_PAYLOAD,
+            "timestamp": "2026-04-02T11:00:00Z",
+            "soil": {
+                **SENSOR_PAYLOAD["soil"],
+                "humidity": 45.0,
+            },
+        }
+        ingest = client.post(
+            "/api/v1/readings",
+            json=reading_payload,
+            headers={"X-Event-ID": str(uuid4()), **node_headers},
+        )
+        assert ingest.status_code == 201
+
+        resp = client.get(
+            f"/api/v1/readings/priority-status?irrigation_area_id={sample_irrigation_area.id}",
+            headers=admin_headers,
+        )
+        assert resp.status_code == 200
+        by_param = {item["parameter"]: item for item in resp.json()["items"]}
+
         assert by_param["soil.humidity"]["level"] == "optimal"
-        assert by_param["irrigation.flow_per_minute"]["level"] == "optimal"
-        assert by_param["environmental.eto"]["level"] == "optimal"
+        assert by_param["soil.humidity"]["breached"] is False
+        assert by_param["soil.humidity"]["threshold_id"] is not None
+        # Sin umbral configurado no se inventa nivel para los otros prioritarios.
+        assert by_param["irrigation.flow_per_minute"]["level"] is None
+        assert by_param["environmental.eto"]["level"] is None
 
     def test_priority_status_uses_latest_reading_and_thresholds(
         self,

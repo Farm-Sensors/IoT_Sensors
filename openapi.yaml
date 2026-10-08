@@ -6379,11 +6379,13 @@ components:
           - environmental.eto
           title: Parameter
         level:
-          type: string
-          enum:
-          - optimal
-          - warning
-          - critical
+          anyOf:
+          - type: string
+            enum:
+            - optimal
+            - warning
+            - critical
+          - type: 'null'
           title: Level
         current_value:
           anyOf:

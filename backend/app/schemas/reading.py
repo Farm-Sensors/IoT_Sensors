@@ -186,7 +186,7 @@ ThresholdSeverity = Literal["info", "warning", "critical"]
 
 class PriorityStatusItem(BaseModel):
     parameter: PriorityParameter
-    level: PrioritySemaphoreLevel
+    level: PrioritySemaphoreLevel | None
     current_value: float | None = None
     breached: bool = False
     threshold_id: int | None = None

@@ -74,10 +74,15 @@ Defines the full lifecycle of sensor reading data: ingestion from IoT nodes (wri
 ### Requirement: Priority status
 
 - The system SHALL expose `GET /api/v1/readings/priority-status` returning semaphore levels (optimal/warning/critical) for the 3 priority parameters: `soil.humidity`, `irrigation.flow_per_minute`, `environmental.eto`, derived from the latest reading and active thresholds.
+- The level SHALL be `null` for a parameter without an active threshold in the area: no verdict is invented, and the frontend shows "sin datos de umbral" instead of a green state.
 
 #### Scenario: Priority parameter breaches threshold
 - **WHEN** the latest soil humidity is below the active threshold for the selected area
 - **THEN** priority-status reports `critical` for soil.humidity with the breached flag set
+
+#### Scenario: Area without thresholds
+- **WHEN** the selected area has no active threshold for a priority parameter
+- **THEN** priority-status reports a `null` level for that parameter and the frontend does not label it as optimal
 
 ### Requirement: Export
 
