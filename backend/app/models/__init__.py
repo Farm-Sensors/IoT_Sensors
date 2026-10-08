@@ -17,6 +17,7 @@ from app.models.ndvi_snapshot import NDVILatestSnapshot
 
 from app.models.gateway import Gateway
 from app.models.activation_reference import ActivationReference
+from app.models.pairing_session import PairingSession
 from app.models.hardware_profile import HardwareProfile
 from app.models.gateway_template import GatewayTemplate, GatewayTemplateVersion
 from app.models.gateway_slot import GatewaySlot
@@ -44,6 +45,7 @@ __all__ = [
     "NDVILatestSnapshot",
     "Gateway",
     "ActivationReference",
+    "PairingSession",
     "HardwareProfile",
     "GatewayTemplate",
     "GatewayTemplateVersion",

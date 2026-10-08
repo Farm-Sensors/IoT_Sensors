@@ -128,6 +128,17 @@ class Settings(BaseSettings):
     GATEWAY_STATUS_RECENT_SECONDS: int = 450
     GATEWAY_STATUS_STALE_SECONDS: int = 900
 
+    # --- Gateway pairing (RFC 8628 device authorization) ---
+    # Fase 2: las rutas de emparejamiento están dormidas por defecto.
+    GATEWAY_PAIRING_ENABLED: bool = False
+    PAIRING_VERIFICATION_BASE_URL: str = ""
+    PAIRING_TTL_SECONDS: int = 600
+    PAIRING_INTERVAL_SECONDS: int = 5
+    PAIRING_SLOW_DOWN_SECONDS: int = 5
+    PAIRING_MAX_INTERVAL_SECONDS: int = 60
+    PAIRING_MAX_WRONG_CODE_ATTEMPTS: int = 5
+    PAIRING_CODE_HMAC_KEY: str = ""
+
     @field_validator("DEBUG", mode="before")
     @classmethod
     def parse_debug(cls, value: object) -> object:

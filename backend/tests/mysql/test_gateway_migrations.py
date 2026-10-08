@@ -31,6 +31,7 @@ TABLES = {
     "vinculos_fisicos",
     "autorizaciones_actualizacion",
     "confirmaciones_actualizacion",
+    "sesiones_emparejamiento",
 }
 
 

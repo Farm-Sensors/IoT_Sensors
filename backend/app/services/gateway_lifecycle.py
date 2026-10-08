@@ -19,6 +19,53 @@ def _hash(value: str) -> str:
     return hashlib.sha256(value.encode("utf-8")).hexdigest()
 
 
+class _CredentialTransitionFailed(Exception):
+    """A guarded credential update did not apply (state changed underneath)."""
+
+
+def _activate_gateway(
+    db: Session, *, gateway_id: int, now: datetime, replace: bool
+) -> str:
+    """Issue a fresh ``gk_`` credential and persist it under a guarded update.
+
+    ``replace=False`` activates a ``pending_activation`` gateway without a
+    credential (the pairing/activation path). ``replace=True`` rotates the
+    credential of an ``active`` gateway, keeping the row and its bindings.
+
+    The caller owns the transaction and must roll back on
+    :class:`_CredentialTransitionFailed`.
+    """
+    credential = "gk_" + secrets.token_urlsafe(32)
+    if replace:
+        changed = db.execute(
+            update(Gateway)
+            .where(Gateway.id == gateway_id, Gateway.estado == "active")
+            .values(
+                credencial_hash=_hash(credential),
+                credencial_prefijo=credential[:12],
+                actualizado_en=now,
+            )
+        )
+    else:
+        changed = db.execute(
+            update(Gateway)
+            .where(
+                Gateway.id == gateway_id,
+                Gateway.estado == "pending_activation",
+                Gateway.credencial_hash.is_(None),
+            )
+            .values(
+                estado="active",
+                credencial_hash=_hash(credential),
+                credencial_prefijo=credential[:12],
+                activado_en=now,
+            )
+        )
+    if changed.rowcount != 1:
+        raise _CredentialTransitionFailed()
+    return credential
+
+
 def _invalid_reference() -> HTTPException:
     return HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
@@ -98,22 +145,9 @@ def activate(db: Session, reference: str) -> tuple[Gateway, str]:
     )
     if consumed.rowcount != 1:
         raise _invalid_reference()
-    credential = "gk_" + secrets.token_urlsafe(32)
-    activated = db.execute(
-        update(Gateway)
-        .where(
-            Gateway.id == gateway.id,
-            Gateway.estado == "pending_activation",
-            Gateway.credencial_hash.is_(None),
-        )
-        .values(
-            estado="active",
-            credencial_hash=_hash(credential),
-            credencial_prefijo=credential[:12],
-            activado_en=now,
-        )
-    )
-    if activated.rowcount != 1:
+    try:
+        credential = _activate_gateway(db, gateway_id=gateway.id, now=now, replace=False)
+    except _CredentialTransitionFailed:
         db.rollback()
         raise _invalid_reference()
     db.commit()
@@ -125,18 +159,10 @@ def rotate_credential(db: Session, gateway_id: int) -> tuple[Gateway, str]:
     gateway = _gateway_or_404(db, gateway_id, lock=True)
     if gateway.estado != "active":
         raise HTTPException(status_code=409, detail="Only active gateways can rotate credentials")
-    credential = "gk_" + secrets.token_urlsafe(32)
     now = _now()
-    rotated = db.execute(
-        update(Gateway)
-        .where(Gateway.id == gateway_id, Gateway.estado == "active")
-        .values(
-            credencial_hash=_hash(credential),
-            credencial_prefijo=credential[:12],
-            actualizado_en=now,
-        )
-    )
-    if rotated.rowcount != 1:
+    try:
+        credential = _activate_gateway(db, gateway_id=gateway_id, now=now, replace=True)
+    except _CredentialTransitionFailed:
         db.rollback()
         raise HTTPException(status_code=409, detail="Gateway credential could not be rotated")
     db.commit()
