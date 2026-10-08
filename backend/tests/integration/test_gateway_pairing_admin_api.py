@@ -206,7 +206,6 @@ def test_per_session_wrong_code_denies_session(
     monkeypatch.setattr(settings, "PAIRING_MAX_WRONG_CODE_ATTEMPTS", 2)
     gateway = _gateway(db, sample_property)
     started = _start(client)
-    user_code = started.json()["user_code"]
     session = _session(db)
     device_code = started.json()["device_code"]
 

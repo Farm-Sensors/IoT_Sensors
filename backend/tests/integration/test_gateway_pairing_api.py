@@ -100,7 +100,6 @@ def test_start_pending_approve_token_single_use(
 
 
 def test_deny_ends_session_with_access_denied(client, db, admin_headers, sample_property):
-    gateway = _gateway(db, sample_property)
     started = _start(client)
     device_code = started.json()["device_code"]
     user_code = started.json()["user_code"]
