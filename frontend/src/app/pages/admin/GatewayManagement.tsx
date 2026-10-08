@@ -14,6 +14,31 @@ import {
 } from "../../services/gateways";
 import { getErrorMessage } from "../../utils/errors";
 
+async function copyToClipboard(value: string): Promise<boolean> {
+  try {
+    if (navigator.clipboard?.writeText) {
+      await navigator.clipboard.writeText(value);
+      return true;
+    }
+  } catch {
+    // fall through to the legacy path
+  }
+  try {
+    const textarea = document.createElement("textarea");
+    textarea.value = value;
+    textarea.setAttribute("readonly", "");
+    textarea.style.position = "fixed";
+    textarea.style.opacity = "0";
+    document.body.appendChild(textarea);
+    textarea.select();
+    const copied = document.execCommand("copy");
+    document.body.removeChild(textarea);
+    return copied;
+  } catch {
+    return false;
+  }
+}
+
 export function GatewayManagement() {
   const { showToast } = useToast();
   const [gateways, setGateways] = useState<Gateway[]>([]);
@@ -42,13 +67,35 @@ export function GatewayManagement() {
     void load();
   }, []);
 
+  // The reference is per-visit: dropping it when the page unmounts keeps it from lingering.
+  useEffect(() => () => {
+    setOneTimeSecret(null);
+    setQr(null);
+  }, []);
+
   const handleProvision = async (event: React.FormEvent) => {
     event.preventDefault();
-    const created = await provisionGateway(Number(propertyId), Number(areaId));
-    showToast("Gateway provisionado", "success");
-    setPropertyId("");
-    setAreaId("");
-    setGateways((current) => [...current, created.data]);
+    try {
+      const created = await provisionGateway(Number(propertyId), Number(areaId));
+      showToast("Gateway provisionado", "success");
+      setPropertyId("");
+      setAreaId("");
+      setError(null);
+      setGateways((current) => [...current, created.data]);
+    } catch (err) {
+      const message = getErrorMessage(err, "No se pudo provisionar el gateway");
+      setError(message);
+      showToast(message, "error");
+    }
+  };
+
+  const handleCopyReference = async () => {
+    if (!oneTimeSecret) return;
+    const copied = await copyToClipboard(oneTimeSecret);
+    showToast(
+      copied ? "Referencia copiada" : "No se pudo copiar la referencia",
+      copied ? "success" : "error",
+    );
   };
 
   const handleReference = async (gatewayId: number) => {
@@ -71,9 +118,16 @@ export function GatewayManagement() {
   };
 
   const handlePublish = async (gatewayId: number) => {
-    await publishConfiguration(gatewayId);
-    showToast("Configuración publicada", "success");
-    await load();
+    try {
+      await publishConfiguration(gatewayId);
+      showToast("Configuración publicada", "success");
+      setError(null);
+      await load();
+    } catch (err) {
+      const message = getErrorMessage(err, "No se pudo publicar la configuración");
+      setError(message);
+      showToast(message, "error");
+    }
   };
 
   return (
@@ -153,6 +207,9 @@ export function GatewayManagement() {
           </section>
         </BentoCard>
         {error && <p className="text-[var(--status-danger)]">{error}</p>}
+        <p className="text-sm text-[var(--text-muted)]">
+          Cada área necesita al menos un nodo lógico activo antes de provisionar; si no, la API rechazará la operación.
+        </p>
         <form className="flex flex-wrap gap-3" onSubmit={handleProvision}>
           <input
             aria-label="ID de predio"
@@ -171,7 +228,29 @@ export function GatewayManagement() {
           <PillButton type="submit">Provisionar</PillButton>
         </form>
         {oneTimeSecret && (
-          <p data-testid="one-time-secret" className="sr-only">Referencia: {oneTimeSecret}</p>
+          <BentoCard>
+            <div className="flex flex-wrap items-start justify-between gap-4">
+              <div>
+                <p className="text-sm font-medium text-[var(--text-muted)]">
+                  Referencia de activación (de un solo uso)
+                </p>
+                <code
+                  data-testid="one-time-secret"
+                  className="mt-2 block break-all font-mono text-lg font-semibold tracking-tight"
+                >
+                  {oneTimeSecret}
+                </code>
+                {qr && (
+                  <p className="mt-2 text-sm text-[var(--text-muted)]">
+                    Caduca el {new Date(qr.expiresAt).toLocaleString("es-MX")}. Generar otra invalida esta.
+                  </p>
+                )}
+              </div>
+              <PillButton type="button" variant="outline" onClick={() => void handleCopyReference()}>
+                Copiar referencia
+              </PillButton>
+            </div>
+          </BentoCard>
         )}
         {qr && (
           <BentoCard>
