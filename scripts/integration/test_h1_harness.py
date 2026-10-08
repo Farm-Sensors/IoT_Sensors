@@ -24,9 +24,8 @@ def _resolved_manifest():
         "cloud_submit": "adapter://cloud-submit",
         "cloud_verify": "adapter://cloud-verify",
     }
-    manifest["nodes"][0].update(
-        cloud_area_id=101, cloud_node_id=201, api_key_secret_ref="secret://h1/H0001"
-    )
+    manifest["gateway_secret_ref"] = "secret://h1/gateway"
+    manifest["nodes"][0].update(cloud_area_id=101, logical_node_id=201)
     return manifest
 
 
@@ -38,22 +37,28 @@ class H1HarnessTests(unittest.TestCase):
                 plan = build_plan(manifest)
                 self.assertEqual(plan["status"], "blocked")
                 self.assertEqual(plan["node_count"], count)
-                self.assertEqual(len(plan["blockers"]), 12 + count * 3)
+                self.assertEqual(len(plan["blockers"]), 12 + count * 2)
                 self.assertTrue(all(reason.startswith("unresolved:") for reason in plan["blockers"]))
                 text = json.dumps(manifest)
                 self.assertNotIn('"api_key":', text)
-                self.assertTrue(all(node["api_key_secret_ref"].startswith("PENDING_") for node in manifest["nodes"]))
+                self.assertTrue(manifest["gateway_secret_ref"].startswith("PENDING_"))
+                self.assertTrue(
+                    all(
+                        node["cloud_area_id"].startswith("PENDING_")
+                        and node["logical_node_id"].startswith("PENDING_")
+                        for node in manifest["nodes"]
+                    )
+                )
 
     def test_duplicate_id_and_secret_values_are_rejected(self):
         manifest = _load(8)
-        manifest["nodes"][1]["cloud_node_id"] = manifest["nodes"][0]["cloud_node_id"]
-        manifest["nodes"][2]["api_key_secret_ref"] = "ak_live_12345678901234567890"
-        manifest["api_key"] = "ak_live_12345678901234567890"
-        with self.assertRaisesRegex(HarnessError, "duplicate cloud_node_id") as raised:
+        manifest["nodes"][1]["logical_node_id"] = manifest["nodes"][0]["logical_node_id"]
+        manifest["gateway_secret_ref"] = "ak_live_12345678901234567890"
+        with self.assertRaisesRegex(HarnessError, "duplicate logical_node_id") as raised:
             build_plan(manifest)
         self.assertNotIn("ak_live_", str(raised.exception))
         with self.assertRaisesRegex(HarnessError, "redacted reference"):
-            build_plan({**_load(1), "nodes": [manifest["nodes"][2]]})
+            build_plan({**_load(1), "gateway_secret_ref": "ak_live_12345678901234567890"})
         with self.assertRaisesRegex(HarnessError, "raw secret field"):
             build_plan({**_load(1), "api_key": "ak_live_12345678901234567890"})
 

@@ -11,6 +11,8 @@ from pathlib import Path
 from typing import Any
 
 SUPPORTED_NODE_COUNTS = (1, 8, 16)
+MANIFEST_VERSION = "h1/v2"
+CONTRACT_PATH = "contracts/edge-cloud/v2"
 PACKET_REFS = ("ricky_c1", "ricky_c2", "jp_e2", "jp_e3", "jp_e4")
 DEPENDENCY_REFS = ("agro_io", "h0_evidence", "iot_sensors")
 ADAPTER_REFS = ("edge_capture", "cloud_submit", "cloud_verify")
@@ -58,8 +60,10 @@ def _validate_refs(manifest: dict[str, Any], blockers: list[str], errors: list[s
     elif not isinstance(contract_ref, str) or not contract_ref:
         errors.append("contract_ref must be a string reference")
     elif not contract_ref.startswith("PENDING_"):
-        if IMMUTABLE_REF.fullmatch(contract_ref) is None:
-            errors.append("contract_ref must be an immutable git: or sha256: reference")
+        if contract_ref != CONTRACT_PATH and IMMUTABLE_REF.fullmatch(contract_ref) is None:
+            errors.append(
+                f"contract_ref must be {CONTRACT_PATH} or an immutable git: or sha256: reference"
+            )
     for group_name, required, immutable in groups:
         group = manifest.get(group_name)
         if not isinstance(group, dict):
@@ -79,8 +83,15 @@ def _validate_refs(manifest: dict[str, Any], blockers: list[str], errors: list[s
 def validate_manifest(manifest: dict[str, Any]) -> list[str]:
     errors: list[str] = []
     blockers: list[str] = []
-    if manifest.get("manifest_version") != "h1/v1":
-        errors.append("manifest_version must be h1/v1")
+    if manifest.get("manifest_version") != MANIFEST_VERSION:
+        errors.append(f"manifest_version must be {MANIFEST_VERSION}")
+    gateway_secret_ref = manifest.get("gateway_secret_ref")
+    if gateway_secret_ref is None:
+        blockers.append("missing:gateway_secret_ref")
+    elif not isinstance(gateway_secret_ref, str) or not gateway_secret_ref.startswith(
+        SECRET_REF_PREFIXES
+    ):
+        errors.append("gateway_secret_ref must be a redacted reference")
     expected_count = manifest.get("scenario_nodes")
     nodes = manifest.get("nodes")
     if expected_count not in SUPPORTED_NODE_COUNTS or not isinstance(nodes, list):
@@ -90,7 +101,7 @@ def validate_manifest(manifest: dict[str, Any]) -> list[str]:
         errors.append("nodes length must equal scenario_nodes")
     _validate_refs(manifest, blockers, errors)
 
-    identities = {name: set() for name in ("node_code", "cloud_area_id", "cloud_node_id", "api_key_secret_ref")}
+    identities = {name: set() for name in ("node_code", "cloud_area_id", "logical_node_id")}
     for index, node in enumerate(nodes):
         if not isinstance(node, dict):
             errors.append(f"nodes[{index}] must be an object")
@@ -106,15 +117,12 @@ def validate_manifest(manifest: dict[str, Any]) -> list[str]:
                 seen.add(marker)
         if NODE_CODE.fullmatch(str(node.get("node_code", ""))) is None:
             errors.append(f"nodes[{index}].node_code has an invalid shape")
-        for field in ("cloud_area_id", "cloud_node_id"):
+        for field in ("cloud_area_id", "logical_node_id"):
             value = node.get(field)
             if value is not None and not (
                 isinstance(value, int) and not isinstance(value, bool) and value > 0
             ) and not (isinstance(value, str) and value.startswith("PENDING_")):
                 errors.append(f"nodes[{index}].{field} must be a positive ID or placeholder")
-        secret_ref = node.get("api_key_secret_ref")
-        if not isinstance(secret_ref, str) or not secret_ref.startswith(SECRET_REF_PREFIXES):
-            errors.append(f"nodes[{index}].api_key_secret_ref must be a redacted reference")
 
     for path, value in _walk(manifest):
         key = path.rsplit(".", 1)[-1].split("[", 1)[0].lower()
