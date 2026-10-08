@@ -4,7 +4,13 @@
 
 This package defines the gateway-authenticated v2 wire contract. Publication and acceptance require the reviewed #28 commit and a successful checksum/validation record. A local working copy is not proof of publication or runtime readiness. This package does not enable endpoints or change authentication. Version 1 remains frozen and active until a coordinated cloud/edge cutover; after cutover legacy node keys must never authenticate. No dual-auth window is permitted.
 
-All machine operations use HTTPS and JSON. Except activation, every machine operation requires `X-API-Key: gk_…`, which authenticates exactly one active gateway. Machine requests never use, receive, store, or forward a user JWT. `X-Request-ID` is optional diagnostic metadata and has no idempotency meaning.
+This is revision 2 of the package: it adds the credential-free device-pairing operations and leaves revision 1's nine operations, referenced definitions and schema files byte-identical. A regression guard (see Package revision) fails on any change to those accepted bytes.
+
+All machine operations use HTTPS and JSON. Except activation, `pairingStart` and `pairingToken`, every machine operation requires `X-API-Key: gk_…`, which authenticates exactly one active gateway. Machine requests never use, receive, store, or forward a user JWT. `X-Request-ID` is optional diagnostic metadata and has no idempotency meaning.
+
+## Package revision
+
+This is revision 2. Revision 1 (accepted upstream at commit `d7c2652`) contained the nine gateway-credential operations: activation, configuration, candidate, confirmation, heartbeat, telemetry, ndvi, update authorization and update confirmation. Revision 2 adds the credential-free device-pairing operations `pairingStart` and `pairingToken`. It changes no revision 1 operation entry, referenced `$defs`, or schema file. A contract regression test compares the nine entries and every `$defs` they reference against `d7c2652` and fails on any change, so a revision 1 consumer keeps working without re-vendoring. A consumer that adopts the pairing operations re-vendors the whole directory and records the new upstream commit and `SHA256SUMS` digest together, as described under Machine-readable package.
 
 ## Common error envelope
 
@@ -46,6 +52,35 @@ A configuration response contains an immutable `configuration` snapshot and a li
 - **Success:** `200` with `{ "gateway_id": integer, "property_id": integer, "credential": "gk_…" }`. The credential is returned once and is never returned by later operations.
 - **Errors:** `401` for every invalid reference state; `409` if an already active gateway cannot consume another reference; `422` for invalid JSON/schema.
 - **Retry:** The request is non-repeatable after successful consumption. After an uncertain response, the gateway MUST poll configuration using the credential only if it received it; otherwise it MUST obtain a newly issued reference through the technician/admin workflow.
+
+### Pairing session start
+
+`POST /api/v1/gateways/pairing-sessions`
+
+- **Headers:** `Content-Type: application/json`; no gateway credential; optional `X-Request-ID`.
+- **Request schema:** optional `{ "device": { "hostname": string, "model": string, "agent_version": string } }`; each field is at most 64 characters and is display-only, never used for authorization.
+- **Success:** `201` with `{ "device_code": "…", "user_code": "BCDF-GHJK", "verification_uri": "https://…/pair", "verification_uri_complete": "https://…/pair?code=BCDF-GHJK", "expires_in": integer, "interval": integer }`. `device_code` is a high-entropy secret that never leaves the device; `user_code` is short and useless without an admin session.
+- **Errors:** `422` for invalid JSON/schema; `429` for the per-source start limit or the live-session cap; `503` with `code: "pairing_unavailable"` when the feature flag is off.
+- **Retry:** `429` is retryable with backoff. A lost start response is not recoverable; start a new session.
+
+### Pairing token
+
+`POST /api/v1/gateways/pairing-sessions/token`
+
+- **Headers:** `Content-Type: application/json`; no gateway credential; optional `X-Request-ID`.
+- **Request schema:** `{ "device_code": "…" }`.
+- **Success:** `200` with exactly the activation success body (`activationResponse` is referenced, not copied): `{ "gateway_id": integer, "property_id": integer, "credential": "gk_…" }`. The credential is returned once and is never returned by later polls.
+- **Errors:** all use the common envelope plus an optional `interval` (see `pairingPendingError`); RFC 8628 code names:
+
+| `code` | Status | Meaning |
+|---|---|---|
+| `authorization_pending` | `400` | No admin approval yet; keep polling at `interval`. |
+| `slow_down` | `400` | Polled faster than `interval`; adds `interval` seconds (+5, capped at 60) before the next poll. |
+| `expired_token` | `400` | Session expired; stop and start a new session. |
+| `access_denied` | `400` | Denied, cancelled, or the gateway left the approved state; stop and start a new session. |
+| `invalid_device_code` | `401` | Unknown, malformed, or already consumed `device_code`; stop and start a new session. |
+| other | `422`/`429`/`5xx` | `422` for invalid JSON/schema; `429` and `5xx` retryable. |
+- **Retry:** Poll no faster than `interval`; stop on `expired_token`, `access_denied` or `401`. Success is non-repeatable; a later poll returns `401`.
 
 ### Configuration poll
 
@@ -129,7 +164,7 @@ A configuration response contains an immutable `configuration` snapshot and a li
 
 ## Machine-readable package
 
-- `operations.json` indexes all nine operations, schemas, headers, status codes, authorization scopes, identities and retries.
+- `operations.json` indexes all eleven operations, schemas, headers, status codes, authorization scopes, identities and retries.
 - `machine.schema.json` defines control-plane request/response bodies and operation headers (JSON Schema 2020-12). Telemetry and NDVI have separate schemas.
 - Relative schema references resolve only within this package. `SHA256SUMS` covers every distributed file except itself, including these documents and the fixtures. Consumers vendor the entire directory unchanged and record both the accepted Git commit and manifest digest. Updating a published package requires a newly reviewed revision; do not silently replace accepted bytes.
 - `v1-frozen.sha256` pins every existing v1 file, including its README and original checksum manifest. This change makes no v1 edits.
@@ -157,6 +192,6 @@ python -m unittest discover -s scripts/integration -p 'test_v2_contract.py'
 
 Body fixtures preserve the v1 positive/negative cases. `fixtures/machine-cases.json` adds operation exchanges with expected validation outcomes, required headers, both-revision polling, exact replays, and forbidden telemetry/static/NDVI fields. These are synthetic offline wire examples. They do not prove authorization, database uniqueness, concurrency, or a deployed endpoint; subsequent packages own those runtime tests.
 
-Credentials and activation references in fixtures are literal `<gateway-credential>` and `<activation-reference>` placeholders. They are not usable secrets. Only the validator expands them to deterministic test strings in memory for pattern validation. Never replace them with issued values or log activation/credential material.
+Credentials and activation references in fixtures are literal `<gateway-credential>`, `<activation-reference>`, `<device-code>` and `<user-code>` placeholders. They are not usable secrets. Only the validator expands them to deterministic test strings in memory for pattern validation. Never replace them with issued values or log activation/credential material.
 
 Error semantics and authorization are normative even where they require server state and cannot be enforced by JSON Schema. All timestamps use UTC uppercase Z; the validator enables calendar-aware date-time format checks in addition to schema patterns.

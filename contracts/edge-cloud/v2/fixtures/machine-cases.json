@@ -1654,5 +1654,273 @@
       "configuration_version": 4,
       "bindings_revision": 9
     }
+  },
+  {
+    "name": "pairing-start",
+    "operation": "pairingStart",
+    "request": {
+      "headers": {
+        "Content-Type": "application/json"
+      },
+      "body": {
+        "device": {
+          "hostname": "<device-hostname>",
+          "model": "<device-model>",
+          "agent_version": "<agent-version>"
+        }
+      },
+      "path_parameters": {}
+    },
+    "response": {
+      "status": 201,
+      "body": {
+        "device_code": "<device-code>",
+        "user_code": "<user-code>",
+        "verification_uri": "https://<cloud-host>/pair",
+        "verification_uri_complete": "https://<cloud-host>/pair?code=<user-code>",
+        "expires_in": 600,
+        "interval": 5
+      }
+    },
+    "valid": true
+  },
+  {
+    "name": "pairing-start-minimal",
+    "operation": "pairingStart",
+    "request": {
+      "headers": {
+        "Content-Type": "application/json"
+      },
+      "body": {},
+      "path_parameters": {}
+    },
+    "response": {
+      "status": 201,
+      "body": {
+        "device_code": "<device-code>",
+        "user_code": "<user-code>",
+        "verification_uri": "https://<cloud-host>/pair",
+        "verification_uri_complete": "https://<cloud-host>/pair?code=<user-code>",
+        "expires_in": 600,
+        "interval": 5
+      }
+    },
+    "valid": true
+  },
+  {
+    "name": "pairing-start-unknown-device-field",
+    "operation": "pairingStart",
+    "request": {
+      "headers": {
+        "Content-Type": "application/json"
+      },
+      "body": {
+        "device": {
+          "hostname": "<device-hostname>",
+          "uid": "<device-uid>"
+        }
+      },
+      "path_parameters": {}
+    },
+    "response": {
+      "status": 201,
+      "body": {
+        "device_code": "<device-code>",
+        "user_code": "<user-code>",
+        "verification_uri": "https://<cloud-host>/pair",
+        "verification_uri_complete": "https://<cloud-host>/pair?code=<user-code>",
+        "expires_in": 600,
+        "interval": 5
+      }
+    },
+    "valid": false
+  },
+  {
+    "name": "pairing-start-unavailable",
+    "operation": "pairingStart",
+    "request": {
+      "headers": {
+        "Content-Type": "application/json"
+      },
+      "body": {},
+      "path_parameters": {}
+    },
+    "response": {
+      "status": 503,
+      "body": {
+        "code": "pairing_unavailable",
+        "message": "Gateway pairing is disabled"
+      }
+    },
+    "valid": true
+  },
+  {
+    "name": "pairing-pending",
+    "operation": "pairingToken",
+    "request": {
+      "headers": {
+        "Content-Type": "application/json"
+      },
+      "body": {
+        "device_code": "<device-code>"
+      },
+      "path_parameters": {}
+    },
+    "response": {
+      "status": 400,
+      "body": {
+        "code": "authorization_pending",
+        "message": "The user has not yet approved the session"
+      }
+    },
+    "valid": true
+  },
+  {
+    "name": "pairing-slow-down",
+    "operation": "pairingToken",
+    "request": {
+      "headers": {
+        "Content-Type": "application/json"
+      },
+      "body": {
+        "device_code": "<device-code>"
+      },
+      "path_parameters": {}
+    },
+    "response": {
+      "status": 400,
+      "body": {
+        "code": "slow_down",
+        "message": "Polling faster than the session interval",
+        "interval": 10
+      }
+    },
+    "valid": true
+  },
+  {
+    "name": "pairing-slow-down-bad-interval",
+    "operation": "pairingToken",
+    "request": {
+      "headers": {
+        "Content-Type": "application/json"
+      },
+      "body": {
+        "device_code": "<device-code>"
+      },
+      "path_parameters": {}
+    },
+    "response": {
+      "status": 400,
+      "body": {
+        "code": "slow_down",
+        "message": "Polling faster than the session interval",
+        "interval": "10"
+      }
+    },
+    "valid": false
+  },
+  {
+    "name": "pairing-expired",
+    "operation": "pairingToken",
+    "request": {
+      "headers": {
+        "Content-Type": "application/json"
+      },
+      "body": {
+        "device_code": "<device-code>"
+      },
+      "path_parameters": {}
+    },
+    "response": {
+      "status": 400,
+      "body": {
+        "code": "expired_token",
+        "message": "The pairing session expired"
+      }
+    },
+    "valid": true
+  },
+  {
+    "name": "pairing-denied",
+    "operation": "pairingToken",
+    "request": {
+      "headers": {
+        "Content-Type": "application/json"
+      },
+      "body": {
+        "device_code": "<device-code>"
+      },
+      "path_parameters": {}
+    },
+    "response": {
+      "status": 400,
+      "body": {
+        "code": "access_denied",
+        "message": "The session was denied, cancelled or its gateway left the approved state"
+      }
+    },
+    "valid": true
+  },
+  {
+    "name": "pairing-invalid-code",
+    "operation": "pairingToken",
+    "request": {
+      "headers": {
+        "Content-Type": "application/json"
+      },
+      "body": {
+        "device_code": "<device-code>"
+      },
+      "path_parameters": {}
+    },
+    "response": {
+      "status": 401,
+      "body": {
+        "code": "invalid_device_code",
+        "message": "The device code is unknown, malformed or already consumed"
+      }
+    },
+    "valid": true
+  },
+  {
+    "name": "pairing-token-missing-code",
+    "operation": "pairingToken",
+    "request": {
+      "headers": {
+        "Content-Type": "application/json"
+      },
+      "body": {},
+      "path_parameters": {}
+    },
+    "response": {
+      "status": 400,
+      "body": {
+        "code": "authorization_pending",
+        "message": "The user has not yet approved the session"
+      }
+    },
+    "valid": false
+  },
+  {
+    "name": "pairing-token",
+    "operation": "pairingToken",
+    "request": {
+      "headers": {
+        "Content-Type": "application/json"
+      },
+      "body": {
+        "device_code": "<device-code>"
+      },
+      "path_parameters": {}
+    },
+    "response": {
+      "status": 200,
+      "body": {
+        "gateway_id": 1,
+        "property_id": 10,
+        "credential": "<gateway-credential>"
+      }
+    },
+    "valid": true
   }
 ]

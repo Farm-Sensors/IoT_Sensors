@@ -28,6 +28,62 @@
       "properties": {}
     }
   },
+  "pairingStart": {
+    "method": "POST",
+    "path": "/api/v1/gateways/pairing-sessions",
+    "headers": "machine.schema.json#/$defs/activationHeaders",
+    "request": "machine.schema.json#/$defs/pairingStartRequest",
+    "responses": {
+      "201": "machine.schema.json#/$defs/pairingStartResponse"
+    },
+    "errors": [
+      422,
+      429,
+      500,
+      502,
+      503,
+      504
+    ],
+    "error": "machine.schema.json#/$defs/error",
+    "identity": null,
+    "retry": "429 is retryable with backoff. A lost start response is not recoverable: start a new session. No credential is presented.",
+    "scope": "Credential-free device requesting a pairing session; device metadata is display-only and never authorizes.",
+    "path_parameters": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [],
+      "properties": {}
+    }
+  },
+  "pairingToken": {
+    "method": "POST",
+    "path": "/api/v1/gateways/pairing-sessions/token",
+    "headers": "machine.schema.json#/$defs/activationHeaders",
+    "request": "machine.schema.json#/$defs/pairingTokenRequest",
+    "responses": {
+      "200": "machine.schema.json#/$defs/activationResponse"
+    },
+    "errors": [
+      400,
+      401,
+      422,
+      429,
+      500,
+      502,
+      503,
+      504
+    ],
+    "error": "machine.schema.json#/$defs/pairingPendingError",
+    "identity": null,
+    "retry": "Poll no faster than interval; slow_down raises interval by 5 s up to 60 s. Stop on expired_token, access_denied or 401. Success is non-repeatable: a later poll returns 401.",
+    "scope": "Redeem an approved pairing session for exactly the one-time credential activation returns; no gateway credential is presented.",
+    "path_parameters": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [],
+      "properties": {}
+    }
+  },
   "configuration": {
     "method": "GET",
     "path": "/api/v1/gateways/me/configuration",

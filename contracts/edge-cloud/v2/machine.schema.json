@@ -65,6 +65,112 @@
         }
       }
     },
+    "pairingStartRequest": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [],
+      "properties": {
+        "device": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [],
+          "properties": {
+            "hostname": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 64
+            },
+            "model": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 64
+            },
+            "agent_version": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 64
+            }
+          }
+        }
+      }
+    },
+    "pairingStartResponse": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "device_code",
+        "user_code",
+        "verification_uri",
+        "verification_uri_complete",
+        "expires_in",
+        "interval"
+      ],
+      "properties": {
+        "device_code": {
+          "type": "string",
+          "minLength": 1
+        },
+        "user_code": {
+          "type": "string",
+          "pattern": "^[A-Z0-9]{4}-[A-Z0-9]{4}$"
+        },
+        "verification_uri": {
+          "type": "string",
+          "pattern": "^https?://.+"
+        },
+        "verification_uri_complete": {
+          "type": "string",
+          "pattern": "^https?://.+"
+        },
+        "expires_in": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "interval": {
+          "type": "integer",
+          "minimum": 1
+        }
+      }
+    },
+    "pairingTokenRequest": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "device_code"
+      ],
+      "properties": {
+        "device_code": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "pairingPendingError": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "code",
+        "message"
+      ],
+      "properties": {
+        "code": {
+          "type": "string",
+          "minLength": 1
+        },
+        "message": {
+          "type": "string",
+          "minLength": 1
+        },
+        "request_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "interval": {
+          "type": "integer",
+          "minimum": 1
+        }
+      }
+    },
     "slot": {
       "type": "object",
       "additionalProperties": false,

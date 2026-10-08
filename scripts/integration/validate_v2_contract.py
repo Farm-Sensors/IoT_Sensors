@@ -21,10 +21,14 @@ OPERATIONS = {
     "ndvi",
     "updateAuthorization",
     "updateConfirmation",
+    "pairingStart",
+    "pairingToken",
 }
 PLACEHOLDERS = {
     "<gateway-credential>": "gk_contract_test_only",
     "<activation-reference>": "ar_contract_test_only",
+    "<device-code>": "device_code_contract_test_only",
+    "<user-code>": "BCDF-GHJK",
 }
 STATUS = {
     "inactive": "pending",

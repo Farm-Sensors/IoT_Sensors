@@ -4,11 +4,31 @@ import copy
 import hashlib
 import json
 import shutil
+import subprocess
 import tempfile
 import unittest
 from pathlib import Path
 
-from validate_v2_contract import PACKAGE, Contract, credential_free, validate_package
+from validate_v2_contract import (
+    PACKAGE,
+    ROOT,
+    Contract,
+    credential_free,
+    validate_package,
+)
+
+ACCEPTED_COMMIT = "d7c2652"
+ACCEPTED_OPERATIONS = (
+    "activation",
+    "configuration",
+    "candidate",
+    "confirmation",
+    "heartbeat",
+    "telemetry",
+    "ndvi",
+    "updateAuthorization",
+    "updateConfirmation",
+)
 
 
 class V2ContractTests(unittest.TestCase):
@@ -22,6 +42,55 @@ class V2ContractTests(unittest.TestCase):
 
     def test_complete_package_and_frozen_v1(self):
         self.assertGreater(validate_package(), 30)
+
+    def test_accepted_nine_operations_and_referenced_defs_are_unchanged(self):
+        def accepted(relative):
+            return subprocess.check_output(
+                ["git", "show", f"{ACCEPTED_COMMIT}:contracts/edge-cloud/v2/{relative}"],
+                cwd=ROOT,
+                text=True,
+            )
+
+        old_operations = json.loads(accepted("operations.json"))
+        new_operations = json.loads((PACKAGE / "operations.json").read_text())
+        old_schema = json.loads(accepted("machine.schema.json"))
+        new_schema = json.loads((PACKAGE / "machine.schema.json").read_text())
+        referenced_defs = set()
+        referenced_files = set()
+        for name in ACCEPTED_OPERATIONS:
+            self.assertIn(name, new_operations)
+            self.assertEqual(
+                new_operations[name],
+                old_operations[name],
+                f"Accepted operation changed: {name}",
+            )
+            entry = new_operations[name]
+            references = [
+                entry["headers"],
+                entry["request"],
+                entry["error"],
+                *entry["responses"].values(),
+            ]
+            for reference in references:
+                if not isinstance(reference, str):
+                    continue
+                if reference.startswith("machine.schema.json#/$defs/"):
+                    referenced_defs.add(reference.rsplit("/", 1)[-1])
+                else:
+                    referenced_files.add(reference)
+        for definition in sorted(referenced_defs):
+            self.assertIn(definition, old_schema["$defs"])
+            self.assertEqual(
+                new_schema["$defs"][definition],
+                old_schema["$defs"][definition],
+                f"Accepted $defs changed: {definition}",
+            )
+        for relative in sorted(referenced_files):
+            self.assertEqual(
+                json.loads((PACKAGE / relative).read_text()),
+                json.loads(accepted(relative)),
+                f"Accepted schema file changed: {relative}",
+            )
 
     def test_all_required_headers_are_enforced(self):
         schema = json.loads((PACKAGE / "machine.schema.json").read_text())
