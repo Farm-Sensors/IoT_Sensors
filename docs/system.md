@@ -101,4 +101,6 @@ El admin **autoriza** una imagen (versión + digest). El técnico **confirma** e
 | Corte / rollback | `docs/integration/gateway-v2-cutover-runbook.md` |
 | API de usuarios | `docs/api.md` |
 | Tablas | `docs/data-model.md` |
-| Agro edge | repo Agro.io, rama `integration/iot-v2` |
+| Integración con Agro: contrato, gates y entorno de desarrollo | `docs/integration/README.md` |
+| Credenciales y datos de la demo | `docs/test-data.md` |
+| Agro edge: código de la línea v2, despliegue y visor | repo Agro.io, rama `integration/iot-v2` (ver `docs/integration/v2-release-line.md` allí) |
