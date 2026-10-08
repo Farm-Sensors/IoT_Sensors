@@ -87,7 +87,7 @@ El admin **autoriza** una imagen (versión + digest). El técnico **confirma** e
 
 ## Qué queda fuera de este sistema (aún)
 
-- IA, alertas activas, WhatsApp/email, n8n (código puede existir **dormido** detrás de flags).
+- IA, alertas activas, WhatsApp/email, n8n (código puede existir **dormido** detrás de flags). **La Fase 2 está bloqueada hasta nuevo aviso**: no se enciende ninguno de sus flags ni se arranca el perfil `phase2`; la única excepción vigente es el NDVI de último punto, que viaja como evento propio.
 - NDVI histórico/polígonos.
 - Interfaz móvil para QR/GPS.
 - Comandos físicos hacia riego.

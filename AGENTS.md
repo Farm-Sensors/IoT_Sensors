@@ -3,6 +3,7 @@ Actúa como un arquitecto de software y desarrollador Senior. Estoy construyendo
 1. ESTADO ACTUAL Y RESTRICCIONES (MVP)
 - El alcance actual es un Producto Mínimo Viable (MVP) enfocado estrictamente en la ingesta de datos, gestión de usuarios y visualización.
 - RESTRICCIÓN: No diseñes ni implementes **nuevas** funcionalidades de Inteligencia Artificial (Azure OpenAI), n8n, ni agentes autónomos. **Nota de estado:** el código de Fase 2 (IA, alertas de umbral/inactividad, notificaciones email/WhatsApp, password reset, auditoría) **ya existe implementado**, pero está **dormido detrás de flags (OFF por defecto)** — ver sección 4 y `ALERTS_ENABLED`/`AI_ASSISTANT_ENABLED`/`AI_REPORTS_ENABLED` en `backend/app/core/config.py`. No lo borres ni lo expandas sin autorización; el MVP corre con todos esos flags apagados (los schedulers requieren `docker compose --profile phase2 up`).
+- **FASE 2 BLOQUEADA HASTA NUEVO AVISO.** No diseñes, implementes ni *actives* funcionalidad de Fase 2: ni código nuevo, ni encender sus flags (`ALERTS_ENABLED`, `NOTIFICATIONS_*`, `AI_*`, `AZURE_OPENAI_ENABLED`, `OPEN_METEO_ENABLED`), ni arrancar el perfil `phase2`. El código existente se queda dormido tal como está. Reactivar requiere autorización explícita del dueño de la integración. La excepción vigente es solo el NDVI de último punto descrito abajo.
 
 ### Approved integration-week override
 
