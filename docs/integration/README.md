@@ -40,14 +40,14 @@ The cutover/rollback steps live in [`gateway-v2-cutover-runbook.md`](gateway-v2-
 
 ## Development environment
 
-The integration is exercised with this cloud plus a dedicated test Raspberry running the Agro.io v2 line. Current lab values (not production configuration):
+The integration is exercised with this cloud plus a dedicated test Raspberry running the Agro.io v2 line. Current values (lab, not production configuration):
 
 | Piece | Where it runs | How it is reached |
 |---|---|---|
-| IoT_Sensors cloud (API, MySQL, dashboard) | dev server `10.32.81.230` (Docker/Dokploy) | `http://10.32.81.230:3022` by IP:port; the public domain is unreliable, so use the address |
+| IoT_Sensors cloud (API, MySQL, dashboard) | the server `10.32.81.230` (Docker/Dokploy) | `http://10.32.81.230:3022` by IP:port; the public domain is unreliable, so use the address |
 | Agro.io edge agent (v2 line, `2.0.0-alpha.N`) | test Raspberry `10.32.90.229` | sends telemetry through the v2 lane; runs `mode: demo` while no radio data is available |
 | Agro.io UI viewer (Xvfb + `x11vnc` + noVNC) | test Raspberry | `http://10.32.90.229:6080/vnc.html`; the Avalonia UI renders on a virtual display over the device's live database |
-| Agro.io reference receiver (`apps/ui-web/telemetry_server.py`) | dev server `10.32.81.230` | `http://10.32.81.230:8090/`; the device's `http_sync.endpoint` targets it (dev stand-in for the client's own backend) |
+| Agro.io reference receiver (`apps/ui-web/telemetry_server.py`) | the server `10.32.81.230` (container with a published port) | `http://10.32.81.230:8090/`; the device's `http_sync.endpoint` targets it (stand-in for the client's own backend) |
 
 - Deploys of this cloud are manual: GitHub cannot reach the private-network Dokploy, so autodeploy never fires. Trigger the deploy from the Dokploy UI or its MCP after pushing.
 - Cloud-side checks after a change: `GET /api/v1/readings?irrigation_area_id=<id>`, `GET /api/v1/gateways/<id>/status` (edge status, binding, latest reading), and the client dashboard (predio → área) which shows the freshness indicator and the gateway status. The running state is read from the systems, not from this document; dashboard credentials live in [`../test-data.md`](../test-data.md).
