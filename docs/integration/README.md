@@ -37,3 +37,18 @@ Deploys of this cloud are manual: a push to `main` does not redeploy the private
 OTA delivery, automated rollback, gradual rollout, phone helpers, AI, schedulers, active alerts and notifications remain out of scope. NDVI remains latest-point-only and separate from telemetry.
 
 The cutover/rollback steps live in [`gateway-v2-cutover-runbook.md`](gateway-v2-cutover-runbook.md). How Agro.io builds, publishes and installs releases on a Raspberry Pi is in [`agro-release-and-update.md`](agro-release-and-update.md).
+
+## Development environment
+
+The integration is exercised with this cloud plus a dedicated test Raspberry running the Agro.io v2 line. Current lab values (not production configuration):
+
+| Piece | Where it runs | How it is reached |
+|---|---|---|
+| IoT_Sensors cloud (API, MySQL, dashboard) | dev server `10.32.81.230` (Docker/Dokploy) | `http://10.32.81.230:3022` by IP:port; the public domain is unreliable, so use the address |
+| Agro.io edge agent (v2 line, `2.0.0-alpha.N`) | test Raspberry `10.32.90.229` | sends telemetry through the v2 lane; runs `mode: demo` while no radio data is available |
+| Agro.io UI viewer (Xvfb + `x11vnc` + noVNC) | test Raspberry | `http://10.32.90.229:6080/vnc.html`; the Avalonia UI renders on a virtual display over the device's live database |
+| Agro.io reference receiver (`apps/ui-web/telemetry_server.py`) | dev server `10.32.81.230` | `http://10.32.81.230:8090/`; the device's `http_sync.endpoint` targets it (dev stand-in for the client's own backend) |
+
+- Deploys of this cloud are manual: GitHub cannot reach the private-network Dokploy, so autodeploy never fires. Trigger the deploy from the Dokploy UI or its MCP after pushing.
+- Cloud-side checks after a change: `GET /api/v1/readings?irrigation_area_id=<id>`, `GET /api/v1/gateways/<id>/status`, and the client dashboard (predio → área) which shows the freshness indicator and the gateway status.
+- The device-side pieces (release install, viewer service, demo vs serial mode, the receiver path, and why none of it ships in a release) are documented in Agro.io `docs/integration/v2-release-line.md`; the harness that runs the agent alone is in `docs/integration/headless-harness.md` there.
