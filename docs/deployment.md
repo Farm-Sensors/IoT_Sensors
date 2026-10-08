@@ -27,7 +27,7 @@ The running stack lives in Dokploy at `http://10.32.81.230:3000`, project **IoT_
 
 Insecure compose defaults must be overridden in Dokploy: `DB_PASSWORD` defaults to `rootpass`, and `SECRET_KEY` defaults to a known dev value. With `DEBUG=false` the backend **refuses to start** when `SECRET_KEY` is one of the known insecure defaults (`backend/app/core/config.py`), but nothing rejects the default `DB_PASSWORD`, so set it explicitly.
 
-The frontend service carries Traefik labels that read `DOMAIN` (default `sensores.alanrz.bond`); routes can also be defined in the Dokploy Domains UI.
+The frontend service carries Traefik labels that read `DOMAIN` (default `sensores.alanrz.bond`); routes can also be defined in the Dokploy Domains UI. With no domain yet, the running stack publishes the frontend on `10.32.81.230:3022` (`FRONTEND_PORT_BIND` override); the backend and MySQL stay bound to loopback.
 
 ## What this deploy does not do
 
