@@ -78,9 +78,13 @@ AI_ALERT_RECOMMENDATIONS_ENABLED=false
 AZURE_OPENAI_ENABLED=false
 OPEN_METEO_ENABLED=false
 OPEN_METEO_API_KEY=
+GATEWAY_PAIRING_ENABLED=false
+PAIRING_VERIFICATION_BASE_URL=
 ```
 
 Weather stays off until a commercial Open-Meteo key exists in Dokploy secrets. Never store that key in the repo.
+
+Gateway pairing stays **off** by default. Turn it on per installation with `GATEWAY_PAIRING_ENABLED=true` and set `PAIRING_VERIFICATION_BASE_URL` to a base the admin's phone can reach: the cloud builds `verification_uri` as `<base>/pair` and `verification_uri_complete` as `<base>/pair?code=XXXX-XXXX` (the lab stack runs it on over plain HTTP at `http://10.32.81.230:3022`). `GATEWAY_PAIRING_ENABLED` also gates the admin lookup/approve/deny routes, which answer `503 pairing_unavailable` while it is off. The `PAIRING_*` tuning settings (TTL, interval, `slow_down`, lockouts, HMAC key) keep their defaults; the HMAC key falls back to `SECRET_KEY` when `PAIRING_CODE_HMAC_KEY` is empty.
 
 ## 3. Database
 
@@ -120,6 +124,7 @@ Required before using the stack as a test target:
 - `/api/v1/docs` and the frontend load over HTTPS.
 - JWT login and gateway `X-API-Key` stay separate.
 - Phase 2 services are not running.
+- Pairing answers what the flag says: with `GATEWAY_PAIRING_ENABLED` off, `POST /api/v1/gateways/pairing-sessions` returns `503 pairing_unavailable`; with it on, it returns `201` with a `user_code` and a `verification_uri` built from `PAIRING_VERIFICATION_BASE_URL`.
 
 Required before calling the stack production:
 
