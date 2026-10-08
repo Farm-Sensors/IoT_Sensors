@@ -73,9 +73,15 @@ There is no C# test project (`apps/ui-csharp/src/AgroIo.Ui/AgroIo.Ui.csproj` onl
 - [x] I3 **Assign and confirm steps** — Steps 3–4: per-node slot picker with name-match suggestion (never auto-selected), duplicate-slot prevention, bulk queue, per-row status and retry of failed rows. ~400 lines. _(Agro commit `6fa297f`. Phase-1 acceptance on the Pi on 2026-10-08 with dedicated test slots: two nodes assigned on the touchscreen in one bulk confirm, the duplicate slot refused naming the other row, the agent submitting and confirming both candidates, and the cloud showing three confirmed slots with fresh readings. After the test the device returned to `demo_nodes: 0`.)_
   - Checklist: suggestion requires a tap; partial success shown; no HTTP from the UI process.
 
-## Status (2026-10-08)
+## Status (2026-10-08, closed)
 
-Every unit above is closed with its evidence. What is **not** verified yet is the live pairing acceptance of phase 2, because the cloud of the lab stack does not have the pairing routes deployed: it needs (1) the commits of this change pushed, (2) a manual Dokploy deploy, (3) `GATEWAY_PAIRING_ENABLED=true` plus `PAIRING_VERIFICATION_BASE_URL`, and (4) a second test gateway to prove that the reference fallback still activates a unit while pairing is the primary path. Until then the device-facing failure is clean: `pair --replace` against that cloud reports `failed` and leaves the identity and credential untouched (verified on the device on 2026-10-08), and the phase-1 binding flow does not depend on the pairing routes at all.
+Every unit above is closed with its evidence, and the **live acceptance of phase 2 is verified on the lab stack**:
+
+- The cloud runs with `GATEWAY_PAIRING_ENABLED=true` and `PAIRING_VERIFICATION_BASE_URL=http://10.32.81.230:3022` (deployed on 2026-10-08 after `docker-compose.yml` started forwarding both variables to the backend). `POST /api/v1/gateways/pairing-sessions` answers `201` with `user_code`, `verification_uri` and TTL 600 s, and the admin lookup/approve/deny routes were exercised.
+- On the test Raspberry, `pair --replace` opened a session, the admin approved it with `replace_credential: true`, and the agent redeemed it: `pairing_display` went to `confirmed`, the state file was removed, the previous credential answered `401` while the new one polls configuration and heartbeats (`15:43:26Z`), and the three confirmed bindings survived the re-pair.
+- The **reference fallback** was re-verified after this change with the headless harness (`ops/dev/harness/run-harness.sh`) against a fresh property: gateway 9 activated with an `ar_` reference, bound `mesh-DEMO01` to its slot and delivered telemetry (`201`, 4 rows), so the fallback still activates a unit while pairing is the primary path.
+- Lab fixture left in the cloud as evidence: property 10 (`harness-ref-*`, gateway 9, area 15, node 15); revoke or delete it when it stops being useful.
+- Not closed by this change because it is a decision, not work: `openspec/config.yaml` still declares v1 for new work; the v2 label waits for the coordinated cutover.
 
 ## Delivery order
 

@@ -43,6 +43,6 @@ Unblock frontend verification, reconcile stale OpenSpec task lists with `main`, 
 - T7: archived `edge-cloud-gateway-provisioning` and `integration-c1-reading-serializer` (IoT) plus `integration-e2/e3/e4` and `integration-edge-ndvi-publisher` (Agro.io) under `archive/2026-10-08-*`, with live references repointed.
 
 ## Next step
-- Push both repositories to origin.
-- Manual: redeploy the private Dokploy stack so the backend serves the gateway v2 flow, then run the smoke in `docs/integration/gateway-v2-cutover-runbook.md`.
-- Next change: `openspec/changes/gateway-device-pairing/` (InstallView pairing flow).
+- Pushed both repositories to origin on 2026-10-08 (IoT `main`, Agro `integration/iot-v2`).
+- Redeployed the private Dokploy stack on 2026-10-08: the gateway v2 flow and, later the same day, the pairing routes with `GATEWAY_PAIRING_ENABLED=true` and `PAIRING_VERIFICATION_BASE_URL` set in Dokploy (the variables only reach the backend because `docker-compose.yml` forwards them).
+- Delivered and archived: `openspec/changes/archive/2026-10-08-gateway-device-pairing/` (InstallView pairing flow). Live acceptance verified on 2026-10-08 (approved session with credential rotation on the test Raspberry and the reference fallback re-checked through the harness).
