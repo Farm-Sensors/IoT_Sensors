@@ -20,7 +20,7 @@ El backend FastAPI (puerto 5050) es el único punto de contacto con MySQL 8 (pue
 
 Con el backend corriendo: Swagger UI en `/api/v1/docs`, ReDoc en `/api/v1/redoc`, spec crudo en `/api/v1/openapi.json`.
 
-**Estado de sincronización:** el archivo `openapi.yaml` (raíz) es el **contrato fuente de verdad** y se regenera desde el código FastAPI con `make openapi-sync`. Conteo verificado contra la tabla de rutas FastAPI (`app.routes`): **105 operaciones sobre 75 paths** (incluye `/health`); `openapi.yaml` omite las 4 rutas de ciclo de vida de gateway marcadas `include_in_schema=False` (`activate`, `activation-references`, `credentials/rotate`, `revoke`) y se regenera con `make openapi-sync`, por lo que su conteo puede diferir hasta la siguiente regeneración. Las specs de `openspec/specs/` son la fuente de verdad del **comportamiento** de cada capacidad (ver §4).
+**Estado de sincronización:** el archivo `openapi.yaml` (raíz) es el **contrato fuente de verdad** y se regenera desde el código FastAPI con `make openapi-sync`. Conteo verificado contra la tabla de rutas FastAPI (`app.routes`): **111 operaciones sobre 81 paths** (incluye `/health`, excluye las rutas de documentación); `openapi.yaml` omite las **6 rutas de gateway** marcadas `include_in_schema=False` (`activate`, `activation-references`, `credentials/rotate`, `revoke`, `pairing-sessions` y `pairing-sessions/token`) y se regenera con `make openapi-sync`, por lo que su conteo puede diferir hasta la siguiente regeneración. Las specs de `openspec/specs/` son la fuente de verdad del **comportamiento** de cada capacidad (ver §4).
 
 ## 3. Autenticación
 
@@ -72,11 +72,13 @@ El cuerpo de respuesta (`id`, `node_id`, `timestamp`, `created_at`) serializa lo
 
 ### 3.3. Gateway: configuración, vínculos, heartbeat
 
-Todos usan `X-API-Key` de gateway (salvo `activate`, que usa la referencia de activación de un solo uso). Detalle de cable en `contracts/edge-cloud/v2/`; guía de integración en [`integration/README.md`](integration/README.md).
+Todos usan `X-API-Key` de gateway, salvo dos excepciones **sin credencial**: `activate` (referencia de activación de un solo uso) y el par de emparejamiento `pairing-sessions` / `pairing-sessions/token`. Detalle de cable en `contracts/edge-cloud/v2/`; guía de integración en [`integration/README.md`](integration/README.md).
 
 | Operación | Endpoint | Notas |
 |---|---|---|
 | Activar | `POST /api/v1/gateways/activate` | Consume referencia de 24 h, devuelve credencial. Fuera de `openapi.yaml` |
+| Iniciar emparejamiento | `POST /api/v1/gateways/pairing-sessions` | Sin credencial. Devuelve `device_code`/`user_code` + URIs. Fuera de `openapi.yaml`; detrás de flag |
+| Consultar token | `POST /api/v1/gateways/pairing-sessions/token` | Sin credencial. Devuelve la credencial o un error RFC 8628. Fuera de `openapi.yaml`; detrás de flag |
 | Leer configuración | `GET /api/v1/gateways/me/configuration` | Ver abajo |
 | Proponer vínculo | `POST /api/v1/gateways/me/binding-candidates` | Requiere `X-Event-ID`; 201 / 200 (reintento exacto) / 409 |
 | Confirmar vínculo | `POST /api/v1/gateways/me/binding-candidates/{candidate_id}/confirm` | Requiere `X-Event-ID` |
@@ -90,7 +92,20 @@ Todos usan `X-API-Key` de gateway (salvo `activate`, que usa la referencia de ac
 - **304**: solo si **ambas** cabeceras están presentes y coinciden con `configuration_version` activa **y** `bindings_revision`. Si falta una o difiere, se responde 200 completo.
 - Errores: **401** (credencial ausente/inválida); **404** `No configuration has been published` (aún no se publicó configuración); **409** `Active gateway configuration is unavailable` (la versión activa no tiene fila); **422** (cabeceras inválidas). El contrato lista también 403; el código actual no lo emite en este endpoint.
 
-**Admin** (JWT): `GET/POST /api/v1/gateways` (provisionar reutiliza la fila del predio si su gateway está **revocado**: vuelve a `pending_activation`, reconcilia sus slots con el nodo activo de cada área, cierra candidatos de vínculo pendientes del ciclo anterior e invalida la configuración publicada (`config_version_activa` → 0, hay que **publicar** una nueva antes de activar); responde **409** si el gateway sigue vigente, si un área de la petición ya no aplica y su slot conserva historial de vínculos, o si un slot conservado cambiaría de nodo con historial), `GET /gateways/{id}`, `POST /gateways/{id}/configuration` (publicar, 201), `GET /gateways/{id}/status`, `POST /gateways/{id}/activation-references`, `POST /gateways/{id}/credentials/rotate`, `POST /gateways/{id}/revoke` (204), `POST /gateways/{id}/update-authorizations`; plantillas en `/gateway-templates` y perfiles en `/hardware-profiles`.
+**Emparejamiento por código de dispositivo (RFC 8628)** — dos operaciones de máquina **sin credencial**, ocultas del OpenAPI y detrás de `GATEWAY_PAIRING_ENABLED` (**OFF por defecto**): con la flag apagada toda la superficie responde **503** `pairing_unavailable`. Usan envelopes `{"code", "message"}` (no `{"detail": …}`). Backend: `backend/app/api/v1/endpoints/gateway_pairing.py`, `backend/app/services/gateway_pairing.py`.
+
+- `POST /api/v1/gateways/pairing-sessions` (**201**) — cuerpo `{"device": {"hostname", "model", "agent_version"}}` (opcional; cada campo ≤64 caracteres, `extra` prohibido → **422**). Respuesta: `device_code` (alta entropía), `user_code` formateado `XXXX-XXXX`, `verification_uri` (`{PAIRING_VERIFICATION_BASE_URL}/pair`), `verification_uri_complete` (`…?code=XXXX-XXXX`), `expires_in` (**600 s**) e `interval` (**5 s**). Límites: **5 por IP / 10 min** y **50 sesiones vivas** en total → **429** `too_many_attempts`; **503** con la flag apagada.
+- `POST /api/v1/gateways/pairing-sessions/token` — cuerpo `{"device_code"}`. **200** con `{gateway_id, property_id, credential}` (mismo cuerpo que `activate`; la credencial `gk_` se devuelve **una sola vez**), o **400** `authorization_pending`, `slow_down` (con `interval` actualizado), `expired_token`, `access_denied`; **401** `invalid_device_code` **uniforme** para código desconocido/consumido; **503**. Un sondeo de una sesión **ya aprobada** más rápido que su `intervalo_s` devuelve **400** `slow_down` y suma **+5 s** al intervalo persistido (tope **60 s**, `PAIRING_SLOW_DOWN_SECONDS`/`PAIRING_MAX_INTERVAL_SECONDS`). La redención consume la sesión **una sola vez**, revoca las referencias `ar_` vigentes del gateway y lo activa (o, en `replace_credential`, rota su credencial conservando slots y vínculos).
+
+**Admin** (JWT): `GET/POST /api/v1/gateways` (provisionar reutiliza la fila del predio si su gateway está **revocado**: vuelve a `pending_activation`, reconcilia sus slots con el nodo activo de cada área, cierra candidatos de vínculo pendientes del ciclo anterior e invalida la configuración publicada (`config_version_activa` → 0, hay que **publicar** una nueva antes de activar); responde **409** si el gateway sigue vigente, si un área de la petición ya no aplica y su slot conserva historial de vínculos, o si un slot conservado cambiaría de nodo con historial), `GET /gateways/{id}`, `POST /gateways/{id}/configuration` (publicar, 201), `GET /gateways/{id}/status`, `POST /gateways/{id}/activation-references`, `POST /gateways/{id}/credentials/rotate`, `POST /gateways/{id}/revoke` (204), `POST /gateways/{id}/update-authorizations`; **emparejamiento admin** `POST /gateways/pairing-sessions/lookup`, `POST /gateways/pairing-sessions/{session_id}/approve`, `POST /gateways/pairing-sessions/{session_id}/deny`; plantillas en `/gateway-templates` y perfiles en `/hardware-profiles`.
+
+**Emparejamiento — operaciones de admin (JWT, visibles en el OpenAPI)**, también detrás de `GATEWAY_PAIRING_ENABLED` (**OFF por defecto** → **503** `pairing_unavailable`). Todas exigen `Authorization: Bearer <JWT>` de admin; sus envelopes de error son `{"code", "message"}` y el código not-found es **uniforme** (mismo **404** `pairing_not_found` para código desconocido, expirado, consumido o denegado):
+
+- `POST /pairing-sessions/lookup` — cuerpo `{"user_code"}` (normaliza mayúsculas y guion/espacios; `max_length` 16 → **422**). **200** con `session_id`, `user_code` reformateado, `status`, `requested_at`, `expires_at` (UTC `Z`), `device` (`{hostname, model, agent_version}`) y `source_network` (prefijo grueso IPv4 `/24` / IPv6 `/48`; nunca la IP completa).
+- `POST /pairing-sessions/{session_id}/approve` — cuerpo `{"user_code", "gateway_id", "confirm", "replace_credential"}`. Requiere `confirm: true` (**422** `confirmation_required` si falta). **200** con `{session_id, status, gateway_id, property_id}`. Errores: **404** `gateway_not_found`; **409** `pairing_session_not_pending` (sesión ya no pendiente), `gateway_not_pairable` (gateway ni `pending_activation` ni `active`), `credential_replacement_required` (aprobar un gateway `active` sin `replace_credential`) o `unexpected_credential_replacement` (`replace_credential` sobre uno `pending_activation`).
+- `POST /pairing-sessions/{session_id}/deny` — cuerpo `{"user_code"}`. **200** con `{session_id, status}`; **409** `pairing_session_not_pending` si ya no está viva.
+
+Límites de abuso de admin (en memoria, por proceso): **10 fallos / 15 min** por admin **y** por IP → **429** `too_many_attempts`; además, **5 intentos** de `user_code` fallidos por sesión la pasan a `denied` (`PAIRING_MAX_WRONG_CODE_ATTEMPTS`).
 
 ### 3.4. NDVI (último punto)
 
@@ -124,7 +139,7 @@ Todos usan `X-API-Key` de gateway (salvo `activate`, que usa la referencia de ac
 
 Contrato detallado (payloads, schemas, errores, ejemplos): **`openapi.yaml`** (autogenerado, `make openapi-sync`) — importable en Swagger UI / Postman. El comportamiento de cada capacidad está especificado en `openspec/specs/`: **readings** → lecturas/ingesta, **security** → auth, **alerting** → alertas/umbrales/notificaciones, **ai-modules** → IA, **data-model** → modelo de datos, **geo-visualization** → mapas.
 
-> Nota: las capacidades de Fase 2 (alerting, ai-modules) pueden estar dormidas detrás de flags en `backend/app/core/config.py` (OFF por defecto). Los endpoints de la tabla requieren JWT salvo los marcados `X-API-Key` (gateway) y `POST /gateways/activate` (referencia de activación).
+> Nota: las capacidades de Fase 2 (alerting, ai-modules) pueden estar dormidas detrás de flags en `backend/app/core/config.py` (OFF por defecto). Los endpoints de la tabla requieren JWT salvo los marcados `X-API-Key` (gateway) y los tres sin credencial: `POST /gateways/activate` (referencia de activación), `POST /gateways/pairing-sessions` y `POST /gateways/pairing-sessions/token`. El emparejamiento completo (máquina y admin) depende de `GATEWAY_PAIRING_ENABLED`, **OFF por defecto**.
 
 | Recurso | Método | Endpoint | Descripción |
 |---------|--------|----------|-------------|
@@ -210,8 +225,13 @@ Contrato detallado (payloads, schemas, errores, ejemplos): **`openapi.yaml`** (a
 | Gateways (admin) | POST | `/api/v1/gateways/{gateway_id}/credentials/rotate` | Rotar credencial — Admin |
 | Gateways (admin) | POST | `/api/v1/gateways/{gateway_id}/revoke` | Revocar gateway — Admin |
 | Gateways (admin) | POST | `/api/v1/gateways/{gateway_id}/update-authorizations` | Autorizar imagen de actualización — Admin |
+| Gateways (admin) | POST | `/api/v1/gateways/pairing-sessions/lookup` | Buscar sesión de emparejamiento por `user_code` — Admin; flag `GATEWAY_PAIRING_ENABLED` |
+| Gateways (admin) | POST | `/api/v1/gateways/pairing-sessions/{session_id}/approve` | Aprobar sesión contra un gateway — Admin; flag `GATEWAY_PAIRING_ENABLED` |
+| Gateways (admin) | POST | `/api/v1/gateways/pairing-sessions/{session_id}/deny` | Denegar sesión — Admin; flag `GATEWAY_PAIRING_ENABLED` |
 | Properties | GET | `/api/v1/properties/{property_id}/gateway/status` | Estado simple del gateway del predio |
 | Gateways (edge) | POST | `/api/v1/gateways/activate` | Activación con referencia de un solo uso |
+| Gateways (edge) | POST | `/api/v1/gateways/pairing-sessions` | Iniciar sesión de emparejamiento — **sin credencial**; flag `GATEWAY_PAIRING_ENABLED` |
+| Gateways (edge) | POST | `/api/v1/gateways/pairing-sessions/token` | Consultar token y recibir la credencial — **sin credencial**; flag `GATEWAY_PAIRING_ENABLED` |
 | Gateways (edge) | GET | `/api/v1/gateways/me/configuration` | Poll de configuración (200/304) — **X-API-Key** |
 | Gateways (edge) | POST | `/api/v1/gateways/me/binding-candidates` | Proponer vínculo físico — **X-API-Key** |
 | Gateways (edge) | POST | `/api/v1/gateways/me/binding-candidates/{candidate_id}/confirm` | Confirmar vínculo — **X-API-Key** |
@@ -234,4 +254,4 @@ Contrato detallado (payloads, schemas, errores, ejemplos): **`openapi.yaml`** (a
 | Weather | GET | `/api/v1/weather/current` | Clima actual del área (`irrigation_area_id`) |
 | Health | GET | `/health` | Verificación de estado del servicio |
 
-**Total: 105 operaciones sobre 75 paths** (tabla de rutas FastAPI; ver §2 para la diferencia con `openapi.yaml`). Para payloads, schemas y ejemplos por endpoint, consulta el contrato autogenerado.
+**Total: 111 operaciones sobre 81 paths** (tabla de rutas FastAPI; ver §2 para la diferencia con `openapi.yaml`). Para payloads, schemas y ejemplos por endpoint, consulta el contrato autogenerado.
