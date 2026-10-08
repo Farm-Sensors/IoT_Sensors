@@ -18,6 +18,7 @@ Si el trabajo asignado es una carpeta `openspec/changes/integration-*`, esa carp
 - **No esperar al hardware de campo.** Si el radio/nodos no entregan datos, valida el camino completo con entrada simulada (modo `demo` del agente: tramas RXFRAME sintéticas → evidencia → binding → telemetría), en la Raspberry real si hace falta. No bloquear trabajo esperando tramas reales.
 - **Pruebas por IP:puerto, no por dominio.** El dominio público es poco fiable; el harness y las validaciones usan la IP:puerto del stack local.
 - **Cambios de código en Agro: solo aditivos y justificados** (p. ej. un hallazgo de revisión). Nada de refactors oportunistas ni de retirar features "porque no se usan".
+- **Granularidad de commits: un cambio lógico = un commit.** Si al probar aparecen bugs (propios o del código que se integra), se corrigen y se **pliegan al commit original** (`git commit --amend`), no en commits de arreglo separados. Si el commit ya se pusheó, amend + `git push --force-with-lease` avisando. Evitar cadenas "commit → fix → fix": probar primero, corregir, y recién entonces commitear.
 - **Sin push a `main` de Agro.io y sin tags desde la línea v2** (paquetes locales `2.0.0-alpha.N`). En IoT, push solo cuando el usuario lo indique.
 
 2. ARQUITECTURA TÉCNICA
