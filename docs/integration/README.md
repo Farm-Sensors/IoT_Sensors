@@ -45,7 +45,7 @@ The integration is exercised with this cloud plus a dedicated test Raspberry run
 | Piece | Where it runs | How it is reached |
 |---|---|---|
 | IoT_Sensors cloud (API, MySQL, dashboard) | the server `10.32.81.230` (Docker/Dokploy) | `http://10.32.81.230:3022` by IP:port; the public domain is unreliable, so use the address |
-| Agro.io edge agent (v2 line, `2.0.0-alpha.N`) | test Raspberry `10.32.90.229` | sends telemetry through the v2 lane; runs `mode: demo` while no radio data is available |
+| Agro.io edge agent (v2 line, `2.0.0-alpha.N`) | test Raspberry `10.32.90.229` | sends telemetry through the v2 lane when there are readings; it currently runs `mode: demo` with `demo_nodes: 0` (silent demo): the gateway keeps heartbeating and nothing is fabricated. Switch it in `Agro.io` `docs/configuration-ui.md` |
 | Agro.io UI viewer (Xvfb + `x11vnc` + noVNC) | test Raspberry | `http://10.32.90.229:6080/vnc.html`; the Avalonia UI renders on a virtual display over the device's live database |
 | Agro.io reference receiver (`apps/ui-web/telemetry_server.py`) | the server `10.32.81.230` (container with a published port) | `http://10.32.81.230:8090/`; the device's `http_sync.endpoint` targets it (stand-in for the client's own backend) |
 
