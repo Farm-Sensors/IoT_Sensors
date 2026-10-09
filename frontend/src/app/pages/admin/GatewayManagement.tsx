@@ -421,6 +421,27 @@ export function GatewayManagement() {
               );
             })}
           </ol>
+          {setup && (
+            <div className="mt-4 flex flex-wrap items-center gap-3">
+              <PillButton
+                type="button"
+                variant="outline"
+                onClick={() => {
+                  setSetup(null);
+                  setSetupStatus(null);
+                  setSlotNodes({});
+                  setOneTimeSecret(null);
+                  setQr(null);
+                }}
+              >
+                Crear otro enlace
+              </PillButton>
+              <span className="text-sm text-[var(--text-muted)]">
+                Estás viendo el enlace de {ranchLabel(setup.property_id)}; este botón vuelve al paso 1
+                para empezar otro rancho.
+              </span>
+            </div>
+          )}
         </BentoCard>
 
         {error && <p className="text-[var(--status-danger)]">{error}</p>}

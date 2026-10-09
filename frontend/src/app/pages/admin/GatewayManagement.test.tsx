@@ -187,6 +187,22 @@ describe("GatewayManagement (asistente de enlace)", () => {
     expect(screen.getByText(/1 de 1 reportando/)).toBeInTheDocument();
   });
 
+  it("returns to step 1 from an in-progress link", async () => {
+    mocks.listGateways.mockResolvedValue({
+      data: [{ ...createdGateway, id: 13, status: "pending_activation" }],
+    });
+    mocks.getGatewayStatus.mockResolvedValue({ data: pendingStatus });
+
+    renderPage();
+
+    const startOver = await screen.findByRole("button", { name: /crear otro enlace/i });
+    fireEvent.click(startOver);
+
+    expect(
+      await screen.findByRole("heading", { name: "1. Elige el rancho y sus parcelas" }),
+    ).toBeInTheDocument();
+  });
+
   it("keeps the API details tucked away", async () => {
     renderPage();
     expect(
