@@ -31,7 +31,7 @@ src/app/
 ├── hooks/            # Custom hooks (e.g., useIsMobile.ts, usePageVisibility.ts)
 ├── layouts/          # Envoltorios de interfaz (RootLayout, AdminLayout, ClientLayout)
 ├── pages/            # Vistas enrutadas
-│   ├── admin/        # CRUD admin + Gateways (/admin/gateways)
+│   ├── admin/        # CRUD admin + Gateways (/admin/gateways con alta por predio/áreas, /admin/gateways/:id con el proceso de instalación y las ranuras, /admin/gateways/pair para aprobar el código del equipo)
 │   ├── auth/         # Autenticación y recuperación (Login/Forgot/Reset)
 │   └── client/       # Dashboards y datos de agricultores (ClientDashboard, Histórico, etc.)
 │   └── shared/       # Pantallas compartidas entre roles (AlertsCenterPage)

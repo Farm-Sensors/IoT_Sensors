@@ -88,7 +88,7 @@ Todos usan `X-API-Key` de gateway, salvo dos excepciones **sin credencial**: `ac
 
 **`GET /api/v1/gateways/me/configuration`** — cabeceras opcionales `X-Config-Version` y `X-Bindings-Revision`.
 
-- **200**: `configuration_version`, `bindings_revision`, `property_id`, `configuration` (`gateway_id`, `property_id`, `slots[]` con `slot_id`, `logical_node_id`, `irrigation_area_id`, `hardware_profile_code`), `binding_overlay` (`slots[]` con `binding_status`, `current_binding`, `pending_binding`), `cloud_status` y `edge_status`. Cada objeto de vínculo es `{candidate_id, uid, serial, submitted_at, confirmed_at}`.
+- **200**: `configuration_version`, `bindings_revision`, `property_id`, `configuration` (`gateway_id`, `property_id`, `slots[]` con `slot_id`, `logical_node_id`, `irrigation_area_id`, `hardware_profile_code`), `binding_overlay` (`slots[]` con `slot_id`, `logical_node_id`, `irrigation_area_id`, `area_name` (opcional, revisión 3 del contrato: nombre del área para la pantalla del equipo), `binding_status`, `current_binding`, `pending_binding`), `cloud_status` y `edge_status`. Cada objeto de vínculo es `{candidate_id, uid, serial, submitted_at, confirmed_at}`.
 - **304**: solo si **ambas** cabeceras están presentes y coinciden con `configuration_version` activa **y** `bindings_revision`. Si falta una o difiere, se responde 200 completo.
 - Errores: **401** (credencial ausente/inválida); **404** `No configuration has been published` (aún no se publicó configuración); **409** `Active gateway configuration is unavailable` (la versión activa no tiene fila); **422** (cabeceras inválidas). El contrato lista también 403; el código actual no lo emite en este endpoint.
 
