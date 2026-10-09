@@ -37,6 +37,7 @@ import { CropTypeManagement } from "./pages/admin/CropTypeManagement";
 import { IrrigationAreaManagement } from "./pages/admin/IrrigationAreaManagement";
 import { NodeDetail } from "./pages/admin/NodeDetail";
 import { GatewayManagement } from "./pages/admin/GatewayManagement";
+import { GatewayDetail } from "./pages/admin/GatewayDetail";
 import { PairDevice } from "./pages/admin/PairDevice";
 import { NodeManagement } from "./pages/admin/NodeManagement";
 import { PropertyManagement } from "./pages/admin/PropertyManagement";
@@ -210,6 +211,10 @@ export const router = createBrowserRouter([
               {
                 path: "gateways/pair",
                 Component: PairDevice,
+              },
+              {
+                path: "gateways/:gatewayId",
+                Component: GatewayDetail,
               },
               {
                 path: "recorrido-v2",

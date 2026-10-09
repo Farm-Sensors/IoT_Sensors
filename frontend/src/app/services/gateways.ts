@@ -18,28 +18,40 @@ export interface Gateway {
   slots: GatewaySlot[];
 }
 
+export interface GatewayStatusSlot {
+  logical_node_id: number;
+  irrigation_area_id: number;
+  binding_status: string;
+  latest_reading_at?: string | null;
+  bound_uid?: string | null;
+  bound_serial?: string | null;
+}
+
 export interface GatewayStatus {
   gateway_id: number;
   status: string;
   edge_status: string;
   last_heartbeat_at: string | null;
   config_version: number;
-  slots: Array<{
-    logical_node_id: number;
-    irrigation_area_id: number;
-    binding_status: string;
-    latest_reading_at?: string | null;
-  }>;
+  slots: GatewayStatusSlot[];
 }
 
 export function listGateways() {
   return api.get<Gateway[]>("/gateways");
 }
 
-export function provisionGateway(propertyId: number, irrigationAreaId: number) {
+export function getGateway(gatewayId: number) {
+  return api.get<Gateway>(`/gateways/${gatewayId}`);
+}
+
+export function getGatewayStatus(gatewayId: number) {
+  return api.get<GatewayStatus>(`/gateways/${gatewayId}/status`);
+}
+
+export function provisionGateway(propertyId: number, irrigationAreaIds: number[]) {
   return api.post<Gateway>("/gateways", {
     property_id: propertyId,
-    slots: [{ irrigation_area_id: irrigationAreaId }],
+    slots: irrigationAreaIds.map((irrigation_area_id) => ({ irrigation_area_id })),
   });
 }
 

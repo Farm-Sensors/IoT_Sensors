@@ -1,10 +1,12 @@
 import { useEffect, useState } from "react";
 import QRCode from "qrcode";
+import { Link } from "react-router";
 import { BentoCard } from "../../components/BentoCard";
 import { GatewayStatusBadge } from "../../components/GatewayStatusBadge";
 import { PageTransition } from "../../components/PageTransition";
 import { PillButton } from "../../components/PillButton";
 import { useToast } from "../../components/Toast";
+import { api } from "../../services/api";
 import {
   Gateway,
   issueActivationReference,
@@ -12,7 +14,32 @@ import {
   provisionGateway,
   publishConfiguration,
 } from "../../services/gateways";
+import { getGeoNodes } from "../../services/nodes";
 import { getErrorMessage } from "../../utils/errors";
+
+type PropertyOption = {
+  id: number;
+  client_id: number;
+  name: string;
+};
+
+type ClientOption = {
+  id: number;
+  company_name: string;
+};
+
+type AreaOption = {
+  id: number;
+  property_id: number;
+  name: string;
+  crop_type?: { id: number; name: string } | null;
+};
+
+type AreaNode = {
+  name: string | null;
+  serial_number: string | null;
+  is_active: boolean;
+};
 
 async function copyToClipboard(value: string): Promise<boolean> {
   try {
@@ -42,8 +69,13 @@ async function copyToClipboard(value: string): Promise<boolean> {
 export function GatewayManagement() {
   const { showToast } = useToast();
   const [gateways, setGateways] = useState<Gateway[]>([]);
-  const [propertyId, setPropertyId] = useState("");
-  const [areaId, setAreaId] = useState("");
+  const [properties, setProperties] = useState<PropertyOption[]>([]);
+  const [clients, setClients] = useState<ClientOption[]>([]);
+  const [selectedPropertyId, setSelectedPropertyId] = useState("");
+  const [areas, setAreas] = useState<AreaOption[]>([]);
+  const [nodesByArea, setNodesByArea] = useState<Record<number, AreaNode>>({});
+  const [selectedAreaIds, setSelectedAreaIds] = useState<number[]>([]);
+  const [loadingAreas, setLoadingAreas] = useState(false);
   const [oneTimeSecret, setOneTimeSecret] = useState<string | null>(null);
   const [qr, setQr] = useState<{ gatewayId: number; expiresAt: string; image: string } | null>(null);
   const [issuing, setIssuing] = useState<number | null>(null);
@@ -63,8 +95,22 @@ export function GatewayManagement() {
     }
   };
 
+  const loadProperties = async () => {
+    try {
+      const [propertiesRes, clientsRes] = await Promise.all([
+        api.get<{ data: PropertyOption[] }>("/properties?per_page=100"),
+        api.get<{ data: ClientOption[] }>("/clients?per_page=100"),
+      ]);
+      setProperties(propertiesRes.data.data || []);
+      setClients(clientsRes.data.data || []);
+    } catch (err) {
+      showToast(getErrorMessage(err, "No se pudieron cargar los predios"), "error");
+    }
+  };
+
   useEffect(() => {
     void load();
+    void loadProperties();
   }, []);
 
   // The reference is per-visit: dropping it when the page unmounts keeps it from lingering.
@@ -73,13 +119,66 @@ export function GatewayManagement() {
     setQr(null);
   }, []);
 
+  useEffect(() => {
+    if (!selectedPropertyId) {
+      setAreas([]);
+      setNodesByArea({});
+      setSelectedAreaIds([]);
+      return;
+    }
+    let cancelled = false;
+    const fetchAreas = async () => {
+      try {
+        setLoadingAreas(true);
+        const [areasRes, geoRes] = await Promise.all([
+          api.get<{ data: AreaOption[] }>(
+            `/irrigation-areas?property_id=${selectedPropertyId}&per_page=100`,
+          ),
+          getGeoNodes({
+            property_id: Number(selectedPropertyId),
+            include_without_coordinates: true,
+            per_page: 200,
+          }),
+        ]);
+        if (cancelled) return;
+        setAreas(areasRes.data.data || []);
+        const byArea: Record<number, AreaNode> = {};
+        for (const node of geoRes.data) {
+          byArea[node.irrigation_area_id] = {
+            name: node.name,
+            serial_number: node.serial_number,
+            is_active: node.is_active,
+          };
+        }
+        setNodesByArea(byArea);
+        setSelectedAreaIds([]);
+      } catch (err) {
+        if (!cancelled) {
+          showToast(getErrorMessage(err, "No se pudieron cargar las áreas del predio"), "error");
+        }
+      } finally {
+        if (!cancelled) setLoadingAreas(false);
+      }
+    };
+    void fetchAreas();
+    return () => {
+      cancelled = true;
+    };
+  }, [selectedPropertyId]);
+
   const handleProvision = async (event: React.FormEvent) => {
     event.preventDefault();
+    if (!selectedPropertyId || selectedAreaIds.length === 0) {
+      const message = "Elige un predio y al menos un área";
+      setError(message);
+      showToast(message, "error");
+      return;
+    }
     try {
-      const created = await provisionGateway(Number(propertyId), Number(areaId));
-      showToast("Gateway provisionado", "success");
-      setPropertyId("");
-      setAreaId("");
+      const created = await provisionGateway(Number(selectedPropertyId), selectedAreaIds);
+      showToast(`Gateway provisionado con ${selectedAreaIds.length} ranura(s)`, "success");
+      setSelectedPropertyId("");
+      setSelectedAreaIds([]);
       setError(null);
       setGateways((current) => [...current, created.data]);
     } catch (err) {
@@ -129,6 +228,9 @@ export function GatewayManagement() {
       showToast(message, "error");
     }
   };
+
+  const clientNames = new Map(clients.map((client) => [client.id, client.company_name]));
+  const propertyNames = new Map(properties.map((property) => [property.id, property.name]));
 
   return (
     <PageTransition>
@@ -207,26 +309,102 @@ export function GatewayManagement() {
           </section>
         </BentoCard>
         {error && <p className="text-[var(--status-danger)]">{error}</p>}
-        <p className="text-sm text-[var(--text-muted)]">
-          Cada área necesita al menos un nodo lógico activo antes de provisionar; si no, la API rechazará la operación.
-        </p>
-        <form className="flex flex-wrap gap-3" onSubmit={handleProvision}>
-          <input
-            aria-label="ID de predio"
-            className="rounded-xl border px-3 py-2"
-            value={propertyId}
-            onChange={(event) => setPropertyId(event.target.value)}
-            placeholder="Predio"
-          />
-          <input
-            aria-label="ID de área"
-            className="rounded-xl border px-3 py-2"
-            value={areaId}
-            onChange={(event) => setAreaId(event.target.value)}
-            placeholder="Área"
-          />
-          <PillButton type="submit">Provisionar</PillButton>
-        </form>
+        <BentoCard>
+          <form className="space-y-4" onSubmit={handleProvision}>
+            <div>
+              <h2 className="text-lg font-semibold">Provisionar un gateway</h2>
+              <p className="mt-1 text-sm text-[var(--text-muted)]">
+                Elige el predio y marca las áreas que serán ranuras (todas van en una sola llamada).
+                Cada área necesita al menos un nodo lógico activo antes de provisionar; si no, la API rechazará la operación.
+              </p>
+            </div>
+            <label className="block max-w-xl text-sm font-medium">
+              Predio
+              <select
+                aria-label="Predio"
+                className="mt-1 w-full rounded-xl border px-3 py-2"
+                value={selectedPropertyId}
+                onChange={(event) => setSelectedPropertyId(event.target.value)}
+              >
+                <option value="">Selecciona un predio…</option>
+                {properties.map((property) => {
+                  const occupied = gateways.some(
+                    (gateway) => gateway.property_id === property.id && gateway.status !== "revoked",
+                  );
+                  const company = clientNames.get(property.client_id);
+                  return (
+                    <option key={property.id} value={property.id} disabled={occupied}>
+                      {property.name}
+                      {company ? ` · ${company}` : ""}
+                      {occupied ? " (ya tiene gateway)" : ""}
+                    </option>
+                  );
+                })}
+              </select>
+            </label>
+            {selectedPropertyId && (
+              <fieldset>
+                <legend className="text-sm font-medium">Áreas del predio</legend>
+                {loadingAreas ? (
+                  <p className="mt-2 text-sm text-[var(--text-muted)]">Cargando áreas…</p>
+                ) : areas.length === 0 ? (
+                  <p className="mt-2 text-sm text-[var(--text-muted)]">
+                    Este predio todavía no tiene áreas. Créalas en Predios → Áreas.
+                  </p>
+                ) : (
+                  <div className="mt-2 grid gap-2 md:grid-cols-2">
+                    {areas.map((area) => {
+                      const node = nodesByArea[area.id];
+                      const hasActiveNode = Boolean(node?.is_active);
+                      return (
+                        <label
+                          key={area.id}
+                          className="flex items-start gap-3 rounded-xl border p-3 text-sm"
+                        >
+                          <input
+                            type="checkbox"
+                            aria-label={area.name}
+                            className="mt-1"
+                            checked={selectedAreaIds.includes(area.id)}
+                            disabled={!hasActiveNode}
+                            onChange={(event) =>
+                              setSelectedAreaIds((current) =>
+                                event.target.checked
+                                  ? [...current, area.id]
+                                  : current.filter((id) => id !== area.id),
+                              )
+                            }
+                          />
+                          <span>
+                            <span className="font-medium">{area.name}</span>
+                            {area.crop_type?.name ? (
+                              <span className="text-[var(--text-muted)]"> · {area.crop_type.name}</span>
+                            ) : null}
+                            <span className="mt-1 block text-xs text-[var(--text-muted)]">
+                              {hasActiveNode
+                                ? `Nodo: ${node?.name || node?.serial_number || "sin nombre"}`
+                                : "Sin nodo activo: asígnalo en Nodos antes de provisionar"}
+                            </span>
+                          </span>
+                        </label>
+                      );
+                    })}
+                  </div>
+                )}
+              </fieldset>
+            )}
+            <div className="flex flex-wrap items-center gap-3">
+              <PillButton type="submit" disabled={!selectedPropertyId || selectedAreaIds.length === 0}>
+                Provisionar
+              </PillButton>
+              <span className="text-sm text-[var(--text-muted)]">
+                {selectedAreaIds.length > 0
+                  ? `${selectedAreaIds.length} ranura(s) seleccionada(s)`
+                  : "Marca al menos un área"}
+              </span>
+            </div>
+          </form>
+        </BentoCard>
         {oneTimeSecret && (
           <BentoCard>
             <div className="flex flex-wrap items-start justify-between gap-4">
@@ -270,7 +448,10 @@ export function GatewayManagement() {
             <BentoCard key={gateway.id}>
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <div>
-                  <p>Gateway #{gateway.id} · Predio {gateway.property_id}</p>
+                  <p>
+                    Gateway #{gateway.id} ·{" "}
+                    {propertyNames.get(gateway.property_id) || `Predio ${gateway.property_id}`}
+                  </p>
                   <p className="text-sm text-[var(--text-muted)]">
                     Config v{gateway.configuration_version} · {gateway.slots.length} slot(s)
                   </p>
@@ -278,7 +459,13 @@ export function GatewayManagement() {
                     <GatewayStatusBadge status={gateway.status} />
                   </div>
                 </div>
-                <div className="flex gap-2">
+                <div className="flex flex-wrap gap-2">
+                  <Link
+                    className="rounded-full border px-3 py-2 text-sm font-medium hover:bg-black/5"
+                    to={`/admin/gateways/${gateway.id}`}
+                  >
+                    Ver detalle
+                  </Link>
                   {gateway.status === "pending_activation" && (
                     <PillButton type="button" loading={issuing === gateway.id} onClick={() => void handleReference(gateway.id)}>
                       Activación
