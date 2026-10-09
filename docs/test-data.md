@@ -62,7 +62,7 @@ y, para el dispositivo, en Agro.io `docs/integration/v2-release-line.md`.
 | Pieza | Dónde | Notas |
 |---|---|---|
 | Cloud (API + dashboard) | `http://10.32.81.230:3022` | Dokploy, compose `iot-sensors`; pairing **encendido** (`GATEWAY_PAIRING_ENABLED=true`, base de verificación por IP:puerto) y clima de referencia encendido con la API gratuita (`OPEN_METEO_ENABLED=true`, base URL `https://api.open-meteo.com` sin clave) |
-| Raspberry (gateway real) | `10.32.90.229` (`agroio@`) | release `2.0.0-alpha.13`, `mode: demo` con `demo_nodes: 4`, gateway 12 / predio **Rancho del Valle** (parcelas 24–27 `Nogal Alto/Alfalfa Baja/Manzana Loma/Maíz Llano`, nodos `mesh-DEMO01..04`); reporta su ubicación de referencia (`POST /gateways/me/location`) en cada latido |
+| Raspberry (gateway real) | `10.32.90.229` (`agroio@`) | release `2.0.0-alpha.13`, `mode: demo` con `demo_nodes: 4`; **sin gateway vinculado** (lista para la demo desde cero: su histórico local se conserva). Ensayo E2E del 2026-10-09 verificado de punta a punta con gateway 17 / predio 17 |
 | Pantalla del appliance (visor) | `http://10.32.90.229:6080/vnc.html` | Xvfb + noVNC sobre la BD viva; **reiniciar `agroio-ui-webviewer` después de instalar una release**, o la pantalla muestra el build anterior |
 | Receptor de referencia | `http://10.32.81.230:8090/` | stand-in del backend del cliente para `http_sync` |
 | Fuente de demo | contenedor `iot-demo-simulator` en el servidor | ver abajo |
@@ -79,6 +79,21 @@ predio 13 (`Rancho del Valle`, 4 ranuras, 9/10). Los predios anteriores conserva
 contenedor de demo sigue alimentando las 3 áreas del predio 8 con la credencial de gateway 7
 (nunca revocada). El panel admin (`/admin/gateways`) guía el enlace en 4 pasos y la lista muestra
 "Rancho · Cliente" con el estado en palabras.
+
+### Ensayo E2E 2026-10-09 (cliente/predio/gateway nuevos)
+
+Corrida completa verificada en el laboratorio con un rancho nuevo:
+
+| Pieza | Valor |
+|---|---|
+| Cliente | `rancho.demo@test.com` / `prueba123` (`Rancho Demostración`, cliente 9) |
+| Predio / áreas | predio 17 · `Parcela Nogal` (38), `Parcela Alfalfa` (39), `Parcela Manzana` (40), `Parcela Maíz` (41), nodos 41–44 con series `DEMO-01..04` |
+| Gateway | 17 (4 ranuras 35–38, configuración v1) — las 4 quedaron `confirmed` con `bound_uid` `mesh-DEMO01..04` |
+| Evidencia | telemetría fresca en las 4 áreas (suelo; riego/ambiente `null` en modo demo), heartbeat `connected`, `outbox_v2` confirmando, dashboard del cliente con humedad y «hace un momento» |
+
+El equipo quedó **desvinculado** al terminar (identidad y caché v2 limpias) para poder demostrar el enlace en vivo; el rancho del ensayo sigue en el cloud con sus datos y su gateway activo (se puede reutilizar: al aprobar de nuevo ese gateway la pantalla avisa «reemplaza credencial» y las ranuras ya están confirmadas).
+
+**Ojo con la serie de los nodos al dar de alta:** `nodos.numero_serie` es único en el cloud y `mesh-DEMO01..04` ya están registradas por ranchos anteriores. En el alta de un rancho nuevo usa otra serie (p. ej. `DEMO-01`) o déjala vacía: la identidad del vínculo viene del UID que reporta el equipo, no del campo serie (un duplicado ahora responde **409** con el mensaje del serial).
 
 ### Fuente de demo (simulador)
 
