@@ -35,6 +35,15 @@ it("saves a client's dashboard preferences with the cards body", async () => {
   expect(preferences.cards).toEqual(["priority.humidity", "soil.chart"]);
 });
 
+it("clears the selection and returns to the automatic mode with cards null", async () => {
+  vi.mocked(api.put).mockResolvedValue({ data: { client_id: 3, cards: null } });
+
+  const preferences = await updateClientDashboardPreferences(3, null);
+
+  expect(api.put).toHaveBeenCalledWith("/clients/3/dashboard-preferences", { cards: null });
+  expect(preferences.cards).toBeNull();
+});
+
 it("reads the current client's own dashboard preferences", async () => {
   vi.mocked(api.get).mockResolvedValue({
     data: { client_id: 3, cards: ["sources.external"] },

@@ -62,6 +62,22 @@ def test_duplicate_and_unknown_cards(client, db, admin_headers, client_user):
     assert db.get(DashboardPreference, 1).tarjetas == ["soil.chart"]
 
 
+def test_null_cards_go_back_to_the_automatic_dashboard(
+    client, db, admin_headers, client_headers, client_user
+):
+    _, client_record = client_user
+    path = _admin_path(client_record.id)
+    client.put(path, headers=admin_headers, json={"cards": ["priority.eto"]})
+
+    cleared = client.put(path, headers=admin_headers, json={"cards": None})
+
+    assert cleared.status_code == 200
+    assert cleared.json() == {"client_id": client_record.id, "cards": None}
+    assert client.get(path, headers=admin_headers).json()["cards"] is None
+    assert client.get(ME_PATH, headers=client_headers).json()["cards"] is None
+    assert db.query(DashboardPreference).count() == 0
+
+
 def test_roles_and_missing_clients_are_enforced(client, admin_headers, client_headers, client_user):
     _, client_record = client_user
 

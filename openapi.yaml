@@ -4922,15 +4922,19 @@ components:
     DashboardPreferencesUpdate:
       properties:
         cards:
-          items:
-            type: string
-          type: array
+          anyOf:
+          - items:
+              type: string
+            type: array
+          - type: 'null'
           title: Cards
       additionalProperties: false
       type: object
       required:
       - cards
       title: DashboardPreferencesUpdate
+      description: '``cards: null`` clears the selection, so the dashboard goes back
+        to automatic.'
     EnvironmentalData:
       properties:
         temperature:

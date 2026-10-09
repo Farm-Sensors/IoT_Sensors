@@ -162,7 +162,7 @@ Contrato detallado (payloads, schemas, errores, ejemplos): **`openapi.yaml`** (a
 | Clients | PUT | `/api/v1/clients/{client_id}` | Actualizar — Admin |
 | Clients | DELETE | `/api/v1/clients/{client_id}` | Eliminar — Admin |
 | Dashboard | GET | `/api/v1/clients/{client_id}/dashboard-preferences` | Tarjetas configuradas del cliente (`cards: null` = automático) — Admin |
-| Dashboard | PUT | `/api/v1/clients/{client_id}/dashboard-preferences` | Configurar tarjetas del dashboard — Admin |
+| Dashboard | PUT | `/api/v1/clients/{client_id}/dashboard-preferences` | Configurar tarjetas del dashboard; `{"cards": null}` borra la selección y vuelve al modo automático — Admin |
 | Dashboard | GET | `/api/v1/clients/me/dashboard-preferences` | Tarjetas del propio cliente (las lee el dashboard) |
 | Notif. Settings | GET | `/api/v1/clients/me/notification-settings` | Ver switch global de notificaciones |
 | Notif. Settings | PATCH | `/api/v1/clients/me/notification-settings` | Actualizar switch global |

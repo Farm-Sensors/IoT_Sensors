@@ -93,5 +93,24 @@ describe("DashboardPreferences (pantalla admin)", () => {
     expect(await screen.findByText(/Sin configurar: el dashboard muestra automáticamente solo las tarjetas que tengan datos/)).toBeTruthy();
     expect(screen.getByLabelText("Humedad del Suelo")).not.toBeChecked();
     expect(screen.getByLabelText("Fuentes externas")).not.toBeChecked();
+    expect(screen.getByText("Volver a automático")).toBeDisabled();
+  });
+
+  it("vuelve al modo automático enviando cards null y limpiando la selección", async () => {
+    mocks.getClientDashboardPreferences.mockResolvedValue({
+      client_id: 3,
+      cards: ["priority.humidity"],
+    });
+    mocks.updateClientDashboardPreferences.mockResolvedValue({ client_id: 3, cards: null });
+    renderPage();
+
+    expect(await screen.findByLabelText("Humedad del Suelo")).toBeChecked();
+    fireEvent.click(screen.getByText("Volver a automático"));
+
+    await waitFor(() => expect(mocks.updateClientDashboardPreferences).toHaveBeenCalledWith(3, null));
+    expect(await screen.findByText(/Sin configurar: el dashboard muestra automáticamente/)).toBeTruthy();
+    expect(screen.getByLabelText("Humedad del Suelo")).not.toBeChecked();
+    expect(screen.getByText("Volver a automático")).toBeDisabled();
+    expect(mocks.showToast).toHaveBeenCalledWith("Dashboard vuelto al modo automático", "success");
   });
 });

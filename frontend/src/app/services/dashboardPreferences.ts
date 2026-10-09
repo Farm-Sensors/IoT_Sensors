@@ -49,7 +49,7 @@ export async function getClientDashboardPreferences(
 
 export async function updateClientDashboardPreferences(
   clientId: number,
-  cards: DashboardCardKey[],
+  cards: DashboardCardKey[] | null,
 ): Promise<DashboardPreferences> {
   const response = await api.put<DashboardPreferences>(
     `/clients/${clientId}/dashboard-preferences`,

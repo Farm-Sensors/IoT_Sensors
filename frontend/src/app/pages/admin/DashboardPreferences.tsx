@@ -87,6 +87,24 @@ export function DashboardPreferences() {
     }
   };
 
+  const handleReset = async () => {
+    if (!clientId) return;
+    setSaving(true);
+    try {
+      const preferences = await updateClientDashboardPreferences(Number(clientId), null);
+      setConfigured(preferences.cards !== null);
+      setSelected(new Set(preferences.cards ?? []));
+      showToast("Dashboard vuelto al modo automático", "success");
+    } catch (err) {
+      showToast(
+        getErrorMessage(err, "Error al volver al modo automático"),
+        "error",
+      );
+    } finally {
+      setSaving(false);
+    }
+  };
+
   return (
     <PageTransition>
       <div className="min-h-screen p-4 md:p-6 lg:p-8">
@@ -137,7 +155,10 @@ export function DashboardPreferences() {
                 ))}
               </div>
 
-              <div className="mt-6 flex justify-end">
+              <div className="mt-6 flex justify-end gap-3">
+                <PillButton variant="outline" onClick={handleReset} loading={saving} disabled={loading || !configured}>
+                  Volver a automático
+                </PillButton>
                 <PillButton variant="primary" onClick={handleSave} loading={saving} disabled={loading}>
                   Guardar preferencias
                 </PillButton>

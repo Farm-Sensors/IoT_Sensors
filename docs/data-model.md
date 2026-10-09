@@ -442,7 +442,7 @@ La llave `UNIQUE` en `usuario_id` garantiza que un usuario no pueda estar vincul
 | `cliente_id` | FK al cliente | **UNIQUE** — una fila por cliente (1:1). `ON DELETE CASCADE`. |
 | `tarjetas` | Lista JSON de claves de tarjeta | Ej. `["priority.humidity", "soil.chart", "sources.external"]`. Claves válidas: `priority.humidity`, `priority.flow`, `priority.eto`, `irrigation.status`, `soil.details`, `soil.chart`, `environmental.details`, `sources.external`. |
 
-**Sin fila = comportamiento automático:** si un cliente no tiene preferencias guardadas, el dashboard muestra **solo las tarjetas cuyos datos existen** en la última lectura (p. ej. oculta "Flujo de Agua" si `flow_per_minute` es `null`). Es el estado por defecto que el Admin puede reemplazar con una selección explícita. La configuración la lee el cliente en `GET /api/v1/clients/me/dashboard-preferences` y la administra el Admin en `GET`/`PUT /api/v1/clients/{client_id}/dashboard-preferences`.
+**Sin fila = comportamiento automático:** si un cliente no tiene preferencias guardadas, el dashboard muestra **solo las tarjetas cuyos datos existen** en la última lectura (p. ej. oculta "Flujo de Agua" si `flow_per_minute` es `null`). Es el estado por defecto; el Admin lo reemplaza con una selección explícita y puede volver a él guardando `cards: null` (la fila se borra). La configuración la lee el cliente en `GET /api/v1/clients/me/dashboard-preferences` y la administra el Admin en `GET`/`PUT /api/v1/clients/{client_id}/dashboard-preferences`.
 
 ---
 

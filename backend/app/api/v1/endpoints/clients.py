@@ -152,5 +152,6 @@ def update_dashboard_preferences(
     client_service.get_client(db, client_id)
     row = preferences_service.upsert_preferences(db, client_id, payload.cards)
     return DashboardPreferencesResponse(
-        client_id=client_id, cards=list(row.tarjetas)
+        client_id=client_id,
+        cards=list(row.tarjetas) if row is not None else None,
     )

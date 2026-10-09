@@ -13,13 +13,17 @@ DASHBOARD_CARD_KEYS: tuple[str, ...] = (
 
 
 class DashboardPreferencesUpdate(BaseModel):
+    """``cards: null`` clears the selection, so the dashboard goes back to automatic."""
+
     model_config = ConfigDict(extra="forbid")
 
-    cards: list[str]
+    cards: list[str] | None
 
     @field_validator("cards")
     @classmethod
-    def _known_cards(cls, value: list[str]) -> list[str]:
+    def _known_cards(cls, value: list[str] | None) -> list[str] | None:
+        if value is None:
+            return None
         unknown = sorted(set(value) - set(DASHBOARD_CARD_KEYS))
         if unknown:
             raise ValueError(f"Unknown dashboard cards: {', '.join(unknown)}")
