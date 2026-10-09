@@ -1,3 +1,4 @@
+import axios from "axios";
 import { useEffect, useState, type ReactNode } from "react";
 import { BentoCard } from "../../../components/BentoCard";
 import { usePageVisibility } from "../../../hooks/usePageVisibility";
@@ -11,14 +12,15 @@ function ObservationTime({ value }: { value: string }) {
   return date ? <time dateTime={date.toISOString()}>{date.toLocaleString("es-MX")}</time> : <>Sin fecha</>;
 }
 
-function SourceCard<T>({ areaId, path, title, children }: {
+function SourceCard<T>({ areaId, path, title, hideWhenUnavailable = false, children }: {
   areaId: number;
   path: string;
   title: string;
+  hideWhenUnavailable?: boolean;
   children: (data: T) => ReactNode;
 }) {
   const visible = usePageVisibility();
-  const [state, setState] = useState<{ data: T | null; error: boolean } | null>(null);
+  const [state, setState] = useState<{ data: T | null; error: boolean; unavailable: boolean } | null>(null);
   const [retry, setRetry] = useState(0);
   useEffect(() => {
     if (!visible) return;
@@ -29,9 +31,12 @@ function SourceCard<T>({ areaId, path, title, children }: {
       inFlight = true;
       try {
         const response = await api.get<T | null>(path, { params: { irrigation_area_id: areaId } });
-        if (!cancelled) setState({ data: response.data, error: false });
-      } catch {
-        if (!cancelled) setState({ data: null, error: true });
+        if (!cancelled) setState({ data: response.data, error: false, unavailable: false });
+      } catch (error) {
+        if (!cancelled) {
+          const status = axios.isAxiosError(error) ? error.response?.status : undefined;
+          setState({ data: null, error: true, unavailable: status === 503 });
+        }
       } finally {
         inFlight = false;
       }
@@ -40,6 +45,11 @@ function SourceCard<T>({ areaId, path, title, children }: {
     const timer = window.setInterval(() => void fetchData(), DASHBOARD_REFRESH_MS);
     return () => { cancelled = true; window.clearInterval(timer); };
   }, [areaId, path, visible, retry]);
+
+  // A service that is disabled on purpose (503) is not an error the client can act on.
+  if (state?.unavailable && hideWhenUnavailable) {
+    return null;
+  }
 
   return (
     <BentoCard>
@@ -59,7 +69,7 @@ export function ExternalDataCards({ areaId }: { areaId: number }) {
     <section aria-label="Fuentes externas" className="mt-6">
       <h2 className="mb-4 text-xl text-[var(--text-title)]">Fuentes externas</h2>
       <div className="grid gap-4 md:grid-cols-2">
-        <SourceCard<WeatherCurrent> key={`weather-${areaId}`} areaId={areaId} path="/weather/current" title="Clima de referencia">
+        <SourceCard<WeatherCurrent> key={`weather-${areaId}`} areaId={areaId} path="/weather/current" title="Clima de referencia" hideWhenUnavailable>
           {(weather) => (
             <div className="space-y-2 text-[var(--text-body)]">
               <p>Fuente: {weather.provider} · {weather.cache_state === "fresh" ? "Datos actuales" : "Datos en caché sin actualizar"}</p>

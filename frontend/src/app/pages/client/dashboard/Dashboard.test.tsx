@@ -118,6 +118,19 @@ it.each([weatherFresh, weatherStale])("renders frozen weather and satellite prov
   expect(mocks.get).toHaveBeenCalledWith("/ndvi-snapshots/latest", { params: { irrigation_area_id: 12 } });
 });
 
+it("hides the weather card when the service answers 503, keeping NDVI visible", async () => {
+  const disabled = Object.assign(new Error("Weather service unavailable"), {
+    isAxiosError: true,
+    response: { status: 503 },
+  });
+  mocks.get.mockImplementation((path: string) => path === "/weather/current" ? Promise.reject(disabled) : respond(path));
+  render(<ExternalDataCards areaId={12} />);
+
+  expect(await screen.findByText("0.63")).toBeTruthy();
+  expect(screen.queryByText("Clima de referencia")).toBeNull();
+  expect(screen.queryByRole("alert")).toBeNull();
+});
+
 it("keeps sensors and NDVI visible when weather is unavailable, and retries the failed card", async () => {
   mocks.get.mockImplementation((path: string) => path === "/weather/current" ? Promise.reject(new Error("disabled")) : respond(path));
   render(<ClientDashboard />);
