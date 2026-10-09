@@ -42,7 +42,7 @@ GPS, cultivo y tamaño **no** van en cada lectura. NDVI **no** es un campo 13: e
 5. Agro envía candidatos; el **mismo gateway confirma** (sin JWT de usuario).
 6. Se permite **activación parcial**: las áreas confirmadas operan; las faltantes quedan pendientes.
 7. Un sensor inesperado solo puede proponerse a un **área ya existente**.
-8. El histórico cloud de un nodo empieza **al activarse**. GPS lo captura el técnico cuando se pueda; el tamaño de área es opcional después.
+8. El histórico cloud de un nodo empieza **al activarse**. La **ubicación de referencia del predio** la captura el técnico en la pantalla del equipo (preferencias de la UI) y Agro la reporta al cloud con `POST /api/v1/gateways/me/location` (revisión 4 del contrato); es la que alimenta el clima de referencia y el mapa. El GPS del nodo sigue siendo opcional; el tamaño de área también.
 
 Si se reemplaza el sensor físico, **se conserva el nodo cloud** y se registra el nuevo UID. Si se reemplaza la Raspberry, es un **gateway nuevo** y se revoca el anterior.
 
@@ -67,6 +67,7 @@ No hay ventana dual-auth: o gateway, o nada.
 5. Si un nodo cambia de área, las lecturas viejas **se quedan** en el área que tenían al capturarse.
 
 Heartbeat cada **5 minutos**: `POST /api/v1/gateways/me/heartbeat`.  
+En el mismo ciclo, si el equipo tiene ubicación configurada, la reporta con `POST /api/v1/gateways/me/location` (204); sin ubicación no envía nada.  
 Estado de gateway (conectado / retrasado / desconectado / pendiente) es **distinto** de la frescura del nodo.
 
 ## Configuración
@@ -81,13 +82,14 @@ El admin **autoriza** una imagen (versión + digest). El técnico **confirma** e
 
 ## Frontend cloud
 
-- Admin: `/admin/gateways` (provisionar, QR/referencia de activación, publicar config) y `/admin/gateways/pair` (aprobar/denegar una sesión de emparejamiento por su código; `/pair` redirige allí).
-- Cliente: ve estado simple del gateway junto a la frescura de datos.
+- Admin: `/admin/gateways` (provisionar, QR/referencia de activación, publicar config) y `/admin/gateways/pair` (aprobar/denegar una sesión de emparejamiento por su código; `/pair` redirige allí). También configura, **por cliente**, qué tarjetas ve ese cliente en su dashboard (`/admin/clientes/{id}/dashboard`).
+- Cliente: ve estado simple del gateway junto a la frescura de datos; su dashboard muestra las tarjetas configuradas y, si no hay configuración, **solo las tarjetas cuyos datos existen**.
+- Tarjeta "Clima de referencia": pronóstico Open-Meteo para la **ubicación del predio** (API gratuita sin clave); si el predio aún no tiene ubicación, la tarjeta no se muestra.
 - No se muestran secretos ni API keys de nodo.
 
 ## Qué queda fuera de este sistema (aún)
 
-- IA, alertas activas, WhatsApp/email, n8n (código puede existir **dormido** detrás de flags). **La Fase 2 está bloqueada hasta nuevo aviso**: no se enciende ninguno de sus flags ni se arranca el perfil `phase2`; la única excepción vigente es el NDVI de último punto, que viaja como evento propio.
+- IA, alertas activas, WhatsApp/email, n8n (código puede existir **dormido** detrás de flags). **La Fase 2 está bloqueada hasta nuevo aviso**: no se enciende ninguno de sus flags ni se arranca el perfil `phase2`; las excepciones vigentes aprobadas por el dueño son el NDVI de último punto (evento propio) y la tarjeta de clima de referencia (`OPEN_METEO_ENABLED`, API gratuita, por predio).
 - NDVI histórico/polígonos.
 - Interfaz móvil para QR/GPS.
 - Comandos físicos hacia riego.

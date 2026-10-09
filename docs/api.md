@@ -83,6 +83,7 @@ Todos usan `X-API-Key` de gateway, salvo dos excepciones **sin credencial**: `ac
 | Proponer vínculo | `POST /api/v1/gateways/me/binding-candidates` | Requiere `X-Event-ID`; 201 / 200 (reintento exacto) / 409 |
 | Confirmar vínculo | `POST /api/v1/gateways/me/binding-candidates/{candidate_id}/confirm` | Requiere `X-Event-ID` |
 | Heartbeat | `POST /api/v1/gateways/me/heartbeat` | Sin cuerpo; **204**. Actualiza `last_seen` por hora de recepción |
+| Reportar ubicación | `POST /api/v1/gateways/me/location` | Cuerpo `{"location": {"latitude", "longitude"}}`; **204**. Guarda la ubicación de referencia del predio (revisión 4 del contrato) |
 | Autorización de actualización | `GET /api/v1/gateways/me/update-authorization` | 200 o 204 si no hay autorización vigente |
 | Confirmar actualización | `POST /api/v1/gateways/me/update-confirmations` | Requiere `X-Event-ID` |
 
@@ -160,11 +161,14 @@ Contrato detallado (payloads, schemas, errores, ejemplos): **`openapi.yaml`** (a
 | Clients | GET | `/api/v1/clients/{client_id}` | Detalle — Admin |
 | Clients | PUT | `/api/v1/clients/{client_id}` | Actualizar — Admin |
 | Clients | DELETE | `/api/v1/clients/{client_id}` | Eliminar — Admin |
+| Dashboard | GET | `/api/v1/clients/{client_id}/dashboard-preferences` | Tarjetas configuradas del cliente (`cards: null` = automático) — Admin |
+| Dashboard | PUT | `/api/v1/clients/{client_id}/dashboard-preferences` | Configurar tarjetas del dashboard — Admin |
+| Dashboard | GET | `/api/v1/clients/me/dashboard-preferences` | Tarjetas del propio cliente (las lee el dashboard) |
 | Notif. Settings | GET | `/api/v1/clients/me/notification-settings` | Ver switch global de notificaciones |
 | Notif. Settings | PATCH | `/api/v1/clients/me/notification-settings` | Actualizar switch global |
 | Properties | GET | `/api/v1/properties` | Listar (paginado, filtro `client_id`) |
 | Properties | POST | `/api/v1/properties` | Crear predio — Admin |
-| Properties | GET | `/api/v1/properties/{property_id}` | Detalle |
+| Properties | GET | `/api/v1/properties/{property_id}` | Detalle (incluye `latitude`/`longitude` de referencia, `null` si el equipo aún no la reportó) |
 | Properties | PUT | `/api/v1/properties/{property_id}` | Actualizar — Admin |
 | Properties | DELETE | `/api/v1/properties/{property_id}` | Eliminar — Admin |
 | Crop Types | GET | `/api/v1/crop-types` | Listar (paginado) |
@@ -251,7 +255,7 @@ Contrato detallado (payloads, schemas, errores, ejemplos): **`openapi.yaml`** (a
 | Hardware Profiles | PATCH | `/api/v1/hardware-profiles/{profile_id}` | Actualizar perfil — Admin |
 | NDVI | POST | `/api/v1/ndvi-snapshots` | Ingesta del último NDVI puntual — **X-API-Key** |
 | NDVI | GET | `/api/v1/ndvi-snapshots/latest` | Último NDVI del área |
-| Weather | GET | `/api/v1/weather/current` | Clima actual del área (`irrigation_area_id`) |
+| Weather | GET | `/api/v1/weather/current` | Clima actual del área (`irrigation_area_id`), resuelto con la **ubicación de referencia del predio**; **409** si el predio aún no tiene ubicación |
 | Health | GET | `/health` | Verificación de estado del servicio |
 
 **Total: 111 operaciones sobre 81 paths** (tabla de rutas FastAPI; ver §2 para la diferencia con `openapi.yaml`). Para payloads, schemas y ejemplos por endpoint, consulta el contrato autogenerado.

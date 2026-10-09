@@ -24,11 +24,11 @@
 
 ## 1. Vista General
 
-### La base de datos tiene 26 tablas organizadas en 8 grupos:
+### La base de datos tiene 27 tablas organizadas en 8 grupos:
 
 | Grupo | Tablas | Propósito |
 |-------|--------|-----------|
-| **Gestión de Usuarios** | `usuarios`, `tokens_refresco`, `tokens_recuperacion`, `clientes` | Quién entra al sistema, cómo se autentica, recuperación de contraseñas y sus datos de negocio |
+| **Gestión de Usuarios** | `usuarios`, `tokens_refresco`, `tokens_recuperacion`, `clientes`, `preferencias_dashboard` | Quién entra al sistema, cómo se autentica, recuperación de contraseñas, sus datos de negocio y las tarjetas que ve en el dashboard |
 | **Estructura del Campo** | `predios`, `tipos_cultivo`, `areas_riego`, `ciclos_cultivo` | Cómo está organizado el terreno del agricultor: fincas, parcelas, cultivos y temporadas |
 | **Hardware IoT** | `nodos` | Los sensores físicos (o simulados) instalados en campo |
 | **Lecturas de Sensores** | `lecturas` | Los datos que llegan cada 10 minutos desde los nodos — es el corazón del sistema |
@@ -66,6 +66,8 @@ erDiagram
         INT cliente_id FK
         VARCHAR nombre
         VARCHAR ubicacion
+        DECIMAL latitud
+        DECIMAL longitud
         DATETIME creado_en
         DATETIME actualizado_en
         DATETIME eliminado_en
@@ -218,11 +220,19 @@ erDiagram
         DATETIME actualizado_en
     }
 
+    preferencias_dashboard {
+        INT id PK
+        INT cliente_id FK
+        JSON tarjetas
+        DATETIME creado_en
+        DATETIME actualizado_en
+    }
     usuarios ||--o| clientes : "1:1"
     usuarios ||--o{ tokens_refresco : "1:N"
     usuarios ||--o{ tokens_recuperacion : "1:N"
     usuarios ||--o{ audit_log : "1:N"
     clientes ||--o{ predios : "1:N"
+    clientes ||--o| preferencias_dashboard : "1:1"
     clientes ||--o{ preferencias_notificacion : "1:N"
     clientes ||--o{ reportes_ia : "1:N"
     predios ||--o{ areas_riego : "1:N"
@@ -421,6 +431,19 @@ Cada vez que el admin registra un nuevo cliente, se crean **dos registros**: uno
 
 La llave `UNIQUE` en `usuario_id` garantiza que un usuario no pueda estar vinculado a dos clientes diferentes.
 
+### 3.4. `preferencias_dashboard` — Qué tarjetas ve cada cliente
+
+**Propósito:** Guarda la selección de tarjetas del dashboard que el **Admin** configuró para un cliente. El dashboard es personalizable: el cliente ve las tarjetas que el Admin marcó (datos prioritarios, bloques de suelo/ambiental, gráfica, fuentes externas) y no ve las demás.
+
+**Columnas clave:**
+
+| Columna | Qué guarda | Notas |
+|---------|-----------|-------|
+| `cliente_id` | FK al cliente | **UNIQUE** — una fila por cliente (1:1). `ON DELETE CASCADE`. |
+| `tarjetas` | Lista JSON de claves de tarjeta | Ej. `["priority.humidity", "soil.chart", "sources.external"]`. Claves válidas: `priority.humidity`, `priority.flow`, `priority.eto`, `irrigation.status`, `soil.details`, `soil.chart`, `environmental.details`, `sources.external`. |
+
+**Sin fila = comportamiento automático:** si un cliente no tiene preferencias guardadas, el dashboard muestra **solo las tarjetas cuyos datos existen** en la última lectura (p. ej. oculta "Flujo de Agua" si `flow_per_minute` es `null`). Es el estado por defecto que el Admin puede reemplazar con una selección explícita. La configuración la lee el cliente en `GET /api/v1/clients/me/dashboard-preferences` y la administra el Admin en `GET`/`PUT /api/v1/clients/{client_id}/dashboard-preferences`.
+
 ---
 
 ## 4. Tablas de Estructura del Campo
@@ -437,7 +460,8 @@ Estas 4 tablas modelan cómo está organizado físicamente el terreno del agricu
 |---------|-----------|-------|
 | `cliente_id` | FK al cliente dueño | Un cliente puede tener 1 o muchos predios (1:N). |
 | `nombre` | Nombre del predio | Obligatorio. Ej. "Rancho Norte", "Parcela Sur". |
-| `ubicacion` | Referencia geográfica textual | Texto libre descriptivo, ej. "Km 5 Carretera Delicias-Meoqui". **NO** es GPS — las coordenadas exactas van en los nodos. |
+| `ubicacion` | Referencia geográfica textual | Texto libre descriptivo, ej. "Km 5 Carretera Delicias-Meoqui". |
+| `latitud` / `longitud` | Ubicación de referencia del predio (DECIMAL(10,7), NULL) | La reporta el **gateway** con la operación v2 `location` (la posición configurada en el equipo al instalarlo); también puede capturarse en los nodos como GPS opcional. Es la que usa el clima de referencia: sin ella, `/weather/current` responde 409. |
 
 **Ejemplo de la vida real:**
 El cliente "Agrícola López" tiene 2 predios:
