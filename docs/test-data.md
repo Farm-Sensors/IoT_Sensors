@@ -106,10 +106,49 @@ alcanza `10.32.81.230:3022` en esta red: timeouts); sin `PYTHONUNBUFFERED=1` el 
 errores quedan invisibles en `docker logs`; y a 30 s por tres nodos son ~8.6k lecturas/día, así que
 se para cuando no se está mostrando.
 
-### Guion corto de demo
+### Demo desde cero (instalación → vinculación → datos)
+
+Guion para hacerlo **todo a mano por interfaz** (nada de comandos), como si la Raspberry se acabara
+de instalar. Estado de partida que deja el laboratorio listo: la Pi **sin gateway vinculado** (su
+histórico local se conserva) y con 4 nodos demo activos; el cloud con el pairing encendido.
+
+Ventanas: **(A)** pantalla del equipo `http://10.32.90.229:6080/vnc.html` · **(B)** IoT_Sensors
+`http://10.32.81.230:3022`.
+
+1. **El equipo ya está instalado y configurado** (pantalla A): menú *Nodos* → los 4 nodos
+   detectados con sus sensores; menú *Lecturas* → las mediciones que va tomando; menú *Ajustes* →
+   *Configuración real del agente* → modo `demo`, `4` nodos demo, conexión `v2` y la dirección del
+   cloud (se edita y se guarda ahí mismo; el reinicio del agente está en la misma sección).
+2. **La pantalla pide vincularse**: *Instalación → Paso 1 → «Vincular dispositivo»* → aparece el
+   **QR + código** con cuenta atrás de 10 min. Dejarlo ahí.
+3. **Alta del rancho** (ventana B, `admin@sensores.com` / `admin123`): *Clientes → Nuevo Cliente*
+   (empresa, contacto, email, contraseña, teléfono) → *Predios → Nuevo Predio* → *Áreas de Riego →
+   Nueva Área* (nombre, cultivo, tamaño) una por parcela → *Nodos → Nuevo Nodo* (área, nombre,
+   serie, GPS) uno por parcela.
+4. **Crear el enlace**: *Gateways* → paso 1 (elegir el rancho por nombre y marcar sus parcelas →
+   «Crear enlace») → paso 2 («Publicar configuración»). Si el asistente abre otro enlace en curso,
+   «Crear otro enlace» vuelve al paso 1.
+5. **Vincular**: *Gateways* → paso 3 → escribir el **código** del equipo → «Buscar código» → el
+   gateway del rancho viene preseleccionado → casilla de confirmación → «Aprobar emparejamiento».
+   En ~1 min la pantalla pasa a *Gateway activada* y el equipo recibe su configuración.
+6. **Enlazar los nodos** (pantalla A): *Instalación → Paso 2* (nodos detectados) → *Paso 3*: tocar
+   la ranura de cada nodo (se muestran **los nombres de las parcelas**) → *Paso 4*: «Confirmar
+   asignaciones». En ~1 min el equipo envía la candidatura y la confirmación.
+7. **Ver los datos**: ventana B → *Gateways* → paso 4 (cada parcela con su nodo y «última lectura:
+   ahora»; «Ver detalle completo» muestra los 4 pasos en *Listo*). Y como cliente: entrar con el
+   email/contraseña del cliente nuevo → predio → parcela → humedad, «hace un momento» y «Gateway
+   conectado»; el *Histórico* y el export CSV/XLSX/PDF quedan disponibles.
+
+Notas: el código caduca en 10 min (en la pantalla «Reintentar»); la pantalla se duerme sola (un
+toque la despierta); el equipo toma datos cada 10 s, consulta configuración cada 60 s y late cada
+5 min; los datos son simulados por el equipo (modo demo: suelo sí, riego y ambiente quedan «Sin
+datos»); los semáforos dicen «Sin datos de umbral» porque no hay umbrales configurados (Fase 2);
+el NDVI de parcelas nuevas aparece si se repunta el mapeo del equipo (`--set-ndvi-area`).
+
+### Demo rápida (datos ya cargados)
 
 1. Cliente `alan2203mx@gmail.com` / `123` → **Raspberry Campo** → área con humedad, **flujo** y **ETO** + indicador de frescura.
 2. Histórico con filtros (semana/mes) → **export** CSV/XLSX/PDF.
 3. NDVI del widget (último punto Sentinel-2 con escena y nubosidad reales).
-4. Admin `admin@sensores.com` / `admin123` → `/admin/gateways` (estado/heartbeat, publicar config, referencia legible) y `/admin/gateways/pair`.
+4. Admin `admin@sensores.com` / `admin123` → `/admin/gateways` (asistente de enlace) y `/admin/gateways/pair`.
 5. Pantalla del appliance por el visor: gateway activa, nodos detectados, ranuras y el paso de pairing con QR y código.
