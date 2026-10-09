@@ -85,7 +85,14 @@ function isIncomplete(gateway: Gateway, status: GatewayStatus | undefined): bool
   if (gateway.status === "revoked") {
     return false;
   }
-  return gateway.status === "pending_activation" || confirmedCount(status) < gateway.slots.length;
+  if (gateway.status === "pending_activation") {
+    return true;
+  }
+  if (!status) {
+    // Sin estado cargado no se sabe si faltan enlaces: no secuestres la vista.
+    return false;
+  }
+  return confirmedCount(status) < gateway.slots.length;
 }
 
 async function copyToClipboard(value: string): Promise<boolean> {
