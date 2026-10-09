@@ -97,6 +97,45 @@ class TestCreateNode:
         )
         assert resp.status_code == 409
 
+    def test_create_duplicate_serial_returns_409(
+        self, client, admin_headers, sample_property, sample_crop_type
+    ):
+        def new_area(name):
+            resp = client.post(
+                "/api/v1/irrigation-areas",
+                json={
+                    "property_id": sample_property.id,
+                    "crop_type_id": sample_crop_type.id,
+                    "name": name,
+                },
+                headers=admin_headers,
+            )
+            assert resp.status_code == 201
+            return resp.json()["id"]
+
+        first = client.post(
+            "/api/v1/nodes",
+            json={
+                "irrigation_area_id": new_area("Área Serie A"),
+                "name": "Con serie",
+                "serial_number": "mesh-DUP01",
+            },
+            headers=admin_headers,
+        )
+        duplicate = client.post(
+            "/api/v1/nodes",
+            json={
+                "irrigation_area_id": new_area("Área Serie B"),
+                "name": "Serie repetida",
+                "serial_number": "mesh-DUP01",
+            },
+            headers=admin_headers,
+        )
+
+        assert first.status_code == 201
+        assert duplicate.status_code == 409
+        assert duplicate.json()["detail"] == "Serial number 'mesh-DUP01' is already registered"
+
     def test_create_invalid_area_returns_404(self, client, admin_headers):
         resp = client.post(
             "/api/v1/nodes",
@@ -141,6 +180,51 @@ class TestUpdateNode:
         )
         assert resp.status_code == 200
         assert resp.json()["name"] == "Nodo Actualizado"
+
+    def test_update_serial_to_another_nodes_serial_returns_409(
+        self, client, admin_headers, sample_property, sample_crop_type
+    ):
+        def create_node(area_name, serial):
+            area_resp = client.post(
+                "/api/v1/irrigation-areas",
+                json={
+                    "property_id": sample_property.id,
+                    "crop_type_id": sample_crop_type.id,
+                    "name": area_name,
+                },
+                headers=admin_headers,
+            )
+            resp = client.post(
+                "/api/v1/nodes",
+                json={
+                    "irrigation_area_id": area_resp.json()["id"],
+                    "name": f"Nodo {serial}",
+                    "serial_number": serial,
+                },
+                headers=admin_headers,
+            )
+            assert resp.status_code == 201
+            return resp.json()
+
+        taken = create_node("Área Serie C", "mesh-DUP02")
+        other = create_node("Área Serie D", "mesh-DUP03")
+
+        clash = client.put(
+            f"/api/v1/nodes/{other['id']}",
+            json={"serial_number": "mesh-DUP02"},
+            headers=admin_headers,
+        )
+        unchanged = client.put(
+            f"/api/v1/nodes/{other['id']}",
+            json={"serial_number": "mesh-DUP03"},
+            headers=admin_headers,
+        )
+
+        assert taken["serial_number"] == "mesh-DUP02"
+        assert clash.status_code == 409
+        assert clash.json()["detail"] == "Serial number 'mesh-DUP02' is already registered"
+        assert unchanged.status_code == 200
+        assert unchanged.json()["serial_number"] == "mesh-DUP03"
 
     def test_deactivate_node(self, client, admin_headers, sample_node):
         resp = client.put(

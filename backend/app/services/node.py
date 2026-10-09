@@ -203,6 +203,17 @@ def create_node(db: Session, data: NodeCreate) -> Node:
             detail=f"Irrigation area {data.irrigation_area_id} already has a node assigned",
         )
 
+    # Check serial uniqueness (physical identifier; the column is unique, NULL is allowed)
+    if data.serial_number is not None:
+        existing_serial = db.execute(
+            select(Node).where(Node.numero_serie == data.serial_number)
+        ).scalar_one_or_none()
+        if existing_serial:
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail=f"Serial number '{data.serial_number}' is already registered",
+            )
+
     node = Node(
         area_riego_id=data.irrigation_area_id,
         numero_serie=data.serial_number,
@@ -222,7 +233,19 @@ def update_node(db: Session, node_id: int, data: NodeUpdate) -> Node:
     update_data = data.model_dump(exclude_unset=True)
 
     if "serial_number" in update_data:
-        node.numero_serie = update_data["serial_number"]
+        serial = update_data["serial_number"]
+        if serial is not None:
+            clash = db.execute(
+                select(Node).where(
+                    Node.numero_serie == serial, Node.id != node.id
+                )
+            ).scalar_one_or_none()
+            if clash:
+                raise HTTPException(
+                    status_code=status.HTTP_409_CONFLICT,
+                    detail=f"Serial number '{serial}' is already registered",
+                )
+        node.numero_serie = serial
     if "name" in update_data:
         node.nombre = update_data["name"]
     if "latitude" in update_data:
