@@ -72,10 +72,16 @@ function stateLabel(gateway: Gateway, status: GatewayStatus | undefined): string
   if (gateway.status === "pending_activation") {
     return "Falta vincular la Raspberry";
   }
-  if (status?.edge_status === "connected") {
+  if (!status) {
+    return "Vinculada (sin estado del equipo)";
+  }
+  if (confirmedCount(status) < gateway.slots.length) {
+    return "Vinculada, faltan nodos por enlazar";
+  }
+  if (status.edge_status === "connected") {
     return "Vinculada y reportando";
   }
-  if (status?.edge_status === "delayed") {
+  if (status.edge_status === "delayed") {
     return "Vinculada, con retraso";
   }
   return "Vinculada, sin conexión reciente";

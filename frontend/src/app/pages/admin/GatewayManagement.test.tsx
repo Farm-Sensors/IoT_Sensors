@@ -166,25 +166,38 @@ describe("GatewayManagement (asistente de enlace)", () => {
     mocks.listGateways.mockResolvedValue({
       data: [
         { ...createdGateway, id: 11, status: "active", configuration_version: 1, slots: [{ id: 40, irrigation_area_id: 16, logical_node_id: 16 }] },
+        { ...createdGateway, id: 15, status: "active", configuration_version: 2, slots: [{ id: 41, irrigation_area_id: 17, logical_node_id: 17 }] },
       ],
     });
-    mocks.getGatewayStatus.mockResolvedValue({
-      data: {
-        ...pendingStatus,
-        gateway_id: 11,
-        status: "recently_seen",
-        edge_status: "connected",
-        slots: [
-          { logical_node_id: 16, irrigation_area_id: 16, binding_status: "confirmed", latest_reading_at: "2026-10-09T06:26:47Z", bound_uid: "mesh-DEMO01", bound_serial: "mesh-DEMO01" },
-        ],
-      },
-    });
+    mocks.getGatewayStatus.mockImplementation((id: number) =>
+      Promise.resolve({
+        data: {
+          ...pendingStatus,
+          gateway_id: id,
+          status: "recently_seen",
+          edge_status: "connected",
+          slots: [
+            {
+              logical_node_id: 16,
+              irrigation_area_id: 16,
+              binding_status: id === 11 ? "confirmed" : "unbound",
+              latest_reading_at: "2026-10-09T06:26:47Z",
+              bound_uid: id === 11 ? "mesh-DEMO01" : null,
+              bound_serial: id === 11 ? "mesh-DEMO01" : null,
+            },
+          ],
+        },
+      }),
+    );
 
     renderPage();
 
-    expect(await screen.findByText("Rancho Prueba · Rancho Prueba SA")).toBeInTheDocument();
+    expect(await screen.findAllByText("Rancho Prueba · Rancho Prueba SA")).toHaveLength(2);
     expect(screen.getByText(/Vinculada y reportando/)).toBeInTheDocument();
     expect(screen.getByText(/1 de 1 reportando/)).toBeInTheDocument();
+    // Un enlace vinculado pero sin nodos enlazados no puede decir "reportando".
+    expect(screen.getByText(/Vinculada, faltan nodos por enlazar/)).toBeInTheDocument();
+    expect(screen.getByText(/0 de 1 reportando/)).toBeInTheDocument();
   });
 
   it("returns to step 1 from an in-progress link", async () => {
