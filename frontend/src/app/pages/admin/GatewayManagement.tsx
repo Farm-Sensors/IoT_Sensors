@@ -2,19 +2,23 @@ import { useEffect, useState } from "react";
 import QRCode from "qrcode";
 import { Link } from "react-router";
 import { BentoCard } from "../../components/BentoCard";
-import { GatewayStatusBadge } from "../../components/GatewayStatusBadge";
 import { PageTransition } from "../../components/PageTransition";
+import { PairingApprovalPanel } from "../../components/PairingApprovalPanel";
 import { PillButton } from "../../components/PillButton";
 import { useToast } from "../../components/Toast";
 import { api } from "../../services/api";
 import {
   Gateway,
+  GatewayStatus,
+  getGateway,
+  getGatewayStatus,
   issueActivationReference,
   listGateways,
   provisionGateway,
   publishConfiguration,
 } from "../../services/gateways";
 import { getGeoNodes } from "../../services/nodes";
+import { formatElapsed, parseBackendTimestamp } from "../../utils/datetime";
 import { getErrorMessage } from "../../utils/errors";
 
 type PropertyOption = {
@@ -38,8 +42,51 @@ type AreaOption = {
 type AreaNode = {
   name: string | null;
   serial_number: string | null;
+  area_name: string;
   is_active: boolean;
 };
+
+const BINDING_LABELS: Record<string, string> = {
+  unbound: "Sin nodo físico todavía",
+  pending: "Nodo propuesto, sin confirmar",
+  pending_initial: "Nodo propuesto, sin confirmar",
+  pending_reassignment: "Cambio de nodo pendiente",
+  confirmed: "Nodo enlazado",
+};
+
+const STEPS = [
+  { key: "create", title: "Elige el rancho y sus parcelas", hint: "Crea el enlace del predio" },
+  { key: "publish", title: "Publica la configuración", hint: "El equipo la leerá al vincularse" },
+  { key: "link", title: "Vincula la Raspberry", hint: "Aprueba el código de su pantalla" },
+  { key: "bind", title: "Enlaza los nodos", hint: "Cada parcela con su nodo físico" },
+];
+
+function confirmedCount(status: GatewayStatus | undefined): number {
+  return status?.slots.filter((slot) => slot.binding_status === "confirmed").length ?? 0;
+}
+
+function stateLabel(gateway: Gateway, status: GatewayStatus | undefined): string {
+  if (gateway.status === "revoked") {
+    return "Enlace revocado";
+  }
+  if (gateway.status === "pending_activation") {
+    return "Falta vincular la Raspberry";
+  }
+  if (status?.edge_status === "connected") {
+    return "Vinculada y reportando";
+  }
+  if (status?.edge_status === "delayed") {
+    return "Vinculada, con retraso";
+  }
+  return "Vinculada, sin conexión reciente";
+}
+
+function isIncomplete(gateway: Gateway, status: GatewayStatus | undefined): boolean {
+  if (gateway.status === "revoked") {
+    return false;
+  }
+  return gateway.status === "pending_activation" || confirmedCount(status) < gateway.slots.length;
+}
 
 async function copyToClipboard(value: string): Promise<boolean> {
   try {
@@ -69,8 +116,12 @@ async function copyToClipboard(value: string): Promise<boolean> {
 export function GatewayManagement() {
   const { showToast } = useToast();
   const [gateways, setGateways] = useState<Gateway[]>([]);
+  const [statuses, setStatuses] = useState<Record<number, GatewayStatus>>({});
   const [properties, setProperties] = useState<PropertyOption[]>([]);
   const [clients, setClients] = useState<ClientOption[]>([]);
+  const [setup, setSetup] = useState<Gateway | null>(null);
+  const [setupStatus, setSetupStatus] = useState<GatewayStatus | null>(null);
+  const [slotNodes, setSlotNodes] = useState<Record<number, AreaNode>>({});
   const [selectedPropertyId, setSelectedPropertyId] = useState("");
   const [areas, setAreas] = useState<AreaOption[]>([]);
   const [nodesByArea, setNodesByArea] = useState<Record<number, AreaNode>>({});
@@ -79,17 +130,43 @@ export function GatewayManagement() {
   const [oneTimeSecret, setOneTimeSecret] = useState<string | null>(null);
   const [qr, setQr] = useState<{ gatewayId: number; expiresAt: string; image: string } | null>(null);
   const [issuing, setIssuing] = useState<number | null>(null);
+  const [busy, setBusy] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  const loadStatuses = async (items: Gateway[]) => {
+    const results = await Promise.allSettled(items.map((gateway) => getGatewayStatus(gateway.id)));
+    const next: Record<number, GatewayStatus> = {};
+    results.forEach((result, index) => {
+      if (result.status === "fulfilled") {
+        next[items[index].id] = result.value.data;
+      }
+    });
+    setStatuses(next);
+    return next;
+  };
 
   const load = async () => {
     try {
       setLoading(true);
       const res = await listGateways();
       setGateways(res.data);
+      const nextStatuses = await loadStatuses(res.data);
       setError(null);
+      setSetup((current) => {
+        if (current) {
+          return current;
+        }
+        const inProgress = [...res.data]
+          .reverse()
+          .find((gateway) => isIncomplete(gateway, nextStatuses[gateway.id]));
+        if (inProgress) {
+          setSetupStatus(nextStatuses[inProgress.id] ?? null);
+        }
+        return inProgress ?? null;
+      });
     } catch (err) {
-      setError(getErrorMessage(err, "No se pudieron cargar los gateways"));
+      setError(getErrorMessage(err, "No se pudieron cargar los enlaces"));
     } finally {
       setLoading(false);
     }
@@ -147,6 +224,7 @@ export function GatewayManagement() {
           byArea[node.irrigation_area_id] = {
             name: node.name,
             serial_number: node.serial_number,
+            area_name: node.irrigation_area_name,
             is_active: node.is_active,
           };
         }
@@ -154,7 +232,7 @@ export function GatewayManagement() {
         setSelectedAreaIds([]);
       } catch (err) {
         if (!cancelled) {
-          showToast(getErrorMessage(err, "No se pudieron cargar las áreas del predio"), "error");
+          showToast(getErrorMessage(err, "No se pudieron cargar las parcelas del rancho"), "error");
         }
       } finally {
         if (!cancelled) setLoadingAreas(false);
@@ -166,25 +244,92 @@ export function GatewayManagement() {
     };
   }, [selectedPropertyId]);
 
-  const handleProvision = async (event: React.FormEvent) => {
+  const refreshSetup = async (gatewayId: number) => {
+    try {
+      const [gatewayRes, statusRes] = await Promise.all([
+        getGateway(gatewayId),
+        getGatewayStatus(gatewayId),
+      ]);
+      setSetup(gatewayRes.data);
+      setSetupStatus(statusRes.data);
+      setGateways((current) =>
+        current.map((item) => (item.id === gatewayRes.data.id ? gatewayRes.data : item)),
+      );
+      setStatuses((current) => ({ ...current, [gatewayId]: statusRes.data }));
+    } catch (err) {
+      showToast(getErrorMessage(err, "No se pudo actualizar el enlace"), "error");
+    }
+  };
+
+  // Parcelas y nodos del rancho enlazado (nombres para el paso 4).
+  useEffect(() => {
+    if (!setup) {
+      setSlotNodes({});
+      return;
+    }
+    let cancelled = false;
+    getGeoNodes({ property_id: setup.property_id, include_without_coordinates: true, per_page: 200 })
+      .then((geoRes) => {
+        if (cancelled) return;
+        const byArea: Record<number, AreaNode> = {};
+        for (const node of geoRes.data) {
+          byArea[node.irrigation_area_id] = {
+            name: node.name,
+            serial_number: node.serial_number,
+            area_name: node.irrigation_area_name,
+            is_active: node.is_active,
+          };
+        }
+        setSlotNodes(byArea);
+      })
+      .catch(() => {
+        if (!cancelled) setSlotNodes({});
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [setup]);
+
+  const handleCreateLink = async (event: React.FormEvent) => {
     event.preventDefault();
     if (!selectedPropertyId || selectedAreaIds.length === 0) {
-      const message = "Elige un predio y al menos un área";
+      const message = "Elige un rancho y al menos una parcela";
       setError(message);
       showToast(message, "error");
       return;
     }
     try {
+      setBusy(true);
       const created = await provisionGateway(Number(selectedPropertyId), selectedAreaIds);
-      showToast(`Gateway provisionado con ${selectedAreaIds.length} ranura(s)`, "success");
+      showToast(`Enlace creado con ${selectedAreaIds.length} parcela(s)`, "success");
       setSelectedPropertyId("");
       setSelectedAreaIds([]);
       setError(null);
       setGateways((current) => [...current, created.data]);
+      setSetup(created.data);
+      await refreshSetup(created.data.id);
     } catch (err) {
-      const message = getErrorMessage(err, "No se pudo provisionar el gateway");
+      const message = getErrorMessage(err, "No se pudo crear el enlace");
       setError(message);
       showToast(message, "error");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const handlePublish = async (gatewayId: number) => {
+    try {
+      setBusy(true);
+      await publishConfiguration(gatewayId);
+      showToast("Configuración publicada", "success");
+      setError(null);
+      await refreshSetup(gatewayId);
+    } catch (err) {
+      const message = getErrorMessage(err, "No se pudo publicar la configuración");
+      setError(message);
+      showToast(message, "error");
+    } finally {
+      setBusy(false);
     }
   };
 
@@ -208,29 +353,33 @@ export function GatewayManagement() {
       });
       setOneTimeSecret(res.data.activation_reference);
       setQr({ gatewayId, expiresAt: res.data.expires_at, image });
-      showToast("QR listo. Generar otro invalida este.", "success");
+      showToast("Referencia lista. Generar otra invalida esta.", "success");
     } catch (err) {
-      showToast(getErrorMessage(err, "Este gateway ya no está pendiente de activación"), "error");
+      showToast(getErrorMessage(err, "Este enlace ya no está pendiente de vinculación"), "error");
     } finally {
       setIssuing(null);
     }
   };
 
-  const handlePublish = async (gatewayId: number) => {
-    try {
-      await publishConfiguration(gatewayId);
-      showToast("Configuración publicada", "success");
-      setError(null);
-      await load();
-    } catch (err) {
-      const message = getErrorMessage(err, "No se pudo publicar la configuración");
-      setError(message);
-      showToast(message, "error");
-    }
+  const clientNames = new Map(clients.map((client) => [client.id, client.company_name]));
+  const propertyById = new Map(properties.map((property) => [property.id, property]));
+
+  const ranchLabel = (propertyId: number) => {
+    const property = propertyById.get(propertyId);
+    if (!property) return `Predio ${propertyId}`;
+    const company = clientNames.get(property.client_id);
+    return company ? `${property.name} · ${company}` : property.name;
   };
 
-  const clientNames = new Map(clients.map((client) => [client.id, client.company_name]));
-  const propertyNames = new Map(properties.map((property) => [property.id, property.name]));
+  const setupSlots = setupStatus?.slots ?? [];
+  const setupConfirmed = confirmedCount(setupStatus ?? undefined);
+  const stepDone = [
+    Boolean(setup),
+    (setup?.configuration_version ?? 0) > 0,
+    setup?.status === "active",
+    setupSlots.length > 0 && setupConfirmed === setupSlots.length,
+  ];
+  const currentStep = stepDone.findIndex((done) => !done);
 
   return (
     <PageTransition>
@@ -238,50 +387,345 @@ export function GatewayManagement() {
         <div>
           <h1 className="text-2xl font-semibold">Gateways</h1>
           <p className="mt-2 max-w-3xl text-[var(--text-muted)]">
-            Un gateway por predio. El QR solo lleva la referencia de activación, nunca la credencial.
-            La Raspberry confirma el slot en Agro. Aquí se publica la config y se ve si el gateway está en línea.
+            Aquí enlazas una Raspberry con Agro a un rancho: eliges el rancho y sus parcelas,
+            publicas la configuración, apruebas el código que muestra la pantalla del equipo y ves
+            los nodos reportando.
           </p>
         </div>
+
         <BentoCard>
-          <section aria-labelledby="gateway-communication-title">
-            <div className="flex flex-wrap items-start justify-between gap-3">
+          <ol className="grid gap-3 md:grid-cols-4" aria-label="Pasos del enlace">
+            {STEPS.map((step, index) => {
+              const done = stepDone[index];
+              const current = !done && index === currentStep;
+              return (
+                <li
+                  key={step.key}
+                  className={`rounded-xl border p-3 text-sm ${done ? "border-[var(--status-active)]" : ""}`}
+                >
+                  <p className="font-medium">
+                    {index + 1}. {step.title}
+                  </p>
+                  <p className="mt-1 text-[var(--text-muted)]">{step.hint}</p>
+                  <p className="mt-2 text-xs font-medium">
+                    {done ? "Listo" : current ? "En curso" : "Pendiente"}
+                  </p>
+                </li>
+              );
+            })}
+          </ol>
+        </BentoCard>
+
+        {error && <p className="text-[var(--status-danger)]">{error}</p>}
+
+        {!setup ? (
+          <BentoCard>
+            <form className="space-y-4" onSubmit={handleCreateLink}>
               <div>
-                <p className="text-sm font-medium text-[var(--text-muted)]">Flujo v2 de comunicación</p>
-                <h2 id="gateway-communication-title" className="mt-1 text-lg font-semibold">
-                  IoT_Sensors ↔ Agro.io
-                </h2>
-                <p className="mt-2 max-w-3xl text-sm text-[var(--text-muted)]">
-                  Esta página administra gateways. La interfaz de campo o de la Raspberry se ejecuta fuera de esta aplicación web.
+                <h2 className="text-lg font-semibold">1. Elige el rancho y sus parcelas</h2>
+                <p className="mt-1 text-sm text-[var(--text-muted)]">
+                  Cada parcela marcada será una ranura del enlace. Todas las parcelas necesitan su
+                  nodo activo (se asigna en Nodos); si falta, la API rechazará la operación.
                 </p>
               </div>
-              <a
-                className="rounded-full border px-3 py-2 text-sm font-medium hover:bg-black/5"
-                href="/api/v1/docs"
-                rel="noreferrer"
-                target="_blank"
-              >
-                Documentación API/Swagger
-              </a>
-            </div>
+              <label className="block max-w-xl text-sm font-medium">
+                Rancho (predio)
+                <select
+                  aria-label="Rancho"
+                  className="mt-1 w-full rounded-xl border px-3 py-2"
+                  value={selectedPropertyId}
+                  onChange={(event) => setSelectedPropertyId(event.target.value)}
+                >
+                  <option value="">Selecciona un rancho…</option>
+                  {properties.map((property) => {
+                    const occupied = gateways.some(
+                      (gateway) => gateway.property_id === property.id && gateway.status !== "revoked",
+                    );
+                    return (
+                      <option key={property.id} value={property.id} disabled={occupied}>
+                        {ranchLabel(property.id)}
+                        {occupied ? " (ya tiene enlace)" : ""}
+                      </option>
+                    );
+                  })}
+                </select>
+              </label>
+              {selectedPropertyId && (
+                <fieldset>
+                  <legend className="text-sm font-medium">Parcelas del rancho</legend>
+                  {loadingAreas ? (
+                    <p className="mt-2 text-sm text-[var(--text-muted)]">Cargando parcelas…</p>
+                  ) : areas.length === 0 ? (
+                    <p className="mt-2 text-sm text-[var(--text-muted)]">
+                      Este rancho todavía no tiene parcelas. Créalas en Predios → Áreas.
+                    </p>
+                  ) : (
+                    <div className="mt-2 grid gap-2 md:grid-cols-2">
+                      {areas.map((area) => {
+                        const node = nodesByArea[area.id];
+                        const hasActiveNode = Boolean(node?.is_active);
+                        return (
+                          <label
+                            key={area.id}
+                            className="flex items-start gap-3 rounded-xl border p-3 text-sm"
+                          >
+                            <input
+                              type="checkbox"
+                              aria-label={area.name}
+                              className="mt-1"
+                              checked={selectedAreaIds.includes(area.id)}
+                              disabled={!hasActiveNode}
+                              onChange={(event) =>
+                                setSelectedAreaIds((current) =>
+                                  event.target.checked
+                                    ? [...current, area.id]
+                                    : current.filter((id) => id !== area.id),
+                                )
+                              }
+                            />
+                            <span>
+                              <span className="font-medium">{area.name}</span>
+                              {area.crop_type?.name ? (
+                                <span className="text-[var(--text-muted)]"> · {area.crop_type.name}</span>
+                              ) : null}
+                              <span className="mt-1 block text-xs text-[var(--text-muted)]">
+                                {hasActiveNode
+                                  ? `Nodo: ${node?.name || node?.serial_number || "sin nombre"}`
+                                  : "Sin nodo activo: asígnalo en Nodos antes de crear el enlace"}
+                              </span>
+                            </span>
+                          </label>
+                        );
+                      })}
+                    </div>
+                  )}
+                </fieldset>
+              )}
+              <div className="flex flex-wrap items-center gap-3">
+                <PillButton
+                  type="submit"
+                  disabled={!selectedPropertyId || selectedAreaIds.length === 0}
+                  loading={busy}
+                >
+                  Crear enlace
+                </PillButton>
+                <span className="text-sm text-[var(--text-muted)]">
+                  {selectedAreaIds.length > 0
+                    ? `${selectedAreaIds.length} parcela(s) seleccionada(s)`
+                    : "Marca al menos una parcela"}
+                </span>
+              </div>
+            </form>
+          </BentoCard>
+        ) : (
+          <>
+            <BentoCard>
+              <div className="flex flex-wrap items-start justify-between gap-3">
+                <div>
+                  <h2 className="text-lg font-semibold">
+                    2. Publica la configuración de {ranchLabel(setup.property_id)}
+                  </h2>
+                  <p className="mt-1 max-w-3xl text-sm text-[var(--text-muted)]">
+                    La configuración dice al equipo qué parcelas tiene y qué ranura le toca a cada
+                    una. Sin publicarla, la Raspberry no podrá reportar.
+                  </p>
+                </div>
+                {setup.configuration_version > 0 ? (
+                  <p className="text-sm font-medium text-[var(--status-active)]">
+                    Publicada (versión {setup.configuration_version})
+                  </p>
+                ) : (
+                  <PillButton type="button" loading={busy} onClick={() => void handlePublish(setup.id)}>
+                    Publicar configuración
+                  </PillButton>
+                )}
+              </div>
+            </BentoCard>
 
-            <div aria-label="Flujo de comunicación entre administrador, API y Agro" className="mt-4 flex flex-wrap items-center gap-2 text-sm">
-              <div className="rounded-xl border px-3 py-2">
-                <p className="font-medium">Administrador</p>
-                <p className="text-[var(--text-muted)]">Publica configuración</p>
+            <BentoCard>
+              <h2 className="text-lg font-semibold">3. Vincula la Raspberry</h2>
+              <p className="mt-1 max-w-3xl text-sm text-[var(--text-muted)]">
+                En la pantalla del equipo entra a <strong>Instalación → Paso 1</strong> y toca
+                «Vincular dispositivo»: mostrará un código y un QR. Escríbelo aquí y apruébalo solo
+                si coincide con la pantalla.
+              </p>
+              {setup.status === "active" ? (
+                <p className="mt-3 text-sm font-medium text-[var(--status-active)]">
+                  Raspberry vinculada. Si necesitas vincular otra, genera su código en la pantalla
+                  y apruébalo aquí abajo.
+                </p>
+              ) : null}
+              <div className="mt-4">
+                <PairingApprovalPanel
+                  preselectGatewayId={setup.id}
+                  onApproved={() => void refreshSetup(setup.id)}
+                />
               </div>
-              <span aria-hidden="true" className="text-lg text-[var(--text-muted)]">→</span>
-              <div className="rounded-xl border px-3 py-2">
-                <p className="font-medium">API IoT_Sensors</p>
-                <p className="text-[var(--text-muted)]">Configuración, estado y datos</p>
-              </div>
-              <span aria-hidden="true" className="text-lg text-[var(--text-muted)]">↔</span>
-              <div className="rounded-xl border px-3 py-2">
-                <p className="font-medium">Agro/edge</p>
-                <p className="text-[var(--text-muted)]">Gateway en campo</p>
-              </div>
-            </div>
+              <details className="mt-4 text-sm">
+                <summary className="cursor-pointer text-[var(--text-muted)]">
+                  Respaldo: referencia de activación (equipo sin pantalla o sin pairing)
+                </summary>
+                <div className="mt-3 flex flex-wrap items-center gap-3">
+                  <PillButton
+                    type="button"
+                    variant="outline"
+                    loading={issuing === setup.id}
+                    disabled={setup.status !== "pending_activation"}
+                    onClick={() => void handleReference(setup.id)}
+                  >
+                    Generar referencia de activación
+                  </PillButton>
+                  {oneTimeSecret && qr && (
+                    <div className="flex flex-wrap items-center gap-3">
+                      <code
+                        data-testid="one-time-secret"
+                        className="break-all font-mono text-sm font-semibold"
+                      >
+                        {oneTimeSecret}
+                      </code>
+                      <img
+                        src={qr.image}
+                        alt={`QR de activación del gateway ${qr.gatewayId}`}
+                        width={110}
+                        height={110}
+                      />
+                      <PillButton type="button" variant="ghost" onClick={() => void handleCopyReference()}>
+                        Copiar
+                      </PillButton>
+                      <span className="text-[var(--text-muted)]">
+                        Caduca {new Date(qr.expiresAt).toLocaleString("es-MX")}
+                      </span>
+                    </div>
+                  )}
+                </div>
+              </details>
+            </BentoCard>
 
-            <div className="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+            <BentoCard>
+              <div className="flex flex-wrap items-start justify-between gap-3">
+                <div>
+                  <h2 className="text-lg font-semibold">4. Enlaza los nodos</h2>
+                  <p className="mt-1 max-w-3xl text-sm text-[var(--text-muted)]">
+                    En la pantalla del equipo (Instalación → Pasos 3 y 4) el técnico elige qué nodo
+                    físico va en cada parcela y confirma. Aquí ves el avance.
+                  </p>
+                </div>
+                <Link
+                  className="rounded-full border px-3 py-2 text-sm font-medium hover:bg-black/5"
+                  to={`/admin/gateways/${setup.id}`}
+                >
+                  Ver detalle completo
+                </Link>
+              </div>
+              <p className="mt-3 text-sm font-medium">
+                {setupConfirmed} de {setupSlots.length || setup.slots.length} parcela(s) reportando
+              </p>
+              <div className="mt-3 overflow-x-auto">
+                <table className="w-full text-left text-sm">
+                  <thead>
+                    <tr className="text-[var(--text-muted)]">
+                      <th className="py-2 pr-4">Parcela</th>
+                      <th className="py-2 pr-4">Nodo</th>
+                      <th className="py-2 pr-4">Estado</th>
+                      <th className="py-2 pr-4">Nodo físico</th>
+                      <th className="py-2">Última lectura</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {(setupSlots.length > 0 ? setupSlots : []).map((slot) => {
+                      const node = slotNodes[slot.irrigation_area_id];
+                      return (
+                        <tr key={slot.logical_node_id} className="border-t">
+                          <td className="py-2 pr-4">
+                            {node?.area_name || `Parcela ${slot.irrigation_area_id}`}
+                          </td>
+                          <td className="py-2 pr-4">{node?.name || "—"}</td>
+                          <td className="py-2 pr-4">
+                            {BINDING_LABELS[slot.binding_status] || slot.binding_status}
+                          </td>
+                          <td className="py-2 pr-4">{slot.bound_uid || "—"}</td>
+                          <td className="py-2">
+                            {slot.latest_reading_at
+                              ? formatElapsed(parseBackendTimestamp(slot.latest_reading_at))
+                              : "Sin lecturas"}
+                          </td>
+                        </tr>
+                      );
+                    })}
+                    {setupSlots.length === 0 && (
+                      <tr>
+                        <td className="py-3 text-[var(--text-muted)]" colSpan={5}>
+                          Esperando la configuración publicada del equipo…
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </BentoCard>
+          </>
+        )}
+
+        <section aria-labelledby="existing-links-title" className="space-y-3">
+          <h2 id="existing-links-title" className="text-lg font-semibold">
+            Enlaces existentes
+          </h2>
+          {loading ? (
+            <p>Cargando...</p>
+          ) : gateways.length === 0 ? (
+            <p className="text-[var(--text-muted)]">Todavía no hay ningún enlace creado.</p>
+          ) : (
+            gateways.map((gateway) => {
+              const status = statuses[gateway.id];
+              const total = gateway.slots.length;
+              const confirmed = confirmedCount(status);
+              const incomplete = isIncomplete(gateway, status);
+              return (
+                <BentoCard key={gateway.id}>
+                  <div className="flex flex-wrap items-center justify-between gap-3">
+                    <div>
+                      <p className="font-medium">{ranchLabel(gateway.property_id)}</p>
+                      <p className="text-sm text-[var(--text-muted)]">
+                        Enlace #{gateway.id} · {total} parcela(s) · configuración v
+                        {gateway.configuration_version}
+                      </p>
+                      <p className="mt-1 text-sm">
+                        {stateLabel(gateway, status)}
+                        {status ? ` · ${confirmed} de ${total} reportando` : ""}
+                      </p>
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                      {incomplete && (
+                        <PillButton
+                          type="button"
+                          onClick={() => {
+                            setSetup(gateway);
+                            void refreshSetup(gateway.id);
+                          }}
+                        >
+                          Continuar enlace
+                        </PillButton>
+                      )}
+                      <Link
+                        className="rounded-full border px-3 py-2 text-sm font-medium hover:bg-black/5"
+                        to={`/admin/gateways/${gateway.id}`}
+                      >
+                        Ver detalle
+                      </Link>
+                    </div>
+                  </div>
+                </BentoCard>
+              );
+            })
+          )}
+        </section>
+
+        <details className="text-sm">
+          <summary className="cursor-pointer text-[var(--text-muted)]">
+            Detalles técnicos (API)
+          </summary>
+          <BentoCard>
+            <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
               <article className="rounded-xl border p-3 text-sm">
                 <p className="font-medium">Administración</p>
                 <code className="mt-2 block break-all text-xs">POST /api/v1/gateways/{"{gateway_id}"}/configuration</code>
@@ -301,184 +745,22 @@ export function GatewayManagement() {
                 </p>
               </article>
               <article className="rounded-xl border p-3 text-sm">
-                <p className="font-medium">NDVI separado</p>
-                <code className="mt-2 block break-all text-xs">POST /api/v1/ndvi-snapshots</code>
-                <p className="mt-2 text-[var(--text-muted)]">NDVI se envía por separado; nunca forma parte de la telemetría.</p>
+                <p className="font-medium">Vinculación (emparejamiento)</p>
+                <code className="mt-2 block break-all text-xs">POST /api/v1/gateways/pairing-sessions/lookup</code>
+                <code className="mt-2 block break-all text-xs">POST /api/v1/gateways/pairing-sessions/{"{id}"}/approve</code>
+                <p className="mt-2 text-[var(--text-muted)]">El código se aprueba aquí; el dispositivo recibe su credencial en el siguiente sondeo.</p>
               </article>
             </div>
-          </section>
-        </BentoCard>
-        {error && <p className="text-[var(--status-danger)]">{error}</p>}
-        <BentoCard>
-          <form className="space-y-4" onSubmit={handleProvision}>
-            <div>
-              <h2 className="text-lg font-semibold">Provisionar un gateway</h2>
-              <p className="mt-1 text-sm text-[var(--text-muted)]">
-                Elige el predio y marca las áreas que serán ranuras (todas van en una sola llamada).
-                Cada área necesita al menos un nodo lógico activo antes de provisionar; si no, la API rechazará la operación.
-              </p>
-            </div>
-            <label className="block max-w-xl text-sm font-medium">
-              Predio
-              <select
-                aria-label="Predio"
-                className="mt-1 w-full rounded-xl border px-3 py-2"
-                value={selectedPropertyId}
-                onChange={(event) => setSelectedPropertyId(event.target.value)}
-              >
-                <option value="">Selecciona un predio…</option>
-                {properties.map((property) => {
-                  const occupied = gateways.some(
-                    (gateway) => gateway.property_id === property.id && gateway.status !== "revoked",
-                  );
-                  const company = clientNames.get(property.client_id);
-                  return (
-                    <option key={property.id} value={property.id} disabled={occupied}>
-                      {property.name}
-                      {company ? ` · ${company}` : ""}
-                      {occupied ? " (ya tiene gateway)" : ""}
-                    </option>
-                  );
-                })}
-              </select>
-            </label>
-            {selectedPropertyId && (
-              <fieldset>
-                <legend className="text-sm font-medium">Áreas del predio</legend>
-                {loadingAreas ? (
-                  <p className="mt-2 text-sm text-[var(--text-muted)]">Cargando áreas…</p>
-                ) : areas.length === 0 ? (
-                  <p className="mt-2 text-sm text-[var(--text-muted)]">
-                    Este predio todavía no tiene áreas. Créalas en Predios → Áreas.
-                  </p>
-                ) : (
-                  <div className="mt-2 grid gap-2 md:grid-cols-2">
-                    {areas.map((area) => {
-                      const node = nodesByArea[area.id];
-                      const hasActiveNode = Boolean(node?.is_active);
-                      return (
-                        <label
-                          key={area.id}
-                          className="flex items-start gap-3 rounded-xl border p-3 text-sm"
-                        >
-                          <input
-                            type="checkbox"
-                            aria-label={area.name}
-                            className="mt-1"
-                            checked={selectedAreaIds.includes(area.id)}
-                            disabled={!hasActiveNode}
-                            onChange={(event) =>
-                              setSelectedAreaIds((current) =>
-                                event.target.checked
-                                  ? [...current, area.id]
-                                  : current.filter((id) => id !== area.id),
-                              )
-                            }
-                          />
-                          <span>
-                            <span className="font-medium">{area.name}</span>
-                            {area.crop_type?.name ? (
-                              <span className="text-[var(--text-muted)]"> · {area.crop_type.name}</span>
-                            ) : null}
-                            <span className="mt-1 block text-xs text-[var(--text-muted)]">
-                              {hasActiveNode
-                                ? `Nodo: ${node?.name || node?.serial_number || "sin nombre"}`
-                                : "Sin nodo activo: asígnalo en Nodos antes de provisionar"}
-                            </span>
-                          </span>
-                        </label>
-                      );
-                    })}
-                  </div>
-                )}
-              </fieldset>
-            )}
-            <div className="flex flex-wrap items-center gap-3">
-              <PillButton type="submit" disabled={!selectedPropertyId || selectedAreaIds.length === 0}>
-                Provisionar
-              </PillButton>
-              <span className="text-sm text-[var(--text-muted)]">
-                {selectedAreaIds.length > 0
-                  ? `${selectedAreaIds.length} ranura(s) seleccionada(s)`
-                  : "Marca al menos un área"}
-              </span>
-            </div>
-          </form>
-        </BentoCard>
-        {oneTimeSecret && (
-          <BentoCard>
-            <div className="flex flex-wrap items-start justify-between gap-4">
-              <div>
-                <p className="text-sm font-medium text-[var(--text-muted)]">
-                  Referencia de activación (de un solo uso)
-                </p>
-                <code
-                  data-testid="one-time-secret"
-                  className="mt-2 block break-all font-mono text-lg font-semibold tracking-tight"
-                >
-                  {oneTimeSecret}
-                </code>
-                {qr && (
-                  <p className="mt-2 text-sm text-[var(--text-muted)]">
-                    Caduca el {new Date(qr.expiresAt).toLocaleString("es-MX")}. Generar otra invalida esta.
-                  </p>
-                )}
-              </div>
-              <PillButton type="button" variant="outline" onClick={() => void handleCopyReference()}>
-                Copiar referencia
-              </PillButton>
-            </div>
+            <p className="mt-3 text-sm text-[var(--text-muted)]">
+              La interfaz de campo (instalación, ranuras y confirmación) vive en la pantalla del
+              equipo Agro, no en esta web. La documentación de la API está en{" "}
+              <a className="underline" href="/api/v1/docs" rel="noreferrer" target="_blank">
+                Swagger
+              </a>
+              .
+            </p>
           </BentoCard>
-        )}
-        {qr && (
-          <BentoCard>
-            <div className="flex flex-wrap items-center gap-4">
-              <img src={qr.image} alt={`QR de activación del gateway ${qr.gatewayId}`} width={220} height={220} />
-              <div className="max-w-md text-sm text-[var(--text-body)]">
-                <p>QR del gateway #{qr.gatewayId}. Caduca {new Date(qr.expiresAt).toLocaleString("es-MX")}.</p>
-                <p className="mt-2">No contiene la credencial. Agro lo consume en campo y recibe la credencial una sola vez. Si generas otro, este deja de servir.</p>
-              </div>
-            </div>
-          </BentoCard>
-        )}
-        {loading ? (
-          <p>Cargando...</p>
-        ) : (
-          gateways.map((gateway) => (
-            <BentoCard key={gateway.id}>
-              <div className="flex flex-wrap items-center justify-between gap-3">
-                <div>
-                  <p>
-                    Gateway #{gateway.id} ·{" "}
-                    {propertyNames.get(gateway.property_id) || `Predio ${gateway.property_id}`}
-                  </p>
-                  <p className="text-sm text-[var(--text-muted)]">
-                    Config v{gateway.configuration_version} · {gateway.slots.length} slot(s)
-                  </p>
-                  <div className="mt-2">
-                    <GatewayStatusBadge status={gateway.status} />
-                  </div>
-                </div>
-                <div className="flex flex-wrap gap-2">
-                  <Link
-                    className="rounded-full border px-3 py-2 text-sm font-medium hover:bg-black/5"
-                    to={`/admin/gateways/${gateway.id}`}
-                  >
-                    Ver detalle
-                  </Link>
-                  {gateway.status === "pending_activation" && (
-                    <PillButton type="button" loading={issuing === gateway.id} onClick={() => void handleReference(gateway.id)}>
-                      Activación
-                    </PillButton>
-                  )}
-                  <PillButton type="button" onClick={() => void handlePublish(gateway.id)}>
-                    Publicar config
-                  </PillButton>
-                </div>
-              </div>
-            </BentoCard>
-          ))
-        )}
+        </details>
       </div>
     </PageTransition>
   );

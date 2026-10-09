@@ -131,6 +131,18 @@ it("hides the weather card when the service answers 503, keeping NDVI visible", 
   expect(screen.queryByRole("alert")).toBeNull();
 });
 
+it("shows a friendly note when the area has no NDVI snapshot yet", async () => {
+  const notFound = Object.assign(new Error("Latest NDVI snapshot not found"), {
+    isAxiosError: true,
+    response: { status: 404 },
+  });
+  mocks.get.mockImplementation((path: string) => path === "/ndvi-snapshots/latest" ? Promise.reject(notFound) : respond(path));
+  render(<ExternalDataCards areaId={12} />);
+
+  expect(await screen.findByText("Sin NDVI todavía para esta área.")).toBeTruthy();
+  expect(screen.queryByRole("alert")).toBeNull();
+});
+
 it("keeps sensors and NDVI visible when weather is unavailable, and retries the failed card", async () => {
   mocks.get.mockImplementation((path: string) => path === "/weather/current" ? Promise.reject(new Error("disabled")) : respond(path));
   render(<ClientDashboard />);

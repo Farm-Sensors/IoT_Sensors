@@ -12,15 +12,16 @@ function ObservationTime({ value }: { value: string }) {
   return date ? <time dateTime={date.toISOString()}>{date.toLocaleString("es-MX")}</time> : <>Sin fecha</>;
 }
 
-function SourceCard<T>({ areaId, path, title, hideWhenUnavailable = false, children }: {
+function SourceCard<T>({ areaId, path, title, hideWhenUnavailable = false, emptyMessage, children }: {
   areaId: number;
   path: string;
   title: string;
   hideWhenUnavailable?: boolean;
+  emptyMessage?: string;
   children: (data: T) => ReactNode;
 }) {
   const visible = usePageVisibility();
-  const [state, setState] = useState<{ data: T | null; error: boolean; unavailable: boolean } | null>(null);
+  const [state, setState] = useState<{ data: T | null; error: boolean; unavailable: boolean; empty: boolean } | null>(null);
   const [retry, setRetry] = useState(0);
   useEffect(() => {
     if (!visible) return;
@@ -31,11 +32,15 @@ function SourceCard<T>({ areaId, path, title, hideWhenUnavailable = false, child
       inFlight = true;
       try {
         const response = await api.get<T | null>(path, { params: { irrigation_area_id: areaId } });
-        if (!cancelled) setState({ data: response.data, error: false, unavailable: false });
+        if (!cancelled) setState({ data: response.data, error: false, unavailable: false, empty: false });
       } catch (error) {
         if (!cancelled) {
           const status = axios.isAxiosError(error) ? error.response?.status : undefined;
-          setState({ data: null, error: true, unavailable: status === 503 });
+          if (status === 404 && emptyMessage) {
+            setState({ data: null, error: false, unavailable: false, empty: true });
+          } else {
+            setState({ data: null, error: true, unavailable: status === 503, empty: false });
+          }
         }
       } finally {
         inFlight = false;
@@ -44,7 +49,7 @@ function SourceCard<T>({ areaId, path, title, hideWhenUnavailable = false, child
     void fetchData();
     const timer = window.setInterval(() => void fetchData(), DASHBOARD_REFRESH_MS);
     return () => { cancelled = true; window.clearInterval(timer); };
-  }, [areaId, path, visible, retry]);
+  }, [areaId, path, visible, retry, emptyMessage]);
 
   // A service that is disabled on purpose (503) is not an error the client can act on.
   if (state?.unavailable && hideWhenUnavailable) {
@@ -54,7 +59,9 @@ function SourceCard<T>({ areaId, path, title, hideWhenUnavailable = false, child
   return (
     <BentoCard>
       <h3 className="mb-3 text-lg text-[var(--text-title)]">{title}</h3>
-      {!state ? <p role="status">Cargando…</p> : state.error ? (
+      {!state ? <p role="status">Cargando…</p> : state.empty ? (
+        <p className="text-[var(--text-muted)]">{emptyMessage}</p>
+      ) : state.error ? (
         <div role="alert" className="text-[var(--status-danger)]">
           <p>No se pudo cargar {title.toLowerCase()}.</p>
           <button type="button" className="mt-2 underline" onClick={() => setRetry((value) => value + 1)}>Reintentar</button>
@@ -90,7 +97,7 @@ export function ExternalDataCards({ areaId }: { areaId: number }) {
             </div>
           )}
         </SourceCard>
-        <SourceCard<LatestNdvi> key={`ndvi-${areaId}`} areaId={areaId} path="/ndvi-snapshots/latest" title="NDVI puntual más reciente">
+        <SourceCard<LatestNdvi> key={`ndvi-${areaId}`} areaId={areaId} path="/ndvi-snapshots/latest" title="NDVI puntual más reciente" emptyMessage="Sin NDVI todavía para esta área.">
           {(ndvi) => (
             <div className="space-y-2 text-[var(--text-body)]">
               <p className="text-3xl font-mono-data">{ndvi.ndvi}</p>
