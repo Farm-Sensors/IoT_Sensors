@@ -1,3 +1,5 @@
+from decimal import Decimal
+
 from fastapi import HTTPException, status
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
@@ -88,3 +90,19 @@ def soft_delete_property(db: Session, property_id: int) -> Property:
     db.commit()
     db.refresh(prop)
     return prop
+
+
+def set_reference_location(
+    db: Session, property_id: int, latitude: float, longitude: float
+) -> None:
+    """Store the device-reported reference location of a property.
+
+    Called by the v2 ``location`` operation: the gateway reports the position the
+    technician configured on the device, so the property is georeferenced without
+    waiting for an IoT node with GPS.
+    """
+    prop = get_property(db, property_id)
+    quantum = Decimal("0.0000001")
+    prop.latitud = Decimal(str(latitude)).quantize(quantum)
+    prop.longitud = Decimal(str(longitude)).quantize(quantum)
+    db.commit()

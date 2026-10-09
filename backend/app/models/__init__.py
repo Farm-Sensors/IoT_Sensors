@@ -14,6 +14,7 @@ from app.models.audit_log import AuditLog
 from app.models.notification_preference import NotificationPreference
 from app.models.ai_report import AIReport
 from app.models.ndvi_snapshot import NDVILatestSnapshot
+from app.models.dashboard_preference import DashboardPreference
 
 from app.models.gateway import Gateway
 from app.models.activation_reference import ActivationReference
@@ -43,6 +44,7 @@ __all__ = [
     "NotificationPreference",
     "AIReport",
     "NDVILatestSnapshot",
+    "DashboardPreference",
     "Gateway",
     "ActivationReference",
     "PairingSession",

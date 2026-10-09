@@ -24,7 +24,9 @@ from app.services import binding as binding_service
 from app.services import gateway_config as configuration_service
 from app.services import gateway_heartbeat as heartbeat_service
 from app.services import gateway_update as update_service
+from app.services import property as property_service
 from app.models.gateway import Gateway
+from app.schemas.gateway_location import GatewayLocationCreate
 from app.schemas.gateway_status import GatewayStatusResponse
 from app.schemas.gateway_update import (
     UpdateAuthorizationCreate,
@@ -177,6 +179,22 @@ def gateway_heartbeat(
     if request.headers.get("content-length") not in (None, "0"):
         raise HTTPException(status_code=422, detail="Heartbeat must not include a body")
     heartbeat_service.record_heartbeat(db, gateway)
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
+
+
+@router.post("/me/location", status_code=status.HTTP_204_NO_CONTENT)
+def gateway_location(
+    payload: GatewayLocationCreate,
+    gateway: Gateway = Depends(validate_gateway_credential),
+    db: Session = Depends(get_db),
+):
+    """v2 ``location`` operation: the device reports its configured position."""
+    property_service.set_reference_location(
+        db,
+        gateway.predio_id,
+        payload.location.latitude,
+        payload.location.longitude,
+    )
     return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 

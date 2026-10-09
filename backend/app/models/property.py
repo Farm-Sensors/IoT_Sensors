@@ -1,4 +1,5 @@
-from sqlalchemy import ForeignKey, Index, Integer, String
+from decimal import Decimal
+from sqlalchemy import ForeignKey, Index, Integer, Numeric, String
 from typing import TYPE_CHECKING
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -23,6 +24,12 @@ class Property(Base, TimestampMixin, SoftDeleteMixin):
     nombre: Mapped[str] = mapped_column(String(150), nullable=False)
     ubicacion: Mapped[str | None] = mapped_column(
         String(255), nullable=True, default=None
+    )
+    latitud: Mapped[Decimal | None] = mapped_column(
+        Numeric(10, 7), nullable=True, default=None
+    )
+    longitud: Mapped[Decimal | None] = mapped_column(
+        Numeric(10, 7), nullable=True, default=None
     )
 
     gateway: Mapped["Gateway | None"] = relationship(

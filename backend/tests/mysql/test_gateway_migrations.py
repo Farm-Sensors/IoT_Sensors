@@ -62,6 +62,9 @@ def test_mysql_empty_upgrade_legacy_preservation_constraints_and_rollback(monkey
     try:
         command.upgrade(config, "head")
         assert TABLES <= set(inspect(engine).get_table_names())
+        assert "preferencias_dashboard" in inspect(engine).get_table_names()
+        property_columns = {column["name"] for column in inspect(engine).get_columns("predios")}
+        assert {"latitud", "longitud"} <= property_columns
         command.downgrade(config, PREVIOUS)
         assert not TABLES & set(inspect(engine).get_table_names())
         with engine.begin() as c:

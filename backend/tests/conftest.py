@@ -248,6 +248,8 @@ def sample_property(db, client_user):
         cliente_id=client_record.id,
         nombre="Rancho Test",
         ubicacion="Chihuahua, MX",
+        latitud=28.6320,
+        longitud=-106.0691,
     )
     db.add(prop)
     db.commit()

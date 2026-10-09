@@ -382,6 +382,21 @@ paths:
                 $ref: '#/components/schemas/HTTPValidationError'
       security:
       - OAuth2PasswordBearer: []
+  /api/v1/clients/me/dashboard-preferences:
+    get:
+      tags:
+      - Clients
+      summary: Get My Dashboard Preferences
+      operationId: get_my_dashboard_preferences_api_v1_clients_me_dashboard_preferences_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DashboardPreferencesResponse'
+      security:
+      - OAuth2PasswordBearer: []
   /api/v1/clients:
     get:
       tags:
@@ -529,6 +544,67 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ClientResponse'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/clients/{client_id}/dashboard-preferences:
+    get:
+      tags:
+      - Clients
+      summary: Get Dashboard Preferences
+      operationId: get_dashboard_preferences_api_v1_clients__client_id__dashboard_preferences_get
+      security:
+      - OAuth2PasswordBearer: []
+      parameters:
+      - name: client_id
+        in: path
+        required: true
+        schema:
+          type: integer
+          title: Client Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DashboardPreferencesResponse'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+    put:
+      tags:
+      - Clients
+      summary: Update Dashboard Preferences
+      operationId: update_dashboard_preferences_api_v1_clients__client_id__dashboard_preferences_put
+      security:
+      - OAuth2PasswordBearer: []
+      parameters:
+      - name: client_id
+        in: path
+        required: true
+        schema:
+          type: integer
+          title: Client Id
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DashboardPreferencesUpdate'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DashboardPreferencesResponse'
         '422':
           description: Validation Error
           content:
@@ -1132,6 +1208,37 @@ paths:
           - type: string
           - type: 'null'
           title: X-Api-Key
+      responses:
+        '204':
+          description: Successful Response
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/gateways/me/location:
+    post:
+      tags:
+      - Gateways
+      summary: Gateway Location
+      description: 'v2 ``location`` operation: the device reports its configured position.'
+      operationId: gateway_location_api_v1_gateways_me_location_post
+      parameters:
+      - name: X-API-Key
+        in: header
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: X-Api-Key
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GatewayLocationCreate'
       responses:
         '204':
           description: Successful Response
@@ -4795,6 +4902,35 @@ components:
           title: Description
       type: object
       title: CropTypeUpdate
+    DashboardPreferencesResponse:
+      properties:
+        client_id:
+          type: integer
+          title: Client Id
+        cards:
+          anyOf:
+          - items:
+              type: string
+            type: array
+          - type: 'null'
+          title: Cards
+      type: object
+      required:
+      - client_id
+      - cards
+      title: DashboardPreferencesResponse
+    DashboardPreferencesUpdate:
+      properties:
+        cards:
+          items:
+            type: string
+          type: array
+          title: Cards
+      additionalProperties: false
+      type: object
+      required:
+      - cards
+      title: DashboardPreferencesUpdate
     EnvironmentalData:
       properties:
         temperature:
@@ -4982,6 +5118,35 @@ components:
       - bindings_revision
       - slots
       title: GatewayDetailResponse
+    GatewayLocation:
+      properties:
+        latitude:
+          type: number
+          maximum: 90.0
+          minimum: -90.0
+          title: Latitude
+        longitude:
+          type: number
+          maximum: 180.0
+          minimum: -180.0
+          title: Longitude
+      additionalProperties: false
+      type: object
+      required:
+      - latitude
+      - longitude
+      title: GatewayLocation
+    GatewayLocationCreate:
+      properties:
+        location:
+          $ref: '#/components/schemas/GatewayLocation'
+      additionalProperties: false
+      type: object
+      required:
+      - location
+      title: GatewayLocationCreate
+      description: 'Body of the v2 ``location`` operation: the device reports where
+        it is installed.'
     GatewayProvision:
       properties:
         property_id:
@@ -6484,6 +6649,16 @@ components:
           - type: string
           - type: 'null'
           title: Location
+        latitude:
+          anyOf:
+          - type: number
+          - type: 'null'
+          title: Latitude
+        longitude:
+          anyOf:
+          - type: number
+          - type: 'null'
+          title: Longitude
         created_at:
           type: string
           format: date-time

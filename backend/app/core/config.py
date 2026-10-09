@@ -52,8 +52,10 @@ class Settings(BaseSettings):
     MAX_PAGE_SIZE: int = 200
 
     # --- Open-Meteo weather ---
+    # Defaults target the free keyless API. A commercial endpoint (base URL plus
+    # OPEN_METEO_API_KEY) is still supported by setting both explicitly.
     OPEN_METEO_ENABLED: bool = False
-    OPEN_METEO_BASE_URL: str = "https://customer-api.open-meteo.com"
+    OPEN_METEO_BASE_URL: str = "https://api.open-meteo.com"
     OPEN_METEO_API_KEY: str = ""
     OPEN_METEO_HTTP_TIMEOUT_SECONDS: int = 10
     OPEN_METEO_CACHE_TTL_MINUTES: int = 15

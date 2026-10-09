@@ -13,7 +13,7 @@ from app.core.config import settings
 from app.core.deps import get_current_user
 from app.db.session import get_db
 from app.models.irrigation_area import IrrigationArea
-from app.models.node import Node
+from app.models.property import Property
 from app.models.user import User
 from app.schemas.weather import WeatherResponse
 from app.services.weather import (
@@ -79,17 +79,12 @@ def _get_area(user: User, db: Session, area_id: int) -> IrrigationArea:
     return area
 
 
-def _get_coordinates(db: Session, area_id: int) -> tuple[float, float]:
-    node = db.execute(
-        select(Node).where(
-            Node.area_riego_id == area_id,
-            Node.activo.is_(True),
-            Node.eliminado_en.is_(None),
-        )
-    ).scalar_one_or_none()
+def _get_coordinates(db: Session, area: IrrigationArea) -> tuple[float, float]:
+    """Resolve the property's reference location (reported by the gateway)."""
+    prop = db.get(Property, area.predio_id)
     try:
-        latitude = float(node.latitud) if node and node.latitud is not None else None
-        longitude = float(node.longitud) if node and node.longitud is not None else None
+        latitude = float(prop.latitud) if prop and prop.latitud is not None else None
+        longitude = float(prop.longitud) if prop and prop.longitud is not None else None
     except (TypeError, ValueError):
         latitude = longitude = None
     if (
@@ -102,7 +97,7 @@ def _get_coordinates(db: Session, area_id: int) -> tuple[float, float]:
     ):
         raise HTTPException(
             status.HTTP_409_CONFLICT,
-            "Irrigation area has no active IoT node with usable GPS coordinates",
+            "Property has no reference location yet",
         )
     return latitude, longitude
 
@@ -115,7 +110,7 @@ async def get_current_weather(
     weather_service: WeatherService = Depends(get_weather_service),
 ):
     area = _get_area(current_user, db, irrigation_area_id)
-    latitude, longitude = _get_coordinates(db, area.id)
+    latitude, longitude = _get_coordinates(db, area)
     try:
         return await weather_service.get_weather(latitude, longitude)
     except (WeatherDisabledError, WeatherConfigurationError) as exc:

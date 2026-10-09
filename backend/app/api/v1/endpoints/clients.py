@@ -13,7 +13,12 @@ from app.schemas.client import (
     ClientResponse,
     ClientUpdate,
 )
+from app.schemas.dashboard_preferences import (
+    DashboardPreferencesResponse,
+    DashboardPreferencesUpdate,
+)
 from app.services import client as client_service
+from app.services import dashboard_preferences as preferences_service
 
 router = APIRouter()
 
@@ -45,6 +50,20 @@ def update_my_notification_settings(
     )
     return ClientNotificationSettingsResponse(
         notifications_enabled=updated.notificaciones_habilitadas
+    )
+
+
+@router.get(
+    "/me/dashboard-preferences", response_model=DashboardPreferencesResponse
+)
+def get_my_dashboard_preferences(
+    current_client: Client = Depends(get_current_client),
+    db: Session = Depends(get_db),
+):
+    row = preferences_service.get_preferences(db, current_client.id)
+    return DashboardPreferencesResponse(
+        client_id=current_client.id,
+        cards=list(row.tarjetas) if row is not None else None,
     )
 
 
@@ -103,3 +122,35 @@ def delete_client(
 ):
     client = client_service.soft_delete_client(db, client_id)
     return ClientResponse.model_validate(client)
+
+
+@router.get(
+    "/{client_id}/dashboard-preferences", response_model=DashboardPreferencesResponse
+)
+def get_dashboard_preferences(
+    client_id: int,
+    _admin: User = Depends(require_admin),
+    db: Session = Depends(get_db),
+):
+    client_service.get_client(db, client_id)
+    row = preferences_service.get_preferences(db, client_id)
+    return DashboardPreferencesResponse(
+        client_id=client_id,
+        cards=list(row.tarjetas) if row is not None else None,
+    )
+
+
+@router.put(
+    "/{client_id}/dashboard-preferences", response_model=DashboardPreferencesResponse
+)
+def update_dashboard_preferences(
+    client_id: int,
+    payload: DashboardPreferencesUpdate,
+    _admin: User = Depends(require_admin),
+    db: Session = Depends(get_db),
+):
+    client_service.get_client(db, client_id)
+    row = preferences_service.upsert_preferences(db, client_id, payload.cards)
+    return DashboardPreferencesResponse(
+        client_id=client_id, cards=list(row.tarjetas)
+    )

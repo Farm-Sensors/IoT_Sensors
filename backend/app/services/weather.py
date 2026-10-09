@@ -85,8 +85,8 @@ class OpenMeteoAdapter:
     async def fetch(
         self, latitude: float, longitude: float, fetched_at: datetime
     ) -> WeatherResponse:
-        if not self._base_url or not self._api_key:
-            raise WeatherConfigurationError("commercial Open-Meteo configuration is missing")
+        if not self._base_url:
+            raise WeatherConfigurationError("Open-Meteo base URL is missing")
         params: dict[str, object] = {
             "latitude": latitude,
             "longitude": longitude,
@@ -97,8 +97,9 @@ class OpenMeteoAdapter:
             "wind_speed_unit": "kmh",
             "precipitation_unit": "mm",
             "forecast_days": 1,
-            "apikey": self._api_key,
         }
+        if self._api_key:
+            params["apikey"] = self._api_key
         try:
             response = await self._client.get(
                 f"{self._base_url}/v1/forecast", params=params, timeout=self._timeout

@@ -1,10 +1,11 @@
 from datetime import UTC, date, datetime
+from decimal import Decimal
 
 import pytest
 
 from app.api.v1.endpoints.weather import get_weather_service
 from app.main import app
-from app.models import Client, IrrigationArea, Node, Property
+from app.models import Client, IrrigationArea, Property
 from app.schemas.weather import (
     WeatherCoordinates,
     WeatherCurrent,
@@ -68,8 +69,8 @@ def _get(client, headers, area_id):
     return client.get(f"{PATH}?irrigation_area_id={area_id}", headers=headers)
 
 
-def test_admin_gets_weather_from_node_static_gps(
-    client, admin_headers, sample_irrigation_area, sample_node
+def test_admin_gets_weather_from_property_location(
+    client, admin_headers, sample_irrigation_area, sample_property
 ):
     service = _Service()
     _inject(service)
@@ -82,8 +83,23 @@ def test_admin_gets_weather_from_node_static_gps(
     assert service.calls == [(28.632, -106.0691)]
 
 
+def test_property_location_wins_over_node_gps(
+    client, db, admin_headers, sample_irrigation_area, sample_node
+):
+    sample_node.latitud = 10.0
+    sample_node.longitud = 10.0
+    db.flush()
+    service = _Service()
+    _inject(service)
+
+    response = _get(client, admin_headers, sample_irrigation_area.id)
+
+    assert response.status_code == 200
+    assert service.calls == [(28.632, -106.0691)]
+
+
 def test_client_gets_weather_for_owned_area(
-    client, client_headers, sample_irrigation_area, sample_node
+    client, client_headers, sample_irrigation_area, sample_property
 ):
     service = _Service()
     _inject(service)
@@ -131,33 +147,28 @@ def test_foreign_missing_and_inactive_areas_are_hidden(
     assert service.calls == []
 
 
-@pytest.mark.parametrize("node_state", ["missing", "missing-gps", "inactive"])
-def test_area_without_usable_active_node_returns_conflict(
-    client, db, admin_headers, sample_irrigation_area, node_state
+@pytest.mark.parametrize("property_state", ["missing", "out-of-range"])
+def test_property_without_usable_location_returns_conflict(
+    client, db, admin_headers, sample_irrigation_area, sample_property, sample_node, property_state
 ):
-    if node_state != "missing":
-        db.add(
-            Node(
-                area_riego_id=sample_irrigation_area.id,
-                api_key=f"weather-{node_state}",
-                latitud=None if node_state == "missing-gps" else 28.6,
-                longitud=-106.1,
-                activo=node_state != "inactive",
-            )
-        )
-        db.flush()
+    if property_state == "missing":
+        sample_property.latitud = None
+        sample_property.longitud = None
+    else:
+        sample_property.latitud = Decimal("99.0")
+    db.flush()
     service = _Service()
     _inject(service)
 
     response = _get(client, admin_headers, sample_irrigation_area.id)
 
     assert response.status_code == 409
-    assert "usable GPS" in response.json()["detail"]
+    assert response.json()["detail"] == "Property has no reference location yet"
     assert service.calls == []
 
 
 def test_default_disabled_runtime_service_returns_503(
-    client, admin_headers, sample_irrigation_area, sample_node
+    client, admin_headers, sample_irrigation_area, sample_property
 ):
     first = get_weather_service()
     response = _get(client, admin_headers, sample_irrigation_area.id)
@@ -169,23 +180,23 @@ def test_default_disabled_runtime_service_returns_503(
 @pytest.mark.parametrize(
     ("error", "expected_status"),
     [
-        (WeatherConfigurationError("missing commercial config"), 503),
+        (WeatherConfigurationError("missing provider config"), 503),
         (WeatherUnavailableError("upstream unavailable"), 502),
     ],
 )
 def test_weather_failures_map_to_gateway_statuses(
-    client, admin_headers, sample_irrigation_area, sample_node, error, expected_status
+    client, admin_headers, sample_irrigation_area, sample_property, error, expected_status
 ):
     _inject(_Service(error=error))
 
     response = _get(client, admin_headers, sample_irrigation_area.id)
 
     assert response.status_code == expected_status
-    assert "commercial config" not in response.text
+    assert "provider config" not in response.text
 
 
 def test_stale_fallback_remains_successful(
-    client, admin_headers, sample_irrigation_area, sample_node
+    client, admin_headers, sample_irrigation_area, sample_property
 ):
     _inject(_Service(response=_weather("stale")))
 
