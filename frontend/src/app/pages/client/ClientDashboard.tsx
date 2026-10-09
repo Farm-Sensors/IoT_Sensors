@@ -1,6 +1,6 @@
 import { ChevronDown, Database } from "lucide-react";
 import { MetricSkeletonGrid } from "../../components/MetricSkeleton";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useAuth } from "../../context/AuthContext";
 import { useSelection } from "../../context/SelectionContext";
 import { useIsMobile } from "../../hooks/useIsMobile";
@@ -11,12 +11,18 @@ import { FreshnessIndicator } from "../../components/FreshnessIndicator";
 import { GatewayStatusBadge } from "../../components/GatewayStatusBadge";
 import { usePropertyGatewayStatus } from "../../hooks/usePropertyGatewayStatus";
 import type { PaginatedResponse, ReadingResponse } from "../../types/api";
+import {
+  getClientDashboardPreferences,
+  getMyDashboardPreferences,
+  type DashboardCardKey,
+} from "../../services/dashboardPreferences";
 import { toCurrentReadings, toChartReadings, type ChartReading } from "./dashboard/readings";
 import { ExternalDataCards } from "./dashboard/ExternalDataCards";
 import {
   DASHBOARD_REFRESH_MS,
   defaultSemaphore,
   getConnectionState,
+  resolveVisibleCards,
   type PriorityKey,
   type PriorityStatusItem,
   type SemaphoreLevel,
@@ -50,9 +56,48 @@ export function ClientDashboard() {
   const [retry, setRetry] = useState(0);
   const [, tick] = useState(0);
   const activeSnapshot = snapshot?.areaId === areaId ? snapshot : null;
-  const loading = Boolean(areaId && !activeSnapshot);
   const currentReadings = toCurrentReadings(activeSnapshot?.reading ?? null);
   const connectionState = getConnectionState(currentReadings.lastUpdate);
+
+  // Preferencias de dashboard: el cliente las resuelve en /clients/me; el admin,
+  // para el cliente del predio seleccionado. Si no hay configuración o la llamada
+  // falla, `cards` queda en null y se aplica la regla automática.
+  const isAdmin = user?.rol === "admin";
+  // Solo el admin depende del cliente del predio seleccionado; así el cliente no
+  // vuelve a pedir sus preferencias cada vez que cambia el predio.
+  const preferencesClientId = isAdmin ? (selectedProperty?.client_id ?? null) : null;
+  const [cards, setCards] = useState<DashboardCardKey[] | null>(null);
+  const [preferencesResolved, setPreferencesResolved] = useState(false);
+  const loading = Boolean(areaId && (!activeSnapshot || !preferencesResolved));
+
+  useEffect(() => {
+    let cancelled = false;
+    setPreferencesResolved(false);
+    const loadPreferences = async () => {
+      try {
+        const preferences = !isAdmin
+          ? await getMyDashboardPreferences()
+          : preferencesClientId != null
+            ? await getClientDashboardPreferences(preferencesClientId)
+            : null;
+        if (!cancelled) setCards(preferences?.cards ?? null);
+      } catch {
+        // Sin preferencias disponibles (403, red, etc.): nunca romper el dashboard.
+        if (!cancelled) setCards(null);
+      } finally {
+        if (!cancelled) setPreferencesResolved(true);
+      }
+    };
+    void loadPreferences();
+    return () => {
+      cancelled = true;
+    };
+  }, [isAdmin, preferencesClientId]);
+
+  const visibleCards = useMemo(
+    () => resolveVisibleCards(cards, activeSnapshot?.reading ?? null),
+    [cards, activeSnapshot],
+  );
 
   useEffect(() => {
     const timer = window.setInterval(() => tick((value) => value + 1), DASHBOARD_REFRESH_MS);
@@ -198,6 +243,7 @@ export function ClientDashboard() {
               currentReadings={currentReadings}
               prioritySemaphore={activeSnapshot.semaphore}
               connectionState={connectionState}
+              visibleCards={visibleCards}
             />
           ) : (
             <DesktopDashboard
@@ -207,9 +253,12 @@ export function ClientDashboard() {
               connectionState={connectionState}
               gatewayStatus={gatewayStatus?.status}
               gatewayEdgeStatus={gatewayStatus?.edge_status}
+              visibleCards={visibleCards}
             />
           )}
-          <ExternalDataCards key={selectedArea.id} areaId={selectedArea.id} />
+          {visibleCards.has("sources.external") && (
+            <ExternalDataCards key={selectedArea.id} areaId={selectedArea.id} />
+          )}
         </>
       )}
     </div>

@@ -34,6 +34,7 @@ import { AuditLogsPage } from "./pages/admin/AuditLogsPage";
 import { ClientManagement } from "./pages/admin/ClientManagement";
 import { CropCycleManagement } from "./pages/admin/CropCycleManagement";
 import { CropTypeManagement } from "./pages/admin/CropTypeManagement";
+import { DashboardPreferences } from "./pages/admin/DashboardPreferences";
 import { IrrigationAreaManagement } from "./pages/admin/IrrigationAreaManagement";
 import { NodeDetail } from "./pages/admin/NodeDetail";
 import { GatewayManagement } from "./pages/admin/GatewayManagement";
@@ -187,6 +188,10 @@ export const router = createBrowserRouter([
               {
                 path: "clientes/:clientId/predios",
                 Component: PropertyManagement,
+              },
+              {
+                path: "clientes/:clientId/dashboard",
+                Component: DashboardPreferences,
               },
               {
                 path: "predios/:predioId/areas",

@@ -13,6 +13,7 @@ import {
   type PriorityKey,
   type SemaphoreLevel,
 } from "./helpers";
+import type { DashboardCardKey } from "../../../services/dashboardPreferences";
 import { SemaphorePill } from "./SemaphorePill";
 
 export function DesktopDashboard({
@@ -22,6 +23,7 @@ export function DesktopDashboard({
   connectionState,
   gatewayStatus,
   gatewayEdgeStatus,
+  visibleCards,
 }: {
   historicalData: ChartReading[];
   currentReadings: CurrentReadings;
@@ -29,6 +31,7 @@ export function DesktopDashboard({
   connectionState: ConnectionState;
   gatewayStatus?: string | null;
   gatewayEdgeStatus?: string | null;
+  visibleCards: Set<DashboardCardKey>;
 }) {
   const irrigationDisplayState = getIrrigationDisplayState(
     currentReadings.irrigationActive,
@@ -41,6 +44,7 @@ export function DesktopDashboard({
   return (
     <div className="grid grid-cols-12 gap-6">
       {/* Priority Data - Dark Cards (Row 1) */}
+      {visibleCards.has("priority.humidity") && (
       <div className="col-span-12 xl:col-span-4">
         <MetricCard
           title="Humedad del Suelo"
@@ -81,7 +85,9 @@ export function DesktopDashboard({
           </div>}
         </MetricCard>
       </div>
+      )}
 
+      {visibleCards.has("priority.flow") && (
       <div className="col-span-12 xl:col-span-4">
         <MetricCard
           title="Flujo de Agua"
@@ -115,7 +121,9 @@ export function DesktopDashboard({
           </p>
         </MetricCard>
       </div>
+      )}
 
+      {visibleCards.has("priority.eto") && (
       <div className="col-span-12 xl:col-span-4">
         <MetricCard
           title="E.T.O."
@@ -131,8 +139,10 @@ export function DesktopDashboard({
           </div>
         </MetricCard>
       </div>
+      )}
 
       {/* Irrigation Status (Row 2) */}
+      {visibleCards.has("irrigation.status") && (
       <div className="col-span-12 xl:col-span-4 animate-stagger-1">
         <BentoCard variant="sand">
           <div className="flex items-start justify-between mb-4">
@@ -167,8 +177,10 @@ export function DesktopDashboard({
           </div>
         </BentoCard>
       </div>
+      )}
 
       {/* Soil Metrics (Row 2) */}
+      {visibleCards.has("soil.details") && (
       <div className="col-span-12 xl:col-span-8">
         <BentoCard variant="light">
           <h3 className="text-lg text-[var(--text-main)] mb-4">Suelo</h3>
@@ -197,8 +209,10 @@ export function DesktopDashboard({
           </div>
         </BentoCard>
       </div>
+      )}
 
       {/* Chart (Row 3) */}
+      {visibleCards.has("soil.chart") && (
       <div className="col-span-12 xl:col-span-8 row-span-2 animate-stagger-3">
         <BentoCard variant="light" className="h-full">
           <h3 className="text-lg text-[var(--text-main)] mb-6">
@@ -262,8 +276,10 @@ export function DesktopDashboard({
           )}
         </BentoCard>
       </div>
+      )}
 
       {/* Environmental Metrics (Row 3-4) */}
+      {visibleCards.has("environmental.details") && (
       <div className="col-span-12 xl:col-span-4">
         <BentoCard variant="light" className="h-full">
           <h3 className="text-lg text-[var(--text-main)] mb-4">Ambiental</h3>
@@ -326,6 +342,7 @@ export function DesktopDashboard({
           </div>
         </BentoCard>
       </div>
+      )}
     </div>
   );
 }

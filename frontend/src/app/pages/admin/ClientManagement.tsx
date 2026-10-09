@@ -1,4 +1,4 @@
-import { ChevronRight, Pencil, Plus, Search, Trash2, Users, XCircle } from "lucide-react";
+import { ChevronRight, LayoutDashboard, Pencil, Plus, Search, Trash2, Users, XCircle } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Link } from "react-router";
 import { BentoCard } from "../../components/BentoCard";
@@ -210,6 +210,9 @@ export function ClientManagement() {
                        <Link to={`/admin/clientes/${client.id}/predios`}>
                          <PillButton variant="outline" className="px-3 py-1 text-xs">Predios <ChevronRight className="w-3 h-3 ml-1" /></PillButton>
                        </Link>
+                       <Link to={`/admin/clientes/${client.id}/dashboard`}>
+                         <PillButton variant="outline" className="px-3 py-1 text-xs">Dashboard <LayoutDashboard className="w-3 h-3 ml-1" /></PillButton>
+                       </Link>
                        <PillButton
                          variant="outline"
                          className="px-3 py-1 text-xs border-[var(--status-danger)]/40 text-[var(--status-danger)] hover:bg-[var(--status-danger-bg)]"
@@ -270,6 +273,9 @@ export function ClientManagement() {
               </PillButton>
               <Link to={`/admin/clientes/${client.id}/predios`}>
                  <PillButton variant="outline" className="w-full justify-center">Ver Predios <ChevronRight className="w-4 h-4 ml-1" /></PillButton>
+              </Link>
+              <Link to={`/admin/clientes/${client.id}/dashboard`}>
+                 <PillButton variant="outline" className="w-full justify-center">Dashboard <LayoutDashboard className="w-4 h-4 ml-1" /></PillButton>
               </Link>
             </div>
             <div className="mt-2">

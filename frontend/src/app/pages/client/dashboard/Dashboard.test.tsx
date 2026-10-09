@@ -8,6 +8,10 @@ import { ExternalDataCards } from "./ExternalDataCards";
 import { FreshnessIndicator } from "../../../components/FreshnessIndicator";
 import { defaultSemaphore, getConnectionState } from "./helpers";
 import { toChartReadings, toCurrentReadings } from "./readings";
+import {
+  DASHBOARD_CARD_KEYS,
+  type DashboardCardKey,
+} from "../../../services/dashboardPreferences";
 import type { ReadingResponse } from "../../../types/api";
 import weatherFresh from "../../../../../../docs/integration/frontend-evidence/weather-current-fresh-200.json";
 import weatherStale from "../../../../../../docs/integration/frontend-evidence/weather-current-stale-200.json";
@@ -61,6 +65,23 @@ function respond(path: string) {
   }
   return Promise.reject(new Error(`Unexpected request ${path}`));
 }
+
+function withDashboardCards(cards: DashboardCardKey[] | null) {
+  return (path: string) => {
+    if (path === "/clients/me/dashboard-preferences") {
+      return Promise.resolve({ data: { client_id: 1, cards } });
+    }
+    return respond(path);
+  };
+}
+
+const soilOnlyReading: ReadingResponse = {
+  id: 5, node_id: 1, timestamp: "2026-09-16T12:00:00Z",
+  soil: { humidity: 42, temperature: 21, conductivity: 1.2, water_potential: -0.4 },
+  irrigation: { active: null, accumulated_liters: null, flow_per_minute: null },
+  environmental: { temperature: null, relative_humidity: null, wind_speed: null, solar_radiation: null, eto: null },
+};
+
 beforeEach(() => {
   mocks.get.mockReset().mockImplementation(respond);
   mocks.selection.selectedArea = mocks.selection.areas[0];
@@ -76,7 +97,7 @@ it("preserves missing values and measured zeros in chart data without mutating r
 
 describe.each([DesktopDashboard, MobileDashboard])("telemetry layout", (Layout) => {
   it("renders priority metrics, all units and unknown irrigation independently of false", () => {
-    const props = { historicalData: [], currentReadings: toCurrentReadings(reading), prioritySemaphore: defaultSemaphore, connectionState: "online" as const };
+    const props = { historicalData: [], currentReadings: toCurrentReadings(reading), prioritySemaphore: defaultSemaphore, connectionState: "online" as const, visibleCards: new Set<DashboardCardKey>(DASHBOARD_CARD_KEYS) };
     const { rerender } = render(<Layout {...props} />);
     for (const title of ["Humedad del Suelo", "Flujo de Agua", "E.T.O."]) expect(screen.getByText(title)).toBeTruthy();
     for (const unit of ["%", "L/min", "mm/día", "dS/m", "MPa"]) expect(screen.getAllByText(unit).length).toBeGreaterThan(0);
@@ -131,7 +152,7 @@ it("hides the weather card when the service answers 503, keeping NDVI visible", 
   expect(screen.queryByRole("alert")).toBeNull();
 });
 
-it("explains when the weather needs node GPS instead of showing an error", async () => {
+it("explains when the weather needs the property location instead of showing an error", async () => {
   const noCoordinates = Object.assign(new Error("Irrigation area has no active IoT node with usable GPS coordinates"), {
     isAxiosError: true,
     response: { status: 409 },
@@ -139,7 +160,7 @@ it("explains when the weather needs node GPS instead of showing an error", async
   mocks.get.mockImplementation((path: string) => path === "/weather/current" ? Promise.reject(noCoordinates) : respond(path));
   render(<ExternalDataCards areaId={12} />);
 
-  expect(await screen.findByText(/todavía no tiene GPS/i)).toBeTruthy();
+  expect(await screen.findByText(/el predio todavía no tiene ubicación/i)).toBeTruthy();
   expect(screen.queryByRole("alert")).toBeNull();
 });
 
@@ -205,10 +226,58 @@ it("does not label missing telemetry as optimal when priority status defaults to
       { parameter: "irrigation.flow_per_minute", level: "optimal" },
       { parameter: "environmental.eto", level: "optimal" },
     ] } });
+    if (path === "/clients/me/dashboard-preferences") return Promise.resolve({ data: { client_id: 1, cards: [...DASHBOARD_CARD_KEYS] } });
     return respond(path);
   });
   render(<ClientDashboard />);
   await screen.findByText("Humedad del Suelo");
   expect(screen.queryByText("Óptimo")).toBeNull();
   expect(screen.getAllByText("Sin datos de umbral")).toHaveLength(3);
+});
+
+describe("dashboard card preferences", () => {
+  it("shows only the cards with data when there is no configuration", async () => {
+    mocks.get.mockImplementation((path: string) => {
+      if (path === "/readings/latest") return Promise.resolve({ data: soilOnlyReading });
+      return withDashboardCards(null)(path);
+    });
+    render(<ClientDashboard />);
+
+    expect(await screen.findByText("Humedad del Suelo")).toBeTruthy();
+    expect(screen.getByText("Suelo")).toBeTruthy();
+    expect(screen.getByText("Humedad del Suelo - Últimas 12 lecturas")).toBeTruthy();
+    expect(screen.queryByText("Flujo de Agua")).toBeNull();
+    expect(screen.queryByText("E.T.O.")).toBeNull();
+    expect(screen.queryByText("Estado del Riego")).toBeNull();
+    expect(screen.queryByText("Ambiental")).toBeNull();
+  });
+
+  it("shows exactly the configured cards and hides data-backed cards outside the list", async () => {
+    mocks.get.mockImplementation(withDashboardCards(["priority.humidity", "priority.flow"]));
+    render(<ClientDashboard />);
+
+    expect(await screen.findByText("Humedad del Suelo")).toBeTruthy();
+    expect(screen.getByText("Flujo de Agua")).toBeTruthy();
+    // E.T.O. tiene dato en la lectura (eto: 0) pero no está en la lista.
+    expect(screen.queryByText("E.T.O.")).toBeNull();
+    expect(screen.queryByText("Estado del Riego")).toBeNull();
+    expect(screen.queryByText("Suelo")).toBeNull();
+    expect(screen.queryByText("Humedad del Suelo - Últimas 12 lecturas")).toBeNull();
+    expect(screen.queryByText("Ambiental")).toBeNull();
+    expect(screen.queryByText("Fuentes externas")).toBeNull();
+  });
+
+  it("falls back to the automatic rule when the preferences request fails", async () => {
+    mocks.get.mockImplementation((path: string) => {
+      if (path === "/clients/me/dashboard-preferences") return Promise.reject(new Error("preferences unavailable"));
+      if (path === "/readings/latest") return Promise.resolve({ data: soilOnlyReading });
+      return respond(path);
+    });
+    render(<ClientDashboard />);
+
+    expect(await screen.findByText("Humedad del Suelo")).toBeTruthy();
+    expect(screen.queryByText("Flujo de Agua")).toBeNull();
+    expect(screen.queryByText("Estado del Riego")).toBeNull();
+    expect(screen.queryByText("Ambiental")).toBeNull();
+  });
 });

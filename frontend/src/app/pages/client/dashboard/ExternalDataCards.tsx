@@ -77,7 +77,7 @@ export function ExternalDataCards({ areaId }: { areaId: number }) {
     <section aria-label="Fuentes externas" className="mt-6">
       <h2 className="mb-4 text-xl text-[var(--text-title)]">Fuentes externas</h2>
       <div className="grid gap-4 md:grid-cols-2">
-        <SourceCard<WeatherCurrent> key={`weather-${areaId}`} areaId={areaId} path="/weather/current" title="Clima de referencia" hideWhenUnavailable emptyMessage="Sin clima de referencia: el nodo de esta parcela todavía no tiene GPS (se captura al registrar el nodo)." emptyStatuses={[409]}>
+        <SourceCard<WeatherCurrent> key={`weather-${areaId}`} areaId={areaId} path="/weather/current" title="Clima de referencia" hideWhenUnavailable emptyMessage="Sin clima de referencia: el predio todavía no tiene ubicación (la reporta el equipo al vincularse)." emptyStatuses={[409]}>
           {(weather) => (
             <div className="space-y-2 text-[var(--text-body)]">
               <p>Fuente: {weather.provider} · {weather.cache_state === "fresh" ? "Datos actuales" : "Datos en caché sin actualizar"}</p>
