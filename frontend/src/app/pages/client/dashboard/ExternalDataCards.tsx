@@ -12,12 +12,13 @@ function ObservationTime({ value }: { value: string }) {
   return date ? <time dateTime={date.toISOString()}>{date.toLocaleString("es-MX")}</time> : <>Sin fecha</>;
 }
 
-function SourceCard<T>({ areaId, path, title, hideWhenUnavailable = false, emptyMessage, children }: {
+function SourceCard<T>({ areaId, path, title, hideWhenUnavailable = false, emptyMessage, emptyStatuses = [404], children }: {
   areaId: number;
   path: string;
   title: string;
   hideWhenUnavailable?: boolean;
   emptyMessage?: string;
+  emptyStatuses?: number[];
   children: (data: T) => ReactNode;
 }) {
   const visible = usePageVisibility();
@@ -36,7 +37,7 @@ function SourceCard<T>({ areaId, path, title, hideWhenUnavailable = false, empty
       } catch (error) {
         if (!cancelled) {
           const status = axios.isAxiosError(error) ? error.response?.status : undefined;
-          if (status === 404 && emptyMessage) {
+          if (status !== undefined && emptyMessage && emptyStatuses.includes(status)) {
             setState({ data: null, error: false, unavailable: false, empty: true });
           } else {
             setState({ data: null, error: true, unavailable: status === 503, empty: false });
@@ -76,7 +77,7 @@ export function ExternalDataCards({ areaId }: { areaId: number }) {
     <section aria-label="Fuentes externas" className="mt-6">
       <h2 className="mb-4 text-xl text-[var(--text-title)]">Fuentes externas</h2>
       <div className="grid gap-4 md:grid-cols-2">
-        <SourceCard<WeatherCurrent> key={`weather-${areaId}`} areaId={areaId} path="/weather/current" title="Clima de referencia" hideWhenUnavailable>
+        <SourceCard<WeatherCurrent> key={`weather-${areaId}`} areaId={areaId} path="/weather/current" title="Clima de referencia" hideWhenUnavailable emptyMessage="Sin clima de referencia: el nodo de esta parcela todavía no tiene GPS (se captura al registrar el nodo)." emptyStatuses={[409]}>
           {(weather) => (
             <div className="space-y-2 text-[var(--text-body)]">
               <p>Fuente: {weather.provider} · {weather.cache_state === "fresh" ? "Datos actuales" : "Datos en caché sin actualizar"}</p>

@@ -131,6 +131,18 @@ it("hides the weather card when the service answers 503, keeping NDVI visible", 
   expect(screen.queryByRole("alert")).toBeNull();
 });
 
+it("explains when the weather needs node GPS instead of showing an error", async () => {
+  const noCoordinates = Object.assign(new Error("Irrigation area has no active IoT node with usable GPS coordinates"), {
+    isAxiosError: true,
+    response: { status: 409 },
+  });
+  mocks.get.mockImplementation((path: string) => path === "/weather/current" ? Promise.reject(noCoordinates) : respond(path));
+  render(<ExternalDataCards areaId={12} />);
+
+  expect(await screen.findByText(/todavía no tiene GPS/i)).toBeTruthy();
+  expect(screen.queryByRole("alert")).toBeNull();
+});
+
 it("shows a friendly note when the area has no NDVI snapshot yet", async () => {
   const notFound = Object.assign(new Error("Latest NDVI snapshot not found"), {
     isAxiosError: true,
