@@ -70,6 +70,8 @@ def test_poll_auth_is_scoped_and_304_requires_both_exact_revisions(
         }
     ]
     assert first.json()["binding_overlay"]["slots"][0]["binding_status"] == "unbound"
+    area = db.get(IrrigationArea, slot.area_riego_id)
+    assert first.json()["binding_overlay"]["slots"][0]["area_name"] == area.nombre
     assert first.json()["cloud_status"] == "never_seen"
     assert first.json()["edge_status"] == EDGE_STATUS["never_seen"] == "pending"
     assert contract_errors(

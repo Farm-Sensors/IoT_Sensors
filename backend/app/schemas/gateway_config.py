@@ -29,6 +29,7 @@ class BindingOverlaySlot(BaseModel):
     slot_id: int
     logical_node_id: int
     irrigation_area_id: int
+    area_name: str | None = None
     binding_status: str
     current_binding: BindingMetadata | None = None
     pending_binding: BindingMetadata | None = None

@@ -6,7 +6,7 @@ from fastapi import HTTPException
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
-from app.models import Gateway, GatewayConfig, GatewaySlot, HardwareProfile, PhysicalBinding
+from app.models import Gateway, GatewayConfig, GatewaySlot, HardwareProfile, IrrigationArea, PhysicalBinding
 from app.services.gateway_heartbeat import EDGE_STATUS, compute_gateway_status
 
 
@@ -86,8 +86,21 @@ def _binding(record: PhysicalBinding | None) -> dict | None:
 
 
 def _overlay(db: Session, gateway: Gateway, snapshot: dict) -> dict:
+    configured_slots = snapshot.get("slots", [])
+    area_ids = {slot["irrigation_area_id"] for slot in configured_slots}
+    area_names = (
+        dict(
+            db.execute(
+                select(IrrigationArea.id, IrrigationArea.nombre).where(
+                    IrrigationArea.id.in_(area_ids)
+                )
+            ).all()
+        )
+        if area_ids
+        else {}
+    )
     result = []
-    for configured_slot in snapshot.get("slots", []):
+    for configured_slot in configured_slots:
         slot_id = configured_slot["slot_id"]
         rows = list(
             db.scalars(
@@ -111,6 +124,7 @@ def _overlay(db: Session, gateway: Gateway, snapshot: dict) -> dict:
                 "slot_id": slot_id,
                 "logical_node_id": configured_slot["logical_node_id"],
                 "irrigation_area_id": configured_slot["irrigation_area_id"],
+                "area_name": area_names.get(configured_slot["irrigation_area_id"]),
                 "binding_status": binding_status,
                 "current_binding": _binding(current),
                 "pending_binding": _binding(pending),

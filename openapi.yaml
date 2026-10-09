@@ -4486,6 +4486,11 @@ components:
         irrigation_area_id:
           type: integer
           title: Irrigation Area Id
+        area_name:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Area Name
         binding_status:
           type: string
           title: Binding Status
