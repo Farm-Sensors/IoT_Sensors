@@ -54,18 +54,24 @@ Las columnas `API Key` de las tablas siguientes listan las claves de nodo **lega
 
 ---
 
-## 🧪 Laboratorio de integración (estado 2026-10-08)
+## 🧪 Laboratorio de integración (estado 2026-10-09)
 
 Estado vivo del laboratorio. El detalle narrativo está en [`integration/README.md`](integration/README.md)
 y, para el dispositivo, en Agro.io `docs/integration/v2-release-line.md`.
 
 | Pieza | Dónde | Notas |
 |---|---|---|
-| Cloud (API + dashboard) | `http://10.32.81.230:3022` | Dokploy, compose `iot-sensors`; pairing **encendido** (`GATEWAY_PAIRING_ENABLED=true`, base de verificación por IP:puerto) |
-| Raspberry (gateway real) | `10.32.90.229` (`agroio@`) | release `2.0.0-alpha.12`, `mode: demo` con `demo_nodes: 4`, gateway 12 / predio **Rancho del Valle** (parcelas 24–27 `Nogal Alto/Alfalfa Baja/Manzana Loma/Maíz Llano`, nodos `mesh-DEMO01..04`) |
+| Cloud (API + dashboard) | `http://10.32.81.230:3022` | Dokploy, compose `iot-sensors`; pairing **encendido** (`GATEWAY_PAIRING_ENABLED=true`, base de verificación por IP:puerto) y clima de referencia encendido con la API gratuita (`OPEN_METEO_ENABLED=true`, base URL `https://api.open-meteo.com` sin clave) |
+| Raspberry (gateway real) | `10.32.90.229` (`agroio@`) | release `2.0.0-alpha.13`, `mode: demo` con `demo_nodes: 4`, gateway 12 / predio **Rancho del Valle** (parcelas 24–27 `Nogal Alto/Alfalfa Baja/Manzana Loma/Maíz Llano`, nodos `mesh-DEMO01..04`); reporta su ubicación de referencia (`POST /gateways/me/location`) en cada latido |
 | Pantalla del appliance (visor) | `http://10.32.90.229:6080/vnc.html` | Xvfb + noVNC sobre la BD viva; **reiniciar `agroio-ui-webviewer` después de instalar una release**, o la pantalla muestra el build anterior |
 | Receptor de referencia | `http://10.32.81.230:8090/` | stand-in del backend del cliente para `http_sync` |
 | Fuente de demo | contenedor `iot-demo-simulator` en el servidor | ver abajo |
+
+### Ubicación de referencia y tarjetas del dashboard (estado 2026-10-09)
+
+- **Ubicación de referencia del predio**: la captura el técnico en la pantalla del equipo (*Ubicación*) y Agro la reporta al cloud con la operación v2 `location` (revisión 4 del contrato) en el mismo ciclo del latido; el cloud la guarda en `predios.latitud/longitud` y el detalle del predio la muestra. Es la que alimenta el clima de referencia; el GPS del nodo ya no hace falta.
+- **Clima de referencia**: la tarjeta del dashboard pide Open-Meteo por la ubicación del predio (API gratuita). Con `OPEN_METEO_ENABLED=false` la tarjeta se oculta; sin ubicación en el predio responde 409 y la tarjeta explica que falta (la reporta el equipo).
+- **Tarjetas configurables por cliente**: el admin elige en *Clientes → (cliente) → Dashboard* qué tarjetas ve ese cliente (8 claves: 3 prioritarias, riego, suelo, gráfica, ambiental y fuentes externas). Sin configurar, el dashboard muestra **solo las tarjetas cuyos datos existen** en la última lectura (es el estado por defecto del laboratorio).
 
 Historial de la Pi: gateway 7 / predio 8 (`Raspberry Campo`, 3 ranuras) → gateway 10 / predio 11
 (`Rancho Prueba`, 4 ranuras) → gateway 11 / predio 12 (`Rancho Nuevo`, 4 ranuras) → gateway 12 /
@@ -139,6 +145,8 @@ Ventanas: **(A)** pantalla del equipo `http://10.32.90.229:6080/vnc.html` · **(
    email/contraseña del cliente nuevo → predio → parcela → humedad, «hace un momento» y «Gateway
    conectado»; el *Histórico* y el export CSV/XLSX/PDF quedan disponibles.
 
+8. **Configura las tarjetas del cliente** (ventana B, admin): *Clientes → (el cliente nuevo) → Dashboard* → marcar las tarjetas que debe ver (p. ej. Humedad del Suelo, Suelo, Gráfica de humedad, Fuentes externas) → *Guardar*. Entrando como ese cliente, el dashboard muestra **exactamente** esas. Si se deja **sin configurar** (estado por defecto), muestra solo las tarjetas con datos: en modo demo el equipo entrega suelo, así que Humedad/Suelo/Gráfica aparecen y Flujo/E.T.O./Ambiental no. La tarjeta *Clima de referencia* aparece cuando el predio ya tiene ubicación (la reportó el equipo al vincularse).
+
 Notas: el código caduca en 10 min (en la pantalla «Reintentar»); la pantalla se duerme sola (un
 toque la despierta); el equipo toma datos cada 10 s, consulta configuración cada 60 s y late cada
 5 min; los datos son simulados por el equipo (modo demo: suelo sí, riego y ambiente quedan «Sin
@@ -152,3 +160,5 @@ el NDVI de parcelas nuevas aparece si se repunta el mapeo del equipo (`--set-ndv
 3. NDVI del widget (último punto Sentinel-2 con escena y nubosidad reales).
 4. Admin `admin@sensores.com` / `admin123` → `/admin/gateways` (asistente de enlace) y `/admin/gateways/pair`.
 5. Pantalla del appliance por el visor: gateway activa, nodos detectados, ranuras y el paso de pairing con QR y código.
+6. Tarjetas configurables: admin → *Clientes → (cliente) → Dashboard* → guardar una selección y verla como cliente; dejarla sin configurar para el modo automático (solo lo que tiene datos).
+7. Ubicación y clima: el predio del equipo (Rancho del Valle) ya tiene la ubicación que reportó la Raspberry; la tarjeta *Clima de referencia* del dashboard la usa. Para verlo en otro predio, capturar el punto en la pantalla del equipo (*Ubicación*) y esperar el siguiente latido.
