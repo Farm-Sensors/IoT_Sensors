@@ -62,13 +62,15 @@ y, para el dispositivo, en Agro.io `docs/integration/v2-release-line.md`.
 | Pieza | Dónde | Notas |
 |---|---|---|
 | Cloud (API + dashboard) | `http://10.32.81.230:3022` | Dokploy, compose `iot-sensors`; pairing **encendido** (`GATEWAY_PAIRING_ENABLED=true`, base de verificación por IP:puerto) |
-| Raspberry (gateway real) | `10.32.90.229` (`agroio@`) | release `2.0.0-alpha.8`, `mode: demo` con `demo_nodes: 0` (demo silencioso), gateway 7 / predio **Raspberry Campo** |
+| Raspberry (gateway real) | `10.32.90.229` (`agroio@`) | release `2.0.0-alpha.11`, `mode: demo` con `demo_nodes: 4`, gateway 11 / predio **Rancho Nuevo** (áreas 20–23 `Parcela Norte/Sur/Este/Oeste`, nodos `mesh-DEMO01..04`) |
 | Pantalla del appliance (visor) | `http://10.32.90.229:6080/vnc.html` | Xvfb + noVNC sobre la BD viva; **reiniciar `agroio-ui-webviewer` después de instalar una release**, o la pantalla muestra el build anterior |
 | Receptor de referencia | `http://10.32.81.230:8090/` | stand-in del backend del cliente para `http_sync` |
 | Fuente de demo | contenedor `iot-demo-simulator` en el servidor | ver abajo |
 
-Ranuras publicadas en la gateway 7 (todas `confirmed`): área 11 `parcela-pi` (nodo lógico 11),
-área 13 `DEMO02` (13) y área 14 `Nogal Norte` (14). Las lecturas de demo entran por esas tres.
+Historial de la Pi: gateway 7 / predio 8 (`Raspberry Campo`, 3 ranuras) → gateway 10 / predio 11
+(`Rancho Prueba`, 4 ranuras, 9/10) → gateway 11 / predio 12 (`Rancho Nuevo`, 4 ranuras, 9/10). Los
+predios anteriores conservan sus datos; el contenedor de demo sigue alimentando las 3 áreas del predio 8
+con la credencial de gateway 7 (nunca revocada).
 
 ### Fuente de demo (simulador)
 
