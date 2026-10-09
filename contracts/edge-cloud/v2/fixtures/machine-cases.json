@@ -1922,5 +1922,48 @@
       }
     },
     "valid": true
+  },
+  {
+    "name": "location",
+    "operation": "location",
+    "request": {
+      "headers": {
+        "X-API-Key": "<gateway-credential>",
+        "Content-Type": "application/json"
+      },
+      "body": {
+        "location": {
+          "latitude": 28.6739,
+          "longitude": -106.0793
+        }
+      },
+      "path_parameters": {}
+    },
+    "response": {
+      "status": 204,
+      "body": null
+    },
+    "valid": true
+  },
+  {
+    "name": "location-missing-longitude",
+    "operation": "location",
+    "request": {
+      "headers": {
+        "X-API-Key": "<gateway-credential>",
+        "Content-Type": "application/json"
+      },
+      "body": {
+        "location": {
+          "latitude": 28.6739
+        }
+      },
+      "path_parameters": {}
+    },
+    "response": {
+      "status": 204,
+      "body": null
+    },
+    "valid": false
   }
 ]

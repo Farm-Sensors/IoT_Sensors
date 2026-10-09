@@ -349,5 +349,34 @@
       "required": [],
       "properties": {}
     }
+  },
+  "location": {
+    "method": "POST",
+    "path": "/api/v1/gateways/me/location",
+    "headers": "machine.schema.json#/$defs/jsonHeaders",
+    "request": "machine.schema.json#/$defs/locationRequest",
+    "responses": {
+      "204": null
+    },
+    "errors": [
+      401,
+      403,
+      422,
+      429,
+      500,
+      502,
+      503,
+      504
+    ],
+    "error": "machine.schema.json#/$defs/error",
+    "identity": null,
+    "retry": "Safe. Updates the property's reference location only; no history row.",
+    "scope": "Authenticated active gateway; the device reports its configured position.",
+    "path_parameters": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [],
+      "properties": {}
+    }
   }
 }

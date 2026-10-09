@@ -23,6 +23,7 @@ OPERATIONS = {
     "updateConfirmation",
     "pairingStart",
     "pairingToken",
+    "location",
 }
 PLACEHOLDERS = {
     "<gateway-credential>": "gk_contract_test_only",
