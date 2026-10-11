@@ -5,6 +5,26 @@ Actúa como un arquitecto de software y desarrollador Senior. Estoy construyendo
 - RESTRICCIÓN: No diseñes ni implementes **nuevas** funcionalidades de Inteligencia Artificial (Azure OpenAI), n8n, ni agentes autónomos. **Nota de estado:** el código de Fase 2 (IA, alertas de umbral/inactividad, notificaciones email/WhatsApp, password reset, auditoría) **ya existe implementado**, pero está **dormido detrás de flags (OFF por defecto)** — ver sección 4 y `ALERTS_ENABLED`/`AI_ASSISTANT_ENABLED`/`AI_REPORTS_ENABLED` en `backend/app/core/config.py`. No lo borres ni lo expandas sin autorización; el MVP corre con todos esos flags apagados (los schedulers requieren `docker compose --profile phase2 up`).
 - **FASE 2 BLOQUEADA HASTA NUEVO AVISO.** No diseñes, implementes ni *actives* funcionalidad de Fase 2: ni código nuevo, ni encender sus flags (`ALERTS_ENABLED`, `NOTIFICATIONS_*`, `AI_*`, `AZURE_OPENAI_ENABLED`), ni arrancar el perfil `phase2`. El código existente se queda dormido tal como está. Reactivar requiere autorización explícita del dueño de la integración. Las excepciones vigentes, aprobadas por el dueño, son el NDVI de último punto y la tarjeta de clima de referencia por predio (`OPEN_METEO_ENABLED` con la API gratuita), descritas abajo.
 
+### Documentación y memoria (obligatorio)
+
+Cada cambio —nuevo, eliminado o de diseño— se documenta en el repo que corresponda **y** se registra
+en memoria (Engram) antes de dar el trabajo por terminado. Un cambio sin documentación no está
+terminado.
+
+- **Dónde.** IoT_Sensors: `docs/` (`system.md` es la fuente de verdad del "cómo funciona"; `api.md`,
+  `data-model.md`, `operations.md`, `deployment.md`, `test-data.md` para datos y estado del
+  laboratorio). Agro.io: `docs/` y `docs/integration/` (p. ej. `v2-release-line.md`,
+  `release-channels.md`, `iot-sensors.md`). Contratos: `contracts/edge-cloud/v2/README.md` con su nota
+  de revisión y `SHA256SUMS`; en Agro, `contracts/iot-sensors/SOURCE.md` con commit y digest.
+- **Qué.** Todo lo que cambie de comportamiento, esquema, endpoints, flags, contratos, versiones de
+  release, configuración del equipo o estado del laboratorio. Si un doc describe algo que ya no
+  existe, se corrige o se borra: los docs reflejan el estado **actual** del sistema (el histórico vive
+  en git y en memoria).
+- **Memoria.** Al cerrar un bloque de trabajo: guardar en Engram qué se hizo, por qué, dónde y qué se
+  aprendió, y un resumen de sesión cuando la sesión termina.
+- **Alcance:** aplica a los dos sistemas (IoT_Sensors y Agro.io) y al appliance, aunque el cambio
+  parezca pequeño o sea solo de configuración o de datos del laboratorio.
+
 ### Approved integration-week override
 
 The latest **point-sampled NDVI** result from Agro.io is approved as a bounded integration addition. It MUST use the separate `contracts/edge-cloud/v2/ndvi.schema.json` event and MUST NOT become a thirteenth telemetry field. Polygon/history NDVI remains deferred. All other Phase 2 restrictions in this file remain unchanged. How the system works: `docs/system.md`. Integration: `docs/integration/README.md`.
