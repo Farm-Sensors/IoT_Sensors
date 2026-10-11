@@ -28,9 +28,9 @@ Ambos entran a un dashboard vacío: no hay predios, áreas, nodos ni lecturas.
 - **Canales stable/beta**: el equipo puede cambiar de release en un comando
   (`sudo /opt/agroio/channel/agroio-channel.sh --switch beta|stable`). Cambiar de canal guarda y
   aplica la configuración de cada uno (perfiles en `/etc/agroio/profiles/`) y enciende/apaga el visor
-  noVNC: en estable queda apagado (interfaz más ligera) y en beta encendido. Detalles en
-  [`../Agro.io-v2/docs/integration/release-channels.md`](../../Agro.io-v2/docs/integration/release-channels.md)
-  (repo Agro.io, rama `integration/iot-v2`). Hay paquetes de ambos canales en `/opt/agroio/packages/`.
+  noVNC: en estable queda apagado (interfaz más ligera) y en beta encendido. Detalles en el repo
+  Agro.io, rama `integration/iot-v2`: `docs/integration/release-channels.md`. Hay paquetes de ambos
+  canales en `/opt/agroio/packages/`.
 - Modo **demo silencioso** (`demo_nodes: 0`): no fabrica datos; el carril v2 sigue vivo (latido y consulta de configuración) para cuando la vincules.
 - **Se conserva el histórico del sensor real**: equipos `H4EBF` y `H845D` (puerto `/dev/serial/by-id/usb-Arduino_CatWan_USBStick2040_613863E6332233A3-if00`) con **50 970 mediciones** (8 jul → 15 sep 2026), **8 495 lecturas crudas** y **16 512 alertas**. Los 4 nodos demo (`DEMO01..04`) y sus datos se eliminaron.
 - Configuración (`/etc/agroio/agent.json`) intacta: puerto serie, umbrales (humedad < 20, temperatura > 35), `http_sync` al receptor del laboratorio y `cloud_lane: v2`. Respaldos automáticos de config en `/etc/agroio/backups/`.
