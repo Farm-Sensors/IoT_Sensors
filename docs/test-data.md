@@ -24,11 +24,11 @@ Ambos entran a un dashboard vacío: no hay predios, áreas, nodos ni lecturas.
 
 ## 🍓 Raspberry de pruebas (`10.32.90.229`, `agroio@`)
 
-- Corre la línea **estable de Agro (`0.9.5`, desde `main`)** y está **sin gateway vinculado**.
+- Corre el **canal beta** de Agro (**`2.0.0-alpha.24`**, línea `integration/iot-v2`) y está **sin gateway vinculado**. Para volver a estable: `sudo /opt/agroio/channel/agroio-channel.sh --switch stable`.
 - **Canales stable/beta**: el equipo puede cambiar de release en un comando
   (`sudo /opt/agroio/channel/agroio-channel.sh --switch beta|stable`). Cambiar de canal guarda y
   aplica la configuración de cada uno (perfiles en `/etc/agroio/profiles/`) y enciende/apaga el visor
-  noVNC: en estable queda apagado (interfaz más ligera) y en beta encendido. Detalles en el repo
+  noVNC: en estable queda apagado (interfaz más ligera) y en beta encendido — **hoy está encendido**. Detalles en el repo
   Agro.io, rama `integration/iot-v2`: `docs/integration/release-channels.md`. Hay paquetes de ambos
   canales en `/opt/agroio/packages/`.
 - Modo **demo silencioso** (`demo_nodes: 0`): no fabrica datos; el carril v2 sigue vivo (latido y consulta de configuración) para cuando la vincules.
