@@ -1,5 +1,7 @@
 # Documentación — Guía General
 
+**Estado actual de los sistemas (qué falta, qué está en verificación):** [`status.md`](status.md).
+
 **Cómo funciona el sistema hoy:** empieza por [`docs/system.md`](system.md). Ese archivo es la fuente de verdad del flujo gateway v2 (Agro.io → IoT_Sensors). Si un SRS o diagrama viejo contradice `system.md`, gana `system.md`.
 
 El resto se organiza en **tres capas**:
