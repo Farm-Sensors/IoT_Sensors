@@ -35,7 +35,7 @@ GPS, cultivo y tamaño **no** van en cada lectura. NDVI **no** es un campo 13: e
 
 ## Instalación de un rancho
 
-1. Un **administrador** prepara en IoT_Sensors cliente, predio y áreas (puede usar plantillas globales) y en *Gateways* elige el predio y sus áreas → **Crear enlace**. Esa sola operación crea el **nodo lógico** de cada área que aún no lo tiene ("Nodo <área>"), **aprovisiona el gateway** del predio (queda `pending_activation`) y **publica su configuración** (versión 1), lista para que el equipo la lea en cuanto se vincule. Registrar nodos a mano en *Nodos* sigue siendo opcional (nombre, GPS). Publicar de nuevo (`POST /gateways/{id}/configuration`) solo hace falta para enlaces creados antes de este cambio.
+1. Un **administrador** prepara en IoT_Sensors cliente, predio y áreas (puede usar plantillas globales) y en *Equipos* elige el predio y sus áreas de riego → **Crear enlace**. Esa sola operación crea el **nodo lógico** de cada área que aún no lo tiene ("Nodo <área>") y restaura el que se haya eliminado (mismo id, conserva sus lecturas), **aprovisiona el gateway** del predio (queda `pending_activation`) y **publica su configuración** (versión 1), lista para que el equipo la lea en cuanto se vincule. Registrar nodos a mano en *Nodos* sigue siendo opcional (nombre, GPS). Publicar de nuevo (`POST /gateways/{id}/configuration`) solo hace falta para enlaces creados antes de este cambio.
 2. **Emparejamiento (camino principal).** Con `GATEWAY_PAIRING_ENABLED` activa, la Raspberry muestra en su pantalla un **código corto** (`XXXX-XXXX`, 10 min) y un QR; el **administrador** aprueba la sesión desde su móvil o escritorio en IoT_Sensors (`/pair`) contra el gateway ya aprovisionado. El dispositivo obtiene su credencial al consultar el token. La pareja de operaciones de máquina (`pairing-sessions`, `pairing-sessions/token`) es **sin credencial** y está oculta del OpenAPI (`backend/app/api/v1/endpoints/gateway_pairing.py`); toda la superficie vive detrás de la flag, **OFF por defecto**.
 3. **Respaldo: referencia de activación.** Igual que antes, un administrador puede emitir un **código/QR de un solo uso, 24 h** (`ar_`) y el **técnico** consumirlo en la Raspberry (pantalla Agro local, con internet al activar) vía `POST /api/v1/gateways/activate`. Sigue siendo válido y no cambia.
 4. Agro detecta hardware por **UID/serie inmutable**. El **técnico elige el área/slot**; el core **no infiere el área desde el UID** ni desde ningún código de emparejamiento: aprobar una sesión solo liga la sesión a un gateway ya existente, nunca crea predio, área, nodo ni vínculo.
@@ -82,8 +82,9 @@ El admin **autoriza** una imagen (versión + digest). El técnico **confirma** e
 
 ## Frontend cloud
 
-- Admin: `/admin/gateways` (asistente de tres pasos: 1. elegir el rancho y sus parcelas — crea el enlace, los nodos que falten y deja lista la configuración —, 2. vincular la Raspberry aprobando su código, con la referencia de activación como respaldo, y 3. ver los nodos enlazados; el enlace en curso queda en la URL, `?gateway=N`, así que recargar o volver no lo pierde) y `/admin/gateways/pair` (aprobar/denegar una sesión de emparejamiento por su código; `/pair` redirige allí). También configura, **por cliente**, qué tarjetas ve ese cliente en su dashboard (`/admin/clientes/{id}/dashboard`).
-- Cliente: ve estado simple del gateway junto a la frescura de datos; su dashboard muestra las tarjetas configuradas y, si no hay configuración, **solo las tarjetas cuyos datos existen**.
+- Vocabulario de pantalla (panel, dashboard y pantalla del equipo): la Raspberry con Agro (técnicamente el *gateway*) se llama **equipo** y la zona con un cultivo y un nodo es el **área de riego** (o solo **área**); "gateway" solo aparece en los detalles técnicos de la API.
+- Admin: menú **Equipos**, `/admin/gateways` (asistente de tres pasos: 1. elegir el rancho y sus áreas de riego — crea el enlace, los nodos que falten y deja lista la configuración —, 2. vincular el equipo aprobando el código de su pantalla (*Instalación → Paso 1* → «Vincular equipo»), con la referencia de activación como respaldo, y 3. ver los nodos enlazados, que el técnico asigna en la pantalla del equipo (*Pasos 3 y 4* → «Enviar asignaciones»); el enlace en curso queda en la URL, `?gateway=N`, así que recargar o volver no lo pierde) y `/admin/gateways/pair` (aprobar/denegar una sesión de emparejamiento por su código; `/pair` redirige allí). También configura, **por cliente**, qué tarjetas ve ese cliente en su dashboard (`/admin/clientes/{id}/dashboard`).
+- Cliente: ve estado simple del equipo ("Equipo conectado", "Equipo retrasado"…) junto a la frescura de datos; su dashboard muestra las tarjetas configuradas y, si no hay configuración, **solo las tarjetas cuyos datos existen**.
 - Tarjeta "Clima de referencia": pronóstico Open-Meteo para la **ubicación del predio** (API gratuita sin clave); si el predio aún no tiene ubicación, la tarjeta no se muestra.
 - No se muestran secretos ni API keys de nodo.
 
@@ -109,14 +110,14 @@ credenciales en `test-data.md`; puertas de la integración en `integration/READM
   Raspberry con el radio virtual.
 - **Agro (appliance)**: `main` en `0e98cf6` (tag `0.9.4`, producción, canal **stable**) y
   `integration/iot-v2` en `c241a15` (canal **beta**). La Raspberry de pruebas corre **beta
-  `2.0.0-alpha.27`** (rama `feat/install-screen-clarity`, PR #23 apilado sobre #22), `mode:
+  `2.0.0-alpha.29`** (rama `feat/install-screen-clarity`, PR #23 apilado sobre #22), `mode:
   serial` leyendo un **radio virtual** (tramas reales de `H845D` renombradas a `RPL01`, una cada
   10 min), vinculada a la gateway 21. Datos reales conservados (`H845D`, `H4EBF`: 50 972
   mediciones); ningún nodo físico transmite desde el 15 sep.
 - **Integración con sensores reales**: verificada el 2026-10-26 con **tramas reales** del log de la
   Raspberry, reproducidas por el agente `alpha.25` instalado en la propia Raspberry (workspace
   aislado) contra el cloud: pairing por código → detección de `mesh-H845D` y `mesh-H4EBF` → dos
-  ranuras confirmadas → 30 lecturas `201` con los valores exactos de la trama → ubicación del
+  áreas confirmadas → 30 lecturas `201` con los valores exactos de la trama → ubicación del
   predio → dashboard del cliente (última lectura, prioridades y clima). Antes, 9 346 tramas reales
   pasaron el esquema v2. Las tres correcciones de `alpha.25`: no enviar lecturas sin ningún valor
   (firmware viejo), usar el reloj del agente cuando la trama no trae hora, y calcular la humedad
@@ -127,10 +128,12 @@ credenciales en `test-data.md`; puertas de la integración en `integration/READM
   canal.
 - **Flujo de producto completo sin nodo físico** (2026-10-26): con el radio virtual, el servicio
   real del agente, la pantalla *Instalación* del equipo, el panel admin y el dashboard del cliente:
-  admin crea predio y área y, en *Gateways*, el enlace (nodo y configuración incluidos) → técnico vincula con el código → `mesh-RPL01`
-  aparece detectado → se asigna a su ranura y la nube confirma → el cliente ve humedad, suelo,
-  frescura, "Gateway conectado" y clima. Funciona de punta a punta; los puntos de usabilidad están
-  en el pendiente 9.
+  admin crea predio y área y, en *Equipos*, el enlace (nodo y configuración incluidos) → técnico vincula con el código → `mesh-RPL01`
+  aparece detectado → se asigna a su área y la nube confirma → el cliente ve humedad, suelo,
+  frescura, "Equipo conectado" y clima. Funciona de punta a punta. Los puntos de usabilidad de ese
+  recorrido quedaron corregidos el mismo día: panel en 3 pasos con vocabulario "equipo" / "área de
+  riego" (este repo) y pantalla *Instalación* clara en Agro `alpha.29` (PRs #22 y #23), verificada
+  en el equipo.
 
 **Pendientes / a pulir**
 
@@ -151,15 +154,6 @@ credenciales en `test-data.md`; puertas de la integración en `integration/READM
    apagado).
 8. Limpieza menor: `demo-node-01` inactivo, `C0` no habilitado, paquetes locales acumulados, log del
    agente de 44 MB con "heartbeat not sent" cada 5 s cuando no hay gateway.
-9. **Usabilidad** (recorrido del 2026-10-26). Pantalla del equipo: el nodo que transmite aparece
-   "Sin señal / Aún sin lecturas" porque aún no está autorizado localmente; tras vincular se ven
-   los IDs (gateway 21 / propiedad 20) en vez del nombre del rancho y sigue visible la referencia de
-   activación con un aviso viejo; la configuración llega hasta 60 s después de vincular ("No hay
-   ranuras…"); el contador del código no dice "expira en"; estados en inglés/código
-   (`pending_initial`, `confirmed`); textos técnicos ("encola una candidatura", "configuración
-   cacheada"); fecha en inglés; el scroll no cuenta como actividad para el protector. Panel admin:
-   el equipo no reporta
-   hostname/versión al pedir el código.
 
 ## Dónde leer más
 

@@ -46,8 +46,8 @@ describe("NodeManagement", () => {
         return Promise.resolve({
           data: {
             data: [
-              { id: 1, property_id: 10, name: "Parcela Norte" },
-              { id: 2, property_id: 11, name: "Parcela Norte" },
+              { id: 1, property_id: 10, name: "Área Norte" },
+              { id: 2, property_id: 11, name: "Área Norte" },
             ],
           },
         });
@@ -73,13 +73,13 @@ describe("NodeManagement", () => {
   it("names each area with its ranch and explains the optional fields", async () => {
     render(<NodeManagement />);
 
-    expect(await screen.findByText("Parcela Norte · Rancho Dos")).toBeInTheDocument();
+    expect(await screen.findByText("Área Norte · Rancho Dos")).toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: /nuevo nodo/i }));
 
     const area = screen.getByLabelText("Área de Riego (Obligatorio)");
     expect(area).toHaveDisplayValue("Seleccione un área");
-    expect(screen.getByRole("option", { name: "Parcela Norte · Rancho Uno" })).toBeInTheDocument();
-    expect(screen.getByRole("option", { name: "Parcela Norte · Rancho Dos" })).toBeInTheDocument();
+    expect(screen.getByRole("option", { name: "Área Norte · Rancho Uno" })).toBeInTheDocument();
+    expect(screen.getByRole("option", { name: "Área Norte · Rancho Dos" })).toBeInTheDocument();
 
     expect(screen.getByLabelText("Nombre del Nodo")).toBeInTheDocument();
     expect(screen.getByLabelText("Número de Serie")).toHaveAccessibleDescription(

@@ -101,7 +101,7 @@ describe("PairDevice", () => {
 
     renderPage("/admin/gateways/pair?code=BCDF-GHJK");
 
-    expect(await screen.findByText("Datos reportados por el dispositivo")).toBeInTheDocument();
+    expect(await screen.findByText("Datos reportados por el equipo")).toBeInTheDocument();
     expect(mocks.lookupPairing).toHaveBeenCalledWith("BCDF-GHJK");
     expect(screen.getByText("agroio-lab")).toBeInTheDocument();
     expect(screen.getByText("Raspberry Pi 5")).toBeInTheDocument();
@@ -113,13 +113,13 @@ describe("PairDevice", () => {
     mocks.lookupPairing.mockResolvedValue({ data: session });
 
     renderPage();
-    fireEvent.change(screen.getByLabelText("Código del dispositivo"), {
+    fireEvent.change(screen.getByLabelText("Código del equipo"), {
       target: { value: "bcdf ghjk" },
     });
     fireEvent.click(screen.getByRole("button", { name: /buscar código/i }));
 
     await waitFor(() => expect(mocks.lookupPairing).toHaveBeenCalledWith("BCDF-GHJK"));
-    expect(screen.getByLabelText("Código del dispositivo")).toHaveValue("BCDF-GHJK");
+    expect(screen.getByLabelText("Código del equipo")).toHaveValue("BCDF-GHJK");
   });
 
   it("keeps approve disabled until a gateway is chosen and the confirmation is ticked", async () => {
@@ -131,7 +131,7 @@ describe("PairDevice", () => {
 
     const ranch = screen.getByLabelText("Rancho");
     expect(
-      screen.getByRole("option", { name: "Rancho Norte · Agrícola Norte · falta vincular su Raspberry" }),
+      screen.getByRole("option", { name: "Rancho Norte · Agrícola Norte · falta vincular su equipo" }),
     ).toBeInTheDocument();
     expect(screen.queryByText(/Gateway #|Predio \d/)).not.toBeInTheDocument();
     fireEvent.change(ranch, { target: { value: "7" } });
@@ -152,7 +152,7 @@ describe("PairDevice", () => {
     renderPage("/admin/gateways/pair?code=BCDF-GHJK");
 
     expect(await screen.findByTestId("pairing-not-found")).toHaveTextContent(
-      /solicita un código nuevo en el dispositivo/i,
+      /solicita un código nuevo en el equipo/i,
     );
   });
 
@@ -167,7 +167,7 @@ describe("PairDevice", () => {
     renderPage("/admin/gateways/pair?code=BCDF-GHJK");
 
     expect(await screen.findByTestId("pairing-locked")).toBeInTheDocument();
-    expect(screen.getByLabelText("Código del dispositivo")).toBeDisabled();
+    expect(screen.getByLabelText("Código del equipo")).toBeDisabled();
     expect(screen.getByRole("button", { name: /buscar código/i })).toBeDisabled();
   });
 
@@ -193,7 +193,7 @@ describe("PairDevice", () => {
       }),
     );
     expect(await screen.findByTestId("pairing-outcome")).toHaveTextContent(
-      "Rancho Sur vinculado. La Raspberry termina de conectarse en unos segundos.",
+      "Rancho Sur vinculado. El equipo termina de conectarse en unos segundos.",
     );
   });
 });

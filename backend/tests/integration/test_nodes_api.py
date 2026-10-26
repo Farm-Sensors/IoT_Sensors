@@ -136,6 +136,103 @@ class TestCreateNode:
         assert duplicate.status_code == 409
         assert duplicate.json()["detail"] == "Serial number 'mesh-DUP01' is already registered"
 
+    def test_create_on_area_with_deleted_node_restores_it(
+        self, client, db, admin_headers, sample_irrigation_area, sample_node
+    ):
+        from datetime import datetime
+
+        from app.models import Reading
+
+        old_id = sample_node.id
+        db.add(Reading(nodo_id=old_id, marca_tiempo=datetime(2026, 9, 1, 12, 0)))
+        db.commit()
+        assert client.delete(f"/api/v1/nodes/{old_id}", headers=admin_headers).status_code == 200
+
+        resp = client.post(
+            "/api/v1/nodes",
+            json={
+                "irrigation_area_id": sample_irrigation_area.id,
+                "name": "Nodo Repuesto",
+                "serial_number": "mesh-NEW01",
+                "latitude": 28.7,
+                "longitude": -106.1,
+            },
+            headers=admin_headers,
+        )
+
+        assert resp.status_code == 201, resp.text
+        data = resp.json()
+        assert data["id"] == old_id
+        assert data["name"] == "Nodo Repuesto"
+        assert data["serial_number"] == "mesh-NEW01"
+        assert data["latitude"] == 28.7 and data["longitude"] == -106.1
+        assert data["is_active"] is True
+        assert client.get(f"/api/v1/nodes/{old_id}", headers=admin_headers).status_code == 200
+        readings = client.get(
+            f"/api/v1/readings?irrigation_area_id={sample_irrigation_area.id}",
+            headers=admin_headers,
+        )
+        assert readings.status_code == 200, readings.text
+        assert readings.json()["total"] == 1
+
+    def test_restoring_a_deleted_node_rejects_a_duplicate_serial(
+        self, client, admin_headers, sample_property, sample_crop_type, sample_irrigation_area,
+        sample_node,
+    ):
+        other_area = client.post(
+            "/api/v1/irrigation-areas",
+            json={
+                "property_id": sample_property.id,
+                "crop_type_id": sample_crop_type.id,
+                "name": "Área Serie Ocupada",
+            },
+            headers=admin_headers,
+        ).json()["id"]
+        taken = client.post(
+            "/api/v1/nodes",
+            json={"irrigation_area_id": other_area, "name": "Dueño", "serial_number": "mesh-TAKEN"},
+            headers=admin_headers,
+        )
+        assert taken.status_code == 201
+        assert client.delete(f"/api/v1/nodes/{sample_node.id}", headers=admin_headers).status_code == 200
+
+        resp = client.post(
+            "/api/v1/nodes",
+            json={
+                "irrigation_area_id": sample_irrigation_area.id,
+                "name": "Serie repetida",
+                "serial_number": "mesh-TAKEN",
+            },
+            headers=admin_headers,
+        )
+
+        assert resp.status_code == 409
+        assert resp.json()["detail"] == "Serial number 'mesh-TAKEN' is already registered"
+        assert client.get(f"/api/v1/nodes/{sample_node.id}", headers=admin_headers).status_code == 404
+
+    def test_restoring_a_deleted_node_may_keep_its_own_serial(
+        self, client, admin_headers, sample_irrigation_area, sample_node
+    ):
+        assert client.put(
+            f"/api/v1/nodes/{sample_node.id}",
+            json={"serial_number": "mesh-OWN01"},
+            headers=admin_headers,
+        ).status_code == 200
+        assert client.delete(f"/api/v1/nodes/{sample_node.id}", headers=admin_headers).status_code == 200
+
+        resp = client.post(
+            "/api/v1/nodes",
+            json={
+                "irrigation_area_id": sample_irrigation_area.id,
+                "name": "Mismo equipo",
+                "serial_number": "mesh-OWN01",
+            },
+            headers=admin_headers,
+        )
+
+        assert resp.status_code == 201, resp.text
+        assert resp.json()["id"] == sample_node.id
+
     def test_create_invalid_area_returns_404(self, client, admin_headers):
         resp = client.post(
             "/api/v1/nodes",

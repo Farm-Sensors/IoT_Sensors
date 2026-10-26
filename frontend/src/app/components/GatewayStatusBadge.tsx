@@ -1,15 +1,15 @@
 const LABELS: Record<string, string> = {
-  pending_activation: "Gateway pendiente de activación",
-  active: "Gateway activo",
-  revoked: "Gateway revocado",
-  pending: "Gateway pendiente",
-  connected: "Gateway conectado",
-  delayed: "Gateway retrasado",
-  disconnected: "Gateway desconectado",
-  inactive: "Gateway pendiente",
-  never_seen: "Gateway pendiente",
-  recently_seen: "Gateway conectado",
-  stale: "Gateway retrasado",
+  pending_activation: "Equipo pendiente de activación",
+  active: "Equipo activo",
+  revoked: "Equipo revocado",
+  pending: "Equipo pendiente",
+  connected: "Equipo conectado",
+  delayed: "Equipo retrasado",
+  disconnected: "Equipo desconectado",
+  inactive: "Equipo pendiente",
+  never_seen: "Equipo pendiente",
+  recently_seen: "Equipo conectado",
+  stale: "Equipo retrasado",
 };
 
 interface GatewayStatusBadgeProps {
@@ -19,7 +19,7 @@ interface GatewayStatusBadgeProps {
 
 export function GatewayStatusBadge({ status, edgeStatus }: GatewayStatusBadgeProps) {
   const key = (edgeStatus || status || "").toLowerCase();
-  const label = LABELS[key] ?? "Gateway sin estado";
+  const label = LABELS[key] ?? "Equipo sin estado";
   return (
     <span
       className="inline-flex items-center rounded-full bg-[var(--surface-muted)] px-2.5 py-1 text-xs text-[var(--text-muted)]"

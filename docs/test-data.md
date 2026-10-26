@@ -27,7 +27,7 @@ alimentado por la Raspberry de pruebas con un radio virtual (ver abajo).
 
 ## 🍓 Raspberry de pruebas (`10.32.90.229`, `agroio@`)
 
-- Corre el **canal beta** de Agro (**`2.0.0-alpha.27`**, rama `feat/install-screen-clarity`, PRs #22 y #23), **vinculada a la gateway 21** (propiedad 20) desde *Instalación*, con la ranura 43 confirmada para `mesh-RPL01`. Lee un **radio virtual** (`/opt/agroio/data/vradio`, herramienta `ops/dev/virtual-radio/vradio.py` de Agro) que reproduce tramas reales de `H845D` renombradas a `RPL01`, una cada 10 min; corre a mano, así que un reinicio lo detiene y el agente vuelve al stick USB. Para detenerlo antes: `pkill -f "^python3 vradio.py"` y `sudo -n /opt/agroio/current/ops/scripts/agroio-config.sh --set-serial-port /dev/serial/by-id/usb-Arduino_CatWan_USBStick2040_613863E6330B3FA3-if00` + `agroio-service-control.sh --restart-edge`. Para volver a estable: `sudo /opt/agroio/channel/agroio-channel.sh --switch stable` (instala el paquete local `0.9.5`; en estable la gateway se calla).
+- Corre el **canal beta** de Agro (**`2.0.0-alpha.29`**, rama `feat/install-screen-clarity`, PRs #22 y #23), **vinculada a la gateway 21** (propiedad 20) desde *Instalación*, con la ranura 43 confirmada para `mesh-RPL01`. Lee un **radio virtual** (`/opt/agroio/data/vradio`, herramienta `ops/dev/virtual-radio/vradio.py` de Agro) que reproduce tramas reales de `H845D` renombradas a `RPL01`, una cada 10 min; corre a mano, así que un reinicio lo detiene y el agente vuelve al stick USB. Para detenerlo antes: `pkill -f "^python3 vradio.py"` y `sudo -n /opt/agroio/current/ops/scripts/agroio-config.sh --set-serial-port /dev/serial/by-id/usb-Arduino_CatWan_USBStick2040_613863E6330B3FA3-if00` + `agroio-service-control.sh --restart-edge`. Para volver a estable: `sudo /opt/agroio/channel/agroio-channel.sh --switch stable` (instala el paquete local `0.9.5`; en estable la gateway se calla).
 - **Canales stable/beta**: el equipo puede cambiar de release en un comando
   (`sudo /opt/agroio/channel/agroio-channel.sh --switch beta|stable`). Cambiar de canal guarda y
   aplica la configuración de cada uno (perfiles en `/etc/agroio/profiles/`) y enciende/apaga el visor
@@ -53,10 +53,10 @@ alimentado por la Raspberry de pruebas con un radio virtual (ver abajo).
 ## 🧷 Guion corto para probar desde cero
 
 1. Entra como admin → *Clientes → Nuevo Cliente* → *Predios → Nuevo Predio* → *Áreas de Riego*. No hace falta registrar nodos: el enlace los crea.
-2. *Gateways* → paso 1: elige el rancho y marca sus parcelas → *Crear enlace* (crea el nodo de cada parcela que no lo tenga y deja lista la configuración).
-3. En la pantalla del equipo: *Instalación → Paso 1* → **Vincular dispositivo** → copia el código (`XXXX-XXXX`) → en el panel, *Gateways* → paso 2: escribe el código, elige el rancho, confirma y **Aprobar emparejamiento**.
-4. En la pantalla, pasos 2–4: asigna cada nodo a su ranura (los chips muestran el nombre de la parcela) y **Confirmar asignaciones**.
-5. Verifica: *Gateways* → paso 3 (parcelas reportando y última lectura) y, como el cliente, el dashboard con humedad, frescura y "Gateway conectado".
+2. *Equipos* → paso 1: elige el rancho y marca sus áreas de riego → *Crear enlace* (crea el nodo de cada área que no lo tenga, restaura el que se haya eliminado y deja lista la configuración).
+3. En la pantalla del equipo: *Instalación → Paso 1 · Vincular el equipo con la nube* → **Vincular equipo** → copia el código (`XXXX-XXXX`) → en el panel, *Equipos* → paso 2: escribe el código, elige el rancho, confirma y **Aprobar emparejamiento**.
+4. En la pantalla: *Paso 2 · Nodos que están transmitiendo* → *Paso 3 · Elegir el área de cada nodo* → *Paso 4 · Enviar y confirmar* → **Enviar asignaciones**.
+5. Verifica: *Equipos* → paso 3 (áreas reportando y última lectura) y, como el cliente, el dashboard con humedad, frescura y "Equipo conectado".
 
 ## 🧾 Respaldos de la limpieza (2026-10-10 21:44 UTC)
 

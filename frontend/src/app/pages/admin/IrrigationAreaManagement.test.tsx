@@ -44,9 +44,9 @@ describe("IrrigationAreaManagement", () => {
         return Promise.resolve({
           data: {
             data: [
-              { id: 47, property_id: 20, crop_type_id: 1, name: "Parcela Norte", area_size: 2.5 },
-              { id: 48, property_id: 20, crop_type_id: 1, name: "Parcela Sur", area_size: null },
-              { id: 49, property_id: 20, crop_type_id: 1, name: "Parcela Este", area_size: null },
+              { id: 47, property_id: 20, crop_type_id: 1, name: "Área Norte", area_size: 2.5 },
+              { id: 48, property_id: 20, crop_type_id: 1, name: "Área Sur", area_size: null },
+              { id: 49, property_id: 20, crop_type_id: 1, name: "Área Este", area_size: null },
             ],
           },
         });
@@ -64,11 +64,11 @@ describe("IrrigationAreaManagement", () => {
   it("shows whether each area already has its node", async () => {
     renderPage();
 
-    const north = await screen.findByRole("row", { name: /Parcela Norte/ });
+    const north = await screen.findByRole("row", { name: /Área Norte/ });
     expect(within(north).getByText("Torre Norte")).toBeInTheDocument();
-    const south = screen.getByRole("row", { name: /Parcela Sur/ });
+    const south = screen.getByRole("row", { name: /Área Sur/ });
     expect(within(south).getByText("Se crea al enlazar")).toBeInTheDocument();
-    const east = screen.getByRole("row", { name: /Parcela Este/ });
+    const east = screen.getByRole("row", { name: /Área Este/ });
     expect(within(east).getByText("RPL02 (deshabilitado)")).toBeInTheDocument();
     expect(screen.getByRole("columnheader", { name: "Nodo" })).toBeInTheDocument();
   });

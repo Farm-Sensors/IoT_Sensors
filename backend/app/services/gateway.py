@@ -53,11 +53,13 @@ def list_gateways(db: Session) -> list[Gateway]:
 
 def _plan_area_nodes(
     db: Session, property_id: int, area_ids: list[int]
-) -> tuple[dict[int, IrrigationArea], dict[int, int | None]]:
-    """Validate the requested areas and map each one to its active node (``None`` = missing).
+) -> tuple[dict[int, IrrigationArea], dict[int, int | None], list[Node]]:
+    """Validate the requested areas and map each one to its node (``None`` = missing).
 
-    The area must belong to the property. A disabled or deleted node is never replaced
-    silently (``nodos.area_riego_id`` is unique, so the admin has to resolve it first).
+    The area must belong to the property. A disabled node is never enabled silently (the
+    admin enables it in Nodos). A soft-deleted node is returned for restoration instead of
+    being replaced: ``nodos.area_riego_id`` is unique including deleted rows, and keeping
+    the row keeps the area's reading history linked to the same node id.
     Read-only: nothing is written until every provisioning check has passed.
     """
     areas = {
@@ -80,43 +82,59 @@ def _plan_area_nodes(
         for node in db.scalars(select(Node).where(Node.area_riego_id.in_(area_ids)))
     }
     node_by_area: dict[int, int | None] = {}
+    to_restore: list[Node] = []
     for area_id in area_ids:
         node = nodes.get(area_id)
         if node is not None and node.eliminado_en is not None:
-            raise HTTPException(
-                status_code=status.HTTP_409_CONFLICT,
-                detail=f"Irrigation area {area_id} has a deleted node and cannot get a new one",
-            )
-        if node is not None and not node.activo:
+            to_restore.append(node)
+        elif node is not None and not node.activo:
             raise HTTPException(
                 status_code=422,
                 detail=f"Irrigation area {area_id} has a disabled node; enable it first",
             )
         node_by_area[area_id] = node.id if node is not None else None
-    return areas, node_by_area
+    return areas, node_by_area, to_restore
 
 
-def _create_missing_nodes(
-    db: Session, areas: dict[int, IrrigationArea], planned: dict[int, int | None]
+def _ensure_area_nodes(
+    db: Session,
+    areas: dict[int, IrrigationArea],
+    planned: dict[int, int | None],
+    to_restore: list[Node],
 ) -> dict[int, int]:
-    """Create the logical node ("Nodo <área>", no serial, active) of every area that lacks one."""
+    """Restore the planned soft-deleted nodes and create the missing ones.
+
+    A restored node keeps its id (and so its readings); it is renamed "Nodo <área>" only
+    when it has no name. A missing node is created as "Nodo <área>", no serial, active.
+    """
+    max_name = Node.__table__.c.nombre.type.length
+    for node in to_restore:
+        node.eliminado_en = None
+        node.activo = True
+        if not (node.nombre or "").strip():
+            node.nombre = f"Nodo {areas[node.area_riego_id].nombre}"[:max_name]
     node_by_area: dict[int, int] = {}
     for area_id, node_id in planned.items():
         if node_id is None:
-            name = f"Nodo {areas[area_id].nombre}"[: Node.__table__.c.nombre.type.length]
-            node = Node(area_riego_id=area_id, nombre=name, activo=True)
+            node = Node(
+                area_riego_id=area_id,
+                nombre=f"Nodo {areas[area_id].nombre}"[:max_name],
+                activo=True,
+            )
             db.add(node)
             db.flush()
             node_id = node.id
         node_by_area[area_id] = node_id
+    db.flush()
     return node_by_area
 
 
 def provision_gateway(db: Session, data: GatewayProvision, publisher_id: int) -> Gateway:
     """Provision the property's gateway and publish its configuration in one commit.
 
-    Areas without a logical node get one automatically, so the admin only picks the
-    property and its areas; the published version is immediately pollable by the device.
+    Areas without a logical node get one automatically and an area whose node was
+    soft-deleted gets that same node restored, so the admin only picks the property and
+    its areas; the published version is immediately pollable by the device.
     """
     prop = db.execute(
         select(Property).where(Property.id == data.property_id, Property.eliminado_en.is_(None))
@@ -127,7 +145,7 @@ def provision_gateway(db: Session, data: GatewayProvision, publisher_id: int) ->
         raise HTTPException(status_code=422, detail="Duplicate irrigation area")
 
     area_ids = [slot.irrigation_area_id for slot in data.slots]
-    areas, planned = _plan_area_nodes(db, data.property_id, area_ids)
+    areas, planned, to_restore = _plan_area_nodes(db, data.property_id, area_ids)
     profile_ids = {
         slot.hardware_profile_id for slot in data.slots if slot.hardware_profile_id is not None
     }
@@ -157,7 +175,7 @@ def provision_gateway(db: Session, data: GatewayProvision, publisher_id: int) ->
         leftovers = _check_reprovision(db, gateway, data, planned)
 
     try:
-        node_by_area = _create_missing_nodes(db, areas, planned)
+        node_by_area = _ensure_area_nodes(db, areas, planned, to_restore)
         if gateway is not None:
             _reprovision_revoked_gateway(db, gateway, data, node_by_area, leftovers)
         else:
@@ -220,9 +238,9 @@ def _check_reprovision(
         slot = existing_by_area.get(requested.irrigation_area_id)
         if slot is None or slot.nodo_id == planned[requested.irrigation_area_id]:
             continue
-        # Unreachable today: nodos.area_riego_id is UNIQUE, so an area's node cannot be
-        # swapped without deleting it, and provisioning rejects an area whose node is
-        # disabled or deleted (it only creates one where none exists). Kept as a guard.
+        # Unreachable today: nodos.area_riego_id is UNIQUE (deleted rows included), so an
+        # area's node is restored rather than replaced and its id never changes; a disabled
+        # node is rejected. Kept as a guard.
         if _slot_has_binding_history(db, slot):
             raise HTTPException(
                 status_code=status.HTTP_409_CONFLICT,

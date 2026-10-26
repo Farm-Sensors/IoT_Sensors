@@ -326,7 +326,7 @@ describe("humidity chart", () => {
     render(<ClientDashboard />);
 
     expect(await screen.findByText("Humedad del Suelo - Últimas 12 lecturas")).toBeTruthy();
-    // Solo el encabezado de la página muestra el estado del gateway.
-    expect(await screen.findAllByText("Gateway conectado")).toHaveLength(1);
+    // Solo el encabezado de la página muestra el estado del equipo.
+    expect(await screen.findAllByText("Equipo conectado")).toHaveLength(1);
   });
 });

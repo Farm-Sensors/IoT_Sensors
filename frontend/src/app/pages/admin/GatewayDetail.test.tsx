@@ -90,8 +90,8 @@ describe("GatewayDetail", () => {
     });
     mocks.getGeoNodes.mockResolvedValue({
       data: [
-        { irrigation_area_id: 16, irrigation_area_name: "Parcela Nogal", name: "Nodo Nogal", serial_number: "mesh-DEMO01", is_active: true },
-        { irrigation_area_id: 17, irrigation_area_name: "Parcela Alfalfa", name: "Nodo Alfalfa", serial_number: "mesh-DEMO02", is_active: true },
+        { irrigation_area_id: 16, irrigation_area_name: "Área Nogal", name: "Nodo Nogal", serial_number: "mesh-DEMO01", is_active: true },
+        { irrigation_area_id: 17, irrigation_area_name: "Área Alfalfa", name: "Nodo Alfalfa", serial_number: "mesh-DEMO02", is_active: true },
       ],
     });
   });
@@ -99,7 +99,7 @@ describe("GatewayDetail", () => {
   it("shows the installation steps with their progress", async () => {
     renderPage();
 
-    expect(await screen.findByRole("heading", { name: "Gateway #10" })).toBeInTheDocument();
+    expect(await screen.findByRole("heading", { name: "Equipo #10" })).toBeInTheDocument();
     expect(screen.getByText(/Rancho Prueba · Rancho Prueba SA/)).toBeInTheDocument();
 
     const steps = screen.getByRole("list");
@@ -107,12 +107,12 @@ describe("GatewayDetail", () => {
     expect(within(steps).getByText("Configuración lista (versión 1)")).toBeInTheDocument();
     expect(within(steps).getByText("2. Credencial vinculada")).toBeInTheDocument();
     expect(within(steps).getByText("3. Nodos enlazados")).toBeInTheDocument();
-    expect(within(steps).getByText("1 de 2 ranura(s) confirmadas")).toBeInTheDocument();
+    expect(within(steps).getByText("1 de 2 área(s) confirmadas")).toBeInTheDocument();
     // La configuración ya está lista: no se ofrece publicarla de nuevo.
     expect(screen.queryByRole("button", { name: /configuración/i })).not.toBeInTheDocument();
 
     // Connectivity badge comes from the live status, not from the management state.
-    expect(screen.getByText("Gateway conectado")).toBeInTheDocument();
+    expect(screen.getByText("Equipo conectado")).toBeInTheDocument();
   });
 
   it("offers to finish the configuration of a link created without it", async () => {
@@ -142,12 +142,12 @@ describe("GatewayDetail", () => {
   it("lists every slot with its area, node, binding and identity", async () => {
     renderPage();
 
-    const confirmedRow = await screen.findByRole("row", { name: /Parcela Nogal/ });
+    const confirmedRow = await screen.findByRole("row", { name: /Área Nogal/ });
     expect(within(confirmedRow).getByText("Nodo Nogal")).toBeInTheDocument();
     expect(within(confirmedRow).getByText("Confirmado")).toBeInTheDocument();
     expect(within(confirmedRow).getAllByText("mesh-DEMO01").length).toBeGreaterThan(0);
 
-    const unboundRow = screen.getByRole("row", { name: /Parcela Alfalfa/ });
+    const unboundRow = screen.getByRole("row", { name: /Área Alfalfa/ });
     expect(within(unboundRow).getByText("Nodo Alfalfa")).toBeInTheDocument();
     expect(within(unboundRow).getByText("Sin enlazar")).toBeInTheDocument();
     expect(within(unboundRow).getByText("Sin lecturas")).toBeInTheDocument();

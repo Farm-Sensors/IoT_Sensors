@@ -209,14 +209,13 @@ def create_node(db: Session, data: NodeCreate) -> Node:
             detail=f"Irrigation area with id {data.irrigation_area_id} not found",
         )
 
-    # Check 1:1 constraint — area must not already have a node
+    # Check 1:1 constraint — area must not already have a node. The unique
+    # ``nodos.area_riego_id`` includes soft-deleted rows, so a deleted node is restored
+    # (same id, keeping the area's reading history) instead of inserting a second row.
     existing_node = db.execute(
-        select(Node).where(
-            Node.area_riego_id == data.irrigation_area_id,
-            Node.eliminado_en.is_(None),
-        )
+        select(Node).where(Node.area_riego_id == data.irrigation_area_id)
     ).scalar_one_or_none()
-    if existing_node:
+    if existing_node is not None and existing_node.eliminado_en is None:
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
             detail=f"Irrigation area {data.irrigation_area_id} already has a node assigned",
@@ -224,24 +223,26 @@ def create_node(db: Session, data: NodeCreate) -> Node:
 
     # Check serial uniqueness (physical identifier; the column is unique, NULL is allowed)
     if data.serial_number is not None:
-        existing_serial = db.execute(
-            select(Node).where(Node.numero_serie == data.serial_number)
-        ).scalar_one_or_none()
-        if existing_serial:
+        serial_clash = select(Node).where(Node.numero_serie == data.serial_number)
+        if existing_node is not None:
+            serial_clash = serial_clash.where(Node.id != existing_node.id)
+        if db.execute(serial_clash).scalar_one_or_none():
             raise HTTPException(
                 status_code=status.HTTP_409_CONFLICT,
                 detail=f"Serial number '{data.serial_number}' is already registered",
             )
 
-    node = Node(
-        area_riego_id=data.irrigation_area_id,
-        numero_serie=data.serial_number,
-        nombre=data.name,
-        latitud=data.latitude,
-        longitud=data.longitude,
-        activo=data.is_active,
-    )
-    db.add(node)
+    if existing_node is not None:
+        node = existing_node
+        node.eliminado_en = None
+    else:
+        node = Node(area_riego_id=data.irrigation_area_id)
+        db.add(node)
+    node.numero_serie = data.serial_number
+    node.nombre = data.name
+    node.latitud = data.latitude
+    node.longitud = data.longitude
+    node.activo = data.is_active
     db.commit()
     db.refresh(node)
     return node
