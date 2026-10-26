@@ -6,6 +6,8 @@ import { PageTransition } from "../../components/PageTransition";
 import { PillButton } from "../../components/PillButton";
 import { useToast } from "../../components/Toast";
 import { api } from "../../services/api";
+import { getGeoNodes } from "../../services/nodes";
+import { formatElapsed, parseBackendTimestamp } from "../../utils/datetime";
 import { getErrorMessage } from "../../utils/errors";
 
 interface IrrigationArea {
@@ -58,6 +60,8 @@ export function NodeManagement() {
   const [nodes, setNodes] = useState<NodeData[]>([]);
   const [areas, setAreas] = useState<IrrigationArea[]>([]);
   const [propertyNames, setPropertyNames] = useState<Record<number, string>>({});
+  // Habilitado ≠ reportando: la última lectura dice si el nodo ya envía datos.
+  const [lastReadings, setLastReadings] = useState<Record<number, string | null>>({});
   const [editingNode, setEditingNode] = useState<NodeData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -79,16 +83,20 @@ export function NodeManagement() {
       setLoading(true);
       setError(null);
 
-      const [nodesRes, areasRes, propertiesRes] = await Promise.all([
+      const [nodesRes, areasRes, propertiesRes, geoRes] = await Promise.all([
         api.get("/nodes?per_page=100"),
         api.get("/irrigation-areas?per_page=100"),
         api.get<{ data: PropertyOption[] }>("/properties?per_page=100"),
+        getGeoNodes({ include_without_coordinates: true, per_page: 200 }),
       ]);
 
       setNodes(nodesRes.data.data || nodesRes.data);
       setAreas(areasRes.data.data || areasRes.data);
       setPropertyNames(
         Object.fromEntries((propertiesRes.data.data || []).map((p) => [p.id, p.name])),
+      );
+      setLastReadings(
+        Object.fromEntries(geoRes.data.map((node) => [node.id, node.last_reading_timestamp])),
       );
     } catch (err: any) {
       setError(getErrorMessage(err, "Error loading nodes"));
@@ -120,7 +128,7 @@ export function NodeManagement() {
         longitude,
         is_active: true,
       });
-      showToast("Nodo creado. La telemetría se autentica con el gateway del predio.", "success");
+      showToast("Nodo creado.", "success");
       setShowCreateForm(false);
       setFormName("");
       setFormSerialNumber("");
@@ -275,7 +283,8 @@ export function NodeManagement() {
                 <th scope="col" className="text-left py-3 px-4 text-xs font-semibold uppercase tracking-[0.08em] text-[var(--text-subtle)]">Serie</th>
                 <th scope="col" className="text-left py-3 px-4 text-xs font-semibold uppercase tracking-[0.08em] text-[var(--text-subtle)]">Área Vinculada</th>
                 <th scope="col" className="text-left py-3 px-4 text-xs font-semibold uppercase tracking-[0.08em] text-[var(--text-subtle)]">GPS</th>
-                <th scope="col" className="text-left py-3 px-4 text-xs font-semibold uppercase tracking-[0.08em] text-[var(--text-subtle)]">Estado</th>
+                <th scope="col" className="text-left py-3 px-4 text-xs font-semibold uppercase tracking-[0.08em] text-[var(--text-subtle)]">Habilitado</th>
+                <th scope="col" className="text-left py-3 px-4 text-xs font-semibold uppercase tracking-[0.08em] text-[var(--text-subtle)]">Última lectura</th>
                 <th scope="col" className="text-left py-3 px-4 text-xs font-semibold uppercase tracking-[0.08em] text-[var(--text-subtle)]">Acciones</th>
               </tr>
             </thead>
@@ -305,8 +314,13 @@ export function NodeManagement() {
                         ? 'bg-[var(--accent-primary)]/10 text-[var(--accent-primary)] border border-[var(--accent-primary)]/20'
                         : 'bg-[var(--status-danger-bg)] text-[var(--status-danger)] border border-[var(--status-danger)]/30'
                     }`}>
-                      {node.is_active ? 'Activo' : 'Inactivo'}
+                      {node.is_active ? 'Sí' : 'No'}
                     </span>
+                  </td>
+                  <td className="py-4 px-4 text-sm text-[var(--text-subtle)]">
+                    {lastReadings[node.id]
+                      ? formatElapsed(parseBackendTimestamp(lastReadings[node.id]))
+                      : 'Sin datos aún'}
                   </td>
                   <td className="py-4 px-4">
                     <div className="flex items-center gap-1">
@@ -518,7 +532,7 @@ export function NodeManagement() {
                     onChange={(e) => setEditIsActive(e.target.checked)}
                     className="accent-[var(--accent-primary)]"
                   />
-                  Nodo activo
+                  Nodo habilitado
                 </label>
               </div>
 
