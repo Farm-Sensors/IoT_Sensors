@@ -824,7 +824,7 @@ export function GatewayManagement() {
                 <p className="font-medium">Vinculación (emparejamiento)</p>
                 <code className="mt-2 block break-all text-xs">POST /api/v1/gateways/pairing-sessions/lookup</code>
                 <code className="mt-2 block break-all text-xs">POST /api/v1/gateways/pairing-sessions/{"{id}"}/approve</code>
-                <p className="mt-2 text-[var(--text-muted)]">El código se aprueba aquí; el dispositivo recibe su credencial en el siguiente sondeo.</p>
+                <p className="mt-2 text-[var(--text-muted)]">El código se aprueba aquí; el equipo recibe su credencial unos segundos después.</p>
               </article>
             </div>
             <p className="mt-3 text-sm text-[var(--text-muted)]">

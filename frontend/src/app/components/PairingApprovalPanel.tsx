@@ -8,6 +8,7 @@ import {
   approvePairing,
   denyPairing,
   Gateway,
+  gatewayRanchLabel,
   GatewayStatus,
   getPropertyGatewayStatus,
   listGateways,
@@ -72,8 +73,8 @@ function pairingError(error: unknown): PairingError {
 type LookupState = "idle" | "loading" | "found" | "not_found" | "locked" | "unavailable";
 
 const STATUS_LABELS: Record<string, string> = {
-  pending_activation: "pendiente de activación",
-  active: "activo · reemplaza credencial",
+  pending_activation: "falta vincular su Raspberry",
+  active: "ya tiene Raspberry · se reemplaza",
 };
 
 interface PairingApprovalPanelProps {
@@ -137,7 +138,7 @@ export function PairingApprovalPanel({
         setGatewayId(String(preselectGatewayId));
       }
     } catch (error) {
-      setFormError(getErrorMessage(error, "No se pudieron cargar los gateways."));
+      setFormError(getErrorMessage(error, "No se pudieron cargar los ranchos enlazados."));
     }
   }
 
@@ -234,10 +235,10 @@ export function PairingApprovalPanel({
       });
       setOutcome({
         kind: "approved",
-        message: `Gateway #${data.gateway_id} del predio ${data.property_id} emparejado correctamente. El dispositivo recibirá su credencial en el siguiente sondeo.`,
+        message: `${selectedGateway.property_name} vinculado. La Raspberry termina de conectarse en unos segundos.`,
       });
       setSession(null);
-      showToast("Emparejamiento aprobado", "success");
+      showToast("Raspberry vinculada", "success");
       onApproved?.(data);
     } catch (error) {
       const parsed = pairingError(error);
@@ -377,10 +378,10 @@ export function PairingApprovalPanel({
           </BentoCard>
 
           <BentoCard>
-            <h2 className="text-lg font-semibold">Gateway a emparejar</h2>
+            <h2 className="text-lg font-semibold">Rancho a vincular</h2>
             <div className="mt-3 flex flex-col gap-1">
               <label htmlFor="pairing-gateway" className="text-sm font-medium">
-                Gateway
+                Rancho
               </label>
               <select
                 id="pairing-gateway"
@@ -388,10 +389,10 @@ export function PairingApprovalPanel({
                 value={gatewayId}
                 onChange={(event) => setGatewayId(event.target.value)}
               >
-                <option value="">Selecciona un gateway</option>
+                <option value="">Selecciona un rancho</option>
                 {selectableGateways.map((gateway) => (
                   <option key={gateway.id} value={gateway.id}>
-                    Gateway #{gateway.id} · Predio {gateway.property_id} ·{" "}
+                    {gatewayRanchLabel(gateway)} ·{" "}
                     {STATUS_LABELS[gateway.status] ?? gateway.status}
                   </option>
                 ))}
@@ -403,10 +404,11 @@ export function PairingApprovalPanel({
                 data-testid="replace-credential-warning"
                 className="mt-3 rounded-xl border border-[var(--status-warning,#B45309)] p-3 text-sm text-[var(--text-body)]"
               >
-                Este gateway ya está activo. Al aprobar se reemplazará su credencial y se
-                revocará la anterior; el gateway, los slots y los vínculos se conservan.
+                Este rancho ya tiene una Raspberry vinculada. Al aprobar, esta Raspberry la
+                reemplaza y la anterior deja de enviar datos; las parcelas y sus nodos se
+                conservan.
                 {selectedStatus?.last_heartbeat_at && (
-                  <> Último latido: {new Date(selectedStatus.last_heartbeat_at).toLocaleString("es-MX")}.</>
+                  <> Última señal del equipo anterior: {new Date(selectedStatus.last_heartbeat_at).toLocaleString("es-MX")}.</>
                 )}
               </p>
             )}
