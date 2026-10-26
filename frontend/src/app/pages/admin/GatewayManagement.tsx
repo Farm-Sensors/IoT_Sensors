@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import QRCode from "qrcode";
-import { Link } from "react-router";
+import { Link, useSearchParams } from "react-router";
 import { BentoCard } from "../../components/BentoCard";
 import { PageTransition } from "../../components/PageTransition";
 import { PairingApprovalPanel } from "../../components/PairingApprovalPanel";
@@ -150,6 +150,9 @@ async function copyToClipboard(value: string): Promise<boolean> {
 
 export function GatewayManagement() {
   const { showToast } = useToast();
+  const [searchParams, setSearchParams] = useSearchParams();
+  // El enlace en curso vive en la URL (?gateway=N) para que recargar o volver no lo pierda.
+  const [requestedGatewayId] = useState(() => Number(searchParams.get("gateway")) || null);
   const [gateways, setGateways] = useState<Gateway[]>([]);
   const [statuses, setStatuses] = useState<Record<number, GatewayStatus>>({});
   const [properties, setProperties] = useState<PropertyOption[]>([]);
@@ -192,13 +195,16 @@ export function GatewayManagement() {
         if (current) {
           return current;
         }
-        const inProgress = [...res.data]
-          .reverse()
-          .find((gateway) => isIncomplete(gateway, nextStatuses[gateway.id]));
-        if (inProgress) {
-          setSetupStatus(nextStatuses[inProgress.id] ?? null);
+        const requested = res.data.find(
+          (gateway) => gateway.id === requestedGatewayId && gateway.status !== "revoked",
+        );
+        const chosen =
+          requested ??
+          [...res.data].reverse().find((gateway) => isIncomplete(gateway, nextStatuses[gateway.id]));
+        if (chosen) {
+          setSetupStatus(nextStatuses[chosen.id] ?? null);
         }
-        return inProgress ?? null;
+        return chosen ?? null;
       });
     } catch (err) {
       setError(getErrorMessage(err, "No se pudieron cargar los enlaces"));
@@ -219,6 +225,21 @@ export function GatewayManagement() {
       showToast(getErrorMessage(err, "No se pudieron cargar los predios"), "error");
     }
   };
+
+  useEffect(() => {
+    // Hasta terminar la primera carga la URL aún no refleja el enlace elegido.
+    if (loading) return;
+    const current = searchParams.get("gateway");
+    const next = setup ? String(setup.id) : null;
+    if (current === next) return;
+    const params = new URLSearchParams(searchParams);
+    if (next) {
+      params.set("gateway", next);
+    } else {
+      params.delete("gateway");
+    }
+    setSearchParams(params, { replace: true });
+  }, [setup?.id, loading]);
 
   useEffect(() => {
     void load();

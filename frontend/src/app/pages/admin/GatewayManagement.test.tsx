@@ -1,5 +1,5 @@
 import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
-import { MemoryRouter } from "react-router";
+import { MemoryRouter, useLocation } from "react-router";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type * as GatewaysModule from "../../services/gateways";
 import { GatewayManagement } from "./GatewayManagement";
@@ -74,10 +74,15 @@ vi.mock("../../services/api", () => ({
   },
 }));
 
-function renderPage() {
+function CurrentSearch() {
+  return <output data-testid="search">{useLocation().search}</output>;
+}
+
+function renderPage(path = "/admin/gateways") {
   return render(
-    <MemoryRouter>
+    <MemoryRouter initialEntries={[path]}>
       <GatewayManagement />
+      <CurrentSearch />
     </MemoryRouter>,
   );
 }
@@ -277,11 +282,45 @@ describe("GatewayManagement (asistente de enlace)", () => {
     renderPage();
 
     const startOver = await screen.findByRole("button", { name: /crear otro enlace/i });
+    await waitFor(() => expect(screen.getByTestId("search")).toHaveTextContent("?gateway=13"));
     fireEvent.click(startOver);
 
     expect(
       await screen.findByRole("heading", { name: "1. Elige el rancho y sus parcelas" }),
     ).toBeInTheDocument();
+    await waitFor(() => expect(screen.getByTestId("search")).toBeEmptyDOMElement());
+  });
+
+  it("reopens the link named in the URL after a reload, even if it is complete", async () => {
+    mocks.listGateways.mockResolvedValue({
+      data: [
+        { ...createdGateway, id: 11, status: "active" },
+        { ...createdGateway, id: 13, status: "pending_activation" },
+      ],
+    });
+    mocks.getGatewayStatus.mockResolvedValue({
+      data: {
+        ...pendingStatus,
+        slots: pendingStatus.slots.map((slot) => ({ ...slot, binding_status: "confirmed" })),
+      },
+    });
+
+    renderPage("/admin/gateways?gateway=11");
+
+    expect(await screen.findByRole("button", { name: /crear otro enlace/i })).toBeInTheDocument();
+    expect(screen.getByText(/Raspberry vinculada\. Si necesitas vincular otra/)).toBeInTheDocument();
+    expect(screen.getByTestId("search")).toHaveTextContent("?gateway=11");
+  });
+
+  it("puts a newly created link in the URL", async () => {
+    mocks.provisionGateway.mockResolvedValue({ data: createdGateway });
+
+    renderPage();
+    fireEvent.change(await screen.findByLabelText("Rancho"), { target: { value: "3" } });
+    fireEvent.click(await screen.findByLabelText("Parcela Norte"));
+    fireEvent.click(screen.getByRole("button", { name: /crear enlace/i }));
+
+    await waitFor(() => expect(screen.getByTestId("search")).toHaveTextContent("?gateway=20"));
   });
 
   it("keeps the API details tucked away", async () => {

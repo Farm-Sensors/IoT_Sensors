@@ -82,7 +82,7 @@ El admin **autoriza** una imagen (versión + digest). El técnico **confirma** e
 
 ## Frontend cloud
 
-- Admin: `/admin/gateways` (asistente de tres pasos: 1. elegir el rancho y sus parcelas — crea el enlace, los nodos que falten y deja lista la configuración —, 2. vincular la Raspberry aprobando su código, con la referencia de activación como respaldo, y 3. ver los nodos enlazados) y `/admin/gateways/pair` (aprobar/denegar una sesión de emparejamiento por su código; `/pair` redirige allí). También configura, **por cliente**, qué tarjetas ve ese cliente en su dashboard (`/admin/clientes/{id}/dashboard`).
+- Admin: `/admin/gateways` (asistente de tres pasos: 1. elegir el rancho y sus parcelas — crea el enlace, los nodos que falten y deja lista la configuración —, 2. vincular la Raspberry aprobando su código, con la referencia de activación como respaldo, y 3. ver los nodos enlazados; el enlace en curso queda en la URL, `?gateway=N`, así que recargar o volver no lo pierde) y `/admin/gateways/pair` (aprobar/denegar una sesión de emparejamiento por su código; `/pair` redirige allí). También configura, **por cliente**, qué tarjetas ve ese cliente en su dashboard (`/admin/clientes/{id}/dashboard`).
 - Cliente: ve estado simple del gateway junto a la frescura de datos; su dashboard muestra las tarjetas configuradas y, si no hay configuración, **solo las tarjetas cuyos datos existen**.
 - Tarjeta "Clima de referencia": pronóstico Open-Meteo para la **ubicación del predio** (API gratuita sin clave); si el predio aún no tiene ubicación, la tarjeta no se muestra.
 - No se muestran secretos ni API keys de nodo.
@@ -160,8 +160,8 @@ credenciales en `test-data.md`; puertas de la integración en `integration/READM
    cacheada"); fecha en inglés; el scroll no cuenta como actividad para el protector. Panel admin:
    el equipo no reporta
    hostname/versión al pedir el código; "Número de serie" del nodo sugiere que debe coincidir con
-   el nodo físico (no se usa para vincular); GPS sin "opcional"; el área no lleva a crear su nodo;
-   el asistente vuelve al paso 1 al recargar. Cliente y admin ven en el menú módulos de Fase 2
+   el nodo físico (no se usa para vincular); GPS sin "opcional"; el área no lleva a crear su nodo.
+   Cliente y admin ven en el menú módulos de Fase 2
    apagados (Alertas, IA, Umbrales, Notificaciones) y la tarjeta dice "Sin datos de umbral"; la
    gráfica de pocas lecturas exagera la escala.
 
