@@ -74,7 +74,7 @@ export function GatewayDetail() {
       }
       setSlotNodes(byArea);
     } catch (err) {
-      setError(getErrorMessage(err, "No se pudo cargar el gateway"));
+      setError(getErrorMessage(err, "No se pudo cargar el equipo"));
     } finally {
       setLoading(false);
     }
@@ -125,7 +125,7 @@ export function GatewayDetail() {
       key: "bound",
       label: "Nodos enlazados",
       done: slotCount > 0 && confirmedCount === slotCount,
-      hint: `${confirmedCount} de ${slotCount} ranura(s) confirmadas`,
+      hint: `${confirmedCount} de ${slotCount} área(s) confirmadas`,
     },
   ];
 
@@ -141,9 +141,9 @@ export function GatewayDetail() {
     return (
       <PageTransition>
         <div className="space-y-4">
-          <p className="text-[var(--status-danger)]">{error || "Gateway no encontrado"}</p>
+          <p className="text-[var(--status-danger)]">{error || "Equipo no encontrado"}</p>
           <Link className="underline" to="/admin/gateways">
-            Volver a Gateways
+            Volver a Equipos
           </Link>
         </div>
       </PageTransition>
@@ -156,9 +156,9 @@ export function GatewayDetail() {
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
             <Link className="text-sm text-[var(--text-muted)] underline" to="/admin/gateways">
-              ← Gateways
+              ← Equipos
             </Link>
-            <h1 className="mt-2 text-2xl font-semibold">Gateway #{gateway.id}</h1>
+            <h1 className="mt-2 text-2xl font-semibold">Equipo #{gateway.id}</h1>
             <p className="mt-1 text-[var(--text-muted)]">
               {gatewayRanchLabel(gateway)}
             </p>
@@ -230,7 +230,7 @@ export function GatewayDetail() {
                 : "Pendiente"}
             </p>
             <p className="mt-1 text-xs text-[var(--text-muted)]">
-              Revision de vínculos: {gateway.bindings_revision}
+              Revisión de vínculos: {gateway.bindings_revision}
             </p>
           </BentoCard>
           <BentoCard>
@@ -245,18 +245,18 @@ export function GatewayDetail() {
             </p>
           </BentoCard>
           <BentoCard>
-            <p className="text-sm text-[var(--text-muted)]">Ranuras</p>
+            <p className="text-sm text-[var(--text-muted)]">Áreas de riego</p>
             <p className="mt-1 text-lg font-semibold">
               {confirmedCount} de {slotCount} confirmadas
             </p>
             <p className="mt-1 text-xs text-[var(--text-muted)]">
-              Una ranura por área de riego del predio
+              Las áreas del predio que atiende el equipo
             </p>
           </BentoCard>
         </div>
 
         <BentoCard>
-          <h2 className="text-lg font-semibold">Ranuras del gateway</h2>
+          <h2 className="text-lg font-semibold">Áreas de riego del equipo</h2>
           <div className="mt-3 overflow-x-auto">
             <table className="w-full text-left text-sm">
               <thead>
@@ -274,7 +274,7 @@ export function GatewayDetail() {
                   return (
                     <tr key={slot.logical_node_id} className="border-t">
                       <td className="py-2 pr-4">
-                        {node?.area_name || `Área ${slot.irrigation_area_id}`}
+                        {node?.area_name || `Área #${slot.irrigation_area_id}`}
                       </td>
                       <td className="py-2 pr-4">
                         {node?.name || "—"}
@@ -299,7 +299,7 @@ export function GatewayDetail() {
                 {(status?.slots || []).length === 0 && (
                   <tr>
                     <td className="py-3 text-[var(--text-muted)]" colSpan={5}>
-                      Este gateway no tiene ranuras.
+                      Este equipo no tiene áreas de riego.
                     </td>
                   </tr>
                 )}

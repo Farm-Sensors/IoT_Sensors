@@ -73,8 +73,8 @@ function pairingError(error: unknown): PairingError {
 type LookupState = "idle" | "loading" | "found" | "not_found" | "locked" | "unavailable";
 
 const STATUS_LABELS: Record<string, string> = {
-  pending_activation: "falta vincular su Raspberry",
-  active: "ya tiene Raspberry · se reemplaza",
+  pending_activation: "falta vincular su equipo",
+  active: "ya tiene equipo · se reemplaza",
 };
 
 interface PairingApprovalPanelProps {
@@ -84,7 +84,7 @@ interface PairingApprovalPanelProps {
 }
 
 /**
- * Código del dispositivo → solicitud → aprobación. Compartido por la página de
+ * Código del equipo → solicitud → aprobación. Compartido por la página de
  * verificación y por el asistente de enlace.
  */
 export function PairingApprovalPanel({
@@ -177,7 +177,7 @@ export function PairingApprovalPanel({
       } else {
         setLookupState("not_found");
         setLookupMessage(
-          "No encontramos ese código. Solicita un código nuevo en el dispositivo y vuelve a intentarlo.",
+          "No encontramos ese código. Solicita un código nuevo en el equipo y vuelve a intentarlo.",
         );
       }
     }
@@ -235,10 +235,10 @@ export function PairingApprovalPanel({
       });
       setOutcome({
         kind: "approved",
-        message: `${selectedGateway.property_name} vinculado. La Raspberry termina de conectarse en unos segundos.`,
+        message: `${selectedGateway.property_name} vinculado. El equipo termina de conectarse en unos segundos.`,
       });
       setSession(null);
-      showToast("Raspberry vinculada", "success");
+      showToast("Equipo vinculado", "success");
       onApproved?.(data);
     } catch (error) {
       const parsed = pairingError(error);
@@ -260,7 +260,7 @@ export function PairingApprovalPanel({
       await denyPairing(session.session_id, session.user_code);
       setOutcome({
         kind: "denied",
-        message: "Rechazaste la solicitud. El dispositivo no recibirá ninguna credencial.",
+        message: "Rechazaste la solicitud. El equipo no recibirá ninguna credencial.",
       });
       setSession(null);
       showToast("Emparejamiento rechazado", "info");
@@ -280,7 +280,7 @@ export function PairingApprovalPanel({
       <form className="flex flex-wrap items-end gap-3" onSubmit={handleLookupSubmit}>
         <div className="flex flex-col gap-1">
           <label htmlFor="pairing-code" className="text-sm font-medium">
-            Código del dispositivo
+            Código del equipo
           </label>
           <input
             id="pairing-code"
@@ -357,7 +357,7 @@ export function PairingApprovalPanel({
               </dl>
               <section aria-labelledby="pairing-device-title" className="mt-4">
                 <h3 id="pairing-device-title" className="text-sm font-medium text-[var(--text-muted)]">
-                  Datos reportados por el dispositivo
+                  Datos reportados por el equipo
                 </h3>
                 <dl className="mt-2 grid gap-2 text-sm sm:grid-cols-3">
                   <div>
@@ -404,8 +404,8 @@ export function PairingApprovalPanel({
                 data-testid="replace-credential-warning"
                 className="mt-3 rounded-xl border border-[var(--status-warning,#B45309)] p-3 text-sm text-[var(--text-body)]"
               >
-                Este rancho ya tiene una Raspberry vinculada. Al aprobar, esta Raspberry la
-                reemplaza y la anterior deja de enviar datos; las parcelas y sus nodos se
+                Este rancho ya tiene un equipo vinculado. Al aprobar, este equipo lo reemplaza
+                y el anterior deja de enviar datos; las áreas de riego y sus nodos se
                 conservan.
                 {selectedStatus?.last_heartbeat_at && (
                   <> Última señal del equipo anterior: {new Date(selectedStatus.last_heartbeat_at).toLocaleString("es-MX")}.</>
@@ -421,7 +421,7 @@ export function PairingApprovalPanel({
                 onChange={(event) => setConfirmed(event.target.checked)}
               />
               <span>
-                Confirmo que este código aparece en la pantalla del dispositivo que estoy
+                Confirmo que este código aparece en la pantalla del equipo que estoy
                 instalando.
               </span>
             </label>
@@ -446,7 +446,7 @@ export function PairingApprovalPanel({
             </div>
             {expired && (
               <p className="mt-3 text-sm text-[var(--status-danger)]">
-                El código caducó. Solicita uno nuevo en el dispositivo.
+                El código caducó. Solicita uno nuevo en el equipo.
               </p>
             )}
           </BentoCard>
@@ -460,7 +460,7 @@ export function PairingApprovalPanel({
           </p>
           <div className="mt-4">
             <PillButton type="button" variant="secondary" onClick={() => navigate("/admin/gateways")}>
-              Volver a gateways
+              Volver a Equipos
             </PillButton>
           </div>
         </BentoCard>
@@ -469,7 +469,7 @@ export function PairingApprovalPanel({
       <ConfirmDialog
         open={denyOpen}
         title="¿Rechazar la solicitud?"
-        description="El dispositivo no recibirá ninguna credencial y deberá iniciar el emparejamiento de nuevo."
+        description="El equipo no recibirá ninguna credencial y deberá iniciar el emparejamiento de nuevo."
         confirmLabel="Rechazar"
         cancelLabel="Cancelar"
         variant="danger"

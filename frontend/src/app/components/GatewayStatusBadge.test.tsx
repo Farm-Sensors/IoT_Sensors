@@ -5,20 +5,20 @@ import { GatewayStatusBadge } from "./GatewayStatusBadge";
 describe("GatewayStatusBadge", () => {
   it("maps edge statuses to operator labels", () => {
     const { rerender } = render(<GatewayStatusBadge edgeStatus="connected" />);
-    expect(screen.getByTestId("gateway-status-badge")).toHaveTextContent("Gateway conectado");
+    expect(screen.getByTestId("gateway-status-badge")).toHaveTextContent("Equipo conectado");
     rerender(<GatewayStatusBadge edgeStatus="delayed" />);
-    expect(screen.getByTestId("gateway-status-badge")).toHaveTextContent("Gateway retrasado");
+    expect(screen.getByTestId("gateway-status-badge")).toHaveTextContent("Equipo retrasado");
     rerender(<GatewayStatusBadge status="never_seen" />);
-    expect(screen.getByTestId("gateway-status-badge")).toHaveTextContent("Gateway pendiente");
+    expect(screen.getByTestId("gateway-status-badge")).toHaveTextContent("Equipo pendiente");
   });
 
   it("maps direct gateway model states to lifecycle labels", () => {
     const { rerender } = render(<GatewayStatusBadge status="pending_activation" />);
-    expect(screen.getByTestId("gateway-status-badge")).toHaveTextContent("Gateway pendiente de activación");
+    expect(screen.getByTestId("gateway-status-badge")).toHaveTextContent("Equipo pendiente de activación");
     rerender(<GatewayStatusBadge status="active" />);
-    expect(screen.getByTestId("gateway-status-badge")).toHaveTextContent("Gateway activo");
+    expect(screen.getByTestId("gateway-status-badge")).toHaveTextContent("Equipo activo");
     rerender(<GatewayStatusBadge status="revoked" />);
-    expect(screen.getByTestId("gateway-status-badge")).toHaveTextContent("Gateway revocado");
+    expect(screen.getByTestId("gateway-status-badge")).toHaveTextContent("Equipo revocado");
   });
 
   it("does not render secrets", () => {

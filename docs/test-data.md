@@ -53,10 +53,10 @@ alimentado por la Raspberry de pruebas con un radio virtual (ver abajo).
 ## 🧷 Guion corto para probar desde cero
 
 1. Entra como admin → *Clientes → Nuevo Cliente* → *Predios → Nuevo Predio* → *Áreas de Riego*. No hace falta registrar nodos: el enlace los crea.
-2. *Gateways* → paso 1: elige el rancho y marca sus parcelas → *Crear enlace* (crea el nodo de cada parcela que no lo tenga y deja lista la configuración).
-3. En la pantalla del equipo: *Instalación → Paso 1* → **Vincular dispositivo** → copia el código (`XXXX-XXXX`) → en el panel, *Gateways* → paso 2: escribe el código, elige el rancho, confirma y **Aprobar emparejamiento**.
-4. En la pantalla, pasos 2–4: asigna cada nodo a su ranura (los chips muestran el nombre de la parcela) y **Confirmar asignaciones**.
-5. Verifica: *Gateways* → paso 3 (parcelas reportando y última lectura) y, como el cliente, el dashboard con humedad, frescura y "Gateway conectado".
+2. *Equipos* → paso 1: elige el rancho y marca sus áreas de riego → *Crear enlace* (crea el nodo de cada área que no lo tenga, restaura el que se haya eliminado y deja lista la configuración).
+3. En la pantalla del equipo: *Instalación → Paso 1 · Vincular el equipo con la nube* → **Vincular equipo** → copia el código (`XXXX-XXXX`) → en el panel, *Equipos* → paso 2: escribe el código, elige el rancho, confirma y **Aprobar emparejamiento**.
+4. En la pantalla: *Paso 2 · Nodos que están transmitiendo* → *Paso 3 · Elegir el área de cada nodo* → *Paso 4 · Enviar y confirmar* → **Enviar asignaciones**.
+5. Verifica: *Equipos* → paso 3 (áreas reportando y última lectura) y, como el cliente, el dashboard con humedad, frescura y "Equipo conectado".
 
 ## 🧾 Respaldos de la limpieza (2026-10-10 21:44 UTC)
 

@@ -61,10 +61,10 @@ vi.mock("../../services/api", () => ({
         return Promise.resolve({
           data: {
             data: [
-              { id: 16, property_id: 3, name: "Parcela Norte", crop_type: { id: 1, name: "Nogal" } },
-              { id: 17, property_id: 3, name: "Parcela Sur", crop_type: { id: 2, name: "Alfalfa" } },
-              { id: 18, property_id: 3, name: "Parcela Este", crop_type: { id: 3, name: "Manzana" } },
-              { id: 19, property_id: 3, name: "Parcela Oeste", crop_type: { id: 4, name: "Maíz" } },
+              { id: 16, property_id: 3, name: "Área Norte", crop_type: { id: 1, name: "Nogal" } },
+              { id: 17, property_id: 3, name: "Área Sur", crop_type: { id: 2, name: "Alfalfa" } },
+              { id: 18, property_id: 3, name: "Área Este", crop_type: { id: 3, name: "Manzana" } },
+              { id: 19, property_id: 3, name: "Área Oeste", crop_type: { id: 4, name: "Maíz" } },
             ],
           },
         });
@@ -122,9 +122,9 @@ describe("GatewayManagement (asistente de enlace)", () => {
     mocks.listGateways.mockResolvedValue({ data: [] });
     mocks.getGeoNodes.mockResolvedValue({
       data: [
-        { irrigation_area_id: 16, irrigation_area_name: "Parcela Norte", name: "Nodo Norte", serial_number: "mesh-N2-01", is_active: true },
-        { irrigation_area_id: 17, irrigation_area_name: "Parcela Sur", name: "Nodo Sur", serial_number: "mesh-N2-02", is_active: true },
-        { irrigation_area_id: 18, irrigation_area_name: "Parcela Este", name: null, serial_number: null, is_active: false },
+        { irrigation_area_id: 16, irrigation_area_name: "Área Norte", name: "Nodo Norte", serial_number: "mesh-N2-01", is_active: true },
+        { irrigation_area_id: 17, irrigation_area_name: "Área Sur", name: "Nodo Sur", serial_number: "mesh-N2-02", is_active: true },
+        { irrigation_area_id: 18, irrigation_area_name: "Área Este", name: null, serial_number: null, is_active: false },
       ],
     });
     mocks.getGatewayStatus.mockResolvedValue({ data: pendingStatus });
@@ -132,40 +132,42 @@ describe("GatewayManagement (asistente de enlace)", () => {
     mocks.getPropertyGatewayStatus.mockResolvedValue({ data: pendingStatus });
   });
 
-  it("guides the three steps and creates the link with the checked parcels", async () => {
+  it("guides the three steps and creates the link with the checked areas", async () => {
     mocks.provisionGateway.mockResolvedValue({ data: createdGateway });
 
     renderPage();
 
     const steps = await screen.findByRole("list", { name: "Pasos del enlace" });
-    expect(within(steps).getByText("1. Elige el rancho y sus parcelas")).toBeInTheDocument();
-    expect(within(steps).getByText("2. Vincula la Raspberry")).toBeInTheDocument();
+    expect(screen.getByRole("heading", { level: 1, name: "Equipos" })).toBeInTheDocument();
+    expect(screen.queryByText(/parcela|ranura/i)).not.toBeInTheDocument();
+    expect(within(steps).getByText("1. Elige el rancho y sus áreas de riego")).toBeInTheDocument();
+    expect(within(steps).getByText("2. Vincula el equipo")).toBeInTheDocument();
     expect(within(steps).getByText("3. Enlaza los nodos")).toBeInTheDocument();
     expect(within(steps).queryByText(/Publica la configuración/)).not.toBeInTheDocument();
-    expect(screen.getByRole("heading", { name: "1. Elige el rancho y sus parcelas" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "1. Elige el rancho y sus áreas de riego" })).toBeInTheDocument();
 
     fireEvent.change(screen.getByLabelText("Rancho"), { target: { value: "3" } });
-    fireEvent.click(await screen.findByLabelText("Parcela Norte"));
-    // Una parcela sin nodo se puede elegir: el nodo se crea al crear el enlace.
-    const withoutNode = screen.getByLabelText("Parcela Oeste");
+    fireEvent.click(await screen.findByLabelText("Área Norte"));
+    // Un área sin nodo se puede elegir: el nodo se crea al crear el enlace.
+    const withoutNode = screen.getByLabelText("Área Oeste");
     expect(withoutNode).toBeEnabled();
     expect(screen.getByText("Sin nodo todavía: se crea uno al crear el enlace")).toBeInTheDocument();
     fireEvent.click(withoutNode);
     // Un nodo deshabilitado no se reemplaza solo.
-    expect(screen.getByLabelText("Parcela Este")).toBeDisabled();
+    expect(screen.getByLabelText("Área Este")).toBeDisabled();
     expect(screen.queryByText(/la API rechazará/)).not.toBeInTheDocument();
 
     fireEvent.click(screen.getByRole("button", { name: /crear enlace/i }));
 
     await waitFor(() => expect(mocks.provisionGateway).toHaveBeenCalledWith(3, [16, 19]));
     expect(mocks.showToast).toHaveBeenCalledWith(
-      "Enlace creado con 2 parcela(s). La configuración quedó lista.",
+      "Enlace creado con 2 área(s). La configuración quedó lista.",
       "success",
     );
     expect(await screen.findByText("Configuración lista (versión 1)")).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: /configuración/i })).not.toBeInTheDocument();
-    expect(screen.getByLabelText("Código del dispositivo")).toBeInTheDocument();
-    expect(screen.getByText(/Vincular dispositivo/)).toBeInTheDocument();
+    expect(screen.getByLabelText("Código del equipo")).toBeInTheDocument();
+    expect(screen.getByText(/Vincular equipo/)).toBeInTheDocument();
     expect(mocks.publishConfiguration).not.toHaveBeenCalled();
   });
 
@@ -176,12 +178,12 @@ describe("GatewayManagement (asistente de enlace)", () => {
 
     renderPage();
     fireEvent.change(await screen.findByLabelText("Rancho"), { target: { value: "3" } });
-    fireEvent.click(await screen.findByLabelText("Parcela Norte"));
+    fireEvent.click(await screen.findByLabelText("Área Norte"));
     fireEvent.click(screen.getByRole("button", { name: /crear enlace/i }));
 
     expect(
       await screen.findByText(
-        "Una de las parcelas tiene su nodo deshabilitado. Actívalo en Nodos o quita esa parcela.",
+        "Una de las áreas tiene su nodo deshabilitado. Actívalo en Nodos o quita esa área.",
       ),
     ).toBeInTheDocument();
   });
@@ -230,10 +232,10 @@ describe("GatewayManagement (asistente de enlace)", () => {
     renderPage();
 
     expect(await screen.findAllByText("Rancho Prueba · Rancho Prueba SA")).toHaveLength(2);
-    expect(screen.getByText(/Vinculada y reportando/)).toBeInTheDocument();
+    expect(screen.getByText(/Vinculado y reportando/)).toBeInTheDocument();
     expect(screen.getByText(/1 de 1 reportando/)).toBeInTheDocument();
     // Un enlace vinculado pero sin nodos enlazados no puede decir "reportando".
-    expect(screen.getByText(/Vinculada, faltan nodos por enlazar/)).toBeInTheDocument();
+    expect(screen.getByText(/Vinculado, faltan nodos por enlazar/)).toBeInTheDocument();
     expect(screen.getByText(/0 de 1 reportando/)).toBeInTheDocument();
   });
 
@@ -269,7 +271,7 @@ describe("GatewayManagement (asistente de enlace)", () => {
     expect(revokedSummary.closest("details")).toContainElement(revokedCard);
     expect(screen.getByText("Enlace revocado")).toBeInTheDocument();
     expect(screen.queryByText(/Predio 19/)).not.toBeInTheDocument();
-    // Solo el enlace vigente dice cuántas parcelas reportan.
+    // Solo el enlace vigente dice cuántas áreas reportan.
     expect(screen.getAllByText(/de 2 reportando/)).toHaveLength(1);
   });
 
@@ -286,7 +288,7 @@ describe("GatewayManagement (asistente de enlace)", () => {
     fireEvent.click(startOver);
 
     expect(
-      await screen.findByRole("heading", { name: "1. Elige el rancho y sus parcelas" }),
+      await screen.findByRole("heading", { name: "1. Elige el rancho y sus áreas de riego" }),
     ).toBeInTheDocument();
     await waitFor(() => expect(screen.getByTestId("search")).toBeEmptyDOMElement());
   });
@@ -308,7 +310,7 @@ describe("GatewayManagement (asistente de enlace)", () => {
     renderPage("/admin/gateways?gateway=11");
 
     expect(await screen.findByRole("button", { name: /crear otro enlace/i })).toBeInTheDocument();
-    expect(screen.getByText(/Raspberry vinculada\. Si necesitas vincular otra/)).toBeInTheDocument();
+    expect(screen.getByText(/Equipo vinculado\. Si necesitas vincular otro/)).toBeInTheDocument();
     expect(screen.getByTestId("search")).toHaveTextContent("?gateway=11");
   });
 
@@ -317,7 +319,7 @@ describe("GatewayManagement (asistente de enlace)", () => {
 
     renderPage();
     fireEvent.change(await screen.findByLabelText("Rancho"), { target: { value: "3" } });
-    fireEvent.click(await screen.findByLabelText("Parcela Norte"));
+    fireEvent.click(await screen.findByLabelText("Área Norte"));
     fireEvent.click(screen.getByRole("button", { name: /crear enlace/i }));
 
     await waitFor(() => expect(screen.getByTestId("search")).toHaveTextContent("?gateway=20"));

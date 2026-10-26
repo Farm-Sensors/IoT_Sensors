@@ -49,7 +49,7 @@ const adminNavItems: NavItem[] = [
   { path: "/admin/clientes",  icon: Users,            label: "Clientes" },
   { path: "/admin/mapa",      icon: MapPin,           label: "Mapa" },
   { path: "/admin/nodos",     icon: Radio,            label: "Nodos" },
-  { path: "/admin/gateways",  icon: Router,           label: "Gateways" },
+  { path: "/admin/gateways",  icon: Router,           label: "Equipos" },
   { path: "/admin/cultivos",  icon: Sprout,           label: "Catálogo" },
   { path: "/admin/umbrales",  icon: SlidersHorizontal, label: "Umbrales",    module: "alerts" },
   { path: "/admin/alertas",   icon: Bell,             label: "Alertas",      module: "alerts" },

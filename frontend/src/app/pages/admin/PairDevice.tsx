@@ -12,8 +12,8 @@ export function PairDevice() {
         <div>
           <h1 className="text-2xl font-semibold">Verificar emparejamiento</h1>
           <p className="mt-2 max-w-3xl text-[var(--text-muted)]">
-            Escribe el código que muestra el dispositivo que estás instalando. Aprueba la
-            solicitud solo si el código coincide con la pantalla del equipo.
+            Escribe el código que muestra la pantalla del equipo que estás instalando. Aprueba
+            la solicitud solo si el código coincide.
           </p>
         </div>
         <PairingApprovalPanel initialCode={initialCode} />

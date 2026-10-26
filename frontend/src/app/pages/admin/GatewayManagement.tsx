@@ -58,11 +58,11 @@ const BINDING_LABELS: Record<string, string> = {
 const STEPS = [
   {
     key: "create",
-    title: "Elige el rancho y sus parcelas",
+    title: "Elige el rancho y sus áreas de riego",
     hint: "Crea el enlace y deja lista la configuración",
   },
-  { key: "link", title: "Vincula la Raspberry", hint: "Aprueba el código de su pantalla" },
-  { key: "bind", title: "Enlaza los nodos", hint: "Cada parcela con su nodo físico" },
+  { key: "link", title: "Vincula el equipo", hint: "Aprueba el código de su pantalla" },
+  { key: "bind", title: "Enlaza los nodos", hint: "Cada área con su nodo físico" },
 ];
 
 // Mensajes llanos para los rechazos de "Crear enlace" (el API responde en inglés).
@@ -72,12 +72,12 @@ function createLinkErrorMessage(err: unknown): string {
     return "Este rancho ya tiene un enlace.";
   }
   if (text.includes("disabled node")) {
-    return "Una de las parcelas tiene su nodo deshabilitado. Actívalo en Nodos o quita esa parcela.";
+    return "Una de las áreas tiene su nodo deshabilitado. Actívalo en Nodos o quita esa área.";
   }
   if (text.includes("binding history")) {
-    return "Una parcela que quitaste ya tuvo un nodo enlazado en este rancho. Vuelve a marcarla.";
+    return "Un área que quitaste ya tuvo un nodo enlazado en este rancho. Vuelve a marcarla.";
   }
-  return "No se pudo crear el enlace. Revisa las parcelas e inténtalo de nuevo.";
+  return "No se pudo crear el enlace. Revisa las áreas e inténtalo de nuevo.";
 }
 
 function confirmedCount(status: GatewayStatus | undefined): number {
@@ -89,21 +89,21 @@ function stateLabel(gateway: Gateway, status: GatewayStatus | undefined): string
     return "Enlace revocado";
   }
   if (gateway.status === "pending_activation") {
-    return "Falta vincular la Raspberry";
+    return "Falta vincular el equipo";
   }
   if (!status) {
-    return "Vinculada (sin estado del equipo)";
+    return "Vinculado (sin estado del equipo)";
   }
   if (confirmedCount(status) < gateway.slots.length) {
-    return "Vinculada, faltan nodos por enlazar";
+    return "Vinculado, faltan nodos por enlazar";
   }
   if (status.edge_status === "connected") {
-    return "Vinculada y reportando";
+    return "Vinculado y reportando";
   }
   if (status.edge_status === "delayed") {
-    return "Vinculada, con retraso";
+    return "Vinculado, con retraso";
   }
-  return "Vinculada, sin conexión reciente";
+  return "Vinculado, sin conexión reciente";
 }
 
 function isIncomplete(gateway: Gateway, status: GatewayStatus | undefined): boolean {
@@ -285,7 +285,7 @@ export function GatewayManagement() {
         setSelectedAreaIds([]);
       } catch (err) {
         if (!cancelled) {
-          showToast(getErrorMessage(err, "No se pudieron cargar las parcelas del rancho"), "error");
+          showToast(getErrorMessage(err, "No se pudieron cargar las áreas del rancho"), "error");
         }
       } finally {
         if (!cancelled) setLoadingAreas(false);
@@ -314,7 +314,7 @@ export function GatewayManagement() {
     }
   };
 
-  // Parcelas y nodos del rancho enlazado (nombres para el paso 4).
+  // Áreas y nodos del rancho enlazado (nombres para el paso 4).
   useEffect(() => {
     if (!setup) {
       setSlotNodes({});
@@ -346,7 +346,7 @@ export function GatewayManagement() {
   const handleCreateLink = async (event: React.FormEvent) => {
     event.preventDefault();
     if (!selectedPropertyId || selectedAreaIds.length === 0) {
-      const message = "Elige un rancho y al menos una parcela";
+      const message = "Elige un rancho y al menos un área";
       setError(message);
       showToast(message, "error");
       return;
@@ -355,7 +355,7 @@ export function GatewayManagement() {
       setBusy(true);
       const created = await provisionGateway(Number(selectedPropertyId), selectedAreaIds);
       showToast(
-        `Enlace creado con ${selectedAreaIds.length} parcela(s). La configuración quedó lista.`,
+        `Enlace creado con ${selectedAreaIds.length} área(s). La configuración quedó lista.`,
         "success",
       );
       setSelectedPropertyId("");
@@ -442,7 +442,7 @@ export function GatewayManagement() {
           <div>
             <p className="font-medium">{gatewayRanchLabel(gateway)}</p>
             <p className="text-sm text-[var(--text-muted)]">
-              Enlace #{gateway.id} · {total} parcela(s)
+              Enlace #{gateway.id} · {total} área(s)
               {revoked ? "" : ` · configuración versión ${gateway.configuration_version}`}
             </p>
             <p className="mt-1 text-sm">
@@ -487,11 +487,11 @@ export function GatewayManagement() {
     <PageTransition>
       <div className="space-y-6">
         <div>
-          <h1 className="text-2xl font-semibold">Gateways</h1>
+          <h1 className="text-2xl font-semibold">Equipos</h1>
           <p className="mt-2 max-w-3xl text-[var(--text-muted)]">
-            Aquí enlazas una Raspberry con Agro a un rancho: eliges el rancho y sus parcelas (el
-            enlace queda con su configuración lista), apruebas el código que muestra la pantalla
-            del equipo y ves los nodos reportando.
+            Aquí enlazas un equipo (la Raspberry con Agro) a un rancho: eliges el rancho y sus
+            áreas de riego (el enlace queda con su configuración lista), apruebas el código que
+            muestra la pantalla del equipo y ves los nodos reportando.
           </p>
         </div>
 
@@ -545,10 +545,10 @@ export function GatewayManagement() {
           <BentoCard>
             <form className="space-y-4" onSubmit={handleCreateLink}>
               <div>
-                <h2 className="text-lg font-semibold">1. Elige el rancho y sus parcelas</h2>
+                <h2 className="text-lg font-semibold">1. Elige el rancho y sus áreas de riego</h2>
                 <p className="mt-1 text-sm text-[var(--text-muted)]">
-                  Cada parcela marcada será una ranura del enlace. Si una parcela todavía no tiene
-                  nodo, se crea uno al crear el enlace. Al terminar, la configuración del equipo
+                  Marca las áreas que va a atender el equipo. Si un área todavía no tiene nodo,
+                  se crea uno al crear el enlace. Al terminar, la configuración del equipo
                   queda lista.
                 </p>
               </div>
@@ -576,12 +576,12 @@ export function GatewayManagement() {
               </label>
               {selectedPropertyId && (
                 <fieldset>
-                  <legend className="text-sm font-medium">Parcelas del rancho</legend>
+                  <legend className="text-sm font-medium">Áreas de riego del rancho</legend>
                   {loadingAreas ? (
-                    <p className="mt-2 text-sm text-[var(--text-muted)]">Cargando parcelas…</p>
+                    <p className="mt-2 text-sm text-[var(--text-muted)]">Cargando áreas…</p>
                   ) : areas.length === 0 ? (
                     <p className="mt-2 text-sm text-[var(--text-muted)]">
-                      Este rancho todavía no tiene parcelas. Créalas en Predios → Áreas.
+                      Este rancho todavía no tiene áreas de riego. Créalas en Predios → Áreas.
                     </p>
                   ) : (
                     <div className="mt-2 grid gap-2 md:grid-cols-2">
@@ -618,7 +618,7 @@ export function GatewayManagement() {
                                   ? "Sin nodo todavía: se crea uno al crear el enlace"
                                   : node.is_active
                                     ? `Nodo: ${node.name || node.serial_number || "sin nombre"}`
-                                    : "Nodo deshabilitado: actívalo en Nodos para incluir esta parcela"}
+                                    : "Nodo deshabilitado: actívalo en Nodos para incluir esta área"}
                               </span>
                             </span>
                           </label>
@@ -638,8 +638,8 @@ export function GatewayManagement() {
                 </PillButton>
                 <span className="text-sm text-[var(--text-muted)]">
                   {selectedAreaIds.length > 0
-                    ? `${selectedAreaIds.length} parcela(s) seleccionada(s)`
-                    : "Marca al menos una parcela"}
+                    ? `${selectedAreaIds.length} área(s) seleccionada(s)`
+                    : "Marca al menos un área"}
                 </span>
               </div>
             </form>
@@ -650,11 +650,11 @@ export function GatewayManagement() {
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <div>
                   <h2 className="text-lg font-semibold">
-                    2. Vincula la Raspberry de {gatewayRanchLabel(setup)}
+                    2. Vincula el equipo de {gatewayRanchLabel(setup)}
                   </h2>
                   <p className="mt-1 max-w-3xl text-sm text-[var(--text-muted)]">
                     En la pantalla del equipo entra a <strong>Instalación → Paso 1</strong> y toca
-                    «Vincular dispositivo»: mostrará un código y un QR. Escríbelo aquí y apruébalo
+                    «Vincular equipo»: mostrará un código y un QR. Escríbelo aquí y apruébalo
                     solo si coincide con la pantalla.
                   </p>
                 </div>
@@ -670,7 +670,7 @@ export function GatewayManagement() {
               </div>
               {setup.status === "active" ? (
                 <p className="mt-3 text-sm font-medium text-[var(--status-active)]">
-                  Raspberry vinculada. Si necesitas vincular otra, genera su código en la pantalla
+                  Equipo vinculado. Si necesitas vincular otro, genera su código en su pantalla
                   y apruébalo aquí abajo.
                 </p>
               ) : null}
@@ -704,7 +704,7 @@ export function GatewayManagement() {
                       </code>
                       <img
                         src={qr.image}
-                        alt={`QR de activación del gateway ${qr.gatewayId}`}
+                        alt={`QR de activación del equipo ${qr.gatewayId}`}
                         width={110}
                         height={110}
                       />
@@ -725,8 +725,8 @@ export function GatewayManagement() {
                 <div>
                   <h2 className="text-lg font-semibold">3. Enlaza los nodos</h2>
                   <p className="mt-1 max-w-3xl text-sm text-[var(--text-muted)]">
-                    En la pantalla del equipo (Instalación → Pasos 3 y 4) el técnico elige qué nodo
-                    físico va en cada parcela y confirma. Aquí ves el avance.
+                    En la pantalla del equipo (Instalación → Pasos 3 y 4) el técnico elige el área de
+                    cada nodo y toca «Enviar asignaciones». Aquí ves el avance.
                   </p>
                 </div>
                 <Link
@@ -737,13 +737,13 @@ export function GatewayManagement() {
                 </Link>
               </div>
               <p className="mt-3 text-sm font-medium">
-                {setupConfirmed} de {setupSlots.length || setup.slots.length} parcela(s) reportando
+                {setupConfirmed} de {setupSlots.length || setup.slots.length} área(s) reportando
               </p>
               <div className="mt-3 overflow-x-auto">
                 <table className="w-full text-left text-sm">
                   <thead>
                     <tr className="text-[var(--text-muted)]">
-                      <th className="py-2 pr-4">Parcela</th>
+                      <th className="py-2 pr-4">Área</th>
                       <th className="py-2 pr-4">Nodo</th>
                       <th className="py-2 pr-4">Estado</th>
                       <th className="py-2 pr-4">Nodo físico</th>
@@ -756,7 +756,7 @@ export function GatewayManagement() {
                       return (
                         <tr key={slot.logical_node_id} className="border-t">
                           <td className="py-2 pr-4">
-                            {node?.area_name || `Parcela ${slot.irrigation_area_id}`}
+                            {node?.area_name || `Área #${slot.irrigation_area_id}`}
                           </td>
                           <td className="py-2 pr-4">{node?.name || "—"}</td>
                           <td className="py-2 pr-4">
@@ -774,7 +774,7 @@ export function GatewayManagement() {
                     {setupSlots.length === 0 && (
                       <tr>
                         <td className="py-3 text-[var(--text-muted)]" colSpan={5}>
-                          Cargando las parcelas del enlace…
+                          Cargando las áreas del enlace…
                         </td>
                       </tr>
                     )}
@@ -846,7 +846,7 @@ export function GatewayManagement() {
               </article>
             </div>
             <p className="mt-3 text-sm text-[var(--text-muted)]">
-              La interfaz de campo (instalación, ranuras y confirmación) vive en la pantalla del
+              La interfaz de campo (instalación, áreas y confirmación) vive en la pantalla del
               equipo Agro, no en esta web. La documentación de la API está en{" "}
               <a className="underline" href="/api/v1/docs" rel="noreferrer" target="_blank">
                 Swagger
