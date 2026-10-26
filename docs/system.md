@@ -110,14 +110,14 @@ credenciales en `test-data.md`; puertas de la integración en `integration/READM
   Raspberry con el radio virtual.
 - **Agro (appliance)**: `main` en `0e98cf6` (tag `0.9.4`, producción, canal **stable**) y
   `integration/iot-v2` en `c241a15` (canal **beta**). La Raspberry de pruebas corre **beta
-  `2.0.0-alpha.27`** (rama `feat/install-screen-clarity`, PR #23 apilado sobre #22), `mode:
+  `2.0.0-alpha.29`** (rama `feat/install-screen-clarity`, PR #23 apilado sobre #22), `mode:
   serial` leyendo un **radio virtual** (tramas reales de `H845D` renombradas a `RPL01`, una cada
   10 min), vinculada a la gateway 21. Datos reales conservados (`H845D`, `H4EBF`: 50 972
   mediciones); ningún nodo físico transmite desde el 15 sep.
 - **Integración con sensores reales**: verificada el 2026-10-26 con **tramas reales** del log de la
   Raspberry, reproducidas por el agente `alpha.25` instalado en la propia Raspberry (workspace
   aislado) contra el cloud: pairing por código → detección de `mesh-H845D` y `mesh-H4EBF` → dos
-  ranuras confirmadas → 30 lecturas `201` con los valores exactos de la trama → ubicación del
+  áreas confirmadas → 30 lecturas `201` con los valores exactos de la trama → ubicación del
   predio → dashboard del cliente (última lectura, prioridades y clima). Antes, 9 346 tramas reales
   pasaron el esquema v2. Las tres correcciones de `alpha.25`: no enviar lecturas sin ningún valor
   (firmware viejo), usar el reloj del agente cuando la trama no trae hora, y calcular la humedad
@@ -130,8 +130,10 @@ credenciales en `test-data.md`; puertas de la integración en `integration/READM
   real del agente, la pantalla *Instalación* del equipo, el panel admin y el dashboard del cliente:
   admin crea predio y área y, en *Equipos*, el enlace (nodo y configuración incluidos) → técnico vincula con el código → `mesh-RPL01`
   aparece detectado → se asigna a su área y la nube confirma → el cliente ve humedad, suelo,
-  frescura, "Equipo conectado" y clima. Funciona de punta a punta; los puntos de usabilidad están
-  en el pendiente 9.
+  frescura, "Equipo conectado" y clima. Funciona de punta a punta. Los puntos de usabilidad de ese
+  recorrido quedaron corregidos el mismo día: panel en 3 pasos con vocabulario "equipo" / "área de
+  riego" (este repo) y pantalla *Instalación* clara en Agro `alpha.29` (PRs #22 y #23), verificada
+  en el equipo.
 
 **Pendientes / a pulir**
 
@@ -152,15 +154,6 @@ credenciales en `test-data.md`; puertas de la integración en `integration/READM
    apagado).
 8. Limpieza menor: `demo-node-01` inactivo, `C0` no habilitado, paquetes locales acumulados, log del
    agente de 44 MB con "heartbeat not sent" cada 5 s cuando no hay gateway.
-9. **Usabilidad** (recorrido del 2026-10-26). Pantalla del equipo: el nodo que transmite aparece
-   "Sin señal / Aún sin lecturas" porque aún no está autorizado localmente; tras vincular se ven
-   los IDs (gateway 21 / propiedad 20) en vez del nombre del rancho y sigue visible la referencia de
-   activación con un aviso viejo; la configuración llega hasta 60 s después de vincular ("No hay
-   ranuras…"); el contador del código no dice "expira en"; estados en inglés/código
-   (`pending_initial`, `confirmed`); textos técnicos ("encola una candidatura", "configuración
-   cacheada"); fecha en inglés; el scroll no cuenta como actividad para el protector. Panel admin:
-   el equipo no reporta
-   hostname/versión al pedir el código.
 
 ## Dónde leer más
 
