@@ -186,7 +186,7 @@ Contrato detallado (payloads, schemas, errores, ejemplos): **`openapi.yaml`** (a
 | Crop Cycles | GET | `/api/v1/crop-cycles/{cycle_id}` | Detalle |
 | Crop Cycles | PUT | `/api/v1/crop-cycles/{cycle_id}` | Actualizar — Admin |
 | Crop Cycles | DELETE | `/api/v1/crop-cycles/{cycle_id}` | Eliminar — Admin |
-| Nodes | GET | `/api/v1/nodes` | Listar (paginado, filtro `irrigation_area_id`) |
+| Nodes | GET | `/api/v1/nodes` | Listar (paginado, filtro `irrigation_area_id`); omite los nodos borrados y los de un área, predio o cliente borrado |
 | Nodes | GET | `/api/v1/nodes/geo` | Capa geoespacial (frescura; filtros client/property/area) |
 | Nodes | POST | `/api/v1/nodes` | Registrar nodo lógico (sin credencial de ingest) — Admin |
 | Nodes | GET | `/api/v1/nodes/{node_id}` | Detalle |
@@ -195,7 +195,7 @@ Contrato detallado (payloads, schemas, errores, ejemplos): **`openapi.yaml`** (a
 | Notif. Prefs | GET | `/api/v1/notification-preferences` | Listar preferencias (paginado y filtros) |
 | Notif. Prefs | PUT | `/api/v1/notification-preferences/bulk` | Upsert masivo de preferencias |
 | Readings | POST | `/api/v1/readings` | Ingesta de sensor (payload 3 categorías) — **X-API-Key** |
-| Readings | GET | `/api/v1/readings` | Histórico (paginado; filtros área, fechas, ciclo) |
+| Readings | GET | `/api/v1/readings` | Histórico (paginado; filtros área, fechas, ciclo). Sin área, el admin solo cuenta lecturas de nodos cuya jerarquía sigue vigente (no borrada) |
 | Readings | GET | `/api/v1/readings/latest` | Última lectura (indicador de frescura) |
 | Readings | GET | `/api/v1/readings/priority-status` | Semáforo prioritario (lectura + umbrales activos) |
 | Readings | GET | `/api/v1/readings/availability` | Fechas disponibles para calendario/filtros |

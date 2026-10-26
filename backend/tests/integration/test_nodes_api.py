@@ -260,6 +260,18 @@ class TestDeleteNode:
         resp2 = client.get(f"/api/v1/nodes/{node_resp['id']}", headers=admin_headers)
         assert resp2.status_code == 404
 
+    def test_list_skips_nodes_of_a_deleted_property(
+        self, client, admin_headers, sample_node, sample_property
+    ):
+        """Borrar un predio no borra sus nodos: el listado (y el conteo del panel) los omite."""
+        assert client.get("/api/v1/nodes", headers=admin_headers).json()["total"] == 1
+        resp = client.delete(f"/api/v1/properties/{sample_property.id}", headers=admin_headers)
+        assert resp.status_code == 200
+
+        listed = client.get("/api/v1/nodes", headers=admin_headers).json()
+        assert listed["total"] == 0
+        assert listed["data"] == []
+
 
 class TestGeoNodes:
     def _create_other_client_area_and_node(

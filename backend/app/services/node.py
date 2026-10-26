@@ -1,7 +1,7 @@
 from datetime import datetime, timezone
 
 from fastapi import HTTPException, status
-from sqlalchemy import func, select
+from sqlalchemy import Select, func, select
 from sqlalchemy.orm import Session
 
 from app.models.client import Client
@@ -25,6 +25,26 @@ def get_node(db: Session, node_id: int) -> Node:
     return node
 
 
+def live_node_ids() -> Select[tuple[int]]:
+    """Ids of nodes whose whole hierarchy (node, area, property, client) is not soft-deleted.
+
+    Deleting a property or area does not cascade to its nodes, so admin-wide counts and
+    listings filter through this instead of ``Node.eliminado_en`` alone.
+    """
+    return (
+        select(Node.id)
+        .join(IrrigationArea, IrrigationArea.id == Node.area_riego_id)
+        .join(Property, Property.id == IrrigationArea.predio_id)
+        .join(Client, Client.id == Property.cliente_id)
+        .where(
+            Node.eliminado_en.is_(None),
+            IrrigationArea.eliminado_en.is_(None),
+            Property.eliminado_en.is_(None),
+            Client.eliminado_en.is_(None),
+        )
+    )
+
+
 def list_nodes(
     db: Session,
     page: int,
@@ -32,10 +52,9 @@ def list_nodes(
     irrigation_area_id: int | None = None,
     allowed_area_ids: list[int] | None = None,
 ) -> tuple[list[Node], int]:
-    query = select(Node).where(Node.eliminado_en.is_(None))
-    count_query = (
-        select(func.count()).select_from(Node).where(Node.eliminado_en.is_(None))
-    )
+    live = Node.id.in_(live_node_ids())
+    query = select(Node).where(live)
+    count_query = select(func.count()).select_from(Node).where(live)
     if allowed_area_ids is not None:
         if not allowed_area_ids:
             return [], 0
