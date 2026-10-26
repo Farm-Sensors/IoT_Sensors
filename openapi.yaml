@@ -5108,6 +5108,17 @@ components:
             format: date-time
           - type: 'null'
           title: Revoked At
+        property_name:
+          type: string
+          title: Property Name
+        client_name:
+          type: string
+          title: Client Name
+        property_deleted:
+          type: boolean
+          title: Property Deleted
+          description: True when the property (or its client) was deleted; its gateway
+            stays listed
         slots:
           items:
             $ref: '#/components/schemas/GatewaySlotResponse'
@@ -5120,8 +5131,13 @@ components:
       - status
       - configuration_version
       - bindings_revision
+      - property_name
+      - client_name
+      - property_deleted
       - slots
       title: GatewayDetailResponse
+      description: 'Admin view of a gateway: its slots plus who it belongs to, for
+        plain-language UIs.'
     GatewayLocation:
       properties:
         latitude:

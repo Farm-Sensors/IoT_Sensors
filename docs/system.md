@@ -158,8 +158,7 @@ credenciales en `test-data.md`; puertas de la integración en `integration/READM
    ranuras…"); el contador del código no dice "expira en"; estados en inglés/código
    (`pending_initial`, `confirmed`); textos técnicos ("encola una candidatura", "configuración
    cacheada"); fecha en inglés; el scroll no cuenta como actividad para el protector. Panel admin:
-   el enlace revocado dice "2 de 2 reportando"; el
-   selector y el mensaje de aprobación usan "Gateway #21 · Predio 20"; el equipo no reporta
+   el selector y el mensaje de aprobación usan "Gateway #21 · Predio 20"; el equipo no reporta
    hostname/versión al pedir el código; "Número de serie" del nodo sugiere que debe coincidir con
    el nodo físico (no se usa para vincular); GPS sin "opcional"; el área no lleva a crear su nodo;
    el asistente vuelve al paso 1 al recargar. Cliente y admin ven en el menú módulos de Fase 2

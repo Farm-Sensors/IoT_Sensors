@@ -9,6 +9,7 @@ import { useToast } from "../../components/Toast";
 import { api } from "../../services/api";
 import {
   Gateway,
+  gatewayRanchLabel,
   GatewayStatus,
   getGateway,
   getGatewayStatus,
@@ -409,6 +410,52 @@ export function GatewayManagement() {
     return company ? `${property.name} · ${company}` : property.name;
   };
 
+  // Los enlaces revocados van al final y no dicen nada de nodos reportando.
+  const currentLinks = gateways.filter((gateway) => gateway.status !== "revoked");
+  const revokedLinks = gateways.filter((gateway) => gateway.status === "revoked");
+
+  const renderLinkCard = (gateway: Gateway) => {
+    const status = statuses[gateway.id];
+    const total = gateway.slots.length;
+    const revoked = gateway.status === "revoked";
+    return (
+      <BentoCard key={gateway.id}>
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <p className="font-medium">{gatewayRanchLabel(gateway)}</p>
+            <p className="text-sm text-[var(--text-muted)]">
+              Enlace #{gateway.id} · {total} parcela(s)
+              {revoked ? "" : ` · configuración versión ${gateway.configuration_version}`}
+            </p>
+            <p className="mt-1 text-sm">
+              {stateLabel(gateway, status)}
+              {status && !revoked ? ` · ${confirmedCount(status)} de ${total} reportando` : ""}
+            </p>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            {isIncomplete(gateway, status) && (
+              <PillButton
+                type="button"
+                onClick={() => {
+                  setSetup(gateway);
+                  void refreshSetup(gateway.id);
+                }}
+              >
+                Continuar enlace
+              </PillButton>
+            )}
+            <Link
+              className="rounded-full border px-3 py-2 text-sm font-medium hover:bg-black/5"
+              to={`/admin/gateways/${gateway.id}`}
+            >
+              Ver detalle
+            </Link>
+          </div>
+        </div>
+      </BentoCard>
+    );
+  };
+
   const setupSlots = setupStatus?.slots ?? [];
   const setupConfirmed = confirmedCount(setupStatus ?? undefined);
   const stepDone = [
@@ -467,7 +514,7 @@ export function GatewayManagement() {
                 Crear otro enlace
               </PillButton>
               <span className="text-sm text-[var(--text-muted)]">
-                Estás viendo el enlace de {ranchLabel(setup.property_id)}; este botón vuelve al paso 1
+                Estás viendo el enlace de {gatewayRanchLabel(setup)}; este botón vuelve al paso 1
                 para empezar otro rancho.
               </span>
             </div>
@@ -585,7 +632,7 @@ export function GatewayManagement() {
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <div>
                   <h2 className="text-lg font-semibold">
-                    2. Vincula la Raspberry de {ranchLabel(setup.property_id)}
+                    2. Vincula la Raspberry de {gatewayRanchLabel(setup)}
                   </h2>
                   <p className="mt-1 max-w-3xl text-sm text-[var(--text-muted)]">
                     En la pantalla del equipo entra a <strong>Instalación → Paso 1</strong> y toca
@@ -729,48 +776,20 @@ export function GatewayManagement() {
           ) : gateways.length === 0 ? (
             <p className="text-[var(--text-muted)]">Todavía no hay ningún enlace creado.</p>
           ) : (
-            gateways.map((gateway) => {
-              const status = statuses[gateway.id];
-              const total = gateway.slots.length;
-              const confirmed = confirmedCount(status);
-              const incomplete = isIncomplete(gateway, status);
-              return (
-                <BentoCard key={gateway.id}>
-                  <div className="flex flex-wrap items-center justify-between gap-3">
-                    <div>
-                      <p className="font-medium">{ranchLabel(gateway.property_id)}</p>
-                      <p className="text-sm text-[var(--text-muted)]">
-                        Enlace #{gateway.id} · {total} parcela(s) · configuración v
-                        {gateway.configuration_version}
-                      </p>
-                      <p className="mt-1 text-sm">
-                        {stateLabel(gateway, status)}
-                        {status ? ` · ${confirmed} de ${total} reportando` : ""}
-                      </p>
-                    </div>
-                    <div className="flex flex-wrap gap-2">
-                      {incomplete && (
-                        <PillButton
-                          type="button"
-                          onClick={() => {
-                            setSetup(gateway);
-                            void refreshSetup(gateway.id);
-                          }}
-                        >
-                          Continuar enlace
-                        </PillButton>
-                      )}
-                      <Link
-                        className="rounded-full border px-3 py-2 text-sm font-medium hover:bg-black/5"
-                        to={`/admin/gateways/${gateway.id}`}
-                      >
-                        Ver detalle
-                      </Link>
-                    </div>
-                  </div>
-                </BentoCard>
-              );
-            })
+            <>
+              {currentLinks.length === 0 && (
+                <p className="text-[var(--text-muted)]">No hay enlaces vigentes.</p>
+              )}
+              {currentLinks.map(renderLinkCard)}
+              {revokedLinks.length > 0 && (
+                <details>
+                  <summary className="cursor-pointer text-sm text-[var(--text-muted)]">
+                    Enlaces revocados ({revokedLinks.length})
+                  </summary>
+                  <div className="mt-3 space-y-3">{revokedLinks.map(renderLinkCard)}</div>
+                </details>
+              )}
+            </>
           )}
         </section>
 

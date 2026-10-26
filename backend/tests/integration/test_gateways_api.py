@@ -368,3 +368,24 @@ def test_reprovision_after_revoke_retains_a_bound_slot_in_the_request(
     assert binding.estado == "confirmed"
     assert [s["id"] for s in again["slots"]] == [slot.id]
     assert db.scalar(select(GatewaySlot).where(GatewaySlot.pasarela_id == first["id"])).id == slot.id
+
+
+def test_admin_gateway_listing_names_the_ranch_even_after_it_is_deleted(
+    client, db, admin_headers, sample_property, sample_node
+):
+    first = _provision(client, admin_headers, sample_property, sample_node)
+    assert first["property_name"] == sample_property.nombre
+    assert first["client_name"] == sample_property.client.nombre_empresa
+    assert first["property_deleted"] is False
+
+    _revoke(client, admin_headers, first["id"])
+    assert client.delete(
+        f"/api/v1/properties/{sample_property.id}", headers=admin_headers
+    ).status_code == 200
+
+    listed = client.get("/api/v1/gateways", headers=admin_headers).json()
+    assert [(item["id"], item["property_name"], item["property_deleted"]) for item in listed] == [
+        (first["id"], sample_property.nombre, True)
+    ]
+    detail = client.get(f"/api/v1/gateways/{first['id']}", headers=admin_headers).json()
+    assert detail["status"] == "revoked" and detail["property_deleted"] is True

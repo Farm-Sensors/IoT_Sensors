@@ -1,6 +1,7 @@
 import { render, screen, within } from "@testing-library/react";
 import { MemoryRouter, Route, Routes } from "react-router";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import type * as GatewaysModule from "../../services/gateways";
 import { GatewayDetail } from "./GatewayDetail";
 
 const mocks = vi.hoisted(() => ({
@@ -15,28 +16,18 @@ vi.mock("../../components/Toast", () => ({
   useToast: () => ({ showToast: mocks.showToast }),
 }));
 
-vi.mock("../../services/gateways", () => ({
-  getGateway: mocks.getGateway,
-  getGatewayStatus: mocks.getGatewayStatus,
-  publishConfiguration: mocks.publishConfiguration,
-}));
+vi.mock("../../services/gateways", async (importOriginal) => {
+  const actual: typeof GatewaysModule = await importOriginal();
+  return {
+    ...actual,
+    getGateway: mocks.getGateway,
+    getGatewayStatus: mocks.getGatewayStatus,
+    publishConfiguration: mocks.publishConfiguration,
+  };
+});
 
 vi.mock("../../services/nodes", () => ({
   getGeoNodes: mocks.getGeoNodes,
-}));
-
-vi.mock("../../services/api", () => ({
-  api: {
-    get: vi.fn().mockImplementation((path: string) => {
-      if (path === "/properties/11") {
-        return Promise.resolve({ data: { id: 11, client_id: 3, name: "Rancho Prueba" } });
-      }
-      if (path === "/clients/3") {
-        return Promise.resolve({ data: { id: 3, company_name: "Rancho Prueba SA" } });
-      }
-      return Promise.resolve({ data: {} });
-    }),
-  },
 }));
 
 function renderPage() {
@@ -61,6 +52,9 @@ describe("GatewayDetail", () => {
         bindings_revision: 8,
         activated_at: "2026-10-08T23:41:30Z",
         revoked_at: null,
+        property_name: "Rancho Prueba",
+        client_name: "Rancho Prueba SA",
+        property_deleted: false,
         slots: [
           { id: 10, irrigation_area_id: 16, logical_node_id: 16 },
           { id: 11, irrigation_area_id: 17, logical_node_id: 17 },
@@ -131,6 +125,9 @@ describe("GatewayDetail", () => {
         bindings_revision: 0,
         activated_at: null,
         revoked_at: null,
+        property_name: "Rancho Prueba",
+        client_name: "Rancho Prueba SA",
+        property_deleted: false,
         slots: [{ id: 10, irrigation_area_id: 16, logical_node_id: 16 }],
       },
     });

@@ -1,6 +1,7 @@
 import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { MemoryRouter } from "react-router";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import type * as GatewaysModule from "../../services/gateways";
 import { GatewayManagement } from "./GatewayManagement";
 
 const mocks = vi.hoisted(() => ({
@@ -26,18 +27,22 @@ vi.mock("qrcode", () => ({
   default: { toDataURL: vi.fn().mockResolvedValue("data:image/png;base64,demo") },
 }));
 
-vi.mock("../../services/gateways", () => ({
-  listGateways: mocks.listGateways,
-  provisionGateway: mocks.provisionGateway,
-  publishConfiguration: mocks.publishConfiguration,
-  issueActivationReference: mocks.issueActivationReference,
-  getGateway: mocks.getGateway,
-  getGatewayStatus: mocks.getGatewayStatus,
-  lookupPairing: mocks.lookupPairing,
-  approvePairing: mocks.approvePairing,
-  denyPairing: mocks.denyPairing,
-  getPropertyGatewayStatus: mocks.getPropertyGatewayStatus,
-}));
+vi.mock("../../services/gateways", async (importOriginal) => {
+  const actual: typeof GatewaysModule = await importOriginal();
+  return {
+    ...actual,
+    listGateways: mocks.listGateways,
+    provisionGateway: mocks.provisionGateway,
+    publishConfiguration: mocks.publishConfiguration,
+    issueActivationReference: mocks.issueActivationReference,
+    getGateway: mocks.getGateway,
+    getGatewayStatus: mocks.getGatewayStatus,
+    lookupPairing: mocks.lookupPairing,
+    approvePairing: mocks.approvePairing,
+    denyPairing: mocks.denyPairing,
+    getPropertyGatewayStatus: mocks.getPropertyGatewayStatus,
+  };
+});
 
 vi.mock("../../services/nodes", () => ({
   getGeoNodes: mocks.getGeoNodes,
@@ -85,6 +90,9 @@ const createdGateway = {
   bindings_revision: 0,
   activated_at: null,
   revoked_at: null,
+  property_name: "Rancho Prueba",
+  client_name: "Rancho Prueba SA",
+  property_deleted: false,
   slots: [
     { id: 30, irrigation_area_id: 16, logical_node_id: 16 },
     { id: 31, irrigation_area_id: 17, logical_node_id: 17 },
@@ -222,6 +230,42 @@ describe("GatewayManagement (asistente de enlace)", () => {
     // Un enlace vinculado pero sin nodos enlazados no puede decir "reportando".
     expect(screen.getByText(/Vinculada, faltan nodos por enlazar/)).toBeInTheDocument();
     expect(screen.getByText(/0 de 1 reportando/)).toBeInTheDocument();
+  });
+
+  it("lists revoked links last, with the ranch name and without reporting claims", async () => {
+    mocks.listGateways.mockResolvedValue({
+      data: [
+        {
+          ...createdGateway,
+          id: 20,
+          property_id: 19,
+          status: "revoked",
+          property_name: "E2E tramas reales",
+          client_name: "Test",
+          property_deleted: true,
+        },
+        { ...createdGateway, id: 21, status: "active" },
+      ],
+    });
+    mocks.getGatewayStatus.mockImplementation((id: number) =>
+      Promise.resolve({
+        data: {
+          ...pendingStatus,
+          gateway_id: id,
+          slots: pendingStatus.slots.map((slot) => ({ ...slot, binding_status: "confirmed" })),
+        },
+      }),
+    );
+
+    renderPage();
+
+    const revokedSummary = await screen.findByText("Enlaces revocados (1)");
+    const revokedCard = screen.getByText("E2E tramas reales · Test (predio eliminado)").closest("div");
+    expect(revokedSummary.closest("details")).toContainElement(revokedCard);
+    expect(screen.getByText("Enlace revocado")).toBeInTheDocument();
+    expect(screen.queryByText(/Predio 19/)).not.toBeInTheDocument();
+    // Solo el enlace vigente dice cuántas parcelas reportan.
+    expect(screen.getAllByText(/de 2 reportando/)).toHaveLength(1);
   });
 
   it("returns to step 1 from an in-progress link", async () => {

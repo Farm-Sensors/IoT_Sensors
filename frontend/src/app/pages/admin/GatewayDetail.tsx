@@ -5,8 +5,14 @@ import { GatewayStatusBadge } from "../../components/GatewayStatusBadge";
 import { PageTransition } from "../../components/PageTransition";
 import { PillButton } from "../../components/PillButton";
 import { useToast } from "../../components/Toast";
-import { api } from "../../services/api";
-import { Gateway, GatewayStatus, getGateway, getGatewayStatus, publishConfiguration } from "../../services/gateways";
+import {
+  Gateway,
+  gatewayRanchLabel,
+  GatewayStatus,
+  getGateway,
+  getGatewayStatus,
+  publishConfiguration,
+} from "../../services/gateways";
 import { getGeoNodes } from "../../services/nodes";
 import { formatElapsed, parseBackendTimestamp } from "../../utils/datetime";
 import { getErrorMessage } from "../../utils/errors";
@@ -25,17 +31,6 @@ const MANAGEMENT_LABELS: Record<string, string> = {
   revoked: "Revocado",
 };
 
-type PropertyInfo = {
-  id: number;
-  client_id: number;
-  name: string;
-};
-
-type ClientInfo = {
-  id: number;
-  company_name: string;
-};
-
 type SlotNode = {
   name: string | null;
   serial_number: string | null;
@@ -47,8 +42,6 @@ export function GatewayDetail() {
   const { showToast } = useToast();
   const [gateway, setGateway] = useState<Gateway | null>(null);
   const [status, setStatus] = useState<GatewayStatus | null>(null);
-  const [property, setProperty] = useState<PropertyInfo | null>(null);
-  const [client, setClient] = useState<ClientInfo | null>(null);
   const [slotNodes, setSlotNodes] = useState<Record<number, SlotNode>>({});
   const [loading, setLoading] = useState(true);
   const [publishing, setPublishing] = useState(false);
@@ -65,11 +58,6 @@ export function GatewayDetail() {
       setGateway(gatewayRes.data);
       setStatus(statusRes.data);
       setError(null);
-
-      const propertyRes = await api.get<PropertyInfo>(`/properties/${gatewayRes.data.property_id}`);
-      setProperty(propertyRes.data);
-      const clientRes = await api.get<ClientInfo>(`/clients/${propertyRes.data.client_id}`);
-      setClient(clientRes.data);
 
       const geoRes = await getGeoNodes({
         property_id: gatewayRes.data.property_id,
@@ -172,8 +160,7 @@ export function GatewayDetail() {
             </Link>
             <h1 className="mt-2 text-2xl font-semibold">Gateway #{gateway.id}</h1>
             <p className="mt-1 text-[var(--text-muted)]">
-              {property?.name || `Predio ${gateway.property_id}`}
-              {client?.company_name ? ` · ${client.company_name}` : ""}
+              {gatewayRanchLabel(gateway)}
             </p>
             <div className="mt-3 flex flex-wrap items-center gap-2">
               <span className="text-sm text-[var(--text-muted)]">Gestión:</span>

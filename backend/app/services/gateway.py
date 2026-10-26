@@ -26,7 +26,10 @@ def _not_found() -> HTTPException:
 def get_gateway(db: Session, gateway_id: int) -> Gateway:
     gateway = db.execute(
         select(Gateway)
-        .options(selectinload(Gateway.slots))
+        .options(
+            selectinload(Gateway.slots),
+            selectinload(Gateway.property).selectinload(Property.client),
+        )
         .where(Gateway.id == gateway_id, Gateway.eliminado_en.is_(None))
     ).scalar_one_or_none()
     if gateway is None:
@@ -38,7 +41,10 @@ def list_gateways(db: Session) -> list[Gateway]:
     return list(
         db.scalars(
             select(Gateway)
-            .options(selectinload(Gateway.slots))
+            .options(
+                selectinload(Gateway.slots),
+                selectinload(Gateway.property).selectinload(Property.client),
+            )
             .where(Gateway.eliminado_en.is_(None))
             .order_by(Gateway.id)
         ).unique()

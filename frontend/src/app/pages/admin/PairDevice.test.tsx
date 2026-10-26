@@ -33,6 +33,9 @@ const pendingGateway: Gateway = {
   bindings_revision: 0,
   activated_at: null,
   revoked_at: null,
+  property_name: "Rancho Norte",
+  client_name: "Agrícola Norte",
+  property_deleted: false,
   slots: [],
 };
 
@@ -44,6 +47,9 @@ const activeGateway: Gateway = {
   bindings_revision: 1,
   activated_at: "2026-01-01T00:00:00Z",
   revoked_at: null,
+  property_name: "Rancho Sur",
+  client_name: "Agrícola Sur",
+  property_deleted: false,
   slots: [],
 };
 

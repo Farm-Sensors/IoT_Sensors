@@ -38,15 +38,20 @@ from app.schemas.gateway_update import (
 router = APIRouter()
 
 
+def _admin_gateway(gateway: Gateway) -> GatewayDetailResponse:
+    prop = gateway.property
+    return GatewayDetailResponse(
+        **GatewayResponse.model_validate(gateway).model_dump(),
+        property_name=prop.nombre,
+        client_name=prop.client.nombre_empresa,
+        property_deleted=prop.eliminado_en is not None or prop.client.eliminado_en is not None,
+        slots=gateway.slots,
+    )
+
+
 @router.get("", response_model=list[GatewayDetailResponse])
 def list_gateways(_admin: User = Depends(require_admin), db: Session = Depends(get_db)):
-    return [
-        GatewayDetailResponse(
-            **GatewayResponse.model_validate(gateway).model_dump(),
-            slots=gateway.slots,
-        )
-        for gateway in gateway_service.list_gateways(db)
-    ]
+    return [_admin_gateway(gateway) for gateway in gateway_service.list_gateways(db)]
 
 
 @router.post("", response_model=GatewayDetailResponse, status_code=status.HTTP_201_CREATED)
@@ -55,10 +60,7 @@ def provision_gateway(
     admin: User = Depends(require_admin),
     db: Session = Depends(get_db),
 ):
-    gateway = gateway_service.provision_gateway(db, data, admin.id)
-    return GatewayDetailResponse(
-        **GatewayResponse.model_validate(gateway).model_dump(), slots=gateway.slots
-    )
+    return _admin_gateway(gateway_service.provision_gateway(db, data, admin.id))
 
 
 @router.get("/{gateway_id}", response_model=GatewayDetailResponse)
@@ -67,10 +69,7 @@ def get_gateway(
     _admin: User = Depends(require_admin),
     db: Session = Depends(get_db),
 ):
-    gateway = gateway_service.get_gateway(db, gateway_id)
-    return GatewayDetailResponse(
-        **GatewayResponse.model_validate(gateway).model_dump(), slots=gateway.slots
-    )
+    return _admin_gateway(gateway_service.get_gateway(db, gateway_id))
 
 
 @router.post(

@@ -220,7 +220,7 @@ Contrato detallado (payloads, schemas, errores, ejemplos): **`openapi.yaml`** (a
 | AI Reports | GET | `/api/v1/ai-reports` | Listar reportes IA (paginado) |
 | AI Reports | GET | `/api/v1/ai-reports/{report_id}` | Detalle de reporte IA |
 | AI Reports | POST | `/api/v1/ai-reports/generate` | Generar reporte — Admin/scheduler (dormido sin `AI_REPORTS_ENABLED`) |
-| Gateways (admin) | GET | `/api/v1/gateways` | Listar gateways — Admin |
+| Gateways (admin) | GET | `/api/v1/gateways` | Listar gateways; cada uno trae `property_name`, `client_name` y `property_deleted` (predio o cliente borrado) para mostrar el rancho por nombre — Admin |
 | Gateways (admin) | POST | `/api/v1/gateways` | Aprovisionar gateway de un predio: crea los nodos que falten y publica la configuración — Admin |
 | Gateways (admin) | GET | `/api/v1/gateways/{gateway_id}` | Detalle con slots — Admin |
 | Gateways (admin) | POST | `/api/v1/gateways/{gateway_id}/configuration` | Volver a publicar configuración (siguiente versión) — Admin |
