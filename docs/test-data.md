@@ -1,4 +1,4 @@
-# Datos de Prueba (estado limpio — 2026-10-10; verificado 2026-10-25)
+# Datos de Prueba (estado limpio — 2026-10-10; verificado 2026-10-26)
 
 El sistema quedó **vacío a propósito** para empezar a probar desde cero. Solo existe lo
 que sigue; nada de ranchos, nodos ni lecturas en el cloud.
@@ -18,13 +18,16 @@ Ambos entran a un dashboard vacío: no hay predios, áreas, nodos ni lecturas.
 ## 🗄️ Qué conserva la base del cloud
 
 - Catálogos administrables: `tipos_cultivo` (**Nogal, Alfalfa, Manzana, Maíz, Chile, Algodón**) y `perfiles_hardware` (3 perfiles).
-- Nada más: se borraron clientes, predios, áreas, nodos, lecturas, gateways, ranuras, vínculos,
+- Nada más activo: se borraron clientes, predios, áreas, nodos, lecturas, gateways, ranuras, vínculos,
   configuraciones publicadas, referencias de activación, sesiones de emparejamiento, snapshots NDVI,
   preferencias y tokens.
+- Residuo del E2E con tramas reales del 2026-10-26 (no visible en ninguna pantalla): la **gateway 20
+  revocada** y el predio 19 "E2E tramas reales (temporal)" con sus áreas 47/48 y nodos 45/46
+  **eliminados** (borrado lógico), que conservan 30 lecturas de `H845D` en la base.
 
 ## 🍓 Raspberry de pruebas (`10.32.90.229`, `agroio@`)
 
-- Corre el **canal beta** de Agro (**`2.0.0-alpha.24`**, línea `integration/iot-v2`) y está **sin gateway vinculado**: `activation_state: unactivated`, sin `gateway_id`/`property_id` y sin credencial. Mientras siga así no hay heartbeat ni poll de configuración. Para volver a estable: `sudo /opt/agroio/channel/agroio-channel.sh --switch stable`.
+- Corre el **canal beta** de Agro (**`2.0.0-alpha.25`**, rama `feat/real-sensor-readiness`) y está **sin gateway vinculado**: `activation_state: unactivated`, sin `gateway_id`/`property_id` y sin credencial. Mientras siga así no hay heartbeat ni poll de configuración. Para volver a estable: `sudo /opt/agroio/channel/agroio-channel.sh --switch stable` (instala el paquete local `0.9.5`; verificado ida y vuelta el 2026-10-26).
 - **Canales stable/beta**: el equipo puede cambiar de release en un comando
   (`sudo /opt/agroio/channel/agroio-channel.sh --switch beta|stable`). Cambiar de canal guarda y
   aplica la configuración de cada uno (perfiles en `/etc/agroio/profiles/`) y enciende/apaga el visor

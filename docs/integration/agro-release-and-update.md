@@ -35,18 +35,19 @@ tag x.y.z pushed  ──►  release-rpi.yml  ──►  GitHub Release (agroio-
 - **No scheduler.** No timer or cron entry checks for Agro.io updates. The only timers on the device belong to the operating system (`apt`).
 - **Not an OS image.** The device runs a regular Ubuntu install. Application versions stack up under `/opt/agroio/releases/<version>/`, and `/opt/agroio/current` is a symlink to the active one. Rolling back probably means pointing the symlink at an older release, but that was inferred from the layout and not tested. I did not find an ISO or image pipeline in the repository, but I only searched by file name and read the release workflow, not every script.
 
-## Current test device (2026-10-25)
+## Current test device (2026-10-26)
 
 | Item | Value |
 |---|---|
 | Host | `10.32.90.229` (institutional network only) |
 | OS | Ubuntu 26.04 LTS, kernel `7.0.0-1020-raspi`, aarch64 |
-| Installed release | `2.0.0-alpha.24` from `integration/iot-v2` (beta channel), installed under `/opt/agroio/releases/` |
+| Installed release | `2.0.0-alpha.25` (beta channel, built from Agro.io `feat/real-sensor-readiness`), installed under `/opt/agroio/releases/`; the stable package on the device is a local `0.9.5` build of `main` (content of `0.9.4`) |
 | Services | `agroio-edge`, `agroio-ui` and `agroio-ui-webviewer`, all enabled and active |
 | Agent mode | `mode: serial`, `demo_nodes: 0`, `cloud_lane: v2`, `http_sync` disabled with an empty endpoint |
 | Gateway identity | `activation_state: unactivated`: no gateway/property and no credential, so no heartbeat or configuration poll is sent |
 | Local data | 50 972 measurements, 8 497 raw readings, 16 512 alerts; `sync_queue` holds 110 437 historical rows (none pending) |
 | NDVI | latest-point file present (`mesh-DEMO01`); `ndvi.irrigation_areas` is empty, so nothing is queued |
+| Channels | `beta → stable → beta` verified on 2026-10-26 with no data loss; only beta carries the v2 lane. The UI's "check for updates" button is not channel-aware: on a beta device with a GitHub token it would offer the stable release and bypass the channel script |
 
 ## Observed device state (2026-10-06, historical)
 

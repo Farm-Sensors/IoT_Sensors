@@ -95,39 +95,53 @@ El admin **autoriza** una imagen (versión + digest). El técnico **confirma** e
 - Comandos físicos hacia riego.
 - PostgreSQL.
 
-## Estado actual y pendientes (2026-10-25)
+## Estado actual y pendientes (2026-10-26)
 
 Foto de dónde estamos; se actualiza aquí mismo cuando cambia algo. Detalle del laboratorio y
 credenciales en `test-data.md`; puertas de la integración en `integration/README.md`.
 
-- **IoT_Sensors (cloud)**: `main` local = `origin/main` (`1927c4a`) y el stack de laboratorio
-  responde en Dokploy. MVP completo; Fase 2 dormida tras flags salvo las dos excepciones aprobadas
-  (NDVI de último punto y clima de referencia). Contrato v2 en **revisión 4** (operación `location`);
-  la aceptación formal de las revisiones 2–4 sigue **pendiente** (el marcador "accepted upstream"
-  del paquete está en la revisión 1). Laboratorio **purga intencional**: solo admin,
-  `alan2203mx@gmail.com` y `test@gmail.com` + catálogos; cero predios, nodos, lecturas o gateways.
-- **Agro (appliance)**: `main` en `0e98cf6` (tag `0.9.4`, producción) y `integration/iot-v2` en
-  `c241a15` (PR #21 mergeado); `main` es ancestro de la línea v2. La Raspberry corre el **canal
-  beta** (`2.0.0-alpha.24`), `mode: serial`, `demo_nodes: 0`, carril v2 apuntando al cloud del
-  laboratorio, `http_sync` **apagado** y **sin gateway vinculado** (`activation_state: unactivated`,
-  sin credencial). Datos reales conservados (`H845D`, `H4EBF`: 50 972 mediciones, 8 497 lecturas
-  crudas, 16 512 alertas); ningún nodo transmite desde el 15 sep, por eso *Instalación → Paso 2* está
-  vacío. Canales stable/beta operativos con un comando.
-- **Integración**: flujo verificado de punta a punta el 2026-10-08 (rancho → gateway → publicación →
-  **pairing por QR** → 4 ranuras confirmadas → telemetría → dashboard del cliente). Hoy no hay rancho
-  en el cloud, así que para repetirlo hay que crear uno (o re-sembrar).
+- **IoT_Sensors (cloud)**: el stack de laboratorio responde en Dokploy. MVP completo; Fase 2 dormida
+  tras flags salvo las dos excepciones aprobadas (NDVI de último punto y clima de referencia).
+  Contrato v2 en **revisión 4** (operación `location`); la aceptación formal de las revisiones 2–4
+  sigue **pendiente** (el marcador "accepted upstream" del paquete está en la revisión 1).
+  Laboratorio limpio: solo admin, `alan2203mx@gmail.com` y `test@gmail.com` + catálogos; cero
+  predios o nodos activos (queda la gateway 20 del E2E, revocada).
+- **Agro (appliance)**: `main` en `0e98cf6` (tag `0.9.4`, producción, canal **stable**) y
+  `integration/iot-v2` en `c241a15` (canal **beta**). La Raspberry de pruebas corre **beta
+  `2.0.0-alpha.25`** (rama `feat/real-sensor-readiness`, aún sin PR a `integration/iot-v2`), `mode:
+  serial`, carril v2 al cloud del laboratorio, `http_sync` apagado y **sin gateway vinculado**. Datos
+  reales conservados (`H845D`, `H4EBF`: 50 972 mediciones); ningún nodo transmite desde el 15 sep.
+- **Integración con sensores reales**: verificada el 2026-10-26 con **tramas reales** del log de la
+  Raspberry, reproducidas por el agente `alpha.25` instalado en la propia Raspberry (workspace
+  aislado) contra el cloud: pairing por código → detección de `mesh-H845D` y `mesh-H4EBF` → dos
+  ranuras confirmadas → 30 lecturas `201` con los valores exactos de la trama → ubicación del
+  predio → dashboard del cliente (última lectura, prioridades y clima). Antes, 9 346 tramas reales
+  pasaron el esquema v2. Las tres correcciones de `alpha.25`: no enviar lecturas sin ningún valor
+  (firmware viejo), usar el reloj del agente cuando la trama no trae hora, y calcular la humedad
+  ECH-5 con la misma calibración que la pantalla.
+- **Canales**: ida y vuelta `beta → stable → beta` verificada sin pérdida de datos. **Solo `beta`
+  integra con IoT_Sensors**: `stable` (0.9.x) no tiene el carril v2, y la línea v2 no se fusiona a
+  `main`.
 
 **Pendientes / a pulir**
 
-1. Aceptación del contrato **revisión 4** (gobernanza).
-2. **Portar los canales stable/beta a `main`** (5 archivos, ver `release-channels.md` en Agro).
-3. Decidir si las pantallas **Instalación** y **Actualización** (hoy solo en la línea beta) van a producción.
-4. Validar con **nodos reales encendidos** (o ensayar con `mode: demo`).
-5. **Mapeo NDVI por nodo** (hoy se configura a mano).
-6. **`http_sync` al backend del cliente** (endpoint + habilitar; hoy apagado).
-7. Limpieza menor: `demo-node-01` inactivo, `C0` escuchado el 20 oct pero no habilitado (sin
-   lecturas), paquetes locales acumulados, unidad del receptor.
-8. Consistencia de idioma en la documentación de Agro (inglés) frente a IoT_Sensors (español).
+1. **Decisión de producto: cómo llega la integración a producción.** Hoy solo existe en `beta`
+   (alpha) y la regla es que la línea v2 nunca entra a `main`. Un rancho real integrado tendría que
+   correr `beta`, o hay que decidir una promoción (nueva línea estable 2.x o portar a `main`).
+2. **Firmware de nodos**: solo el payload compacto (`"s1":…`) llega a la nube; verificar o reflashear
+   cada nodo antes de instalarlo. Los nodos solo miden suelo: flujo y ETO llegan `null`.
+3. **Botón "buscar actualizaciones" de la UI sin canales**: en un equipo `beta` con token de GitHub
+   ofrece instalar la estable y se salta el script de canales.
+4. **Endpoint público con HTTPS** para ranchos fuera de la red ITESM (hoy solo `10.32.81.230:3022`
+   por HTTP).
+5. PR de `feat/real-sensor-readiness` a `integration/iot-v2` y aceptación del contrato **revisión 4**.
+6. **Portar los canales stable/beta a `main`** (5 archivos, ver `release-channels.md` en Agro) y usar
+   el asset oficial `0.9.4` como stable del equipo de pruebas (hoy es un `0.9.5` local).
+7. Validar con **nodos reales encendidos** en campo (alcance de radio, energía, calibración).
+8. **Mapeo NDVI por nodo** (hoy se configura a mano); **`http_sync` al backend del cliente** (hoy
+   apagado).
+9. Limpieza menor: `demo-node-01` inactivo, `C0` no habilitado, paquetes locales acumulados, log del
+   agente de 44 MB con "heartbeat not sent" cada 5 s cuando no hay gateway.
 
 ## Dónde leer más
 
