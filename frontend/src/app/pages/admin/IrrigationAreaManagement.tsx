@@ -279,23 +279,23 @@ export function IrrigationAreaManagement() {
           <BentoCard variant="light" className="w-full max-w-md">
             <div className="flex justify-between items-center mb-6">
               <h2 className="text-xl font-serif text-[var(--text-title)]">Nueva Área de Riego</h2>
-              <button onClick={() => setShowCreateForm(false)} type="button" className="rounded-full p-1 text-[var(--text-subtle)] hover:bg-[var(--hover-overlay)] transition-colors"><XCircle className="w-6 h-6" /></button>
+              <button onClick={() => setShowCreateForm(false)} type="button" aria-label="Cerrar" className="rounded-full p-1 text-[var(--text-subtle)] hover:bg-[var(--hover-overlay)] transition-colors"><XCircle className="w-6 h-6" /></button>
             </div>
             <form className="space-y-4" onSubmit={handleCreate}>
               <div>
-                <label className="block text-sm text-[var(--text-subtle)] mb-1">Nombre del Área</label>
-                <input required type="text" value={formData.name} onChange={e => setFormData({ ...formData, name: e.target.value })} className="w-full px-4 py-2.5 rounded-[24px] bg-[var(--surface-panel)] border border-[var(--border-strong)] text-[var(--text-body)] focus:outline-none focus:ring-2 focus:ring-[var(--focus-ring)]" />
+                <label htmlFor="area-create-name" className="block text-sm text-[var(--text-subtle)] mb-1">Nombre del Área</label>
+                <input id="area-create-name" required type="text" value={formData.name} onChange={e => setFormData({ ...formData, name: e.target.value })} className="w-full px-4 py-2.5 rounded-[24px] bg-[var(--surface-panel)] border border-[var(--border-strong)] text-[var(--text-body)] focus:outline-none focus:ring-2 focus:ring-[var(--focus-ring)]" />
               </div>
               <div>
-                <label className="block text-sm text-[var(--text-subtle)] mb-1">Tipo de Cultivo</label>
-                <select required value={formData.crop_type_id} onChange={e => setFormData({ ...formData, crop_type_id: e.target.value })} className="w-full px-4 py-2.5 rounded-[24px] bg-[var(--surface-panel)] border border-[var(--border-strong)] text-[var(--text-body)] focus:outline-none focus:ring-2 focus:ring-[var(--focus-ring)]">
+                <label htmlFor="area-create-crop" className="block text-sm text-[var(--text-subtle)] mb-1">Tipo de Cultivo</label>
+                <select id="area-create-crop" required value={formData.crop_type_id} onChange={e => setFormData({ ...formData, crop_type_id: e.target.value })} className="w-full px-4 py-2.5 rounded-[24px] bg-[var(--surface-panel)] border border-[var(--border-strong)] text-[var(--text-body)] focus:outline-none focus:ring-2 focus:ring-[var(--focus-ring)]">
                   <option value="">Selecciona un cultivo</option>
                   {cropTypes.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
                 </select>
               </div>
               <div>
-                <label className="block text-sm text-[var(--text-subtle)] mb-1">Tamaño (Hectáreas) - Opcional</label>
-                <input type="number" step="0.01" value={formData.area_size} onChange={e => setFormData({ ...formData, area_size: e.target.value })} className="w-full px-4 py-2.5 rounded-[24px] bg-[var(--surface-panel)] border border-[var(--border-strong)] text-[var(--text-body)] focus:outline-none focus:ring-2 focus:ring-[var(--focus-ring)]" />
+                <label htmlFor="area-create-size" className="block text-sm text-[var(--text-subtle)] mb-1">Tamaño (Hectáreas) - Opcional</label>
+                <input id="area-create-size" type="number" step="0.01" value={formData.area_size} onChange={e => setFormData({ ...formData, area_size: e.target.value })} className="w-full px-4 py-2.5 rounded-[24px] bg-[var(--surface-panel)] border border-[var(--border-strong)] text-[var(--text-body)] focus:outline-none focus:ring-2 focus:ring-[var(--focus-ring)]" />
               </div>
               <div className="flex gap-3 pt-4">
                 <PillButton variant="outline" className="flex-1 justify-center" onClick={() => setShowCreateForm(false)} type="button">Cancelar</PillButton>
@@ -317,6 +317,7 @@ export function IrrigationAreaManagement() {
                   setEditingArea(null);
                 }}
                 type="button"
+                aria-label="Cerrar"
                 className="rounded-full p-1 text-[var(--text-subtle)] hover:bg-[var(--hover-overlay)] transition-colors"
               >
                 <XCircle className="w-6 h-6" />
@@ -324,8 +325,9 @@ export function IrrigationAreaManagement() {
             </div>
             <form className="space-y-4" onSubmit={handleUpdate}>
               <div>
-                <label className="block text-sm text-[var(--text-subtle)] mb-1">Nombre del Área</label>
+                <label htmlFor="area-edit-name" className="block text-sm text-[var(--text-subtle)] mb-1">Nombre del Área</label>
                 <input
+                  id="area-edit-name"
                   required
                   type="text"
                   value={editFormData.name}
@@ -334,8 +336,9 @@ export function IrrigationAreaManagement() {
                 />
               </div>
               <div>
-                <label className="block text-sm text-[var(--text-subtle)] mb-1">Tipo de Cultivo</label>
+                <label htmlFor="area-edit-crop" className="block text-sm text-[var(--text-subtle)] mb-1">Tipo de Cultivo</label>
                 <select
+                  id="area-edit-crop"
                   required
                   value={editFormData.crop_type_id}
                   onChange={(e) => setEditFormData({ ...editFormData, crop_type_id: e.target.value })}
@@ -350,8 +353,9 @@ export function IrrigationAreaManagement() {
                 </select>
               </div>
               <div>
-                <label className="block text-sm text-[var(--text-subtle)] mb-1">Tamaño (Hectáreas) - Opcional</label>
+                <label htmlFor="area-edit-size" className="block text-sm text-[var(--text-subtle)] mb-1">Tamaño (Hectáreas) - Opcional</label>
                 <input
+                  id="area-edit-size"
                   type="number"
                   step="0.01"
                   value={editFormData.area_size}

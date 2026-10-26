@@ -226,16 +226,16 @@ export function PropertyManagement() {
           <BentoCard variant="light" className="w-full max-w-md">
             <div className="flex justify-between items-center mb-6">
               <h2 className="text-xl font-serif text-[var(--text-title)]">Nuevo Predio</h2>
-              <button onClick={() => setShowCreateForm(false)} type="button" className="rounded-full p-1 text-[var(--text-subtle)] hover:bg-[var(--hover-overlay)] transition-colors"><XCircle className="w-6 h-6" /></button>
+              <button onClick={() => setShowCreateForm(false)} type="button" aria-label="Cerrar" className="rounded-full p-1 text-[var(--text-subtle)] hover:bg-[var(--hover-overlay)] transition-colors"><XCircle className="w-6 h-6" /></button>
             </div>
             <form className="space-y-4" onSubmit={handleCreate}>
               <div>
-                <label className="block text-sm text-[var(--text-subtle)] mb-1">Nombre del Predio</label>
-                <input required type="text" value={formData.name} onChange={e => setFormData({ ...formData, name: e.target.value })} className="w-full px-4 py-2.5 rounded-[24px] bg-[var(--surface-panel)] border border-[var(--border-strong)] text-[var(--text-body)] focus:outline-none focus:ring-2 focus:ring-[var(--focus-ring)]" />
+                <label htmlFor="property-create-name" className="block text-sm text-[var(--text-subtle)] mb-1">Nombre del Predio</label>
+                <input id="property-create-name" required type="text" value={formData.name} onChange={e => setFormData({ ...formData, name: e.target.value })} className="w-full px-4 py-2.5 rounded-[24px] bg-[var(--surface-panel)] border border-[var(--border-strong)] text-[var(--text-body)] focus:outline-none focus:ring-2 focus:ring-[var(--focus-ring)]" />
               </div>
               <div>
-                <label className="block text-sm text-[var(--text-subtle)] mb-1">Ubicación (Opcional)</label>
-                <input type="text" value={formData.location} onChange={e => setFormData({ ...formData, location: e.target.value })} className="w-full px-4 py-2.5 rounded-[24px] bg-[var(--surface-panel)] border border-[var(--border-strong)] text-[var(--text-body)] focus:outline-none focus:ring-2 focus:ring-[var(--focus-ring)]" />
+                <label htmlFor="property-create-location" className="block text-sm text-[var(--text-subtle)] mb-1">Ubicación (Opcional)</label>
+                <input id="property-create-location" type="text" value={formData.location} onChange={e => setFormData({ ...formData, location: e.target.value })} className="w-full px-4 py-2.5 rounded-[24px] bg-[var(--surface-panel)] border border-[var(--border-strong)] text-[var(--text-body)] focus:outline-none focus:ring-2 focus:ring-[var(--focus-ring)]" />
               </div>
               <div className="flex gap-3 pt-4">
                 <PillButton variant="outline" className="flex-1 justify-center" onClick={() => setShowCreateForm(false)} type="button">Cancelar</PillButton>
@@ -257,6 +257,7 @@ export function PropertyManagement() {
                   setEditingProperty(null);
                 }}
                 type="button"
+                aria-label="Cerrar"
                 className="rounded-full p-1 text-[var(--text-subtle)] hover:bg-[var(--hover-overlay)] transition-colors"
               >
                 <XCircle className="w-6 h-6" />
@@ -264,8 +265,9 @@ export function PropertyManagement() {
             </div>
             <form className="space-y-4" onSubmit={handleUpdate}>
               <div>
-                <label className="block text-sm text-[var(--text-subtle)] mb-1">Nombre del Predio</label>
+                <label htmlFor="property-edit-name" className="block text-sm text-[var(--text-subtle)] mb-1">Nombre del Predio</label>
                 <input
+                  id="property-edit-name"
                   required
                   type="text"
                   value={editFormData.name}
@@ -274,8 +276,9 @@ export function PropertyManagement() {
                 />
               </div>
               <div>
-                <label className="block text-sm text-[var(--text-subtle)] mb-1">Ubicación (Opcional)</label>
+                <label htmlFor="property-edit-location" className="block text-sm text-[var(--text-subtle)] mb-1">Ubicación (Opcional)</label>
                 <input
+                  id="property-edit-location"
                   type="text"
                   value={editFormData.location}
                   onChange={(e) => setEditFormData({ ...editFormData, location: e.target.value })}
