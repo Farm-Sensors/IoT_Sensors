@@ -74,9 +74,6 @@ function createLinkErrorMessage(err: unknown): string {
   if (text.includes("disabled node")) {
     return "Una de las parcelas tiene su nodo deshabilitado. Actívalo en Nodos o quita esa parcela.";
   }
-  if (text.includes("deleted node")) {
-    return "Una de las parcelas tuvo un nodo que se eliminó y no puede recibir otro. Quita esa parcela.";
-  }
   if (text.includes("binding history")) {
     return "Una parcela que quitaste ya tuvo un nodo enlazado en este rancho. Vuelve a marcarla.";
   }

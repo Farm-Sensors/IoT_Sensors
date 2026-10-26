@@ -316,7 +316,7 @@ Es la relación más común. Un cliente tiene muchos predios. Un predio tiene mu
 **1:1 (uno a uno) — "Exactamente un padre, exactamente un hijo"**
 Se usa en dos casos específicos:
 - **`usuarios` ↔ `clientes`:** Cada usuario con rol "cliente" tiene exactamente 1 registro en `clientes`. Se garantiza con `UNIQUE` en `clientes.usuario_id`.
-- **`areas_riego` ↔ `nodos`:** Cada área tiene exactamente 1 nodo, y cada nodo pertenece a exactamente 1 área. Se garantiza con `UNIQUE` en `nodos.area_riego_id`.
+- **`areas_riego` ↔ `nodos`:** Cada área tiene exactamente 1 nodo, y cada nodo pertenece a exactamente 1 área. Se garantiza con `UNIQUE` en `nodos.area_riego_id`. El índice incluye las filas con borrado lógico, así que un área cuyo nodo se eliminó no recibe otro: aprovisionar el gateway o registrar el nodo **restaura** esa misma fila (mismo id, conserva el histórico de lecturas).
 
 ¿Por qué separar en dos tablas si es 1:1? Porque la información es de naturaleza diferente. `usuarios` maneja auth (contraseña, rol), `clientes` maneja negocio (empresa, teléfono). Si mañana necesitamos que un cliente tenga 2 usuarios, solo quitamos el UNIQUE.
 

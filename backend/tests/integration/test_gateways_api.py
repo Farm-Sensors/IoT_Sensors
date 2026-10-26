@@ -272,16 +272,66 @@ def test_provisioning_rejects_a_disabled_node_without_side_effects(
     assert db.scalar(select(Node).where(Node.area_riego_id == bare.id)) is None
 
 
-def test_provisioning_rejects_an_area_whose_node_was_deleted(
+def _soft_delete_with_history(db, node):
+    from app.models import Reading
+
+    db.add(Reading(nodo_id=node.id, marca_tiempo=datetime(2026, 9, 1, 12, 0)))
+    node.eliminado_en = datetime.now(UTC).replace(tzinfo=None)
+    node.activo = False
+    db.commit()
+
+
+def test_provisioning_restores_an_area_node_that_was_deleted(
+    client, db, admin_headers, sample_property, sample_node, sample_irrigation_area
+):
+    from app.models import Node
+
+    old_id = sample_node.id
+    _soft_delete_with_history(db, sample_node)
+
+    response = _provision_area(client, admin_headers, sample_property, sample_node.area_riego_id)
+
+    assert response.status_code == 201, response.text
+    assert response.json()["slots"][0]["logical_node_id"] == old_id
+    db.expire_all()
+    restored = db.get(Node, old_id)
+    assert restored.eliminado_en is None and restored.activo is True
+    assert restored.nombre == "Nodo Test"
+    assert db.scalars(select(Node).where(Node.area_riego_id == sample_irrigation_area.id)).all() == [
+        restored
+    ]
+    readings = client.get(
+        f"/api/v1/readings?irrigation_area_id={sample_irrigation_area.id}", headers=admin_headers
+    )
+    assert readings.status_code == 200, readings.text
+    assert readings.json()["total"] == 1
+
+
+def test_provisioning_names_a_restored_node_without_name(
+    client, db, admin_headers, sample_property, sample_node, sample_irrigation_area
+):
+    sample_node.nombre = None
+    _soft_delete_with_history(db, sample_node)
+
+    response = _provision_area(client, admin_headers, sample_property, sample_node.area_riego_id)
+
+    assert response.status_code == 201, response.text
+    db.refresh(sample_node)
+    assert sample_node.nombre == f"Nodo {sample_irrigation_area.nombre}"
+
+
+def test_provisioning_a_deleted_property_does_not_restore_its_nodes(
     client, db, admin_headers, sample_property, sample_node
 ):
-    sample_node.eliminado_en = datetime.now(UTC).replace(tzinfo=None)
+    _soft_delete_with_history(db, sample_node)
+    sample_property.eliminado_en = datetime.now(UTC).replace(tzinfo=None)
     db.commit()
 
     response = _provision_area(client, admin_headers, sample_property, sample_node.area_riego_id)
 
-    assert response.status_code == 409
-    assert "deleted node" in response.json()["detail"]
+    assert response.status_code == 404
+    db.refresh(sample_node)
+    assert sample_node.eliminado_en is not None and sample_node.activo is False
     assert db.scalar(select(Gateway.id)) is None
 
 
