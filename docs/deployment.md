@@ -82,7 +82,7 @@ GATEWAY_PAIRING_ENABLED=false
 PAIRING_VERIFICATION_BASE_URL=
 ```
 
-Weather stays off until a commercial Open-Meteo key exists in Dokploy secrets. Never store that key in the repo.
+The reference-weather card is the one approved Phase 2 exception: `OPEN_METEO_ENABLED=true` works against the free keyless API (`https://api.open-meteo.com`, no `OPEN_METEO_API_KEY`). The commercial base URL plus key remain optional; if a key is used, keep it in Dokploy secrets, never in the repo.
 
 Gateway pairing stays **off** by default. Turn it on per installation with `GATEWAY_PAIRING_ENABLED=true` and set `PAIRING_VERIFICATION_BASE_URL` to a base the admin's phone can reach: the cloud builds `verification_uri` as `<base>/pair` and `verification_uri_complete` as `<base>/pair?code=XXXX-XXXX` (the lab stack runs it on over plain HTTP at `http://10.32.81.230:3022`). `GATEWAY_PAIRING_ENABLED` also gates the admin lookup/approve/deny routes, which answer `503 pairing_unavailable` while it is off. The `PAIRING_*` tuning settings (TTL, interval, `slow_down`, lockouts, HMAC key) keep their defaults; the HMAC key falls back to `SECRET_KEY` when `PAIRING_CODE_HMAC_KEY` is empty.
 

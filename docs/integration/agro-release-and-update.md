@@ -35,7 +35,20 @@ tag x.y.z pushed  ──►  release-rpi.yml  ──►  GitHub Release (agroio-
 - **No scheduler.** No timer or cron entry checks for Agro.io updates. The only timers on the device belong to the operating system (`apt`).
 - **Not an OS image.** The device runs a regular Ubuntu install. Application versions stack up under `/opt/agroio/releases/<version>/`, and `/opt/agroio/current` is a symlink to the active one. Rolling back probably means pointing the symlink at an older release, but that was inferred from the layout and not tested. I did not find an ISO or image pipeline in the repository, but I only searched by file name and read the release workflow, not every script.
 
-## Observed device state (2026-10-06)
+## Current test device (2026-10-25)
+
+| Item | Value |
+|---|---|
+| Host | `10.32.90.229` (institutional network only) |
+| OS | Ubuntu 26.04 LTS, kernel `7.0.0-1020-raspi`, aarch64 |
+| Installed release | `2.0.0-alpha.24` from `integration/iot-v2` (beta channel), installed under `/opt/agroio/releases/` |
+| Services | `agroio-edge`, `agroio-ui` and `agroio-ui-webviewer`, all enabled and active |
+| Agent mode | `mode: serial`, `demo_nodes: 0`, `cloud_lane: v2`, `http_sync` disabled with an empty endpoint |
+| Gateway identity | `activation_state: unactivated`: no gateway/property and no credential, so no heartbeat or configuration poll is sent |
+| Local data | 50 972 measurements, 8 497 raw readings, 16 512 alerts; `sync_queue` holds 110 437 historical rows (none pending) |
+| NDVI | latest-point file present (`mesh-DEMO01`); `ndvi.irrigation_areas` is empty, so nothing is queued |
+
+## Observed device state (2026-10-06, historical)
 
 | Item | Value |
 |---|---|
@@ -50,18 +63,18 @@ tag x.y.z pushed  ──►  release-rpi.yml  ──►  GitHub Release (agroio-
 ## Consequences for the integration
 
 - A device running `0.9.4` sends nothing to this cloud. It uses the old `http_sync` path and has no activation, binding, outbox or heartbeat code.
-- For a device to talk to this cloud, a release containing the wired gateway v2 must be **tagged and published**, then **installed manually** on that device.
-- When this page was verified (2026-10-06), Agro.io `integration/iot-v2` held the gateway code but did not call it from the agent loop, so tagging that branch alone would not have made telemetry flow. The v2 line has since been wired (headless harness smoke on 2026-10-06, evidence in Agro.io `odd/tasks/wire-gateway-v2.md`); that wiring was not re-verified from this repository. See [`gateway-v2-cutover-runbook.md`](gateway-v2-cutover-runbook.md) for the cutover and rollback rules.
-- Because updates are manual, the advancing requirement (task 7.4 of `edge-cloud-gateway-provisioning`) needs someone to publish the release and trigger the install on the test device. That was done on 2026-10-08: release `2.0.0-alpha.2` was published and installed on the test device `10.32.90.229`, which produced the validated cutover recorded in [`gateway-v2-cutover-runbook.md`](gateway-v2-cutover-runbook.md).
+- For a device to talk to this cloud, a release containing the wired gateway v2 must be **installed manually**. The v2 line builds local `2.0.0-alpha.N` packages; it is not tagged.
+- The v2 line is wired into the agent loop (`GatewayRuntime.tick`) and was verified live on the test device on 2026-10-08. Its current state and package contents were re-checked on 2026-10-25. See [`gateway-v2-cutover-runbook.md`](gateway-v2-cutover-runbook.md) for the cutover and rollback rules.
+- Because updates are manual, the advancing requirement (task 7.4 of `edge-cloud-gateway-provisioning`) needed someone to publish the release and trigger the install on the test device. The cutover used `2.0.0-alpha.2` on 2026-10-08; the device now runs `2.0.0-alpha.24`.
 
 ## v2 line
 
 - Agro.io v2 grows on `integration/iot-v2`, by versions. It is **never merged to Agro.io `main`**, and nothing from it is pushed to `main`.
-- Releases of the v2 line use pre-release tags `2.0.0-alpha.N`. This is a decision taken on 2026-10-07, recorded here; it is **to be implemented** in Agro.io's release workflow, which will mark any tag containing `-` as a GitHub pre-release so that `releases/latest` ignores it.
+- Releases of the v2 line use local packages `2.0.0-alpha.N`. The release workflow has no pre-release handling, and the line is not tagged (a `2.0.0-alpha.N` tag would trigger the normal release workflow).
 - Production Raspberries running `0.9.x` never receive v2: they follow `releases/latest`, which stays on the `0.9.x` line.
-- The test Raspberry is updated with `ops/scripts/deploy-release-to-rpi.sh <user@host> <version>`, not through the UI check.
+- The test Raspberry is updated with `ops/scripts/dev-update-rpi.sh <user@host> <version> [--apply]`, which wraps `deploy-release-to-rpi.sh`, not through the UI check.
 
-Packaging gaps verified on 2026-10-06 and **being fixed on the v2 line** (not yet confirmed fixed): the release package omits `contracts/`, and the install defines no `RuntimeDirectory` or secrets directory for the gateway credential.
+The packaging gaps from the 2026-10-06 snapshot are resolved on the v2 line and verified in `2.0.0-alpha.24`: the package includes `contracts/iot-sensors/` (v1, v2 and `SOURCE.md`), and the installer creates `/etc/agroio/secrets` with mode 0700.
 
 ## Open questions
 

@@ -95,25 +95,27 @@ El admin **autoriza** una imagen (versión + digest). El técnico **confirma** e
 - Comandos físicos hacia riego.
 - PostgreSQL.
 
-## Estado actual y pendientes (2026-10-11)
+## Estado actual y pendientes (2026-10-25)
 
 Foto de dónde estamos; se actualiza aquí mismo cuando cambia algo. Detalle del laboratorio y
 credenciales en `test-data.md`; puertas de la integración en `integration/README.md`.
 
-- **IoT_Sensors (cloud)**: `main` al día y desplegado (Dokploy). MVP completo; Fase 2 dormida tras
-  flags salvo las dos excepciones aprobadas (NDVI de último punto y clima de referencia). Contrato v2
-  en **revisión 4** (operación `location`); la aceptación formal de las revisiones 2–4 sigue
-  **pendiente** (el marcador "accepted upstream" del paquete está en la revisión 1). Laboratorio
-  **purga intencional**: solo admin, `alan2203mx@gmail.com` y `test@gmail.com` + catálogos; cero
-  predios, nodos, lecturas o gateways.
-- **Agro (appliance)**: repos al día (`main` y `integration/iot-v2` en `c241a15`, PR #21 mergeado).
-  La Raspberry corre el **canal beta** (`2.0.0-alpha.24`), `mode: serial`, carril v2 apuntando al
-  cloud del laboratorio, `http_sync` apagado y **sin gateway vinculado**. Datos reales conservados
-  (`H845D`, `H4EBF`, ~50 970 mediciones); ningún nodo transmite desde el 15 sep, por eso
-  *Instalación → Paso 2* está vacío. Canales stable/beta operativos con un comando.
-- **Integración**: flujo verificado de punta a punta (rancho → gateway → publicación → **pairing por
-  QR** → 4 ranuras confirmadas → telemetría → dashboard del cliente). Hoy no hay rancho en el cloud,
-  así que para repetirlo hay que crear uno (o re-sembrar).
+- **IoT_Sensors (cloud)**: `main` local = `origin/main` (`1927c4a`) y el stack de laboratorio
+  responde en Dokploy. MVP completo; Fase 2 dormida tras flags salvo las dos excepciones aprobadas
+  (NDVI de último punto y clima de referencia). Contrato v2 en **revisión 4** (operación `location`);
+  la aceptación formal de las revisiones 2–4 sigue **pendiente** (el marcador "accepted upstream"
+  del paquete está en la revisión 1). Laboratorio **purga intencional**: solo admin,
+  `alan2203mx@gmail.com` y `test@gmail.com` + catálogos; cero predios, nodos, lecturas o gateways.
+- **Agro (appliance)**: `main` en `0e98cf6` (tag `0.9.4`, producción) y `integration/iot-v2` en
+  `c241a15` (PR #21 mergeado); `main` es ancestro de la línea v2. La Raspberry corre el **canal
+  beta** (`2.0.0-alpha.24`), `mode: serial`, `demo_nodes: 0`, carril v2 apuntando al cloud del
+  laboratorio, `http_sync` **apagado** y **sin gateway vinculado** (`activation_state: unactivated`,
+  sin credencial). Datos reales conservados (`H845D`, `H4EBF`: 50 972 mediciones, 8 497 lecturas
+  crudas, 16 512 alertas); ningún nodo transmite desde el 15 sep, por eso *Instalación → Paso 2* está
+  vacío. Canales stable/beta operativos con un comando.
+- **Integración**: flujo verificado de punta a punta el 2026-10-08 (rancho → gateway → publicación →
+  **pairing por QR** → 4 ranuras confirmadas → telemetría → dashboard del cliente). Hoy no hay rancho
+  en el cloud, así que para repetirlo hay que crear uno (o re-sembrar).
 
 **Pendientes / a pulir**
 
@@ -123,7 +125,8 @@ credenciales en `test-data.md`; puertas de la integración en `integration/READM
 4. Validar con **nodos reales encendidos** (o ensayar con `mode: demo`).
 5. **Mapeo NDVI por nodo** (hoy se configura a mano).
 6. **`http_sync` al backend del cliente** (endpoint + habilitar; hoy apagado).
-7. Limpieza menor: `demo-node-01` inactivo, paquetes locales acumulados, unidad del receptor.
+7. Limpieza menor: `demo-node-01` inactivo, `C0` escuchado el 20 oct pero no habilitado (sin
+   lecturas), paquetes locales acumulados, unidad del receptor.
 8. Consistencia de idioma en la documentación de Agro (inglés) frente a IoT_Sensors (español).
 
 ## Dónde leer más

@@ -1,4 +1,4 @@
-# Datos de Prueba (estado limpio — 2026-10-10)
+# Datos de Prueba (estado limpio — 2026-10-10; verificado 2026-10-25)
 
 El sistema quedó **vacío a propósito** para empezar a probar desde cero. Solo existe lo
 que sigue; nada de ranchos, nodos ni lecturas en el cloud.
@@ -24,21 +24,22 @@ Ambos entran a un dashboard vacío: no hay predios, áreas, nodos ni lecturas.
 
 ## 🍓 Raspberry de pruebas (`10.32.90.229`, `agroio@`)
 
-- Corre el **canal beta** de Agro (**`2.0.0-alpha.24`**, línea `integration/iot-v2`) y está **sin gateway vinculado**. Para volver a estable: `sudo /opt/agroio/channel/agroio-channel.sh --switch stable`.
+- Corre el **canal beta** de Agro (**`2.0.0-alpha.24`**, línea `integration/iot-v2`) y está **sin gateway vinculado**: `activation_state: unactivated`, sin `gateway_id`/`property_id` y sin credencial. Mientras siga así no hay heartbeat ni poll de configuración. Para volver a estable: `sudo /opt/agroio/channel/agroio-channel.sh --switch stable`.
 - **Canales stable/beta**: el equipo puede cambiar de release en un comando
   (`sudo /opt/agroio/channel/agroio-channel.sh --switch beta|stable`). Cambiar de canal guarda y
   aplica la configuración de cada uno (perfiles en `/etc/agroio/profiles/`) y enciende/apaga el visor
   noVNC: en estable queda apagado (interfaz más ligera) y en beta encendido — **hoy está encendido**. Detalles en el repo
   Agro.io, rama `integration/iot-v2`: `docs/integration/release-channels.md`. Hay paquetes de ambos
   canales en `/opt/agroio/packages/`.
-- Modo **demo silencioso** (`demo_nodes: 0`): no fabrica datos; el carril v2 sigue vivo (latido y consulta de configuración) para cuando la vincules.
-- **Se conserva el histórico del sensor real**: equipos `H4EBF` y `H845D` (puerto `/dev/serial/by-id/usb-Arduino_CatWan_USBStick2040_613863E6332233A3-if00`) con **50 970 mediciones** (8 jul → 15 sep 2026), **8 495 lecturas crudas** y **16 512 alertas**. Los 4 nodos demo (`DEMO01..04`) y sus datos se eliminaron.
-- Configuración (`/etc/agroio/agent.json`) intacta: puerto serie, umbrales (humedad < 20, temperatura > 35), `http_sync` al receptor del laboratorio y `cloud_lane: v2`. Respaldos automáticos de config en `/etc/agroio/backups/`.
+- `demo_nodes: 0`: aunque se cambie a `mode: demo`, no fabrica datos. Hoy el agente está en `mode: serial` y, al no tener gateway vinculado, el carril v2 no envía nada.
+- **Se conserva el histórico del sensor real**: equipos `H4EBF` y `H845D` (puerto `/dev/serial/by-id/usb-Arduino_CatWan_USBStick2040_613863E6332233A3-if00`) con **50 972 mediciones** (8 jul → 15 sep 2026), **8 497 lecturas crudas** y **16 512 alertas**. Los 4 nodos demo (`DEMO01..04`) y sus datos se eliminaron. `demo-node-01` sigue como fila inactiva; `C0` se escuchó el 20 oct pero no está habilitado (`is_allowed=0`) y no tiene lecturas.
+- Configuración (`/etc/agroio/agent.json`) intacta: puerto serie, umbrales (humedad < 20, temperatura > 35), `cloud_lane: v2` y `http_sync` **apagado** (endpoint vacío; no apunta al receptor). Respaldos automáticos de config en `/etc/agroio/backups/`.
 - **Modo del agente**: hoy `serial` (lee el radio y los nodos reales). Se cambia desde la pantalla
   (*Ajustes → "Configuración real del agente" → Modo*) o con
   `sudo -n /opt/agroio/current/ops/scripts/agroio-config.sh --set-mode serial|demo`.
-- Unidades de laboratorio (`agroio-ui-webviewer`, `agroio-telemetry-receiver`): quedan en disco pero
-  **deshabilitadas**.
+- Unidades de laboratorio: `agroio-ui-webviewer` está **habilitada y activa** (visor noVNC);
+  `agroio-telemetry-receiver` queda en disco pero **deshabilitada**. El receptor del laboratorio que
+  sí corre es el contenedor `agro-telemetry` del servidor, no esa unidad.
 
 ## 🧪 Laboratorio (servidor)
 
