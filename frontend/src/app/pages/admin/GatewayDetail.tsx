@@ -101,10 +101,10 @@ export function GatewayDetail() {
     try {
       setPublishing(true);
       await publishConfiguration(gateway.id);
-      showToast("Configuración publicada", "success");
+      showToast("Configuración lista", "success");
       await load();
     } catch (err) {
-      const message = getErrorMessage(err, "No se pudo publicar la configuración");
+      const message = getErrorMessage(err, "No se pudo dejar lista la configuración");
       showToast(message, "error");
       setError(message);
     } finally {
@@ -116,19 +116,13 @@ export function GatewayDetail() {
   const confirmedCount = status?.slots.filter((slot) => slot.binding_status === "confirmed").length ?? 0;
   const steps = [
     {
-      key: "provisioned",
-      label: "Predio provisionado",
-      done: true,
-      hint: "El predio ya tiene su gateway reservado",
-    },
-    {
-      key: "published",
-      label: "Configuración publicada",
+      key: "created",
+      label: "Enlace creado",
       done: (gateway?.configuration_version ?? 0) > 0,
       hint:
         (gateway?.configuration_version ?? 0) > 0
-          ? `Versión ${gateway?.configuration_version}`
-          : "Falta publicar la configuración",
+          ? `Configuración lista (versión ${gateway?.configuration_version})`
+          : "Falta dejar lista la configuración",
     },
     {
       key: "linked",
@@ -189,9 +183,11 @@ export function GatewayDetail() {
             </div>
           </div>
           <div className="flex flex-wrap gap-2">
-            <PillButton type="button" loading={publishing} onClick={() => void handlePublish()}>
-              Publicar configuración
-            </PillButton>
+            {(gateway.configuration_version ?? 0) === 0 ? (
+              <PillButton type="button" loading={publishing} onClick={() => void handlePublish()}>
+                Dejar lista la configuración
+              </PillButton>
+            ) : null}
             <Link
               className="rounded-full border px-3 py-2 text-sm font-medium hover:bg-black/5"
               to="/admin/gateways/pair"
@@ -209,7 +205,7 @@ export function GatewayDetail() {
             El equipo muestra el código de vinculación en su pantalla (Instalación → Paso 1); el
             administrador lo aprueba en Aprobación de vinculación.
           </p>
-          <ol className="mt-4 grid gap-3 md:grid-cols-4">
+          <ol className="mt-4 grid gap-3 md:grid-cols-3">
             {steps.map((step, index) => (
               <li
                 key={step.key}
@@ -240,11 +236,11 @@ export function GatewayDetail() {
             </p>
           </BentoCard>
           <BentoCard>
-            <p className="text-sm text-[var(--text-muted)]">Configuración publicada</p>
+            <p className="text-sm text-[var(--text-muted)]">Configuración del equipo</p>
             <p className="mt-1 text-lg font-semibold">
               {(gateway.configuration_version ?? 0) > 0
-                ? `Versión ${gateway.configuration_version}`
-                : "Sin publicar"}
+                ? `Lista (versión ${gateway.configuration_version})`
+                : "Pendiente"}
             </p>
             <p className="mt-1 text-xs text-[var(--text-muted)]">
               Revision de vínculos: {gateway.bindings_revision}

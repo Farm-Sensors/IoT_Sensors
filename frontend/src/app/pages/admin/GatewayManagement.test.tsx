@@ -59,6 +59,7 @@ vi.mock("../../services/api", () => ({
               { id: 16, property_id: 3, name: "Parcela Norte", crop_type: { id: 1, name: "Nogal" } },
               { id: 17, property_id: 3, name: "Parcela Sur", crop_type: { id: 2, name: "Alfalfa" } },
               { id: 18, property_id: 3, name: "Parcela Este", crop_type: { id: 3, name: "Manzana" } },
+              { id: 19, property_id: 3, name: "Parcela Oeste", crop_type: { id: 4, name: "Maíz" } },
             ],
           },
         });
@@ -80,7 +81,7 @@ const createdGateway = {
   id: 20,
   property_id: 3,
   status: "pending_activation",
-  configuration_version: 0,
+  configuration_version: 1,
   bindings_revision: 0,
   activated_at: null,
   revoked_at: null,
@@ -95,7 +96,7 @@ const pendingStatus = {
   status: "never_seen",
   edge_status: "pending",
   last_heartbeat_at: null,
-  config_version: 0,
+  config_version: 1,
   slots: [
     { logical_node_id: 16, irrigation_area_id: 16, binding_status: "unbound", latest_reading_at: null, bound_uid: null, bound_serial: null },
     { logical_node_id: 17, irrigation_area_id: 17, binding_status: "unbound", latest_reading_at: null, bound_uid: null, bound_serial: null },
@@ -118,48 +119,71 @@ describe("GatewayManagement (asistente de enlace)", () => {
     mocks.getPropertyGatewayStatus.mockResolvedValue({ data: pendingStatus });
   });
 
-  it("guides the four steps and creates the link with the checked parcels", async () => {
+  it("guides the three steps and creates the link with the checked parcels", async () => {
     mocks.provisionGateway.mockResolvedValue({ data: createdGateway });
 
     renderPage();
 
     const steps = await screen.findByRole("list", { name: "Pasos del enlace" });
     expect(within(steps).getByText("1. Elige el rancho y sus parcelas")).toBeInTheDocument();
-    expect(within(steps).getByText("2. Publica la configuración")).toBeInTheDocument();
-    expect(within(steps).getByText("3. Vincula la Raspberry")).toBeInTheDocument();
-    expect(within(steps).getByText("4. Enlaza los nodos")).toBeInTheDocument();
+    expect(within(steps).getByText("2. Vincula la Raspberry")).toBeInTheDocument();
+    expect(within(steps).getByText("3. Enlaza los nodos")).toBeInTheDocument();
+    expect(within(steps).queryByText(/Publica la configuración/)).not.toBeInTheDocument();
     expect(screen.getByRole("heading", { name: "1. Elige el rancho y sus parcelas" })).toBeInTheDocument();
 
     fireEvent.change(screen.getByLabelText("Rancho"), { target: { value: "3" } });
     fireEvent.click(await screen.findByLabelText("Parcela Norte"));
-    fireEvent.click(screen.getByLabelText("Parcela Sur"));
+    // Una parcela sin nodo se puede elegir: el nodo se crea al crear el enlace.
+    const withoutNode = screen.getByLabelText("Parcela Oeste");
+    expect(withoutNode).toBeEnabled();
+    expect(screen.getByText("Sin nodo todavía: se crea uno al crear el enlace")).toBeInTheDocument();
+    fireEvent.click(withoutNode);
+    // Un nodo deshabilitado no se reemplaza solo.
     expect(screen.getByLabelText("Parcela Este")).toBeDisabled();
+    expect(screen.queryByText(/la API rechazará/)).not.toBeInTheDocument();
 
     fireEvent.click(screen.getByRole("button", { name: /crear enlace/i }));
 
-    await waitFor(() => expect(mocks.provisionGateway).toHaveBeenCalledWith(3, [16, 17]));
-    expect(mocks.showToast).toHaveBeenCalledWith("Enlace creado con 2 parcela(s)", "success");
-    expect(await screen.findByRole("button", { name: /publicar configuración/i })).toBeInTheDocument();
+    await waitFor(() => expect(mocks.provisionGateway).toHaveBeenCalledWith(3, [16, 19]));
+    expect(mocks.showToast).toHaveBeenCalledWith(
+      "Enlace creado con 2 parcela(s). La configuración quedó lista.",
+      "success",
+    );
+    expect(await screen.findByText("Configuración lista (versión 1)")).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /configuración/i })).not.toBeInTheDocument();
+    expect(screen.getByLabelText("Código del dispositivo")).toBeInTheDocument();
+    expect(screen.getByText(/Vincular dispositivo/)).toBeInTheDocument();
+    expect(mocks.publishConfiguration).not.toHaveBeenCalled();
   });
 
-  it("publishes the configuration and then offers the pairing code input", async () => {
-    mocks.provisionGateway.mockResolvedValue({ data: createdGateway });
-    mocks.publishConfiguration.mockResolvedValue({ data: { configuration_version: 1 } });
-    mocks.getGateway
-      .mockResolvedValueOnce({ data: createdGateway })
-      .mockResolvedValue({ data: { ...createdGateway, configuration_version: 1 } });
+  it("explains a rejected link in plain words", async () => {
+    mocks.provisionGateway.mockRejectedValue({
+      response: { data: { detail: "Irrigation area 16 has a disabled node; enable it first" } },
+    });
 
     renderPage();
     fireEvent.change(await screen.findByLabelText("Rancho"), { target: { value: "3" } });
     fireEvent.click(await screen.findByLabelText("Parcela Norte"));
     fireEvent.click(screen.getByRole("button", { name: /crear enlace/i }));
 
-    fireEvent.click(await screen.findByRole("button", { name: /publicar configuración/i }));
+    expect(
+      await screen.findByText(
+        "Una de las parcelas tiene su nodo deshabilitado. Actívalo en Nodos o quita esa parcela.",
+      ),
+    ).toBeInTheDocument();
+  });
 
-    await waitFor(() => expect(mocks.publishConfiguration).toHaveBeenCalledWith(20));
-    expect(await screen.findByText(/Publicada \(versión 1\)/)).toBeInTheDocument();
-    expect(screen.getByLabelText("Código del dispositivo")).toBeInTheDocument();
-    expect(screen.getByText(/Vincular dispositivo/)).toBeInTheDocument();
+  it("finishes the configuration of a link created before it was automatic", async () => {
+    const legacy = { ...createdGateway, id: 13, configuration_version: 0 };
+    mocks.listGateways.mockResolvedValue({ data: [legacy] });
+    mocks.getGateway.mockResolvedValue({ data: { ...legacy, configuration_version: 1 } });
+    mocks.publishConfiguration.mockResolvedValue({ data: { configuration_version: 1 } });
+
+    renderPage();
+    fireEvent.click(await screen.findByRole("button", { name: "Dejar lista la configuración" }));
+
+    await waitFor(() => expect(mocks.publishConfiguration).toHaveBeenCalledWith(13));
+    expect(await screen.findByText("Configuración lista (versión 1)")).toBeInTheDocument();
   });
 
   it("lists existing links with ranch and client names plus plain state", async () => {
@@ -218,9 +242,7 @@ describe("GatewayManagement (asistente de enlace)", () => {
 
   it("keeps the API details tucked away", async () => {
     renderPage();
-    expect(
-      await screen.findByText("POST /api/v1/gateways/{gateway_id}/configuration"),
-    ).toBeInTheDocument();
+    expect(await screen.findByText("POST /api/v1/gateways")).toBeInTheDocument();
     expect(screen.getByText("Detalles técnicos (API)")).toBeInTheDocument();
   });
 });

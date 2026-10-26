@@ -181,33 +181,132 @@ def test_reprovision_after_revoke_keeps_slots_with_binding_history(
     assert db.scalar(select(GatewaySlot).where(GatewaySlot.pasarela_id == first["id"])) is not None
 
 
-def test_reprovision_after_revoke_invalidates_the_published_configuration(
+def _activate(client, admin_headers, gateway_id):
+    reference = client.post(
+        f"/api/v1/gateways/{gateway_id}/activation-references", headers=admin_headers
+    ).json()["activation_reference"]
+    activated = client.post("/api/v1/gateways/activate", json={"activation_reference": reference})
+    assert activated.status_code == 200, activated.text
+    return {"X-API-Key": activated.json()["credential"]}
+
+
+def test_provisioning_publishes_configuration_v1_pollable_right_away(
+    client, db, admin_headers, sample_property, sample_node
+):
+    result = _provision(client, admin_headers, sample_property, sample_node)
+
+    assert result["configuration_version"] == 1
+    assert db.get(Gateway, result["id"]).config_version_activa == 1
+    headers = _activate(client, admin_headers, result["id"])
+    polled = client.get("/api/v1/gateways/me/configuration", headers=headers)
+    assert polled.status_code == 200, polled.text
+    assert polled.json()["configuration_version"] == 1
+    assert [slot["logical_node_id"] for slot in polled.json()["configuration"]["slots"]] == [
+        sample_node.id
+    ]
+
+
+def test_provisioning_creates_the_missing_nodes_and_reuses_existing_ones(
+    client, db, admin_headers, sample_property, sample_node, sample_crop_type
+):
+    from app.models import IrrigationArea, Node
+
+    bare = IrrigationArea(
+        predio_id=sample_property.id, tipo_cultivo_id=sample_crop_type.id, nombre="Bare Field"
+    )
+    db.add(bare)
+    db.commit()
+
+    response = client.post(
+        "/api/v1/gateways",
+        headers=admin_headers,
+        json={
+            "property_id": sample_property.id,
+            "slots": [
+                {"irrigation_area_id": sample_node.area_riego_id},
+                {"irrigation_area_id": bare.id},
+            ],
+        },
+    )
+
+    assert response.status_code == 201, response.text
+    created = db.scalar(select(Node).where(Node.area_riego_id == bare.id))
+    assert created is not None
+    assert created.nombre == "Nodo Bare Field"
+    assert created.numero_serie is None and created.activo is True
+    assert db.scalars(select(Node).where(Node.area_riego_id == sample_node.area_riego_id)).all() == [
+        sample_node
+    ]
+    slots = {slot["irrigation_area_id"]: slot["logical_node_id"] for slot in response.json()["slots"]}
+    assert slots == {sample_node.area_riego_id: sample_node.id, bare.id: created.id}
+    assert response.json()["configuration_version"] == 1
+
+
+def test_provisioning_rejects_a_disabled_node_without_side_effects(
+    client, db, admin_headers, sample_property, sample_node, sample_crop_type
+):
+    from app.models import IrrigationArea, Node
+
+    bare = IrrigationArea(
+        predio_id=sample_property.id, tipo_cultivo_id=sample_crop_type.id, nombre="Bare Field"
+    )
+    db.add(bare)
+    sample_node.activo = False
+    db.commit()
+
+    response = client.post(
+        "/api/v1/gateways",
+        headers=admin_headers,
+        json={
+            "property_id": sample_property.id,
+            "slots": [
+                {"irrigation_area_id": bare.id},
+                {"irrigation_area_id": sample_node.area_riego_id},
+            ],
+        },
+    )
+
+    assert response.status_code == 422
+    assert "disabled node" in response.json()["detail"]
+    assert db.scalar(select(Gateway.id)) is None
+    assert db.scalar(select(Node).where(Node.area_riego_id == bare.id)) is None
+
+
+def test_provisioning_rejects_an_area_whose_node_was_deleted(
+    client, db, admin_headers, sample_property, sample_node
+):
+    sample_node.eliminado_en = datetime.now(UTC).replace(tzinfo=None)
+    db.commit()
+
+    response = _provision_area(client, admin_headers, sample_property, sample_node.area_riego_id)
+
+    assert response.status_code == 409
+    assert "deleted node" in response.json()["detail"]
+    assert db.scalar(select(Gateway.id)) is None
+
+
+def test_reprovision_after_revoke_publishes_a_new_configuration(
     client, db, admin_headers, sample_property, sample_node
 ):
     first = _provision(client, admin_headers, sample_property, sample_node)
-    published = client.post(
-        f"/api/v1/gateways/{first['id']}/configuration", headers=admin_headers
-    )
-    assert published.status_code == 201, published.text
-    assert db.get(Gateway, first["id"]).config_version_activa == 1
+    assert first["configuration_version"] == 1
 
     _revoke(client, admin_headers, first["id"])
-    _provision(client, admin_headers, sample_property, sample_node)
+    again = _provision(client, admin_headers, sample_property, sample_node)
 
-    assert db.get(Gateway, first["id"]).config_version_activa == 0
+    assert again["configuration_version"] == 2
+    assert db.get(Gateway, first["id"]).config_version_activa == 2
+    headers = _activate(client, admin_headers, first["id"])
+    polled = client.get("/api/v1/gateways/me/configuration", headers=headers)
+    assert polled.status_code == 200, polled.text
+    assert polled.json()["configuration_version"] == 2
 
 
-def test_reprovision_after_revoke_republishes_a_new_version(
+def test_explicit_republish_still_creates_the_next_version(
     client, db, admin_headers, sample_property, sample_node
 ):
     first = _provision(client, admin_headers, sample_property, sample_node)
-    published = client.post(
-        f"/api/v1/gateways/{first['id']}/configuration", headers=admin_headers
-    )
-    assert published.json()["configuration_version"] == 1
 
-    _revoke(client, admin_headers, first["id"])
-    _provision(client, admin_headers, sample_property, sample_node)
     republished = client.post(
         f"/api/v1/gateways/{first['id']}/configuration", headers=admin_headers
     )

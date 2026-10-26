@@ -55,11 +55,32 @@ const BINDING_LABELS: Record<string, string> = {
 };
 
 const STEPS = [
-  { key: "create", title: "Elige el rancho y sus parcelas", hint: "Crea el enlace del predio" },
-  { key: "publish", title: "Publica la configuración", hint: "El equipo la leerá al vincularse" },
+  {
+    key: "create",
+    title: "Elige el rancho y sus parcelas",
+    hint: "Crea el enlace y deja lista la configuración",
+  },
   { key: "link", title: "Vincula la Raspberry", hint: "Aprueba el código de su pantalla" },
   { key: "bind", title: "Enlaza los nodos", hint: "Cada parcela con su nodo físico" },
 ];
+
+// Mensajes llanos para los rechazos de "Crear enlace" (el API responde en inglés).
+function createLinkErrorMessage(err: unknown): string {
+  const text = getErrorMessage(err, "");
+  if (text.includes("already exists")) {
+    return "Este rancho ya tiene un enlace.";
+  }
+  if (text.includes("disabled node")) {
+    return "Una de las parcelas tiene su nodo deshabilitado. Actívalo en Nodos o quita esa parcela.";
+  }
+  if (text.includes("deleted node")) {
+    return "Una de las parcelas tuvo un nodo que se eliminó y no puede recibir otro. Quita esa parcela.";
+  }
+  if (text.includes("binding history")) {
+    return "Una parcela que quitaste ya tuvo un nodo enlazado en este rancho. Vuelve a marcarla.";
+  }
+  return "No se pudo crear el enlace. Revisa las parcelas e inténtalo de nuevo.";
+}
 
 function confirmedCount(status: GatewayStatus | undefined): number {
   return status?.slots.filter((slot) => slot.binding_status === "confirmed").length ?? 0;
@@ -314,7 +335,10 @@ export function GatewayManagement() {
     try {
       setBusy(true);
       const created = await provisionGateway(Number(selectedPropertyId), selectedAreaIds);
-      showToast(`Enlace creado con ${selectedAreaIds.length} parcela(s)`, "success");
+      showToast(
+        `Enlace creado con ${selectedAreaIds.length} parcela(s). La configuración quedó lista.`,
+        "success",
+      );
       setSelectedPropertyId("");
       setSelectedAreaIds([]);
       setError(null);
@@ -322,7 +346,7 @@ export function GatewayManagement() {
       setSetup(created.data);
       await refreshSetup(created.data.id);
     } catch (err) {
-      const message = getErrorMessage(err, "No se pudo crear el enlace");
+      const message = createLinkErrorMessage(err);
       setError(message);
       showToast(message, "error");
     } finally {
@@ -330,15 +354,16 @@ export function GatewayManagement() {
     }
   };
 
+  // Solo para enlaces creados antes de que "Crear enlace" dejara lista la configuración.
   const handlePublish = async (gatewayId: number) => {
     try {
       setBusy(true);
       await publishConfiguration(gatewayId);
-      showToast("Configuración publicada", "success");
+      showToast("Configuración lista", "success");
       setError(null);
       await refreshSetup(gatewayId);
     } catch (err) {
-      const message = getErrorMessage(err, "No se pudo publicar la configuración");
+      const message = getErrorMessage(err, "No se pudo dejar lista la configuración");
       setError(message);
       showToast(message, "error");
     } finally {
@@ -387,8 +412,7 @@ export function GatewayManagement() {
   const setupSlots = setupStatus?.slots ?? [];
   const setupConfirmed = confirmedCount(setupStatus ?? undefined);
   const stepDone = [
-    Boolean(setup),
-    (setup?.configuration_version ?? 0) > 0,
+    Boolean(setup) && (setup?.configuration_version ?? 0) > 0,
     setup?.status === "active",
     setupSlots.length > 0 && setupConfirmed === setupSlots.length,
   ];
@@ -400,14 +424,14 @@ export function GatewayManagement() {
         <div>
           <h1 className="text-2xl font-semibold">Gateways</h1>
           <p className="mt-2 max-w-3xl text-[var(--text-muted)]">
-            Aquí enlazas una Raspberry con Agro a un rancho: eliges el rancho y sus parcelas,
-            publicas la configuración, apruebas el código que muestra la pantalla del equipo y ves
-            los nodos reportando.
+            Aquí enlazas una Raspberry con Agro a un rancho: eliges el rancho y sus parcelas (el
+            enlace queda con su configuración lista), apruebas el código que muestra la pantalla
+            del equipo y ves los nodos reportando.
           </p>
         </div>
 
         <BentoCard>
-          <ol className="grid gap-3 md:grid-cols-4" aria-label="Pasos del enlace">
+          <ol className="grid gap-3 md:grid-cols-3" aria-label="Pasos del enlace">
             {STEPS.map((step, index) => {
               const done = stepDone[index];
               const current = !done && index === currentStep;
@@ -458,8 +482,9 @@ export function GatewayManagement() {
               <div>
                 <h2 className="text-lg font-semibold">1. Elige el rancho y sus parcelas</h2>
                 <p className="mt-1 text-sm text-[var(--text-muted)]">
-                  Cada parcela marcada será una ranura del enlace. Todas las parcelas necesitan su
-                  nodo activo (se asigna en Nodos); si falta, la API rechazará la operación.
+                  Cada parcela marcada será una ranura del enlace. Si una parcela todavía no tiene
+                  nodo, se crea uno al crear el enlace. Al terminar, la configuración del equipo
+                  queda lista.
                 </p>
               </div>
               <label className="block max-w-xl text-sm font-medium">
@@ -497,7 +522,8 @@ export function GatewayManagement() {
                     <div className="mt-2 grid gap-2 md:grid-cols-2">
                       {areas.map((area) => {
                         const node = nodesByArea[area.id];
-                        const hasActiveNode = Boolean(node?.is_active);
+                        // Sin nodo: se crea al enlazar. Nodo deshabilitado: hay que activarlo.
+                        const selectable = !node || node.is_active;
                         return (
                           <label
                             key={area.id}
@@ -508,7 +534,7 @@ export function GatewayManagement() {
                               aria-label={area.name}
                               className="mt-1"
                               checked={selectedAreaIds.includes(area.id)}
-                              disabled={!hasActiveNode}
+                              disabled={!selectable}
                               onChange={(event) =>
                                 setSelectedAreaIds((current) =>
                                   event.target.checked
@@ -523,9 +549,11 @@ export function GatewayManagement() {
                                 <span className="text-[var(--text-muted)]"> · {area.crop_type.name}</span>
                               ) : null}
                               <span className="mt-1 block text-xs text-[var(--text-muted)]">
-                                {hasActiveNode
-                                  ? `Nodo: ${node?.name || node?.serial_number || "sin nombre"}`
-                                  : "Sin nodo activo: asígnalo en Nodos antes de crear el enlace"}
+                                {!node
+                                  ? "Sin nodo todavía: se crea uno al crear el enlace"
+                                  : node.is_active
+                                    ? `Nodo: ${node.name || node.serial_number || "sin nombre"}`
+                                    : "Nodo deshabilitado: actívalo en Nodos para incluir esta parcela"}
                               </span>
                             </span>
                           </label>
@@ -557,32 +585,24 @@ export function GatewayManagement() {
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <div>
                   <h2 className="text-lg font-semibold">
-                    2. Publica la configuración de {ranchLabel(setup.property_id)}
+                    2. Vincula la Raspberry de {ranchLabel(setup.property_id)}
                   </h2>
                   <p className="mt-1 max-w-3xl text-sm text-[var(--text-muted)]">
-                    La configuración dice al equipo qué parcelas tiene y qué ranura le toca a cada
-                    una. Sin publicarla, la Raspberry no podrá reportar.
+                    En la pantalla del equipo entra a <strong>Instalación → Paso 1</strong> y toca
+                    «Vincular dispositivo»: mostrará un código y un QR. Escríbelo aquí y apruébalo
+                    solo si coincide con la pantalla.
                   </p>
                 </div>
                 {setup.configuration_version > 0 ? (
                   <p className="text-sm font-medium text-[var(--status-active)]">
-                    Publicada (versión {setup.configuration_version})
+                    Configuración lista (versión {setup.configuration_version})
                   </p>
                 ) : (
                   <PillButton type="button" loading={busy} onClick={() => void handlePublish(setup.id)}>
-                    Publicar configuración
+                    Dejar lista la configuración
                   </PillButton>
                 )}
               </div>
-            </BentoCard>
-
-            <BentoCard>
-              <h2 className="text-lg font-semibold">3. Vincula la Raspberry</h2>
-              <p className="mt-1 max-w-3xl text-sm text-[var(--text-muted)]">
-                En la pantalla del equipo entra a <strong>Instalación → Paso 1</strong> y toca
-                «Vincular dispositivo»: mostrará un código y un QR. Escríbelo aquí y apruébalo solo
-                si coincide con la pantalla.
-              </p>
               {setup.status === "active" ? (
                 <p className="mt-3 text-sm font-medium text-[var(--status-active)]">
                   Raspberry vinculada. Si necesitas vincular otra, genera su código en la pantalla
@@ -638,7 +658,7 @@ export function GatewayManagement() {
             <BentoCard>
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <div>
-                  <h2 className="text-lg font-semibold">4. Enlaza los nodos</h2>
+                  <h2 className="text-lg font-semibold">3. Enlaza los nodos</h2>
                   <p className="mt-1 max-w-3xl text-sm text-[var(--text-muted)]">
                     En la pantalla del equipo (Instalación → Pasos 3 y 4) el técnico elige qué nodo
                     físico va en cada parcela y confirma. Aquí ves el avance.
@@ -689,7 +709,7 @@ export function GatewayManagement() {
                     {setupSlots.length === 0 && (
                       <tr>
                         <td className="py-3 text-[var(--text-muted)]" colSpan={5}>
-                          Esperando la configuración publicada del equipo…
+                          Cargando las parcelas del enlace…
                         </td>
                       </tr>
                     )}
@@ -762,8 +782,11 @@ export function GatewayManagement() {
             <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
               <article className="rounded-xl border p-3 text-sm">
                 <p className="font-medium">Administración</p>
-                <code className="mt-2 block break-all text-xs">POST /api/v1/gateways/{"{gateway_id}"}/configuration</code>
-                <p className="mt-2 text-[var(--text-muted)]">El administrador publica la configuración desde esta página.</p>
+                <code className="mt-2 block break-all text-xs">POST /api/v1/gateways</code>
+                <p className="mt-2 text-[var(--text-muted)]">
+                  «Crear enlace» crea los nodos que falten, el enlace y su configuración en una sola
+                  operación.
+                </p>
               </article>
               <article className="rounded-xl border p-3 text-sm">
                 <p className="font-medium">Configuración y presencia</p>

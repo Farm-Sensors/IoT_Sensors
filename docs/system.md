@@ -35,7 +35,7 @@ GPS, cultivo y tamaño **no** van en cada lectura. NDVI **no** es un campo 13: e
 
 ## Instalación de un rancho
 
-1. Un **administrador** prepara en IoT_Sensors cliente, predio, áreas y nodos pendientes (puede usar plantillas globales). Además **aprovisiona el gateway** del predio (queda `pending_activation`).
+1. Un **administrador** prepara en IoT_Sensors cliente, predio y áreas (puede usar plantillas globales) y en *Gateways* elige el predio y sus áreas → **Crear enlace**. Esa sola operación crea el **nodo lógico** de cada área que aún no lo tiene ("Nodo <área>"), **aprovisiona el gateway** del predio (queda `pending_activation`) y **publica su configuración** (versión 1), lista para que el equipo la lea en cuanto se vincule. Registrar nodos a mano en *Nodos* sigue siendo opcional (nombre, GPS). Publicar de nuevo (`POST /gateways/{id}/configuration`) solo hace falta para enlaces creados antes de este cambio.
 2. **Emparejamiento (camino principal).** Con `GATEWAY_PAIRING_ENABLED` activa, la Raspberry muestra en su pantalla un **código corto** (`XXXX-XXXX`, 10 min) y un QR; el **administrador** aprueba la sesión desde su móvil o escritorio en IoT_Sensors (`/pair`) contra el gateway ya aprovisionado. El dispositivo obtiene su credencial al consultar el token. La pareja de operaciones de máquina (`pairing-sessions`, `pairing-sessions/token`) es **sin credencial** y está oculta del OpenAPI (`backend/app/api/v1/endpoints/gateway_pairing.py`); toda la superficie vive detrás de la flag, **OFF por defecto**.
 3. **Respaldo: referencia de activación.** Igual que antes, un administrador puede emitir un **código/QR de un solo uso, 24 h** (`ar_`) y el **técnico** consumirlo en la Raspberry (pantalla Agro local, con internet al activar) vía `POST /api/v1/gateways/activate`. Sigue siendo válido y no cambia.
 4. Agro detecta hardware por **UID/serie inmutable**. El **técnico elige el área/slot**; el core **no infiere el área desde el UID** ni desde ningún código de emparejamiento: aprobar una sesión solo liga la sesión a un gateway ya existente, nunca crea predio, área, nodo ni vínculo.
@@ -82,7 +82,7 @@ El admin **autoriza** una imagen (versión + digest). El técnico **confirma** e
 
 ## Frontend cloud
 
-- Admin: `/admin/gateways` (provisionar, QR/referencia de activación, publicar config) y `/admin/gateways/pair` (aprobar/denegar una sesión de emparejamiento por su código; `/pair` redirige allí). También configura, **por cliente**, qué tarjetas ve ese cliente en su dashboard (`/admin/clientes/{id}/dashboard`).
+- Admin: `/admin/gateways` (asistente de tres pasos: 1. elegir el rancho y sus parcelas — crea el enlace, los nodos que falten y deja lista la configuración —, 2. vincular la Raspberry aprobando su código, con la referencia de activación como respaldo, y 3. ver los nodos enlazados) y `/admin/gateways/pair` (aprobar/denegar una sesión de emparejamiento por su código; `/pair` redirige allí). También configura, **por cliente**, qué tarjetas ve ese cliente en su dashboard (`/admin/clientes/{id}/dashboard`).
 - Cliente: ve estado simple del gateway junto a la frescura de datos; su dashboard muestra las tarjetas configuradas y, si no hay configuración, **solo las tarjetas cuyos datos existen**.
 - Tarjeta "Clima de referencia": pronóstico Open-Meteo para la **ubicación del predio** (API gratuita sin clave); si el predio aún no tiene ubicación, la tarjeta no se muestra.
 - No se muestran secretos ni API keys de nodo.
@@ -127,7 +127,7 @@ credenciales en `test-data.md`; puertas de la integración en `integration/READM
   canal.
 - **Flujo de producto completo sin nodo físico** (2026-10-26): con el radio virtual, el servicio
   real del agente, la pantalla *Instalación* del equipo, el panel admin y el dashboard del cliente:
-  admin crea predio, área, nodo y enlace y publica → técnico vincula con el código → `mesh-RPL01`
+  admin crea predio y área y, en *Gateways*, el enlace (nodo y configuración incluidos) → técnico vincula con el código → `mesh-RPL01`
   aparece detectado → se asigna a su ranura y la nube confirma → el cliente ve humedad, suelo,
   frescura, "Gateway conectado" y clima. Funciona de punta a punta; los puntos de usabilidad están
   en el pendiente 9.

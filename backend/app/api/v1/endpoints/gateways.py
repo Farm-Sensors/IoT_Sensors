@@ -52,10 +52,10 @@ def list_gateways(_admin: User = Depends(require_admin), db: Session = Depends(g
 @router.post("", response_model=GatewayDetailResponse, status_code=status.HTTP_201_CREATED)
 def provision_gateway(
     data: GatewayProvision,
-    _admin: User = Depends(require_admin),
+    admin: User = Depends(require_admin),
     db: Session = Depends(get_db),
 ):
-    gateway = gateway_service.provision_gateway(db, data)
+    gateway = gateway_service.provision_gateway(db, data, admin.id)
     return GatewayDetailResponse(
         **GatewayResponse.model_validate(gateway).model_dump(), slots=gateway.slots
     )
