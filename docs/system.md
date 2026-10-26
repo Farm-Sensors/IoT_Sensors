@@ -105,15 +105,16 @@ credenciales en `test-data.md`; puertas de la integración en `integration/READM
   tras flags salvo las dos excepciones aprobadas (NDVI de último punto y clima de referencia).
   Contrato v2 en **revisión 4** (operación `location`), **aceptada el 2026-10-26** (commit `f336997`,
   digest `9e964fff…`; registro en `integration/README.md`).
-  Laboratorio: admin, `alan2203mx@gmail.com` y `test@gmail.com` + catálogos, y un rancho de prueba
-  activo, "Rancho Prueba Radio Virtual" (cliente `test@gmail.com`, gateway 21), alimentado por la
-  Raspberry con el radio virtual.
-- **Agro (appliance)**: `main` en `0e98cf6` (tag `0.9.4`, producción, canal **stable**) y
-  `integration/iot-v2` en `c241a15` (canal **beta**). La Raspberry de pruebas corre **beta
-  `2.0.0-alpha.29`** (rama `feat/install-screen-clarity`, PR #23 apilado sobre #22), `mode:
-  serial` leyendo un **radio virtual** (tramas reales de `H845D` renombradas a `RPL01`, una cada
-  10 min), vinculada a la gateway 21. Datos reales conservados (`H845D`, `H4EBF`: 50 972
-  mediciones); ningún nodo físico transmite desde el 15 sep.
+  Laboratorio: admin, `alan2203mx@gmail.com` y `test@gmail.com` + catálogos, sin ranchos activos (el
+  rancho de prueba del radio virtual se eliminó y su gateway 21 se revocó para repetir la prueba desde
+  cero).
+- **Agro (appliance)**: `main` en `6a95681` (tag `0.9.5`, producción, canal **stable**) y
+  `integration/iot-v2` (canal **beta**) con `main` 0.9.5 unido y los PRs #22–#26 fusionados. La
+  Raspberry de pruebas corre **beta `2.0.0-alpha.30`**, `mode: serial` leyendo un **radio virtual**
+  (tramas reales de `H845D` renombradas a `RPL01`, una cada 60 s para pruebas manuales), **sin
+  vincular** (lista para el flujo completo desde la pantalla). Su stable es el asset oficial 0.9.5.
+  Datos reales conservados (`H845D`, `H4EBF`: 50 972 mediciones); ningún nodo físico transmite
+  desde el 15 sep.
 - **Integración con sensores reales**: verificada el 2026-10-26 con **tramas reales** del log de la
   Raspberry, reproducidas por el agente `alpha.25` instalado en la propia Raspberry (workspace
   aislado) contra el cloud: pairing por código → detección de `mesh-H845D` y `mesh-H4EBF` → dos
