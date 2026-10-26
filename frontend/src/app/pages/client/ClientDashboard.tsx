@@ -256,8 +256,6 @@ export function ClientDashboard() {
               prioritySemaphore={activeSnapshot.semaphore}
               showSemaphore={showSemaphore}
               connectionState={connectionState}
-              gatewayStatus={gatewayStatus?.status}
-              gatewayEdgeStatus={gatewayStatus?.edge_status}
               visibleCards={visibleCards}
             />
           )}

@@ -6,7 +6,7 @@ import { DesktopDashboard } from "./DesktopDashboard";
 import { MobileDashboard } from "./MobileDashboard";
 import { ExternalDataCards } from "./ExternalDataCards";
 import { FreshnessIndicator } from "../../../components/FreshnessIndicator";
-import { defaultSemaphore, getConnectionState } from "./helpers";
+import { defaultSemaphore, getConnectionState, getHumidityAxisDomain } from "./helpers";
 import { toChartReadings, toCurrentReadings } from "./readings";
 import {
   DASHBOARD_CARD_KEYS,
@@ -297,5 +297,36 @@ describe("dashboard card preferences", () => {
     expect(screen.queryByText("Flujo de Agua")).toBeNull();
     expect(screen.queryByText("Estado del Riego")).toBeNull();
     expect(screen.queryByText("Ambiental")).toBeNull();
+  });
+});
+
+describe("humidity chart", () => {
+  it("keeps at least a 4-point span centred on the data so tiny changes look tiny", () => {
+    expect(getHumidityAxisDomain([12.9, 12.91])).toEqual([10, 15]);
+    expect(getHumidityAxisDomain([30, null, 30])).toEqual([28, 32]);
+  });
+
+  it("follows the data when it already spans more than the minimum", () => {
+    expect(getHumidityAxisDomain([20.4, 35.6])).toEqual([20, 36]);
+  });
+
+  it("clamps to 0–100 and keeps the span at the edges", () => {
+    expect(getHumidityAxisDomain([0.5, 1])).toEqual([0, 4]);
+    expect(getHumidityAxisDomain([99.5, 100])).toEqual([96, 100]);
+    expect(getHumidityAxisDomain([0, 100])).toEqual([0, 100]);
+  });
+
+  it("uses the full 0–100 range without measured values", () => {
+    expect(getHumidityAxisDomain([])).toEqual([0, 100]);
+    expect(getHumidityAxisDomain([null, null])).toEqual([0, 100]);
+  });
+
+  it("does not repeat the freshness and gateway line under the chart", async () => {
+    mocks.get.mockImplementation(withDashboardCards(["priority.humidity", "soil.chart"]));
+    render(<ClientDashboard />);
+
+    expect(await screen.findByText("Humedad del Suelo - Últimas 12 lecturas")).toBeTruthy();
+    // Solo el encabezado de la página muestra el estado del gateway.
+    expect(await screen.findAllByText("Gateway conectado")).toHaveLength(1);
   });
 });

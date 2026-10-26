@@ -160,7 +160,6 @@ credenciales en `test-data.md`; puertas de la integración en `integration/READM
    cacheada"); fecha en inglés; el scroll no cuenta como actividad para el protector. Panel admin:
    el equipo no reporta
    hostname/versión al pedir el código.
-   La gráfica de pocas lecturas exagera la escala.
 
 ## Dónde leer más
 

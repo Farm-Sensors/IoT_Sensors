@@ -2,10 +2,9 @@ import type { CurrentReadings, ChartReading } from "./readings";
 import { Droplets, Sun, Wind, Zap } from "lucide-react";
 import { Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { BentoCard } from "../../../components/BentoCard";
-import { FreshnessIndicator } from "../../../components/FreshnessIndicator";
-import { GatewayStatusBadge } from "../../../components/GatewayStatusBadge";
 import { MetricCard } from "../../../components/MetricCard";
 import {
+  getHumidityAxisDomain,
   getIrrigationDisplayState,
   getIrrigationStatusClass,
   getIrrigationStatusLabel,
@@ -22,8 +21,6 @@ export function DesktopDashboard({
   prioritySemaphore,
   showSemaphore,
   connectionState,
-  gatewayStatus,
-  gatewayEdgeStatus,
   visibleCards,
 }: {
   historicalData: ChartReading[];
@@ -32,8 +29,6 @@ export function DesktopDashboard({
   /** Semáforo de umbrales; se oculta con el módulo de alertas apagado. */
   showSemaphore: boolean;
   connectionState: ConnectionState;
-  gatewayStatus?: string | null;
-  gatewayEdgeStatus?: string | null;
   visibleCards: Set<DashboardCardKey>;
 }) {
   const irrigationDisplayState = getIrrigationDisplayState(
@@ -255,7 +250,8 @@ export function DesktopDashboard({
                 <YAxis
                   stroke="var(--text-muted)"
                   style={{ fontSize: "12px" }}
-                  domain={["auto", "auto"]}
+                  domain={getHumidityAxisDomain(historicalData.map((point) => point.soilHumidity))}
+                  allowDecimals={false}
                   tick={{ fill: "var(--text-muted)" }}
                 />
                 <Tooltip
@@ -277,12 +273,6 @@ export function DesktopDashboard({
               </AreaChart>
             </ResponsiveContainer>
           </div>
-          {currentReadings.lastUpdate && (
-            <div className="flex flex-wrap items-center gap-3">
-              <FreshnessIndicator lastUpdate={currentReadings.lastUpdate} />
-              <GatewayStatusBadge status={gatewayStatus} edgeStatus={gatewayEdgeStatus} />
-            </div>
-          )}
         </BentoCard>
       </div>
       )}
