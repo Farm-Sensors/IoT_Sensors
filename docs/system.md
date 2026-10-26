@@ -126,17 +126,18 @@ credenciales en `test-data.md`; puertas de la integración en `integration/READM
 
 **Pendientes / a pulir**
 
-1. **Decisión de producto: cómo llega la integración a producción.** Hoy solo existe en `beta`
-   (alpha) y la regla es que la línea v2 nunca entra a `main`. Un rancho real integrado tendría que
-   correr `beta`, o hay que decidir una promoción (nueva línea estable 2.x o portar a `main`).
+1. **Política vigente: `main` de Agro no se toca.** Es lo que funciona en producción y meter la
+   integración podría romperlo. Todo lo de la integración se desarrolla y se prueba en **beta**
+   (`integration/iot-v2`, `2.0.0-alpha.N`) hasta estar seguros de que funciona; cómo llegará después
+   a producción se decide más adelante.
 2. **Firmware de nodos**: solo el payload compacto (`"s1":…`) llega a la nube; verificar o reflashear
    cada nodo antes de instalarlo. Los nodos solo miden suelo: flujo y ETO llegan `null`.
 3. **Endpoint público con HTTPS** para ranchos fuera de la red ITESM (hoy solo `10.32.81.230:3022`
    por HTTP).
 4. Revisión y merge del **PR #22** de Agro (`feat/real-sensor-readiness` → `integration/iot-v2`) y
    aceptación del contrato **revisión 4**.
-5. **Portar los canales stable/beta a `main`** (5 archivos, ver `release-channels.md` en Agro) y usar
-   el asset oficial `0.9.4` como stable del equipo de pruebas (hoy es un `0.9.5` local).
+5. Para que el stable del equipo de pruebas sea idéntico al de producción, dejar en
+   `/opt/agroio/packages` el asset oficial `0.9.4` de GitHub (hoy es un `0.9.5` compilado localmente).
 6. Validar con **nodos reales encendidos** en campo (alcance de radio, energía, calibración).
 7. **Mapeo NDVI por nodo** (hoy se configura a mano); **`http_sync` al backend del cliente** (hoy
    apagado).
