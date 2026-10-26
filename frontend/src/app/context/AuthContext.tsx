@@ -1,5 +1,6 @@
 import { jwtDecode } from "jwt-decode";
 import { createContext, ReactNode, useContext, useEffect, useState } from "react";
+import { clearModulesCache } from "../services/modules";
 
 interface UserPayload {
   sub: string;
@@ -67,6 +68,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     localStorage.removeItem("refreshToken");
     setToken(null);
     setUser(null);
+    clearModulesCache();
   };
 
   const value = {

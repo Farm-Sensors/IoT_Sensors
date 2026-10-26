@@ -2,10 +2,9 @@ import type { CurrentReadings, ChartReading } from "./readings";
 import { Droplets, Sun, Wind, Zap } from "lucide-react";
 import { Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { BentoCard } from "../../../components/BentoCard";
-import { FreshnessIndicator } from "../../../components/FreshnessIndicator";
-import { GatewayStatusBadge } from "../../../components/GatewayStatusBadge";
 import { MetricCard } from "../../../components/MetricCard";
 import {
+  getHumidityAxisDomain,
   getIrrigationDisplayState,
   getIrrigationStatusClass,
   getIrrigationStatusLabel,
@@ -20,17 +19,16 @@ export function DesktopDashboard({
   historicalData,
   currentReadings,
   prioritySemaphore,
+  showSemaphore,
   connectionState,
-  gatewayStatus,
-  gatewayEdgeStatus,
   visibleCards,
 }: {
   historicalData: ChartReading[];
   currentReadings: CurrentReadings;
   prioritySemaphore: Record<PriorityKey, SemaphoreLevel>;
+  /** Semáforo de umbrales; se oculta con el módulo de alertas apagado. */
+  showSemaphore: boolean;
   connectionState: ConnectionState;
-  gatewayStatus?: string | null;
-  gatewayEdgeStatus?: string | null;
   visibleCards: Set<DashboardCardKey>;
 }) {
   const irrigationDisplayState = getIrrigationDisplayState(
@@ -55,9 +53,11 @@ export function DesktopDashboard({
           lastUpdate={currentReadings.lastUpdate}
           priority
         >
-          <div className="mb-2">
-            <SemaphorePill level={prioritySemaphore["soil.humidity"]} />
-          </div>
+          {showSemaphore && (
+            <div className="mb-2">
+              <SemaphorePill level={prioritySemaphore["soil.humidity"]} />
+            </div>
+          )}
           {/* Circular progress ring */}
           {typeof currentReadings.soilHumidity === "number" && <div className="relative w-32 h-32 mx-auto my-4">
             <svg className="transform -rotate-90 w-32 h-32">
@@ -98,9 +98,11 @@ export function DesktopDashboard({
           lastUpdate={currentReadings.lastUpdate}
           priority
         >
-          <div className="mb-2">
-            <SemaphorePill level={prioritySemaphore["irrigation.flow_per_minute"]} />
-          </div>
+          {showSemaphore && (
+            <div className="mb-2">
+              <SemaphorePill level={prioritySemaphore["irrigation.flow_per_minute"]} />
+            </div>
+          )}
           {/* Sparkline */}
           <div className="h-16 min-h-[64px] -mx-2 mt-2">
             <ResponsiveContainer width="100%" height="100%">
@@ -134,9 +136,11 @@ export function DesktopDashboard({
           lastUpdate={currentReadings.lastUpdate}
           priority
         >
-          <div className="mb-2">
-            <SemaphorePill level={prioritySemaphore["environmental.eto"]} />
-          </div>
+          {showSemaphore && (
+            <div className="mb-2">
+              <SemaphorePill level={prioritySemaphore["environmental.eto"]} />
+            </div>
+          )}
         </MetricCard>
       </div>
       )}
@@ -246,7 +250,8 @@ export function DesktopDashboard({
                 <YAxis
                   stroke="var(--text-muted)"
                   style={{ fontSize: "12px" }}
-                  domain={["auto", "auto"]}
+                  domain={getHumidityAxisDomain(historicalData.map((point) => point.soilHumidity))}
+                  allowDecimals={false}
                   tick={{ fill: "var(--text-muted)" }}
                 />
                 <Tooltip
@@ -268,12 +273,6 @@ export function DesktopDashboard({
               </AreaChart>
             </ResponsiveContainer>
           </div>
-          {currentReadings.lastUpdate && (
-            <div className="flex flex-wrap items-center gap-3">
-              <FreshnessIndicator lastUpdate={currentReadings.lastUpdate} />
-              <GatewayStatusBadge status={gatewayStatus} edgeStatus={gatewayEdgeStatus} />
-            </div>
-          )}
         </BentoCard>
       </div>
       )}

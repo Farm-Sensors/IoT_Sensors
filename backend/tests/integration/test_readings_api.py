@@ -465,3 +465,28 @@ class TestExportReadings:
             headers=admin_headers,
         )
         assert resp.status_code == 422
+
+
+@pytest.mark.parametrize("deleted", ["node", "area", "property"])
+def test_admin_wide_history_skips_readings_of_deleted_hierarchy(
+    client, db, admin_headers, sample_node, deleted
+):
+    """"Lecturas hoy" del panel admin no cuenta lecturas de nodos/áreas/predios borrados."""
+    now = datetime.now(timezone.utc).replace(tzinfo=None)
+    db.add_all([Reading(nodo_id=sample_node.id, marca_tiempo=now - timedelta(minutes=m)) for m in (1, 2)])
+    db.commit()
+    today = now.date().isoformat()
+    before = client.get(f"/api/v1/readings?per_page=1&start_date={today}", headers=admin_headers)
+    assert before.json()["total"] == 2
+
+    target = {
+        "node": sample_node,
+        "area": sample_node.irrigation_area,
+        "property": sample_node.irrigation_area.property,
+    }[deleted]
+    target.eliminado_en = now
+    db.commit()
+
+    after = client.get(f"/api/v1/readings?per_page=1&start_date={today}", headers=admin_headers)
+    assert after.status_code == 200
+    assert after.json()["total"] == 0

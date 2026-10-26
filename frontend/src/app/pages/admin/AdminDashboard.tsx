@@ -131,7 +131,7 @@ export function AdminDashboard() {
                   <Radio className="w-6 h-6 text-[var(--text-inverted)]" />
                 </div>
               </div>
-              <p className="text-sm text-[var(--text-subtle)] mb-1">Nodos Activos</p>
+              <p className="text-sm text-[var(--text-subtle)] mb-1">Nodos Habilitados</p>
               <p className="text-3xl font-bold font-mono-data text-[var(--text-body)]">
                 {stats.nodesActive}/{stats.nodesTotal}
               </p>
@@ -155,7 +155,7 @@ export function AdminDashboard() {
             <div className="lg:col-span-2">
               <BentoCard variant="light">
                 <div className="flex items-center justify-between mb-6">
-                  <h3 className="text-lg text-[var(--text-title)]">Nodos Inactivos / Sin Comunicación</h3>
+                  <h3 className="text-lg text-[var(--text-title)]">Nodos Deshabilitados</h3>
                   <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-[var(--status-danger-bg)]">
                     <AlertCircle className="w-4 h-4 text-[var(--status-danger)]" />
                     <span className="text-sm font-medium text-[var(--status-danger)]">{offlineNodes.length}</span>
@@ -171,13 +171,13 @@ export function AdminDashboard() {
                           <p className="text-sm text-[var(--text-subtle)]">Serial: {node.serial_number || '-'}</p>
                         </div>
                         <span className="px-3 py-1 rounded-full bg-[var(--status-danger-bg)] text-[var(--status-danger)] text-xs font-medium">
-                          Sin conexión / Inactivo
+                          Deshabilitado
                         </span>
                       </div>
                     </div>
                   ))}
                   {offlineNodes.length === 0 && (
-                    <p className="text-sm text-[var(--text-subtle)]">Todos los nodos registrados están activos y operando correctamente.</p>
+                    <p className="text-sm text-[var(--text-subtle)]">Todos los nodos registrados están habilitados.</p>
                   )}
                 </div>
               </BentoCard>

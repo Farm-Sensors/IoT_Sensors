@@ -20,7 +20,7 @@ El backend FastAPI (puerto 5050) es el único punto de contacto con MySQL 8 (pue
 
 Con el backend corriendo: Swagger UI en `/api/v1/docs`, ReDoc en `/api/v1/redoc`, spec crudo en `/api/v1/openapi.json`.
 
-**Estado de sincronización:** el archivo `openapi.yaml` (raíz) es el **contrato fuente de verdad** y se regenera desde el código FastAPI con `make openapi-sync`. Conteo verificado contra la tabla de rutas FastAPI (`app.routes`): **111 operaciones sobre 81 paths** (incluye `/health`, excluye las rutas de documentación); `openapi.yaml` omite las **6 rutas de gateway** marcadas `include_in_schema=False` (`activate`, `activation-references`, `credentials/rotate`, `revoke`, `pairing-sessions` y `pairing-sessions/token`) y se regenera con `make openapi-sync`, por lo que su conteo puede diferir hasta la siguiente regeneración. Las specs de `openspec/specs/` son la fuente de verdad del **comportamiento** de cada capacidad (ver §4).
+**Estado de sincronización:** el archivo `openapi.yaml` (raíz) es el **contrato fuente de verdad** y se regenera desde el código FastAPI con `make openapi-sync`. Conteo verificado contra la tabla de rutas FastAPI (`app.routes`): **116 operaciones sobre 85 paths** (incluye `/health` y `POST /auth/docs-login` de Swagger, excluye las rutas de documentación); `openapi.yaml` omite las **6 rutas de gateway** marcadas `include_in_schema=False` (`activate`, `activation-references`, `credentials/rotate`, `revoke`, `pairing-sessions` y `pairing-sessions/token`) y se regenera con `make openapi-sync`, por lo que su conteo puede diferir hasta la siguiente regeneración. Las specs de `openspec/specs/` son la fuente de verdad del **comportamiento** de cada capacidad (ver §4).
 
 ## 3. Autenticación
 
@@ -98,7 +98,7 @@ Todos usan `X-API-Key` de gateway, salvo dos excepciones **sin credencial**: `ac
 - `POST /api/v1/gateways/pairing-sessions` (**201**) — cuerpo `{"device": {"hostname", "model", "agent_version"}}` (opcional; cada campo ≤64 caracteres, `extra` prohibido → **422**). Respuesta: `device_code` (alta entropía), `user_code` formateado `XXXX-XXXX`, `verification_uri` (`{PAIRING_VERIFICATION_BASE_URL}/pair`), `verification_uri_complete` (`…?code=XXXX-XXXX`), `expires_in` (**600 s**) e `interval` (**5 s**). Límites: **5 por IP / 10 min** y **50 sesiones vivas** en total → **429** `too_many_attempts`; **503** con la flag apagada.
 - `POST /api/v1/gateways/pairing-sessions/token` — cuerpo `{"device_code"}`. **200** con `{gateway_id, property_id, credential}` (mismo cuerpo que `activate`; la credencial `gk_` se devuelve **una sola vez**), o **400** `authorization_pending`, `slow_down` (con `interval` actualizado), `expired_token`, `access_denied`; **401** `invalid_device_code` **uniforme** para código desconocido/consumido; **503**. Un sondeo de una sesión **ya aprobada** más rápido que su `intervalo_s` devuelve **400** `slow_down` y suma **+5 s** al intervalo persistido (tope **60 s**, `PAIRING_SLOW_DOWN_SECONDS`/`PAIRING_MAX_INTERVAL_SECONDS`). La redención consume la sesión **una sola vez**, revoca las referencias `ar_` vigentes del gateway y lo activa (o, en `replace_credential`, rota su credencial conservando slots y vínculos).
 
-**Admin** (JWT): `GET/POST /api/v1/gateways` (provisionar reutiliza la fila del predio si su gateway está **revocado**: vuelve a `pending_activation`, reconcilia sus slots con el nodo activo de cada área, cierra candidatos de vínculo pendientes del ciclo anterior e invalida la configuración publicada (`config_version_activa` → 0, hay que **publicar** una nueva antes de activar); responde **409** si el gateway sigue vigente, si un área de la petición ya no aplica y su slot conserva historial de vínculos, o si un slot conservado cambiaría de nodo con historial), `GET /gateways/{id}`, `POST /gateways/{id}/configuration` (publicar, 201), `GET /gateways/{id}/status`, `POST /gateways/{id}/activation-references`, `POST /gateways/{id}/credentials/rotate`, `POST /gateways/{id}/revoke` (204), `POST /gateways/{id}/update-authorizations`; **emparejamiento admin** `POST /gateways/pairing-sessions/lookup`, `POST /gateways/pairing-sessions/{session_id}/approve`, `POST /gateways/pairing-sessions/{session_id}/deny`; plantillas en `/gateway-templates` y perfiles en `/hardware-profiles`.
+**Admin** (JWT): `GET/POST /api/v1/gateways`. **Aprovisionar** (`POST /api/v1/gateways`, 201) hace todo en **una sola transacción**: (1) valida que cada área de la petición sea del predio; (2) a cada área **sin nodo** le crea su nodo lógico (`"Nodo <nombre del área>"`, sin serie, activo) y reutiliza el nodo activo de las que ya lo tienen; (3) aprovisiona el gateway (`pending_activation`) con un slot por área; y (4) **publica la configuración** (versión 1, o la siguiente si el predio ya tuvo versiones), que el equipo puede leer en cuanto se active (`configuration_version` de la respuesta ya viene > 0). Un área con nodo **deshabilitado** responde **422** y una con nodo **eliminado** **409** (no se reemplazan en silencio: `nodos.area_riego_id` es único); en cualquier rechazo no se crea nada. Si el gateway del predio está **revocado**, se reutiliza su fila: vuelve a `pending_activation`, reconcilia sus slots con el nodo activo de cada área, cierra candidatos de vínculo pendientes del ciclo anterior y publica una **nueva versión** de configuración en la misma operación; responde **409** si el gateway sigue vigente, si un área de la petición ya no aplica y su slot conserva historial de vínculos, o si un slot conservado cambiaría de nodo con historial. `GET /gateways/{id}`, `POST /gateways/{id}/configuration` (vuelve a publicar la configuración con la siguiente versión, 201; se conserva por compatibilidad y para enlaces creados antes de que aprovisionar publicara), `GET /gateways/{id}/status`, `POST /gateways/{id}/activation-references`, `POST /gateways/{id}/credentials/rotate`, `POST /gateways/{id}/revoke` (204), `POST /gateways/{id}/update-authorizations`; **emparejamiento admin** `POST /gateways/pairing-sessions/lookup`, `POST /gateways/pairing-sessions/{session_id}/approve`, `POST /gateways/pairing-sessions/{session_id}/deny`; plantillas en `/gateway-templates` y perfiles en `/hardware-profiles`.
 
 **Emparejamiento — operaciones de admin (JWT, visibles en el OpenAPI)**, también detrás de `GATEWAY_PAIRING_ENABLED` (**OFF por defecto** → **503** `pairing_unavailable`). Todas exigen `Authorization: Bearer <JWT>` de admin; sus envelopes de error son `{"code", "message"}` y el código not-found es **uniforme** (mismo **404** `pairing_not_found` para código desconocido, expirado, consumido o denegado):
 
@@ -140,7 +140,7 @@ Límites de abuso de admin (en memoria, por proceso): **10 fallos / 15 min** por
 
 Contrato detallado (payloads, schemas, errores, ejemplos): **`openapi.yaml`** (autogenerado, `make openapi-sync`) — importable en Swagger UI / Postman. El comportamiento de cada capacidad está especificado en `openspec/specs/`: **readings** → lecturas/ingesta, **security** → auth, **alerting** → alertas/umbrales/notificaciones, **ai-modules** → IA, **data-model** → modelo de datos, **geo-visualization** → mapas.
 
-> Nota: las capacidades de Fase 2 (alerting, ai-modules) pueden estar dormidas detrás de flags en `backend/app/core/config.py` (OFF por defecto). Los endpoints de la tabla requieren JWT salvo los marcados `X-API-Key` (gateway) y los tres sin credencial: `POST /gateways/activate` (referencia de activación), `POST /gateways/pairing-sessions` y `POST /gateways/pairing-sessions/token`. El emparejamiento completo (máquina y admin) depende de `GATEWAY_PAIRING_ENABLED`, **OFF por defecto**.
+> Nota: las capacidades de Fase 2 (alerting, ai-modules) pueden estar dormidas detrás de flags en `backend/app/core/config.py` (OFF por defecto); `GET /settings/modules` le dice al frontend cuáles están encendidas para ocultar del menú las apagadas (las rutas siguen existiendo). Los endpoints de la tabla requieren JWT salvo los marcados `X-API-Key` (gateway) y los tres sin credencial: `POST /gateways/activate` (referencia de activación), `POST /gateways/pairing-sessions` y `POST /gateways/pairing-sessions/token`. El emparejamiento completo (máquina y admin) depende de `GATEWAY_PAIRING_ENABLED`, **OFF por defecto**.
 
 | Recurso | Método | Endpoint | Descripción |
 |---------|--------|----------|-------------|
@@ -186,7 +186,7 @@ Contrato detallado (payloads, schemas, errores, ejemplos): **`openapi.yaml`** (a
 | Crop Cycles | GET | `/api/v1/crop-cycles/{cycle_id}` | Detalle |
 | Crop Cycles | PUT | `/api/v1/crop-cycles/{cycle_id}` | Actualizar — Admin |
 | Crop Cycles | DELETE | `/api/v1/crop-cycles/{cycle_id}` | Eliminar — Admin |
-| Nodes | GET | `/api/v1/nodes` | Listar (paginado, filtro `irrigation_area_id`) |
+| Nodes | GET | `/api/v1/nodes` | Listar (paginado, filtro `irrigation_area_id`); omite los nodos borrados y los de un área, predio o cliente borrado |
 | Nodes | GET | `/api/v1/nodes/geo` | Capa geoespacial (frescura; filtros client/property/area) |
 | Nodes | POST | `/api/v1/nodes` | Registrar nodo lógico (sin credencial de ingest) — Admin |
 | Nodes | GET | `/api/v1/nodes/{node_id}` | Detalle |
@@ -195,7 +195,7 @@ Contrato detallado (payloads, schemas, errores, ejemplos): **`openapi.yaml`** (a
 | Notif. Prefs | GET | `/api/v1/notification-preferences` | Listar preferencias (paginado y filtros) |
 | Notif. Prefs | PUT | `/api/v1/notification-preferences/bulk` | Upsert masivo de preferencias |
 | Readings | POST | `/api/v1/readings` | Ingesta de sensor (payload 3 categorías) — **X-API-Key** |
-| Readings | GET | `/api/v1/readings` | Histórico (paginado; filtros área, fechas, ciclo) |
+| Readings | GET | `/api/v1/readings` | Histórico (paginado; filtros área, fechas, ciclo). Sin área, el admin solo cuenta lecturas de nodos cuya jerarquía sigue vigente (no borrada) |
 | Readings | GET | `/api/v1/readings/latest` | Última lectura (indicador de frescura) |
 | Readings | GET | `/api/v1/readings/priority-status` | Semáforo prioritario (lectura + umbrales activos) |
 | Readings | GET | `/api/v1/readings/availability` | Fechas disponibles para calendario/filtros |
@@ -220,10 +220,10 @@ Contrato detallado (payloads, schemas, errores, ejemplos): **`openapi.yaml`** (a
 | AI Reports | GET | `/api/v1/ai-reports` | Listar reportes IA (paginado) |
 | AI Reports | GET | `/api/v1/ai-reports/{report_id}` | Detalle de reporte IA |
 | AI Reports | POST | `/api/v1/ai-reports/generate` | Generar reporte — Admin/scheduler (dormido sin `AI_REPORTS_ENABLED`) |
-| Gateways (admin) | GET | `/api/v1/gateways` | Listar gateways — Admin |
-| Gateways (admin) | POST | `/api/v1/gateways` | Aprovisionar gateway de un predio — Admin |
+| Gateways (admin) | GET | `/api/v1/gateways` | Listar gateways; cada uno trae `property_name`, `client_name` y `property_deleted` (predio o cliente borrado) para mostrar el rancho por nombre — Admin |
+| Gateways (admin) | POST | `/api/v1/gateways` | Aprovisionar gateway de un predio: crea los nodos que falten y publica la configuración — Admin |
 | Gateways (admin) | GET | `/api/v1/gateways/{gateway_id}` | Detalle con slots — Admin |
-| Gateways (admin) | POST | `/api/v1/gateways/{gateway_id}/configuration` | Publicar configuración — Admin |
+| Gateways (admin) | POST | `/api/v1/gateways/{gateway_id}/configuration` | Volver a publicar configuración (siguiente versión) — Admin |
 | Gateways (admin) | GET | `/api/v1/gateways/{gateway_id}/status` | Estado del gateway — Admin |
 | Gateways (admin) | POST | `/api/v1/gateways/{gateway_id}/activation-references` | Emitir referencia de activación (24 h) — Admin |
 | Gateways (admin) | POST | `/api/v1/gateways/{gateway_id}/credentials/rotate` | Rotar credencial — Admin |
@@ -256,6 +256,7 @@ Contrato detallado (payloads, schemas, errores, ejemplos): **`openapi.yaml`** (a
 | NDVI | POST | `/api/v1/ndvi-snapshots` | Ingesta del último NDVI puntual — **X-API-Key** |
 | NDVI | GET | `/api/v1/ndvi-snapshots/latest` | Último NDVI del área |
 | Weather | GET | `/api/v1/weather/current` | Clima actual del área (`irrigation_area_id`), resuelto con la **ubicación de referencia del predio**; **409** si el predio aún no tiene ubicación |
+| Settings | GET | `/api/v1/settings/modules` | Módulos opcionales encendidos, solo lectura, cualquier usuario con sesión (admin o cliente): `{"alerts", "ai_assistant", "ai_reports", "notifications"}` (booleanos de `ALERTS_ENABLED`, `AI_ASSISTANT_ENABLED`, `AI_REPORTS_ENABLED`, `NOTIFICATIONS_ENABLED`). `alerts` también cubre Umbrales, la campana de alertas y el semáforo del dashboard; `ai_assistant` cubre Consumo IA |
 | Health | GET | `/health` | Verificación de estado del servicio |
 
-**Total: 111 operaciones sobre 81 paths** (tabla de rutas FastAPI; ver §2 para la diferencia con `openapi.yaml`). Para payloads, schemas y ejemplos por endpoint, consulta el contrato autogenerado.
+**Total: 116 operaciones sobre 85 paths** (tabla de rutas FastAPI; ver §2 para la diferencia con `openapi.yaml`). Para payloads, schemas y ejemplos por endpoint, consulta el contrato autogenerado.

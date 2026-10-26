@@ -1,7 +1,8 @@
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { MemoryRouter } from "react-router";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { Gateway } from "../../services/gateways";
+import type * as GatewaysModule from "../../services/gateways";
+import type { Gateway } from "../../services/gateways";
 import { PairDevice } from "./PairDevice";
 
 const mocks = vi.hoisted(() => ({
@@ -17,13 +18,17 @@ vi.mock("../../components/Toast", () => ({
   useToast: () => ({ showToast: mocks.showToast }),
 }));
 
-vi.mock("../../services/gateways", () => ({
-  listGateways: mocks.listGateways,
-  lookupPairing: mocks.lookupPairing,
-  approvePairing: mocks.approvePairing,
-  denyPairing: mocks.denyPairing,
-  getPropertyGatewayStatus: mocks.getPropertyGatewayStatus,
-}));
+vi.mock("../../services/gateways", async (importOriginal) => {
+  const actual: typeof GatewaysModule = await importOriginal();
+  return {
+    ...actual,
+    listGateways: mocks.listGateways,
+    lookupPairing: mocks.lookupPairing,
+    approvePairing: mocks.approvePairing,
+    denyPairing: mocks.denyPairing,
+    getPropertyGatewayStatus: mocks.getPropertyGatewayStatus,
+  };
+});
 
 const pendingGateway: Gateway = {
   id: 7,
@@ -33,6 +38,9 @@ const pendingGateway: Gateway = {
   bindings_revision: 0,
   activated_at: null,
   revoked_at: null,
+  property_name: "Rancho Norte",
+  client_name: "Agrícola Norte",
+  property_deleted: false,
   slots: [],
 };
 
@@ -44,6 +52,9 @@ const activeGateway: Gateway = {
   bindings_revision: 1,
   activated_at: "2026-01-01T00:00:00Z",
   revoked_at: null,
+  property_name: "Rancho Sur",
+  client_name: "Agrícola Sur",
+  property_deleted: false,
   slots: [],
 };
 
@@ -118,7 +129,12 @@ describe("PairDevice", () => {
     const approve = await screen.findByRole("button", { name: /aprobar emparejamiento/i });
     expect(approve).toBeDisabled();
 
-    fireEvent.change(screen.getByLabelText("Gateway"), { target: { value: "7" } });
+    const ranch = screen.getByLabelText("Rancho");
+    expect(
+      screen.getByRole("option", { name: "Rancho Norte · Agrícola Norte · falta vincular su Raspberry" }),
+    ).toBeInTheDocument();
+    expect(screen.queryByText(/Gateway #|Predio \d/)).not.toBeInTheDocument();
+    fireEvent.change(ranch, { target: { value: "7" } });
     expect(approve).toBeDisabled();
 
     fireEvent.click(screen.getByLabelText(/confirmo que este código aparece/i));
@@ -162,7 +178,7 @@ describe("PairDevice", () => {
     });
 
     renderPage("/admin/gateways/pair?code=BCDF-GHJK");
-    fireEvent.change(await screen.findByLabelText("Gateway"), { target: { value: "9" } });
+    fireEvent.change(await screen.findByLabelText("Rancho"), { target: { value: "9" } });
 
     expect(await screen.findByTestId("replace-credential-warning")).toBeInTheDocument();
     fireEvent.click(screen.getByLabelText(/confirmo que este código aparece/i));
@@ -176,6 +192,8 @@ describe("PairDevice", () => {
         replace_credential: true,
       }),
     );
-    expect(await screen.findByTestId("pairing-outcome")).toBeInTheDocument();
+    expect(await screen.findByTestId("pairing-outcome")).toHaveTextContent(
+      "Rancho Sur vinculado. La Raspberry termina de conectarse en unos segundos.",
+    );
   });
 });

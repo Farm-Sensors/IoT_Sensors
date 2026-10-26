@@ -69,6 +69,33 @@ export function getSemaphoreClass(level: SemaphoreLevel): string {
   return "bg-[var(--status-active-bg)] text-[var(--status-active)]";
 }
 
+/** Puntos porcentuales mínimos del eje Y de humedad: 12.90 vs 12.91 debe verse casi plano. */
+export const HUMIDITY_AXIS_MIN_SPAN = 4;
+
+/**
+ * Rango del eje Y de la gráfica de humedad (%). Abarca los datos con al menos
+ * `HUMIDITY_AXIS_MIN_SPAN` puntos centrados en ellos, recortado a 0–100 y con
+ * extremos enteros. Sin datos medidos usa 0–100.
+ */
+export function getHumidityAxisDomain(values: ReadonlyArray<number | null>): [number, number] {
+  const measured = values.filter((value): value is number => value !== null && Number.isFinite(value));
+  if (measured.length === 0) return [0, 100];
+  const min = Math.min(...measured);
+  const max = Math.max(...measured);
+  const span = Math.max(max - min, HUMIDITY_AXIS_MIN_SPAN);
+  let low = (min + max) / 2 - span / 2;
+  let high = low + span;
+  if (low < 0) {
+    high -= low;
+    low = 0;
+  }
+  if (high > 100) {
+    low = Math.max(0, low - (high - 100));
+    high = 100;
+  }
+  return [Math.floor(low), Math.ceil(high)];
+}
+
 /**
  * Dependencia de datos de cada tarjeta: la tarjeta automática se muestra solo si
  * al menos uno de sus campos viene en la última lectura (los campos ausentes son `null`).

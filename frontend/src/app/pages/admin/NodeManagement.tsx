@@ -6,12 +6,23 @@ import { PageTransition } from "../../components/PageTransition";
 import { PillButton } from "../../components/PillButton";
 import { useToast } from "../../components/Toast";
 import { api } from "../../services/api";
+import { getGeoNodes } from "../../services/nodes";
+import { formatElapsed, parseBackendTimestamp } from "../../utils/datetime";
 import { getErrorMessage } from "../../utils/errors";
 
 interface IrrigationArea {
   id: number;
+  property_id: number;
   name: string;
 }
+
+interface PropertyOption {
+  id: number;
+  name: string;
+}
+
+const SERIAL_HELP =
+  "Opcional. Identificador interno; el nodo físico se vincula desde la pantalla del equipo.";
 
 interface NodeData {
   id: number;
@@ -48,6 +59,9 @@ export function NodeManagement() {
   const [showEditForm, setShowEditForm] = useState(false);
   const [nodes, setNodes] = useState<NodeData[]>([]);
   const [areas, setAreas] = useState<IrrigationArea[]>([]);
+  const [propertyNames, setPropertyNames] = useState<Record<number, string>>({});
+  // Habilitado ≠ reportando: la última lectura dice si el nodo ya envía datos.
+  const [lastReadings, setLastReadings] = useState<Record<number, string | null>>({});
   const [editingNode, setEditingNode] = useState<NodeData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -69,11 +83,21 @@ export function NodeManagement() {
       setLoading(true);
       setError(null);
 
-      const nodesRes = await api.get("/nodes?per_page=100");
-      const areasRes = await api.get("/irrigation-areas?per_page=100");
+      const [nodesRes, areasRes, propertiesRes, geoRes] = await Promise.all([
+        api.get("/nodes?per_page=100"),
+        api.get("/irrigation-areas?per_page=100"),
+        api.get<{ data: PropertyOption[] }>("/properties?per_page=100"),
+        getGeoNodes({ include_without_coordinates: true, per_page: 200 }),
+      ]);
 
       setNodes(nodesRes.data.data || nodesRes.data);
       setAreas(areasRes.data.data || areasRes.data);
+      setPropertyNames(
+        Object.fromEntries((propertiesRes.data.data || []).map((p) => [p.id, p.name])),
+      );
+      setLastReadings(
+        Object.fromEntries(geoRes.data.map((node) => [node.id, node.last_reading_timestamp])),
+      );
     } catch (err: any) {
       setError(getErrorMessage(err, "Error loading nodes"));
     } finally {
@@ -104,7 +128,7 @@ export function NodeManagement() {
         longitude,
         is_active: true,
       });
-      showToast("Nodo creado. La telemetría se autentica con el gateway del predio.", "success");
+      showToast("Nodo creado.", "success");
       setShowCreateForm(false);
       setFormName("");
       setFormSerialNumber("");
@@ -184,9 +208,12 @@ export function NodeManagement() {
     }
   };
 
+  // "Área · Predio": dos ranchos pueden tener áreas con el mismo nombre.
   const getAreaName = (id: number) => {
     const area = areas.find(a => a.id === id);
-    return area ? area.name : "Desconocida";
+    if (!area) return "Desconocida";
+    const propertyName = propertyNames[area.property_id];
+    return propertyName ? `${area.name} · ${propertyName}` : area.name;
   };
 
   if (loading && nodes.length === 0) {
@@ -256,7 +283,8 @@ export function NodeManagement() {
                 <th scope="col" className="text-left py-3 px-4 text-xs font-semibold uppercase tracking-[0.08em] text-[var(--text-subtle)]">Serie</th>
                 <th scope="col" className="text-left py-3 px-4 text-xs font-semibold uppercase tracking-[0.08em] text-[var(--text-subtle)]">Área Vinculada</th>
                 <th scope="col" className="text-left py-3 px-4 text-xs font-semibold uppercase tracking-[0.08em] text-[var(--text-subtle)]">GPS</th>
-                <th scope="col" className="text-left py-3 px-4 text-xs font-semibold uppercase tracking-[0.08em] text-[var(--text-subtle)]">Estado</th>
+                <th scope="col" className="text-left py-3 px-4 text-xs font-semibold uppercase tracking-[0.08em] text-[var(--text-subtle)]">Habilitado</th>
+                <th scope="col" className="text-left py-3 px-4 text-xs font-semibold uppercase tracking-[0.08em] text-[var(--text-subtle)]">Última lectura</th>
                 <th scope="col" className="text-left py-3 px-4 text-xs font-semibold uppercase tracking-[0.08em] text-[var(--text-subtle)]">Acciones</th>
               </tr>
             </thead>
@@ -286,8 +314,13 @@ export function NodeManagement() {
                         ? 'bg-[var(--accent-primary)]/10 text-[var(--accent-primary)] border border-[var(--accent-primary)]/20'
                         : 'bg-[var(--status-danger-bg)] text-[var(--status-danger)] border border-[var(--status-danger)]/30'
                     }`}>
-                      {node.is_active ? 'Activo' : 'Inactivo'}
+                      {node.is_active ? 'Sí' : 'No'}
                     </span>
+                  </td>
+                  <td className="py-4 px-4 text-sm text-[var(--text-subtle)]">
+                    {lastReadings[node.id]
+                      ? formatElapsed(parseBackendTimestamp(lastReadings[node.id]))
+                      : 'Sin datos aún'}
                   </td>
                   <td className="py-4 px-4">
                     <div className="flex items-center gap-1">
@@ -336,8 +369,9 @@ export function NodeManagement() {
             <h2 className="text-xl font-serif text-[var(--text-title)] mb-6">Nuevo Nodo IoT</h2>
             <form onSubmit={handleCreate} className="space-y-4">
               <div>
-                <label className="block text-sm text-[var(--text-subtle)] mb-2">Área de Riego (Obligatorio)</label>
+                <label htmlFor="node-create-area" className="block text-sm text-[var(--text-subtle)] mb-2">Área de Riego (Obligatorio)</label>
                 <select
+                  id="node-create-area"
                   required
                   value={formAreaId}
                   onChange={(e) => setFormAreaId(e.target.value)}
@@ -345,14 +379,15 @@ export function NodeManagement() {
                 >
                   <option value="">Seleccione un área</option>
                   {areas.map(a => (
-                    <option key={a.id} value={a.id}>{a.name}</option>
+                    <option key={a.id} value={a.id}>{getAreaName(a.id)}</option>
                   ))}
                 </select>
               </div>
 
               <div>
-                <label className="block text-sm text-[var(--text-subtle)] mb-2">Nombre del Nodo</label>
+                <label htmlFor="node-create-name" className="block text-sm text-[var(--text-subtle)] mb-2">Nombre del Nodo</label>
                 <input
+                  id="node-create-name"
                   type="text"
                   value={formName}
                   onChange={(e) => setFormName(e.target.value)}
@@ -362,20 +397,26 @@ export function NodeManagement() {
               </div>
 
               <div>
-                <label className="block text-sm text-[var(--text-subtle)] mb-2">Número de Serie</label>
+                <label htmlFor="node-create-serial" className="block text-sm text-[var(--text-subtle)] mb-2">Número de Serie</label>
                 <input
+                  id="node-create-serial"
+                  aria-describedby="node-create-serial-help"
                   type="text"
                   value={formSerialNumber}
                   onChange={(e) => setFormSerialNumber(e.target.value)}
                   placeholder="SN-2026-001"
                   className="w-full px-4 py-2.5 rounded-[24px] bg-[var(--surface-panel)] border border-[var(--border-strong)] text-[var(--text-main)] focus:outline-none focus:ring-2 focus:ring-[var(--focus-ring)]"
                 />
+                <p id="node-create-serial-help" className="mt-1 text-xs text-[var(--text-subtle)]">
+                  {SERIAL_HELP}
+                </p>
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-sm text-[var(--text-subtle)] mb-2">Latitud GPS</label>
+                  <label htmlFor="node-create-lat" className="block text-sm text-[var(--text-subtle)] mb-2">Latitud GPS (opcional)</label>
                   <input
+                    id="node-create-lat"
                     type="number"
                     step="any"
                     value={formLat}
@@ -385,8 +426,9 @@ export function NodeManagement() {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm text-[var(--text-subtle)] mb-2">Longitud GPS</label>
+                  <label htmlFor="node-create-lng" className="block text-sm text-[var(--text-subtle)] mb-2">Longitud GPS (opcional)</label>
                   <input
+                    id="node-create-lng"
                     type="number"
                     step="any"
                     value={formLng}
@@ -417,8 +459,9 @@ export function NodeManagement() {
             <h2 className="text-xl font-serif text-[var(--text-title)] mb-6">Editar Nodo IoT</h2>
             <form onSubmit={handleUpdate} className="space-y-4">
               <div>
-                <label className="block text-sm text-[var(--text-subtle)] mb-2">Área de Riego</label>
+                <label htmlFor="node-edit-area" className="block text-sm text-[var(--text-subtle)] mb-2">Área de Riego</label>
                 <input
+                  id="node-edit-area"
                   type="text"
                   value={getAreaName(editingNode.irrigation_area_id)}
                   readOnly
@@ -427,8 +470,9 @@ export function NodeManagement() {
               </div>
 
               <div>
-                <label className="block text-sm text-[var(--text-subtle)] mb-2">Nombre del Nodo</label>
+                <label htmlFor="node-edit-name" className="block text-sm text-[var(--text-subtle)] mb-2">Nombre del Nodo</label>
                 <input
+                  id="node-edit-name"
                   type="text"
                   value={editName}
                   onChange={(e) => setEditName(e.target.value)}
@@ -438,20 +482,26 @@ export function NodeManagement() {
               </div>
 
               <div>
-                <label className="block text-sm text-[var(--text-subtle)] mb-2">Número de Serie</label>
+                <label htmlFor="node-edit-serial" className="block text-sm text-[var(--text-subtle)] mb-2">Número de Serie</label>
                 <input
+                  id="node-edit-serial"
+                  aria-describedby="node-edit-serial-help"
                   type="text"
                   value={editSerialNumber}
                   onChange={(e) => setEditSerialNumber(e.target.value)}
                   placeholder="SN-2026-001"
                   className="w-full px-4 py-2.5 rounded-[24px] bg-[var(--surface-panel)] border border-[var(--border-strong)] text-[var(--text-main)] focus:outline-none focus:ring-2 focus:ring-[var(--focus-ring)]"
                 />
+                <p id="node-edit-serial-help" className="mt-1 text-xs text-[var(--text-subtle)]">
+                  {SERIAL_HELP}
+                </p>
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-sm text-[var(--text-subtle)] mb-2">Latitud GPS</label>
+                  <label htmlFor="node-edit-lat" className="block text-sm text-[var(--text-subtle)] mb-2">Latitud GPS (opcional)</label>
                   <input
+                    id="node-edit-lat"
                     type="number"
                     step="any"
                     value={editLat}
@@ -461,8 +511,9 @@ export function NodeManagement() {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm text-[var(--text-subtle)] mb-2">Longitud GPS</label>
+                  <label htmlFor="node-edit-lng" className="block text-sm text-[var(--text-subtle)] mb-2">Longitud GPS (opcional)</label>
                   <input
+                    id="node-edit-lng"
                     type="number"
                     step="any"
                     value={editLng}
@@ -481,7 +532,7 @@ export function NodeManagement() {
                     onChange={(e) => setEditIsActive(e.target.checked)}
                     className="accent-[var(--accent-primary)]"
                   />
-                  Nodo activo
+                  Nodo habilitado
                 </label>
               </div>
 

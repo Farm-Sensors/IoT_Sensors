@@ -5,8 +5,14 @@ import { GatewayStatusBadge } from "../../components/GatewayStatusBadge";
 import { PageTransition } from "../../components/PageTransition";
 import { PillButton } from "../../components/PillButton";
 import { useToast } from "../../components/Toast";
-import { api } from "../../services/api";
-import { Gateway, GatewayStatus, getGateway, getGatewayStatus, publishConfiguration } from "../../services/gateways";
+import {
+  Gateway,
+  gatewayRanchLabel,
+  GatewayStatus,
+  getGateway,
+  getGatewayStatus,
+  publishConfiguration,
+} from "../../services/gateways";
 import { getGeoNodes } from "../../services/nodes";
 import { formatElapsed, parseBackendTimestamp } from "../../utils/datetime";
 import { getErrorMessage } from "../../utils/errors";
@@ -25,17 +31,6 @@ const MANAGEMENT_LABELS: Record<string, string> = {
   revoked: "Revocado",
 };
 
-type PropertyInfo = {
-  id: number;
-  client_id: number;
-  name: string;
-};
-
-type ClientInfo = {
-  id: number;
-  company_name: string;
-};
-
 type SlotNode = {
   name: string | null;
   serial_number: string | null;
@@ -47,8 +42,6 @@ export function GatewayDetail() {
   const { showToast } = useToast();
   const [gateway, setGateway] = useState<Gateway | null>(null);
   const [status, setStatus] = useState<GatewayStatus | null>(null);
-  const [property, setProperty] = useState<PropertyInfo | null>(null);
-  const [client, setClient] = useState<ClientInfo | null>(null);
   const [slotNodes, setSlotNodes] = useState<Record<number, SlotNode>>({});
   const [loading, setLoading] = useState(true);
   const [publishing, setPublishing] = useState(false);
@@ -65,11 +58,6 @@ export function GatewayDetail() {
       setGateway(gatewayRes.data);
       setStatus(statusRes.data);
       setError(null);
-
-      const propertyRes = await api.get<PropertyInfo>(`/properties/${gatewayRes.data.property_id}`);
-      setProperty(propertyRes.data);
-      const clientRes = await api.get<ClientInfo>(`/clients/${propertyRes.data.client_id}`);
-      setClient(clientRes.data);
 
       const geoRes = await getGeoNodes({
         property_id: gatewayRes.data.property_id,
@@ -101,10 +89,10 @@ export function GatewayDetail() {
     try {
       setPublishing(true);
       await publishConfiguration(gateway.id);
-      showToast("Configuración publicada", "success");
+      showToast("Configuración lista", "success");
       await load();
     } catch (err) {
-      const message = getErrorMessage(err, "No se pudo publicar la configuración");
+      const message = getErrorMessage(err, "No se pudo dejar lista la configuración");
       showToast(message, "error");
       setError(message);
     } finally {
@@ -116,19 +104,13 @@ export function GatewayDetail() {
   const confirmedCount = status?.slots.filter((slot) => slot.binding_status === "confirmed").length ?? 0;
   const steps = [
     {
-      key: "provisioned",
-      label: "Predio provisionado",
-      done: true,
-      hint: "El predio ya tiene su gateway reservado",
-    },
-    {
-      key: "published",
-      label: "Configuración publicada",
+      key: "created",
+      label: "Enlace creado",
       done: (gateway?.configuration_version ?? 0) > 0,
       hint:
         (gateway?.configuration_version ?? 0) > 0
-          ? `Versión ${gateway?.configuration_version}`
-          : "Falta publicar la configuración",
+          ? `Configuración lista (versión ${gateway?.configuration_version})`
+          : "Falta dejar lista la configuración",
     },
     {
       key: "linked",
@@ -178,8 +160,7 @@ export function GatewayDetail() {
             </Link>
             <h1 className="mt-2 text-2xl font-semibold">Gateway #{gateway.id}</h1>
             <p className="mt-1 text-[var(--text-muted)]">
-              {property?.name || `Predio ${gateway.property_id}`}
-              {client?.company_name ? ` · ${client.company_name}` : ""}
+              {gatewayRanchLabel(gateway)}
             </p>
             <div className="mt-3 flex flex-wrap items-center gap-2">
               <span className="text-sm text-[var(--text-muted)]">Gestión:</span>
@@ -189,9 +170,11 @@ export function GatewayDetail() {
             </div>
           </div>
           <div className="flex flex-wrap gap-2">
-            <PillButton type="button" loading={publishing} onClick={() => void handlePublish()}>
-              Publicar configuración
-            </PillButton>
+            {(gateway.configuration_version ?? 0) === 0 ? (
+              <PillButton type="button" loading={publishing} onClick={() => void handlePublish()}>
+                Dejar lista la configuración
+              </PillButton>
+            ) : null}
             <Link
               className="rounded-full border px-3 py-2 text-sm font-medium hover:bg-black/5"
               to="/admin/gateways/pair"
@@ -209,7 +192,7 @@ export function GatewayDetail() {
             El equipo muestra el código de vinculación en su pantalla (Instalación → Paso 1); el
             administrador lo aprueba en Aprobación de vinculación.
           </p>
-          <ol className="mt-4 grid gap-3 md:grid-cols-4">
+          <ol className="mt-4 grid gap-3 md:grid-cols-3">
             {steps.map((step, index) => (
               <li
                 key={step.key}
@@ -240,11 +223,11 @@ export function GatewayDetail() {
             </p>
           </BentoCard>
           <BentoCard>
-            <p className="text-sm text-[var(--text-muted)]">Configuración publicada</p>
+            <p className="text-sm text-[var(--text-muted)]">Configuración del equipo</p>
             <p className="mt-1 text-lg font-semibold">
               {(gateway.configuration_version ?? 0) > 0
-                ? `Versión ${gateway.configuration_version}`
-                : "Sin publicar"}
+                ? `Lista (versión ${gateway.configuration_version})`
+                : "Pendiente"}
             </p>
             <p className="mt-1 text-xs text-[var(--text-muted)]">
               Revision de vínculos: {gateway.bindings_revision}

@@ -18,16 +18,13 @@ def _utc(value: datetime | None) -> str | None:
     return value.astimezone(UTC).isoformat().replace("+00:00", "Z")
 
 
-def publish_configuration(db: Session, gateway_id: int, publisher_id: int) -> GatewayConfig:
-    db.flush()
-    gateway = db.execute(
-        select(Gateway)
-        .where(Gateway.id == gateway_id, Gateway.eliminado_en.is_(None))
-        .with_for_update()
-    ).scalar_one_or_none()
-    if gateway is None:
-        raise HTTPException(status_code=404, detail="Gateway not found")
+def stage_configuration(db: Session, gateway: Gateway, publisher_id: int) -> GatewayConfig:
+    """Snapshot the gateway's current slots as its next active configuration, without committing.
 
+    Callers own the transaction: provisioning stages version N in the same commit that
+    creates the slots, and :func:`publish_configuration` wraps it for an explicit republish.
+    """
+    db.flush()
     slots = db.execute(
         select(GatewaySlot, HardwareProfile.codigo)
         .outerjoin(HardwareProfile, HardwareProfile.id == GatewaySlot.perfil_hardware_id)
@@ -63,6 +60,20 @@ def publish_configuration(db: Session, gateway_id: int, publisher_id: int) -> Ga
     )
     db.add(configuration)
     gateway.config_version_activa = version
+    return configuration
+
+
+def publish_configuration(db: Session, gateway_id: int, publisher_id: int) -> GatewayConfig:
+    db.flush()
+    gateway = db.execute(
+        select(Gateway)
+        .where(Gateway.id == gateway_id, Gateway.eliminado_en.is_(None))
+        .with_for_update()
+    ).scalar_one_or_none()
+    if gateway is None:
+        raise HTTPException(status_code=404, detail="Gateway not found")
+
+    configuration = stage_configuration(db, gateway, publisher_id)
     try:
         db.commit()
     except Exception:

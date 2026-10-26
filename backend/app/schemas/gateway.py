@@ -35,4 +35,11 @@ class GatewaySlotResponse(BaseModel):
 
 
 class GatewayDetailResponse(GatewayResponse):
+    """Admin view of a gateway: its slots plus who it belongs to, for plain-language UIs."""
+
+    property_name: str
+    client_name: str
+    property_deleted: bool = Field(
+        description="True when the property (or its client) was deleted; its gateway stays listed"
+    )
     slots: list[GatewaySlotResponse]

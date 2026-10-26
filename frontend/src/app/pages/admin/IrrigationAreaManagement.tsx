@@ -7,6 +7,8 @@ import { PageTransition } from "../../components/PageTransition";
 import { PillButton } from "../../components/PillButton";
 import { useToast } from "../../components/Toast";
 import { api } from "../../services/api";
+import type { GeoNode } from "../../services/nodes";
+import { getGeoNodes } from "../../services/nodes";
 
 type IrrigationArea = {
   id: number;
@@ -25,12 +27,20 @@ type CropType = {
   name: string;
 };
 
+// Con el alta automática del enlace, un área sin nodo no es un error: se informa nada más.
+function nodeLabel(node: GeoNode | undefined): string {
+  if (!node) return "Se crea al enlazar";
+  const name = node.name || node.serial_number || `Nodo #${node.id}`;
+  return node.is_active ? name : `${name} (deshabilitado)`;
+}
+
 export function IrrigationAreaManagement() {
   const { predioId } = useParams<{ predioId: string }>();
   const { showToast } = useToast();
 
   const [areas, setAreas] = useState<IrrigationArea[]>([]);
   const [cropTypes, setCropTypes] = useState<CropType[]>([]);
+  const [nodesByArea, setNodesByArea] = useState<Record<number, GeoNode>>({});
   const [propertyName, setPropertyName] = useState("Cargando...");
   const [clientId, setClientId] = useState<number | null>(null);
   const [clientName, setClientName] = useState("...");
@@ -66,13 +76,21 @@ export function IrrigationAreaManagement() {
          setClientName(clientRes.data.company_name);
       }
 
-      // Fetch areas and crop types
-      const [areasRes, cropsRes] = await Promise.all([
+      // Fetch areas, crop types and the node of each area
+      const [areasRes, cropsRes, nodesRes] = await Promise.all([
         api.get(`/irrigation-areas?property_id=${predioId}&per_page=100`),
-        api.get("/crop-types?per_page=100")
+        api.get("/crop-types?per_page=100"),
+        getGeoNodes({
+          property_id: Number(predioId),
+          include_without_coordinates: true,
+          per_page: 200,
+        }),
       ]);
       setAreas(areasRes.data.data || []);
       setCropTypes(cropsRes.data.data || []);
+      setNodesByArea(
+        Object.fromEntries(nodesRes.data.map((node) => [node.irrigation_area_id, node])),
+      );
     } catch (err) {
       console.error(err);
       setPropertyName("Desconocido");
@@ -187,12 +205,13 @@ export function IrrigationAreaManagement() {
                 <th scope="col" className="text-left py-3 px-4 text-xs font-semibold uppercase tracking-[0.08em] text-[var(--text-subtle)]">Nombre</th>
                 <th scope="col" className="text-left py-3 px-4 text-xs font-semibold uppercase tracking-[0.08em] text-[var(--text-subtle)]">Cultivo</th>
                 <th scope="col" className="text-left py-3 px-4 text-xs font-semibold uppercase tracking-[0.08em] text-[var(--text-subtle)]">Tamaño (Ha)</th>
+                <th scope="col" className="text-left py-3 px-4 text-xs font-semibold uppercase tracking-[0.08em] text-[var(--text-subtle)]">Nodo</th>
                 <th scope="col" className="text-right py-3 px-4 text-xs font-semibold uppercase tracking-[0.08em] text-[var(--text-subtle)]">Acciones</th>
               </tr>
             </thead>
             <tbody>
               {loading ? (
-                <tr><td colSpan={4} className="py-6 text-center text-[var(--text-subtle)]">Cargando...</td></tr>
+                <tr><td colSpan={5} className="py-6 text-center text-[var(--text-subtle)]">Cargando...</td></tr>
               ) : areas.map((area) => (
                 <tr key={area.id} className="border-b border-[var(--border-subtle)] last:border-0 hover:bg-[var(--hover-overlay)] transition-colors">
                   <td className="py-3 px-4 text-[var(--text-main)]">{area.name}</td>
@@ -202,6 +221,7 @@ export function IrrigationAreaManagement() {
                     </span>
                   </td>
                   <td className="py-3 px-4 text-[var(--text-subtle)]">{area.area_size ? `${area.area_size} Ha` : "-"}</td>
+                  <td className="py-3 px-4 text-[var(--text-subtle)]">{nodeLabel(nodesByArea[area.id])}</td>
                   <td className="py-3 px-4 flex justify-end gap-2">
                     <PillButton variant="secondary" className="px-3 py-1 text-xs" onClick={() => openEditForm(area)}>
                       Editar <Pencil className="w-3 h-3 ml-1" />
@@ -218,7 +238,7 @@ export function IrrigationAreaManagement() {
               ))}
               {!loading && areas.length === 0 && (
                 <tr>
-                  <td colSpan={4} className="py-4 px-4">
+                  <td colSpan={5} className="py-4 px-4">
                     <EmptyState
                       icon={Pencil}
                       title="Sin áreas de riego"
@@ -247,6 +267,9 @@ export function IrrigationAreaManagement() {
                <span className="px-2 py-1 bg-[var(--surface-card-secondary)] border border-[var(--border-subtle)] text-[var(--text-main)] text-xs rounded-full">{area.crop_type?.name || "Sin Cultivo"}</span>
                {area.area_size && <span className="text-sm text-[var(--text-subtle)]">{area.area_size} Ha</span>}
             </div>
+            <p className="mt-2 text-sm text-[var(--text-subtle)]">
+              Nodo: {nodeLabel(nodesByArea[area.id])}
+            </p>
             <div className="mt-3 flex flex-col gap-2">
               <PillButton variant="secondary" className="w-full justify-center" onClick={() => openEditForm(area)}>
                 Editar <Pencil className="w-4 h-4 ml-1" />
@@ -279,23 +302,23 @@ export function IrrigationAreaManagement() {
           <BentoCard variant="light" className="w-full max-w-md">
             <div className="flex justify-between items-center mb-6">
               <h2 className="text-xl font-serif text-[var(--text-title)]">Nueva Área de Riego</h2>
-              <button onClick={() => setShowCreateForm(false)} type="button" className="rounded-full p-1 text-[var(--text-subtle)] hover:bg-[var(--hover-overlay)] transition-colors"><XCircle className="w-6 h-6" /></button>
+              <button onClick={() => setShowCreateForm(false)} type="button" aria-label="Cerrar" className="rounded-full p-1 text-[var(--text-subtle)] hover:bg-[var(--hover-overlay)] transition-colors"><XCircle className="w-6 h-6" /></button>
             </div>
             <form className="space-y-4" onSubmit={handleCreate}>
               <div>
-                <label className="block text-sm text-[var(--text-subtle)] mb-1">Nombre del Área</label>
-                <input required type="text" value={formData.name} onChange={e => setFormData({ ...formData, name: e.target.value })} className="w-full px-4 py-2.5 rounded-[24px] bg-[var(--surface-panel)] border border-[var(--border-strong)] text-[var(--text-body)] focus:outline-none focus:ring-2 focus:ring-[var(--focus-ring)]" />
+                <label htmlFor="area-create-name" className="block text-sm text-[var(--text-subtle)] mb-1">Nombre del Área</label>
+                <input id="area-create-name" required type="text" value={formData.name} onChange={e => setFormData({ ...formData, name: e.target.value })} className="w-full px-4 py-2.5 rounded-[24px] bg-[var(--surface-panel)] border border-[var(--border-strong)] text-[var(--text-body)] focus:outline-none focus:ring-2 focus:ring-[var(--focus-ring)]" />
               </div>
               <div>
-                <label className="block text-sm text-[var(--text-subtle)] mb-1">Tipo de Cultivo</label>
-                <select required value={formData.crop_type_id} onChange={e => setFormData({ ...formData, crop_type_id: e.target.value })} className="w-full px-4 py-2.5 rounded-[24px] bg-[var(--surface-panel)] border border-[var(--border-strong)] text-[var(--text-body)] focus:outline-none focus:ring-2 focus:ring-[var(--focus-ring)]">
+                <label htmlFor="area-create-crop" className="block text-sm text-[var(--text-subtle)] mb-1">Tipo de Cultivo</label>
+                <select id="area-create-crop" required value={formData.crop_type_id} onChange={e => setFormData({ ...formData, crop_type_id: e.target.value })} className="w-full px-4 py-2.5 rounded-[24px] bg-[var(--surface-panel)] border border-[var(--border-strong)] text-[var(--text-body)] focus:outline-none focus:ring-2 focus:ring-[var(--focus-ring)]">
                   <option value="">Selecciona un cultivo</option>
                   {cropTypes.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
                 </select>
               </div>
               <div>
-                <label className="block text-sm text-[var(--text-subtle)] mb-1">Tamaño (Hectáreas) - Opcional</label>
-                <input type="number" step="0.01" value={formData.area_size} onChange={e => setFormData({ ...formData, area_size: e.target.value })} className="w-full px-4 py-2.5 rounded-[24px] bg-[var(--surface-panel)] border border-[var(--border-strong)] text-[var(--text-body)] focus:outline-none focus:ring-2 focus:ring-[var(--focus-ring)]" />
+                <label htmlFor="area-create-size" className="block text-sm text-[var(--text-subtle)] mb-1">Tamaño (Hectáreas) - Opcional</label>
+                <input id="area-create-size" type="number" step="0.01" value={formData.area_size} onChange={e => setFormData({ ...formData, area_size: e.target.value })} className="w-full px-4 py-2.5 rounded-[24px] bg-[var(--surface-panel)] border border-[var(--border-strong)] text-[var(--text-body)] focus:outline-none focus:ring-2 focus:ring-[var(--focus-ring)]" />
               </div>
               <div className="flex gap-3 pt-4">
                 <PillButton variant="outline" className="flex-1 justify-center" onClick={() => setShowCreateForm(false)} type="button">Cancelar</PillButton>
@@ -317,6 +340,7 @@ export function IrrigationAreaManagement() {
                   setEditingArea(null);
                 }}
                 type="button"
+                aria-label="Cerrar"
                 className="rounded-full p-1 text-[var(--text-subtle)] hover:bg-[var(--hover-overlay)] transition-colors"
               >
                 <XCircle className="w-6 h-6" />
@@ -324,8 +348,9 @@ export function IrrigationAreaManagement() {
             </div>
             <form className="space-y-4" onSubmit={handleUpdate}>
               <div>
-                <label className="block text-sm text-[var(--text-subtle)] mb-1">Nombre del Área</label>
+                <label htmlFor="area-edit-name" className="block text-sm text-[var(--text-subtle)] mb-1">Nombre del Área</label>
                 <input
+                  id="area-edit-name"
                   required
                   type="text"
                   value={editFormData.name}
@@ -334,8 +359,9 @@ export function IrrigationAreaManagement() {
                 />
               </div>
               <div>
-                <label className="block text-sm text-[var(--text-subtle)] mb-1">Tipo de Cultivo</label>
+                <label htmlFor="area-edit-crop" className="block text-sm text-[var(--text-subtle)] mb-1">Tipo de Cultivo</label>
                 <select
+                  id="area-edit-crop"
                   required
                   value={editFormData.crop_type_id}
                   onChange={(e) => setEditFormData({ ...editFormData, crop_type_id: e.target.value })}
@@ -350,8 +376,9 @@ export function IrrigationAreaManagement() {
                 </select>
               </div>
               <div>
-                <label className="block text-sm text-[var(--text-subtle)] mb-1">Tamaño (Hectáreas) - Opcional</label>
+                <label htmlFor="area-edit-size" className="block text-sm text-[var(--text-subtle)] mb-1">Tamaño (Hectáreas) - Opcional</label>
                 <input
+                  id="area-edit-size"
                   type="number"
                   step="0.01"
                   value={editFormData.area_size}

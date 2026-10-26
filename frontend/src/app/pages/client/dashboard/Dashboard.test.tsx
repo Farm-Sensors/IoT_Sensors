@@ -6,19 +6,21 @@ import { DesktopDashboard } from "./DesktopDashboard";
 import { MobileDashboard } from "./MobileDashboard";
 import { ExternalDataCards } from "./ExternalDataCards";
 import { FreshnessIndicator } from "../../../components/FreshnessIndicator";
-import { defaultSemaphore, getConnectionState } from "./helpers";
+import { defaultSemaphore, getConnectionState, getHumidityAxisDomain } from "./helpers";
 import { toChartReadings, toCurrentReadings } from "./readings";
 import {
   DASHBOARD_CARD_KEYS,
   type DashboardCardKey,
 } from "../../../services/dashboardPreferences";
 import type { ReadingResponse } from "../../../types/api";
+import { clearModulesCache } from "../../../services/modules";
 import weatherFresh from "../../../../../../docs/integration/frontend-evidence/weather-current-fresh-200.json";
 import weatherStale from "../../../../../../docs/integration/frontend-evidence/weather-current-stale-200.json";
 import ndvi from "../../../../../../docs/integration/frontend-evidence/ndvi-latest-200.json";
 
 const mocks = vi.hoisted(() => ({
   get: vi.fn(),
+  modules: { alerts: false, ai_assistant: false, ai_reports: false, notifications: false },
   selection: {
     properties: [{ id: 1, name: "Predio" }],
     areas: [{ id: 12, name: "Área 12", property_id: 1 }, { id: 13, name: "Área 13", property_id: 1 }],
@@ -46,6 +48,7 @@ const reading: ReadingResponse = {
   environmental: { temperature: 28.1, relative_humidity: 55, wind_speed: 12.5, solar_radiation: 650, eto: 0 },
 };
 function respond(path: string) {
+  if (path === "/settings/modules") return Promise.resolve({ data: mocks.modules });
   if (path === "/readings/latest") return Promise.resolve({ data: reading });
   if (path === "/readings") return Promise.resolve({ data: { data: [reading], total: 1, page: 1, per_page: 12 } });
   if (path === "/readings/priority-status") return Promise.resolve({ data: { items: [] } });
@@ -85,6 +88,8 @@ const soilOnlyReading: ReadingResponse = {
 beforeEach(() => {
   mocks.get.mockReset().mockImplementation(respond);
   mocks.selection.selectedArea = mocks.selection.areas[0];
+  mocks.modules.alerts = false;
+  clearModulesCache();
 });
 afterEach(() => { cleanup(); vi.useRealTimers(); });
 
@@ -97,7 +102,7 @@ it("preserves missing values and measured zeros in chart data without mutating r
 
 describe.each([DesktopDashboard, MobileDashboard])("telemetry layout", (Layout) => {
   it("renders priority metrics, all units and unknown irrigation independently of false", () => {
-    const props = { historicalData: [], currentReadings: toCurrentReadings(reading), prioritySemaphore: defaultSemaphore, connectionState: "online" as const, visibleCards: new Set<DashboardCardKey>(DASHBOARD_CARD_KEYS) };
+    const props = { historicalData: [], currentReadings: toCurrentReadings(reading), prioritySemaphore: defaultSemaphore, showSemaphore: true, connectionState: "online" as const, visibleCards: new Set<DashboardCardKey>(DASHBOARD_CARD_KEYS) };
     const { rerender } = render(<Layout {...props} />);
     for (const title of ["Humedad del Suelo", "Flujo de Agua", "E.T.O."]) expect(screen.getByText(title)).toBeTruthy();
     for (const unit of ["%", "L/min", "mm/día", "dS/m", "MPa"]) expect(screen.getAllByText(unit).length).toBeGreaterThan(0);
@@ -219,6 +224,7 @@ it("discards late responses for a previously selected area", async () => {
 
 
 it("does not label missing telemetry as optimal when priority status defaults to optimal", async () => {
+  mocks.modules.alerts = true;
   mocks.get.mockImplementation((path: string) => {
     if (path === "/readings/latest") return Promise.resolve({ data: { ...reading, soil: null, irrigation: null, environmental: null } });
     if (path === "/readings/priority-status") return Promise.resolve({ data: { items: [
@@ -231,8 +237,20 @@ it("does not label missing telemetry as optimal when priority status defaults to
   });
   render(<ClientDashboard />);
   await screen.findByText("Humedad del Suelo");
+  expect(await screen.findAllByText("Sin datos de umbral")).toHaveLength(3);
   expect(screen.queryByText("Óptimo")).toBeNull();
-  expect(screen.getAllByText("Sin datos de umbral")).toHaveLength(3);
+});
+
+it("hides the threshold semaphore while the alerts module is off", async () => {
+  mocks.get.mockImplementation((path: string) => {
+    if (path === "/clients/me/dashboard-preferences") return Promise.resolve({ data: { client_id: 1, cards: [...DASHBOARD_CARD_KEYS] } });
+    return respond(path);
+  });
+  render(<ClientDashboard />);
+  await screen.findByText("Humedad del Suelo");
+  await waitFor(() => expect(mocks.get).toHaveBeenCalledWith("/settings/modules"));
+  expect(screen.queryByText("Sin datos de umbral")).toBeNull();
+  expect(screen.queryByText("Óptimo")).toBeNull();
 });
 
 describe("dashboard card preferences", () => {
@@ -279,5 +297,36 @@ describe("dashboard card preferences", () => {
     expect(screen.queryByText("Flujo de Agua")).toBeNull();
     expect(screen.queryByText("Estado del Riego")).toBeNull();
     expect(screen.queryByText("Ambiental")).toBeNull();
+  });
+});
+
+describe("humidity chart", () => {
+  it("keeps at least a 4-point span centred on the data so tiny changes look tiny", () => {
+    expect(getHumidityAxisDomain([12.9, 12.91])).toEqual([10, 15]);
+    expect(getHumidityAxisDomain([30, null, 30])).toEqual([28, 32]);
+  });
+
+  it("follows the data when it already spans more than the minimum", () => {
+    expect(getHumidityAxisDomain([20.4, 35.6])).toEqual([20, 36]);
+  });
+
+  it("clamps to 0–100 and keeps the span at the edges", () => {
+    expect(getHumidityAxisDomain([0.5, 1])).toEqual([0, 4]);
+    expect(getHumidityAxisDomain([99.5, 100])).toEqual([96, 100]);
+    expect(getHumidityAxisDomain([0, 100])).toEqual([0, 100]);
+  });
+
+  it("uses the full 0–100 range without measured values", () => {
+    expect(getHumidityAxisDomain([])).toEqual([0, 100]);
+    expect(getHumidityAxisDomain([null, null])).toEqual([0, 100]);
+  });
+
+  it("does not repeat the freshness and gateway line under the chart", async () => {
+    mocks.get.mockImplementation(withDashboardCards(["priority.humidity", "soil.chart"]));
+    render(<ClientDashboard />);
+
+    expect(await screen.findByText("Humedad del Suelo - Últimas 12 lecturas")).toBeTruthy();
+    // Solo el encabezado de la página muestra el estado del gateway.
+    expect(await screen.findAllByText("Gateway conectado")).toHaveLength(1);
   });
 });

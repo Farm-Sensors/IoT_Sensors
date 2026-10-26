@@ -17,6 +17,7 @@ from app.models.node import Node
 from app.models.reading import Reading
 from app.models.threshold import Threshold
 from app.schemas.reading import ReadingCreate
+from app.services.node import live_node_ids
 
 
 PRIORITY_PARAMETERS = (
@@ -407,6 +408,10 @@ def _build_history_query(
                 detail=f"No node found for irrigation area {irrigation_area_id}",
             )
         conditions.append(Reading.nodo_id == node)
+    else:
+        # Admin-wide history (e.g. "Lecturas hoy"): skip readings of deleted nodes, areas,
+        # properties or clients, which keep their rows after a soft delete.
+        conditions.append(Reading.nodo_id.in_(live_node_ids()))
 
     # If crop_cycle_id is specified, use its dates
     if crop_cycle_id is not None:

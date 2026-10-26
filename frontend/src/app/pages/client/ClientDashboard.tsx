@@ -10,6 +10,7 @@ import { EmptyState } from "../../components/EmptyState";
 import { FreshnessIndicator } from "../../components/FreshnessIndicator";
 import { GatewayStatusBadge } from "../../components/GatewayStatusBadge";
 import { usePropertyGatewayStatus } from "../../hooks/usePropertyGatewayStatus";
+import { useModules } from "../../hooks/useModules";
 import type { PaginatedResponse, ReadingResponse } from "../../types/api";
 import {
   getClientDashboardPreferences,
@@ -41,6 +42,8 @@ export function ClientDashboard() {
   } = useSelection();
 
   const gatewayStatus = usePropertyGatewayStatus(selectedProperty?.id);
+  // El semáforo depende de los umbrales (módulo de alertas, Fase 2): sin él no se muestra.
+  const showSemaphore = useModules().alerts;
   const filteredAreas = selectedProperty
     ? areas.filter(a => a.property_id === selectedProperty.id)
     : [];
@@ -242,6 +245,7 @@ export function ClientDashboard() {
               historicalData={activeSnapshot.history}
               currentReadings={currentReadings}
               prioritySemaphore={activeSnapshot.semaphore}
+              showSemaphore={showSemaphore}
               connectionState={connectionState}
               visibleCards={visibleCards}
             />
@@ -250,9 +254,8 @@ export function ClientDashboard() {
               historicalData={activeSnapshot.history}
               currentReadings={currentReadings}
               prioritySemaphore={activeSnapshot.semaphore}
+              showSemaphore={showSemaphore}
               connectionState={connectionState}
-              gatewayStatus={gatewayStatus?.status}
-              gatewayEdgeStatus={gatewayStatus?.edge_status}
               visibleCards={visibleCards}
             />
           )}

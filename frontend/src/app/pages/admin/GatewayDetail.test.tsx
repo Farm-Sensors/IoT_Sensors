@@ -1,6 +1,7 @@
 import { render, screen, within } from "@testing-library/react";
 import { MemoryRouter, Route, Routes } from "react-router";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import type * as GatewaysModule from "../../services/gateways";
 import { GatewayDetail } from "./GatewayDetail";
 
 const mocks = vi.hoisted(() => ({
@@ -15,28 +16,18 @@ vi.mock("../../components/Toast", () => ({
   useToast: () => ({ showToast: mocks.showToast }),
 }));
 
-vi.mock("../../services/gateways", () => ({
-  getGateway: mocks.getGateway,
-  getGatewayStatus: mocks.getGatewayStatus,
-  publishConfiguration: mocks.publishConfiguration,
-}));
+vi.mock("../../services/gateways", async (importOriginal) => {
+  const actual: typeof GatewaysModule = await importOriginal();
+  return {
+    ...actual,
+    getGateway: mocks.getGateway,
+    getGatewayStatus: mocks.getGatewayStatus,
+    publishConfiguration: mocks.publishConfiguration,
+  };
+});
 
 vi.mock("../../services/nodes", () => ({
   getGeoNodes: mocks.getGeoNodes,
-}));
-
-vi.mock("../../services/api", () => ({
-  api: {
-    get: vi.fn().mockImplementation((path: string) => {
-      if (path === "/properties/11") {
-        return Promise.resolve({ data: { id: 11, client_id: 3, name: "Rancho Prueba" } });
-      }
-      if (path === "/clients/3") {
-        return Promise.resolve({ data: { id: 3, company_name: "Rancho Prueba SA" } });
-      }
-      return Promise.resolve({ data: {} });
-    }),
-  },
 }));
 
 function renderPage() {
@@ -61,6 +52,9 @@ describe("GatewayDetail", () => {
         bindings_revision: 8,
         activated_at: "2026-10-08T23:41:30Z",
         revoked_at: null,
+        property_name: "Rancho Prueba",
+        client_name: "Rancho Prueba SA",
+        property_deleted: false,
         slots: [
           { id: 10, irrigation_area_id: 16, logical_node_id: 16 },
           { id: 11, irrigation_area_id: 17, logical_node_id: 17 },
@@ -109,15 +103,40 @@ describe("GatewayDetail", () => {
     expect(screen.getByText(/Rancho Prueba · Rancho Prueba SA/)).toBeInTheDocument();
 
     const steps = screen.getByRole("list");
-    expect(within(steps).getByText("1. Predio provisionado")).toBeInTheDocument();
-    expect(within(steps).getByText("2. Configuración publicada")).toBeInTheDocument();
-    expect(within(steps).getByText("Versión 1")).toBeInTheDocument();
-    expect(within(steps).getByText("3. Credencial vinculada")).toBeInTheDocument();
-    expect(within(steps).getByText("4. Nodos enlazados")).toBeInTheDocument();
+    expect(within(steps).getByText("1. Enlace creado")).toBeInTheDocument();
+    expect(within(steps).getByText("Configuración lista (versión 1)")).toBeInTheDocument();
+    expect(within(steps).getByText("2. Credencial vinculada")).toBeInTheDocument();
+    expect(within(steps).getByText("3. Nodos enlazados")).toBeInTheDocument();
     expect(within(steps).getByText("1 de 2 ranura(s) confirmadas")).toBeInTheDocument();
+    // La configuración ya está lista: no se ofrece publicarla de nuevo.
+    expect(screen.queryByRole("button", { name: /configuración/i })).not.toBeInTheDocument();
 
     // Connectivity badge comes from the live status, not from the management state.
     expect(screen.getByText("Gateway conectado")).toBeInTheDocument();
+  });
+
+  it("offers to finish the configuration of a link created without it", async () => {
+    mocks.getGateway.mockResolvedValue({
+      data: {
+        id: 10,
+        property_id: 11,
+        status: "pending_activation",
+        configuration_version: 0,
+        bindings_revision: 0,
+        activated_at: null,
+        revoked_at: null,
+        property_name: "Rancho Prueba",
+        client_name: "Rancho Prueba SA",
+        property_deleted: false,
+        slots: [{ id: 10, irrigation_area_id: 16, logical_node_id: 16 }],
+      },
+    });
+    renderPage();
+
+    expect(
+      await screen.findByRole("button", { name: "Dejar lista la configuración" }),
+    ).toBeInTheDocument();
+    expect(within(screen.getByRole("list")).getByText("Falta dejar lista la configuración")).toBeInTheDocument();
   });
 
   it("lists every slot with its area, node, binding and identity", async () => {
