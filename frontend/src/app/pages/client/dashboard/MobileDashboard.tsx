@@ -17,12 +17,15 @@ export function MobileDashboard({
   historicalData,
   currentReadings,
   prioritySemaphore,
+  showSemaphore,
   connectionState,
   visibleCards,
 }: {
   historicalData: ChartReading[];
   currentReadings: CurrentReadings;
   prioritySemaphore: Record<PriorityKey, SemaphoreLevel>;
+  /** Semáforo de umbrales; se oculta con el módulo de alertas apagado. */
+  showSemaphore: boolean;
   connectionState: ConnectionState;
   visibleCards: Set<DashboardCardKey>;
 }) {
@@ -36,7 +39,7 @@ export function MobileDashboard({
 
   return (
     <div className="space-y-4">
-      {(visibleCards.has("priority.humidity") || visibleCards.has("priority.flow") || visibleCards.has("priority.eto")) && (
+      {showSemaphore && (visibleCards.has("priority.humidity") || visibleCards.has("priority.flow") || visibleCards.has("priority.eto")) && (
         <BentoCard variant="light">
           <h3 className="text-base text-[var(--text-main)] mb-3">Semáforos de Umbral</h3>
           <div className="grid grid-cols-1 gap-2">
@@ -84,9 +87,11 @@ export function MobileDashboard({
           subtitle="Dato prioritario"
           lastUpdate={currentReadings.lastUpdate}
         >
-          <div className="mb-2">
-            <SemaphorePill level={prioritySemaphore["irrigation.flow_per_minute"]} />
-          </div>
+          {showSemaphore && (
+            <div className="mb-2">
+              <SemaphorePill level={prioritySemaphore["irrigation.flow_per_minute"]} />
+            </div>
+          )}
           <p className="text-sm text-[var(--text-on-dark)]/70 mt-2">
             Acumulado: {currentReadings.accumulatedWater} L
           </p>
@@ -102,9 +107,11 @@ export function MobileDashboard({
           subtitle="Evapotranspiración"
           lastUpdate={currentReadings.lastUpdate}
         >
-          <div className="mb-2">
-            <SemaphorePill level={prioritySemaphore["environmental.eto"]} />
-          </div>
+          {showSemaphore && (
+            <div className="mb-2">
+              <SemaphorePill level={prioritySemaphore["environmental.eto"]} />
+            </div>
+          )}
         </MetricCard>
       )}
 

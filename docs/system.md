@@ -89,7 +89,7 @@ El admin **autoriza** una imagen (versión + digest). El técnico **confirma** e
 
 ## Qué queda fuera de este sistema (aún)
 
-- IA, alertas activas, WhatsApp/email, n8n (código puede existir **dormido** detrás de flags). **La Fase 2 está bloqueada hasta nuevo aviso**: no se enciende ninguno de sus flags ni se arranca el perfil `phase2`; las excepciones vigentes aprobadas por el dueño son el NDVI de último punto (evento propio) y la tarjeta de clima de referencia (`OPEN_METEO_ENABLED`, API gratuita, por predio).
+- IA, alertas activas, WhatsApp/email, n8n (código puede existir **dormido** detrás de flags; con el flag apagado el menú de admin y cliente oculta su módulo —Umbrales, la campana de alertas y el semáforo del dashboard van con alertas— vía `GET /api/v1/settings/modules`, aunque la ruta directa sigue abriendo). **La Fase 2 está bloqueada hasta nuevo aviso**: no se enciende ninguno de sus flags ni se arranca el perfil `phase2`; las excepciones vigentes aprobadas por el dueño son el NDVI de último punto (evento propio) y la tarjeta de clima de referencia (`OPEN_METEO_ENABLED`, API gratuita, por predio).
 - NDVI histórico/polígonos.
 - Interfaz móvil para QR/GPS.
 - Comandos físicos hacia riego.
@@ -160,9 +160,7 @@ credenciales en `test-data.md`; puertas de la integración en `integration/READM
    cacheada"); fecha en inglés; el scroll no cuenta como actividad para el protector. Panel admin:
    el equipo no reporta
    hostname/versión al pedir el código.
-   Cliente y admin ven en el menú módulos de Fase 2
-   apagados (Alertas, IA, Umbrales, Notificaciones) y la tarjeta dice "Sin datos de umbral"; la
-   gráfica de pocas lecturas exagera la escala.
+   La gráfica de pocas lecturas exagera la escala.
 
 ## Dónde leer más
 

@@ -3,7 +3,8 @@ import { Link, useLocation, useNavigate } from "react-router";
 import { useAuth } from "../../context/AuthContext";
 import { useTheme } from "../../context/ThemeContext";
 import { preloadMapRoutes } from "../../services/routePreload";
-import { adminNavItems, clientNavItems } from "./items";
+import { useModules } from "../../hooks/useModules";
+import { navItemsFor } from "./items";
 
 interface MobileTabBarProps {
   role: "client" | "admin";
@@ -21,7 +22,7 @@ export function MobileTabBar({ role }: MobileTabBarProps) {
     }
   };
 
-  const tabs = role === "client" ? clientNavItems : adminNavItems;
+  const tabs = navItemsFor(role, useModules());
 
   const handleLogout = () => {
     logout();

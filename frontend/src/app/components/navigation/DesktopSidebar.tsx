@@ -10,7 +10,8 @@ import { Link, useLocation, useNavigate } from "react-router";
 import { useAuth } from "../../context/AuthContext";
 import { useTheme } from "../../context/ThemeContext";
 import { preloadMapRoutes } from "../../services/routePreload";
-import { adminNavItems, clientNavItems } from "./items";
+import { useModules } from "../../hooks/useModules";
+import { navItemsFor } from "./items";
 
 interface DesktopSidebarProps {
   role: "client" | "admin";
@@ -44,7 +45,7 @@ export function DesktopSidebar({ role }: DesktopSidebarProps) {
     }
   };
 
-  const navItems = role === "client" ? clientNavItems : adminNavItems;
+  const navItems = navItemsFor(role, useModules());
   const homePath = role === "client" ? "/cliente" : "/admin";
 
   return (

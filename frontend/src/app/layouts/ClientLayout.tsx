@@ -5,9 +5,11 @@ import { MobileTabBar } from "../components/navigation/MobileTabBar";
 import { AlertsPopover } from "../components/notifications/AlertsPopover";
 import { SelectionProvider } from "../context/SelectionContext";
 import { useIsMobile } from "../hooks/useIsMobile";
+import { useModules } from "../hooks/useModules";
 
 export function ClientLayout() {
   const isMobile = useIsMobile();
+  const alertsEnabled = useModules().alerts;
   const location = useLocation();
   const mainRef = useRef<HTMLElement>(null);
 
@@ -33,7 +35,9 @@ export function ClientLayout() {
           <Outlet />
         </main>
 
-        <AlertsPopover className={isMobile ? "fixed top-3 right-3 z-40" : "fixed top-4 right-6 z-40"} />
+        {alertsEnabled && (
+          <AlertsPopover className={isMobile ? "fixed top-3 right-3 z-40" : "fixed top-4 right-6 z-40"} />
+        )}
 
         {isMobile && <MobileTabBar role="client" />}
       </div>

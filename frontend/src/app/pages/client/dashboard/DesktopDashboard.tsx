@@ -20,6 +20,7 @@ export function DesktopDashboard({
   historicalData,
   currentReadings,
   prioritySemaphore,
+  showSemaphore,
   connectionState,
   gatewayStatus,
   gatewayEdgeStatus,
@@ -28,6 +29,8 @@ export function DesktopDashboard({
   historicalData: ChartReading[];
   currentReadings: CurrentReadings;
   prioritySemaphore: Record<PriorityKey, SemaphoreLevel>;
+  /** Semáforo de umbrales; se oculta con el módulo de alertas apagado. */
+  showSemaphore: boolean;
   connectionState: ConnectionState;
   gatewayStatus?: string | null;
   gatewayEdgeStatus?: string | null;
@@ -55,9 +58,11 @@ export function DesktopDashboard({
           lastUpdate={currentReadings.lastUpdate}
           priority
         >
-          <div className="mb-2">
-            <SemaphorePill level={prioritySemaphore["soil.humidity"]} />
-          </div>
+          {showSemaphore && (
+            <div className="mb-2">
+              <SemaphorePill level={prioritySemaphore["soil.humidity"]} />
+            </div>
+          )}
           {/* Circular progress ring */}
           {typeof currentReadings.soilHumidity === "number" && <div className="relative w-32 h-32 mx-auto my-4">
             <svg className="transform -rotate-90 w-32 h-32">
@@ -98,9 +103,11 @@ export function DesktopDashboard({
           lastUpdate={currentReadings.lastUpdate}
           priority
         >
-          <div className="mb-2">
-            <SemaphorePill level={prioritySemaphore["irrigation.flow_per_minute"]} />
-          </div>
+          {showSemaphore && (
+            <div className="mb-2">
+              <SemaphorePill level={prioritySemaphore["irrigation.flow_per_minute"]} />
+            </div>
+          )}
           {/* Sparkline */}
           <div className="h-16 min-h-[64px] -mx-2 mt-2">
             <ResponsiveContainer width="100%" height="100%">
@@ -134,9 +141,11 @@ export function DesktopDashboard({
           lastUpdate={currentReadings.lastUpdate}
           priority
         >
-          <div className="mb-2">
-            <SemaphorePill level={prioritySemaphore["environmental.eto"]} />
-          </div>
+          {showSemaphore && (
+            <div className="mb-2">
+              <SemaphorePill level={prioritySemaphore["environmental.eto"]} />
+            </div>
+          )}
         </MetricCard>
       </div>
       )}

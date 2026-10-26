@@ -22,6 +22,7 @@ from app.api.v1.endpoints import (
     notification_preferences,
     properties,
     readings,
+    settings,
     thresholds,
     users,
     weather,
@@ -101,3 +102,4 @@ api_v1_router.include_router(
     prefix="/ai-assistant",
     tags=["AI Assistant"],
 )
+api_v1_router.include_router(settings.router, prefix="/settings", tags=["Settings"])

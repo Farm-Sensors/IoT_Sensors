@@ -20,7 +20,7 @@ El backend FastAPI (puerto 5050) es el único punto de contacto con MySQL 8 (pue
 
 Con el backend corriendo: Swagger UI en `/api/v1/docs`, ReDoc en `/api/v1/redoc`, spec crudo en `/api/v1/openapi.json`.
 
-**Estado de sincronización:** el archivo `openapi.yaml` (raíz) es el **contrato fuente de verdad** y se regenera desde el código FastAPI con `make openapi-sync`. Conteo verificado contra la tabla de rutas FastAPI (`app.routes`): **111 operaciones sobre 81 paths** (incluye `/health`, excluye las rutas de documentación); `openapi.yaml` omite las **6 rutas de gateway** marcadas `include_in_schema=False` (`activate`, `activation-references`, `credentials/rotate`, `revoke`, `pairing-sessions` y `pairing-sessions/token`) y se regenera con `make openapi-sync`, por lo que su conteo puede diferir hasta la siguiente regeneración. Las specs de `openspec/specs/` son la fuente de verdad del **comportamiento** de cada capacidad (ver §4).
+**Estado de sincronización:** el archivo `openapi.yaml` (raíz) es el **contrato fuente de verdad** y se regenera desde el código FastAPI con `make openapi-sync`. Conteo verificado contra la tabla de rutas FastAPI (`app.routes`): **116 operaciones sobre 85 paths** (incluye `/health` y `POST /auth/docs-login` de Swagger, excluye las rutas de documentación); `openapi.yaml` omite las **6 rutas de gateway** marcadas `include_in_schema=False` (`activate`, `activation-references`, `credentials/rotate`, `revoke`, `pairing-sessions` y `pairing-sessions/token`) y se regenera con `make openapi-sync`, por lo que su conteo puede diferir hasta la siguiente regeneración. Las specs de `openspec/specs/` son la fuente de verdad del **comportamiento** de cada capacidad (ver §4).
 
 ## 3. Autenticación
 
@@ -140,7 +140,7 @@ Límites de abuso de admin (en memoria, por proceso): **10 fallos / 15 min** por
 
 Contrato detallado (payloads, schemas, errores, ejemplos): **`openapi.yaml`** (autogenerado, `make openapi-sync`) — importable en Swagger UI / Postman. El comportamiento de cada capacidad está especificado en `openspec/specs/`: **readings** → lecturas/ingesta, **security** → auth, **alerting** → alertas/umbrales/notificaciones, **ai-modules** → IA, **data-model** → modelo de datos, **geo-visualization** → mapas.
 
-> Nota: las capacidades de Fase 2 (alerting, ai-modules) pueden estar dormidas detrás de flags en `backend/app/core/config.py` (OFF por defecto). Los endpoints de la tabla requieren JWT salvo los marcados `X-API-Key` (gateway) y los tres sin credencial: `POST /gateways/activate` (referencia de activación), `POST /gateways/pairing-sessions` y `POST /gateways/pairing-sessions/token`. El emparejamiento completo (máquina y admin) depende de `GATEWAY_PAIRING_ENABLED`, **OFF por defecto**.
+> Nota: las capacidades de Fase 2 (alerting, ai-modules) pueden estar dormidas detrás de flags en `backend/app/core/config.py` (OFF por defecto); `GET /settings/modules` le dice al frontend cuáles están encendidas para ocultar del menú las apagadas (las rutas siguen existiendo). Los endpoints de la tabla requieren JWT salvo los marcados `X-API-Key` (gateway) y los tres sin credencial: `POST /gateways/activate` (referencia de activación), `POST /gateways/pairing-sessions` y `POST /gateways/pairing-sessions/token`. El emparejamiento completo (máquina y admin) depende de `GATEWAY_PAIRING_ENABLED`, **OFF por defecto**.
 
 | Recurso | Método | Endpoint | Descripción |
 |---------|--------|----------|-------------|
@@ -256,6 +256,7 @@ Contrato detallado (payloads, schemas, errores, ejemplos): **`openapi.yaml`** (a
 | NDVI | POST | `/api/v1/ndvi-snapshots` | Ingesta del último NDVI puntual — **X-API-Key** |
 | NDVI | GET | `/api/v1/ndvi-snapshots/latest` | Último NDVI del área |
 | Weather | GET | `/api/v1/weather/current` | Clima actual del área (`irrigation_area_id`), resuelto con la **ubicación de referencia del predio**; **409** si el predio aún no tiene ubicación |
+| Settings | GET | `/api/v1/settings/modules` | Módulos opcionales encendidos, solo lectura, cualquier usuario con sesión (admin o cliente): `{"alerts", "ai_assistant", "ai_reports", "notifications"}` (booleanos de `ALERTS_ENABLED`, `AI_ASSISTANT_ENABLED`, `AI_REPORTS_ENABLED`, `NOTIFICATIONS_ENABLED`). `alerts` también cubre Umbrales, la campana de alertas y el semáforo del dashboard; `ai_assistant` cubre Consumo IA |
 | Health | GET | `/health` | Verificación de estado del servicio |
 
-**Total: 111 operaciones sobre 81 paths** (tabla de rutas FastAPI; ver §2 para la diferencia con `openapi.yaml`). Para payloads, schemas y ejemplos por endpoint, consulta el contrato autogenerado.
+**Total: 116 operaciones sobre 85 paths** (tabla de rutas FastAPI; ver §2 para la diferencia con `openapi.yaml`). Para payloads, schemas y ejemplos por endpoint, consulta el contrato autogenerado.

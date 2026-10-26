@@ -3828,6 +3828,23 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/settings/modules:
+    get:
+      tags:
+      - Settings
+      summary: Get Modules
+      description: Which optional (Fase 2) modules are switched on, so the UI can
+        hide the rest.
+      operationId: get_modules_api_v1_settings_modules_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ModulesResponse'
+      security:
+      - OAuth2PasswordBearer: []
   /health:
     get:
       summary: Health Check
@@ -5623,6 +5640,32 @@ components:
       - email
       - password
       title: LoginRequest
+    ModulesResponse:
+      properties:
+        alerts:
+          type: boolean
+          title: Alerts
+          description: 'ALERTS_ENABLED: alertas y umbrales (semáforo del dashboard).'
+        ai_assistant:
+          type: boolean
+          title: Ai Assistant
+          description: 'AI_ASSISTANT_ENABLED: asistente IA y su consumo.'
+        ai_reports:
+          type: boolean
+          title: Ai Reports
+          description: 'AI_REPORTS_ENABLED: reportes IA.'
+        notifications:
+          type: boolean
+          title: Notifications
+          description: 'NOTIFICATIONS_ENABLED: notificaciones externas.'
+      type: object
+      required:
+      - alerts
+      - ai_assistant
+      - ai_reports
+      - notifications
+      title: ModulesResponse
+      description: Optional modules switched on by server flags (OFF by default).
     NDVIEvent:
       properties:
         irrigation_area_id:
