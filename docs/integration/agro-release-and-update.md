@@ -43,8 +43,8 @@ tag x.y.z pushed  ──►  release-rpi.yml  ──►  GitHub Release (agroio-
 | OS | Ubuntu 26.04 LTS, kernel `7.0.0-1020-raspi`, aarch64 |
 | Installed release | `2.0.0-alpha.26` (beta channel, built from Agro.io `feat/real-sensor-readiness`, PR #22), installed under `/opt/agroio/releases/`; the stable package on the device is a local `0.9.5` build of `main` (content of `0.9.4`) |
 | Services | `agroio-edge`, `agroio-ui` and `agroio-ui-webviewer`, all enabled and active |
-| Agent mode | `mode: serial`, `demo_nodes: 0`, `cloud_lane: v2`, `http_sync` disabled with an empty endpoint |
-| Gateway identity | `activation_state: unactivated`: no gateway/property and no credential, so no heartbeat or configuration poll is sent |
+| Agent mode | `mode: serial` reading the lab **virtual radio** (`/opt/agroio/data/vradio`), `demo_nodes: 0`, `cloud_lane: v2`, `http_sync` disabled with an empty endpoint |
+| Gateway identity | `active`: gateway 21 / property 20 ("Rancho Prueba Radio Virtual"), slot 43 confirmed for `mesh-RPL01`, heartbeat every 5 min |
 | Local data | 50 972 measurements, 8 497 raw readings, 16 512 alerts; `sync_queue` holds 110 437 historical rows (none pending) |
 | NDVI | latest-point file present (`mesh-DEMO01`); `ndvi.irrigation_areas` is empty, so nothing is queued |
 | Channels | `beta → stable → beta` verified twice on 2026-10-26 with no data loss; only beta carries the v2 lane. Since `2.0.0-alpha.26` the UI's "check for updates" button never offers a release from the other channel (it used to offer the stable release on a beta device and bypass the channel script) |

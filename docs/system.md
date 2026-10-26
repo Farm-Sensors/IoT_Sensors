@@ -104,13 +104,15 @@ credenciales en `test-data.md`; puertas de la integración en `integration/READM
   tras flags salvo las dos excepciones aprobadas (NDVI de último punto y clima de referencia).
   Contrato v2 en **revisión 4** (operación `location`); la aceptación formal de las revisiones 2–4
   sigue **pendiente** (el marcador "accepted upstream" del paquete está en la revisión 1).
-  Laboratorio limpio: solo admin, `alan2203mx@gmail.com` y `test@gmail.com` + catálogos; cero
-  predios o nodos activos (queda la gateway 20 del E2E, revocada).
+  Laboratorio: admin, `alan2203mx@gmail.com` y `test@gmail.com` + catálogos, y un rancho de prueba
+  activo, "Rancho Prueba Radio Virtual" (cliente `test@gmail.com`, gateway 21), alimentado por la
+  Raspberry con el radio virtual.
 - **Agro (appliance)**: `main` en `0e98cf6` (tag `0.9.4`, producción, canal **stable**) y
   `integration/iot-v2` en `c241a15` (canal **beta**). La Raspberry de pruebas corre **beta
   `2.0.0-alpha.26`** (rama `feat/real-sensor-readiness`, PR #22 abierto a `integration/iot-v2`), `mode:
-  serial`, carril v2 al cloud del laboratorio, `http_sync` apagado y **sin gateway vinculado**. Datos
-  reales conservados (`H845D`, `H4EBF`: 50 972 mediciones); ningún nodo transmite desde el 15 sep.
+  serial` leyendo un **radio virtual** (tramas reales de `H845D` renombradas a `RPL01`, una cada
+  10 min), vinculada a la gateway 21. Datos reales conservados (`H845D`, `H4EBF`: 50 972
+  mediciones); ningún nodo físico transmite desde el 15 sep.
 - **Integración con sensores reales**: verificada el 2026-10-26 con **tramas reales** del log de la
   Raspberry, reproducidas por el agente `alpha.25` instalado en la propia Raspberry (workspace
   aislado) contra el cloud: pairing por código → detección de `mesh-H845D` y `mesh-H4EBF` → dos
@@ -123,6 +125,12 @@ credenciales en `test-data.md`; puertas de la integración en `integration/READM
   `beta` integra con IoT_Sensors**: `stable` (0.9.x) no tiene el carril v2, y la línea v2 no se
   fusiona a `main`. Desde `alpha.26` el botón "buscar actualizaciones" ya no ofrece releases de otro
   canal.
+- **Flujo de producto completo sin nodo físico** (2026-10-26): con el radio virtual, el servicio
+  real del agente, la pantalla *Instalación* del equipo, el panel admin y el dashboard del cliente:
+  admin crea predio, área, nodo y enlace y publica → técnico vincula con el código → `mesh-RPL01`
+  aparece detectado → se asigna a su ranura y la nube confirma → el cliente ve humedad, suelo,
+  frescura, "Gateway conectado" y clima. Funciona de punta a punta; los puntos de usabilidad están
+  en el pendiente 9.
 
 **Pendientes / a pulir**
 
@@ -143,6 +151,20 @@ credenciales en `test-data.md`; puertas de la integración en `integration/READM
    apagado).
 8. Limpieza menor: `demo-node-01` inactivo, `C0` no habilitado, paquetes locales acumulados, log del
    agente de 44 MB con "heartbeat not sent" cada 5 s cuando no hay gateway.
+9. **Usabilidad** (recorrido del 2026-10-26). Pantalla del equipo: el nodo que transmite aparece
+   "Sin señal / Aún sin lecturas" porque aún no está autorizado localmente; tras vincular se ven
+   los IDs (gateway 21 / propiedad 20) en vez del nombre del rancho y sigue visible la referencia de
+   activación con un aviso viejo; la configuración llega hasta 60 s después de vincular ("No hay
+   ranuras…"); el contador del código no dice "expira en"; estados en inglés/código
+   (`pending_initial`, `confirmed`); textos técnicos ("encola una candidatura", "configuración
+   cacheada"); fecha en inglés; el scroll no cuenta como actividad para el protector. Panel admin:
+   "Lecturas hoy" cuenta nodos borrados; el enlace revocado dice "2 de 2 reportando"; el
+   selector y el mensaje de aprobación usan "Gateway #21 · Predio 20"; el equipo no reporta
+   hostname/versión al pedir el código; "Número de serie" del nodo sugiere que debe coincidir con
+   el nodo físico (no se usa para vincular); GPS sin "opcional"; el área no lleva a crear su nodo;
+   el asistente vuelve al paso 1 al recargar. Cliente y admin ven en el menú módulos de Fase 2
+   apagados (Alertas, IA, Umbrales, Notificaciones) y la tarjeta dice "Sin datos de umbral"; la
+   gráfica de pocas lecturas exagera la escala.
 
 ## Dónde leer más
 
