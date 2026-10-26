@@ -2,6 +2,8 @@
 
 Issue #28 delivers the contract package under `contracts/edge-cloud/v2/`. Its accepted Git commit and the SHA-256 digest of `SHA256SUMS` must be recorded by each consumer. Run the validator and regression suite described in that package's README. Passing offline contract checks is not acceptance of a live producer or cloud release.
 
+**Accepted revision.** Revision 4 of the v2 package (revisions 2–4 add the pairing operations, the optional `area_name` per overlay slot and the `location` operation) was **accepted by the integration owner on 2026-10-26** at commit `f33699746304b93afef3eaa570c6c4c58183af73`, with `SHA256SUMS` digest `9e964fffe77d68d7a64917e4e7be1069004616c2da650cd8c82c9bc07fa1ab67`. Evidence: checksums verify, Agro.io's vendored copy (`contracts/iot-sensors/v2/`, recorded in its `SOURCE.md`) is byte-identical, and the live flow (pairing, configuration with area names, location, telemetry, heartbeat) was exercised against this cloud on the test Raspberry. The acceptance is recorded here and not inside the package, so the accepted bytes stay unchanged; the package README's own revision note still names only revision 1's acceptance and says "eleven operations" (there are twelve), a wording slip left as is for the same reason.
+
 ## Ownership and acceptance gates
 
 | Boundary | IoT_Sensors evidence (Ricky unless noted) | Agro.io evidence (external; not implemented here) |

@@ -103,8 +103,8 @@ credenciales en `test-data.md`; puertas de la integración en `integration/READM
 
 - **IoT_Sensors (cloud)**: el stack de laboratorio responde en Dokploy. MVP completo; Fase 2 dormida
   tras flags salvo las dos excepciones aprobadas (NDVI de último punto y clima de referencia).
-  Contrato v2 en **revisión 4** (operación `location`); la aceptación formal de las revisiones 2–4
-  sigue **pendiente** (el marcador "accepted upstream" del paquete está en la revisión 1).
+  Contrato v2 en **revisión 4** (operación `location`), **aceptada el 2026-10-26** (commit `f336997`,
+  digest `9e964fff…`; registro en `integration/README.md`).
   Laboratorio: admin, `alan2203mx@gmail.com` y `test@gmail.com` + catálogos, y un rancho de prueba
   activo, "Rancho Prueba Radio Virtual" (cliente `test@gmail.com`, gateway 21), alimentado por la
   Raspberry con el radio virtual.
@@ -145,14 +145,12 @@ credenciales en `test-data.md`; puertas de la integración en `integration/READM
    cada nodo antes de instalarlo. Los nodos solo miden suelo: flujo y ETO llegan `null`.
 3. **Endpoint público con HTTPS** para ranchos fuera de la red ITESM (hoy solo `10.32.81.230:3022`
    por HTTP).
-4. Revisión y merge del **PR #22** de Agro (`feat/real-sensor-readiness` → `integration/iot-v2`) y
-   aceptación del contrato **revisión 4**.
-5. Para que el stable del equipo de pruebas sea idéntico al de producción, dejar en
-   `/opt/agroio/packages` el asset oficial `0.9.4` de GitHub (hoy es un `0.9.5` compilado localmente).
-6. Validar con **nodos reales encendidos** en campo (alcance de radio, energía, calibración).
-7. **Mapeo NDVI por nodo** (hoy se configura a mano); **`http_sync` al backend del cliente** (hoy
+4. **Unir `main` de Agro hacia v2** cada vez que `main` publique (la última unión, 0.9.5, se hizo el
+   2026-10-26 con el PR #24 de Agro); `main` nunca recibe nada de v2.
+5. Validar con **nodos reales encendidos** en campo (alcance de radio, energía, calibración).
+6. **Mapeo NDVI por nodo** (hoy se configura a mano); **`http_sync` al backend del cliente** (hoy
    apagado).
-8. Limpieza menor: `demo-node-01` inactivo, `C0` no habilitado, paquetes locales acumulados, log del
+7. Limpieza menor: `demo-node-01` inactivo, `C0` no habilitado, paquetes locales acumulados, log del
    agente de 44 MB con "heartbeat not sent" cada 5 s cuando no hay gateway.
 
 ## Dónde leer más
