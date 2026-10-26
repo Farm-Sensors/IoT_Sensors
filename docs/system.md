@@ -108,7 +108,7 @@ credenciales en `test-data.md`; puertas de la integración en `integration/READM
   predios o nodos activos (queda la gateway 20 del E2E, revocada).
 - **Agro (appliance)**: `main` en `0e98cf6` (tag `0.9.4`, producción, canal **stable**) y
   `integration/iot-v2` en `c241a15` (canal **beta**). La Raspberry de pruebas corre **beta
-  `2.0.0-alpha.25`** (rama `feat/real-sensor-readiness`, aún sin PR a `integration/iot-v2`), `mode:
+  `2.0.0-alpha.26`** (rama `feat/real-sensor-readiness`, PR #22 abierto a `integration/iot-v2`), `mode:
   serial`, carril v2 al cloud del laboratorio, `http_sync` apagado y **sin gateway vinculado**. Datos
   reales conservados (`H845D`, `H4EBF`: 50 972 mediciones); ningún nodo transmite desde el 15 sep.
 - **Integración con sensores reales**: verificada el 2026-10-26 con **tramas reales** del log de la
@@ -119,9 +119,10 @@ credenciales en `test-data.md`; puertas de la integración en `integration/READM
   pasaron el esquema v2. Las tres correcciones de `alpha.25`: no enviar lecturas sin ningún valor
   (firmware viejo), usar el reloj del agente cuando la trama no trae hora, y calcular la humedad
   ECH-5 con la misma calibración que la pantalla.
-- **Canales**: ida y vuelta `beta → stable → beta` verificada sin pérdida de datos. **Solo `beta`
-  integra con IoT_Sensors**: `stable` (0.9.x) no tiene el carril v2, y la línea v2 no se fusiona a
-  `main`.
+- **Canales**: ida y vuelta `beta → stable → beta` verificada dos veces sin pérdida de datos. **Solo
+  `beta` integra con IoT_Sensors**: `stable` (0.9.x) no tiene el carril v2, y la línea v2 no se
+  fusiona a `main`. Desde `alpha.26` el botón "buscar actualizaciones" ya no ofrece releases de otro
+  canal.
 
 **Pendientes / a pulir**
 
@@ -130,17 +131,16 @@ credenciales en `test-data.md`; puertas de la integración en `integration/READM
    correr `beta`, o hay que decidir una promoción (nueva línea estable 2.x o portar a `main`).
 2. **Firmware de nodos**: solo el payload compacto (`"s1":…`) llega a la nube; verificar o reflashear
    cada nodo antes de instalarlo. Los nodos solo miden suelo: flujo y ETO llegan `null`.
-3. **Botón "buscar actualizaciones" de la UI sin canales**: en un equipo `beta` con token de GitHub
-   ofrece instalar la estable y se salta el script de canales.
-4. **Endpoint público con HTTPS** para ranchos fuera de la red ITESM (hoy solo `10.32.81.230:3022`
+3. **Endpoint público con HTTPS** para ranchos fuera de la red ITESM (hoy solo `10.32.81.230:3022`
    por HTTP).
-5. PR de `feat/real-sensor-readiness` a `integration/iot-v2` y aceptación del contrato **revisión 4**.
-6. **Portar los canales stable/beta a `main`** (5 archivos, ver `release-channels.md` en Agro) y usar
+4. Revisión y merge del **PR #22** de Agro (`feat/real-sensor-readiness` → `integration/iot-v2`) y
+   aceptación del contrato **revisión 4**.
+5. **Portar los canales stable/beta a `main`** (5 archivos, ver `release-channels.md` en Agro) y usar
    el asset oficial `0.9.4` como stable del equipo de pruebas (hoy es un `0.9.5` local).
-7. Validar con **nodos reales encendidos** en campo (alcance de radio, energía, calibración).
-8. **Mapeo NDVI por nodo** (hoy se configura a mano); **`http_sync` al backend del cliente** (hoy
+6. Validar con **nodos reales encendidos** en campo (alcance de radio, energía, calibración).
+7. **Mapeo NDVI por nodo** (hoy se configura a mano); **`http_sync` al backend del cliente** (hoy
    apagado).
-9. Limpieza menor: `demo-node-01` inactivo, `C0` no habilitado, paquetes locales acumulados, log del
+8. Limpieza menor: `demo-node-01` inactivo, `C0` no habilitado, paquetes locales acumulados, log del
    agente de 44 MB con "heartbeat not sent" cada 5 s cuando no hay gateway.
 
 ## Dónde leer más

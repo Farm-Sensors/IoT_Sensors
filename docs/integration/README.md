@@ -48,7 +48,7 @@ The integration is exercised with this cloud plus a dedicated test Raspberry run
 | Piece | Where it runs | How it is reached |
 |---|---|---|
 | IoT_Sensors cloud (API, MySQL, dashboard) | the server `10.32.81.230` (Docker/Dokploy) | `http://10.32.81.230:3022` by IP:port; the public domain is unreliable, so use the address |
-| Agro.io edge agent (v2 line) | test Raspberry `10.32.90.229` | runs `2.0.0-alpha.25` (beta channel) in `mode: serial` with `demo_nodes: 0`, `cloud_lane: v2` and `http_sync` disabled. It is **unactivated** (no gateway credential), so the v2 lane sends nothing until it is paired. Only the beta channel carries the v2 lane; on stable (0.9.x) the gateway goes silent. Switch modes in Agro.io `docs/configuration-ui.md` |
+| Agro.io edge agent (v2 line) | test Raspberry `10.32.90.229` | runs `2.0.0-alpha.26` (beta channel) in `mode: serial` with `demo_nodes: 0`, `cloud_lane: v2` and `http_sync` disabled. It is **unactivated** (no gateway credential), so the v2 lane sends nothing until it is paired. Only the beta channel carries the v2 lane; on stable (0.9.x) the gateway goes silent. Switch modes in Agro.io `docs/configuration-ui.md` |
 | Agro.io UI viewer (Xvfb + `x11vnc` + noVNC) | test Raspberry | `http://10.32.90.229:6080/vnc.html`; the Avalonia UI renders on a virtual display over the device's live database |
 | Agro.io reference receiver (`apps/ui-web/telemetry_server.py`) | the server `10.32.81.230` (container with a published port) | `http://10.32.81.230:8090/`; it is the stand-in for the client's own backend. The device's `http_sync` is currently disabled and has an empty endpoint, so it is not receiving device batches |
 

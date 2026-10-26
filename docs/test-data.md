@@ -27,7 +27,7 @@ Ambos entran a un dashboard vacío: no hay predios, áreas, nodos ni lecturas.
 
 ## 🍓 Raspberry de pruebas (`10.32.90.229`, `agroio@`)
 
-- Corre el **canal beta** de Agro (**`2.0.0-alpha.25`**, rama `feat/real-sensor-readiness`) y está **sin gateway vinculado**: `activation_state: unactivated`, sin `gateway_id`/`property_id` y sin credencial. Mientras siga así no hay heartbeat ni poll de configuración. Para volver a estable: `sudo /opt/agroio/channel/agroio-channel.sh --switch stable` (instala el paquete local `0.9.5`; verificado ida y vuelta el 2026-10-26).
+- Corre el **canal beta** de Agro (**`2.0.0-alpha.26`**, rama `feat/real-sensor-readiness`, PR #22) y está **sin gateway vinculado**: `activation_state: unactivated`, sin `gateway_id`/`property_id` y sin credencial. Mientras siga así no hay heartbeat ni poll de configuración. Para volver a estable: `sudo /opt/agroio/channel/agroio-channel.sh --switch stable` (instala el paquete local `0.9.5`; ida y vuelta verificada el 2026-10-26).
 - **Canales stable/beta**: el equipo puede cambiar de release en un comando
   (`sudo /opt/agroio/channel/agroio-channel.sh --switch beta|stable`). Cambiar de canal guarda y
   aplica la configuración de cada uno (perfiles en `/etc/agroio/profiles/`) y enciende/apaga el visor
