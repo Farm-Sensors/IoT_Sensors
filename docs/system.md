@@ -109,7 +109,7 @@ credenciales en `test-data.md`; puertas de la integración en `integration/READM
   Raspberry con el radio virtual.
 - **Agro (appliance)**: `main` en `0e98cf6` (tag `0.9.4`, producción, canal **stable**) y
   `integration/iot-v2` en `c241a15` (canal **beta**). La Raspberry de pruebas corre **beta
-  `2.0.0-alpha.26`** (rama `feat/real-sensor-readiness`, PR #22 abierto a `integration/iot-v2`), `mode:
+  `2.0.0-alpha.27`** (rama `feat/install-screen-clarity`, PR #23 apilado sobre #22), `mode:
   serial` leyendo un **radio virtual** (tramas reales de `H845D` renombradas a `RPL01`, una cada
   10 min), vinculada a la gateway 21. Datos reales conservados (`H845D`, `H4EBF`: 50 972
   mediciones); ningún nodo físico transmite desde el 15 sep.
