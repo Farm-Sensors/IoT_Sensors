@@ -159,7 +159,7 @@ credenciales en `test-data.md`; puertas de la integración en `integration/READM
    (`pending_initial`, `confirmed`); textos técnicos ("encola una candidatura", "configuración
    cacheada"); fecha en inglés; el scroll no cuenta como actividad para el protector. Panel admin:
    el equipo no reporta
-   hostname/versión al pedir el código; el área no lleva a crear su nodo.
+   hostname/versión al pedir el código.
    Cliente y admin ven en el menú módulos de Fase 2
    apagados (Alertas, IA, Umbrales, Notificaciones) y la tarjeta dice "Sin datos de umbral"; la
    gráfica de pocas lecturas exagera la escala.
