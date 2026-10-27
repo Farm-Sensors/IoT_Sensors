@@ -14,15 +14,15 @@ git fetch origin && git cat-file -e origin/main:<archivo> && echo abierta
 
 | Orden | Change | Responsable | Repo → rama destino | Bloqueado por | Comprobación de la puerta |
 |---|---|---|---|---|---|
-| Ricky 1 | `dev-one-command-stack` | Ricky | IoT → `main` | — | — |
-| Ricky 1b | `dev-local-integration-run` | Ricky | Agro → `integration/iot-v2` (nunca `main`) | — (usa los pasos del README de IoT) | — |
-| Ricky 2 | `e2e-critical-flows` | Ricky | IoT → `main` | `dev-one-command-stack` | `scripts/dev_up.sh` existe en `origin/main` |
-| Fabián 1 | `e2e-client-flows` | Fabián | IoT → `main` | `e2e-critical-flows` | `frontend/e2e/fixtures.ts` existe en `origin/main` |
-| Fabián 2 | `a11y-automated-checks` | Fabián | IoT → `main` | `e2e-client-flows` | `frontend/e2e/history-export.spec.ts` existe en `origin/main` |
-| JP 1 | `ui-redesign-1-shell-and-patterns` | JP | IoT → `main` | — | — |
-| JP 2 | `ui-redesign-2-client-dashboard` | JP | IoT → `main` | `ui-redesign-1-shell-and-patterns` | `docs/design-system.md` en `origin/main` tiene «Patrones de pantalla» |
-| JP 3 | `ui-redesign-3-history-export-map` | JP | IoT → `main` | `ui-redesign-2-client-dashboard` | su issue cerrado |
-| JP 4 | `ui-redesign-4-admin-pages` | JP | IoT → `main` | `ui-redesign-3-history-export-map` | su issue cerrado |
+| Ricky 1 | `dev-one-command-stack` (IoT #55) | Ricky | IoT → `main` | — | — |
+| Ricky 1b | `dev-local-integration-run` (Agro #31) | Ricky | Agro → `integration/iot-v2` (nunca `main`) | — (usa los pasos del README de IoT) | — |
+| Ricky 2 | `e2e-critical-flows` (IoT #56) | Ricky | IoT → `main` | `dev-one-command-stack` | `scripts/dev_up.sh` existe en `origin/main` |
+| Fabián 1 | `e2e-client-flows` (IoT #57) | Fabián | IoT → `main` | `e2e-critical-flows` | `frontend/e2e/fixtures.ts` existe en `origin/main` |
+| Fabián 2 | `a11y-automated-checks` (IoT #58) | Fabián | IoT → `main` | `e2e-client-flows` | `frontend/e2e/history-export.spec.ts` existe en `origin/main` |
+| JP 1 | `ui-redesign-1-shell-and-patterns` (IoT #59) | JP | IoT → `main` | — | — |
+| JP 2 | `ui-redesign-2-client-dashboard` (IoT #60) | JP | IoT → `main` | `ui-redesign-1-shell-and-patterns` | `docs/design-system.md` en `origin/main` tiene «Patrones de pantalla» |
+| JP 3 | `ui-redesign-3-history-export-map` (IoT #61) | JP | IoT → `main` | `ui-redesign-2-client-dashboard` | su issue cerrado |
+| JP 4 | `ui-redesign-4-admin-pages` (IoT #62) | JP | IoT → `main` | `ui-redesign-3-history-export-map` | su issue cerrado |
 
 Reglas:
 
