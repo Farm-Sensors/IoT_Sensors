@@ -51,7 +51,7 @@ cd backend && cp .env.example .env
 # Paso 1 — Base de Datos (desde la raíz)
 docker compose up -d mysql
 
-# Paso 2 — Backend (http://localhost:5050, docs en /docs)
+# Paso 2 — Backend (http://localhost:5050, docs en /api/v1/docs)
 cd backend
 uv sync && uv run alembic upgrade head && uv run python -m app.db.seed
 uv run uvicorn app.main:app --reload --port 5050
