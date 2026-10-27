@@ -147,26 +147,32 @@ credenciales en `test-data.md`; puertas de la integración en `integration/READM
 
 **Pendientes / a pulir**
 
-1. **Política vigente: `main` de Agro no se toca.** Es lo que funciona en producción y meter la
-   integración podría romperlo. Todo lo de la integración se desarrolla y se prueba en **beta**
-   (`integration/iot-v2`, `2.0.0-alpha.N`) hasta estar seguros de que funciona; cómo llegará después
-   a producción se decide más adelante.
+1. **Política vigente: `main` de Agro no se toca** hasta que se complete la **transferencia del repo
+   Agro.io**. Decisión (2026-10-27): después de la transferencia, la línea v2 se fusiona a `main` y
+   se publica por el camino normal de releases. Hasta entonces todo se desarrolla y se prueba en
+   **beta** (`integration/iot-v2`, `2.0.0-alpha.N`).
 2. **Firmware de nodos**: solo el payload compacto (`"s1":…`) llega a la nube; la pantalla ya avisa
    cuando un nodo no es compatible, pero hay que reflashearlo. Los nodos solo miden suelo: flujo y
    ETO llegan `null`.
 3. **Endpoint público con HTTPS** para ranchos fuera de la red ITESM (hoy solo `10.32.81.230:3022`
    por HTTP).
-4. **Unir `main` de Agro hacia v2** cada vez que `main` publique (la última unión, 0.9.5, se hizo el
-   2026-10-26 con el PR #24 de Agro); `main` nunca recibe nada de v2.
+4. **Unir `main` de Agro hacia v2** cada vez que `main` publique, hasta la fusión a `main` (la última
+   unión, 0.9.5, se hizo el 2026-10-26 con el PR #24 de Agro).
 5. Validar con **nodos reales encendidos** en campo (alcance de radio, energía, calibración, y que el
    stick USB actual `…0B3FA3` escuche la red de los nodos).
-6. **Hora en campo**: las tramas no traen hora; la pone la Raspberry. Si arranca sin internet y su
-   reloj no tiene pila, las lecturas guardadas hasta sincronizar llevan hora equivocada. Instalar la
-   pila del reloj en cada Raspberry de campo.
-7. **Actualizaciones de la línea beta**: los `2.0.0-alpha.N` se instalan a mano; una Raspberry de
-   campo no recibe arreglos hasta decidir cómo se publica la línea v2.
-8. **Guía de instalación en campo** (una página: pila del reloj, nodos compatibles, 3 pasos, cómo
-   saber que quedó bien).
+6. **Hora en campo: la Raspberry de pruebas no tiene pila de reloj.** Lo confirma el equipo: el reloj
+   interno (`rpi-rtc`) marca `battery_voltage` ≈ 0 V y todos sus arranques comienzan con la misma
+   hora fija (2026-07-27 14:44) hasta que el NTP corrige. Las tramas no traen hora; la pone la
+   Raspberry. Sin internet al arrancar, el agente no deja que la hora retroceda
+   (`PersistentTimekeeper`: usa la última hora válida guardada + 1 s por lectura), así que no se
+   pierde ni se duplica nada y la cola v2 guarda las lecturas hasta que hay red, pero las lecturas de
+   ese tramo quedan con hora equivocada (amontonadas justo después de la última hora conocida).
+   Solución sin código: instalar la pila oficial del reloj de la Raspberry 5 en cada equipo de campo.
+7. **Actualizaciones**: los `2.0.0-alpha.N` se instalan a mano. Se resuelve con la fusión a `main`
+   (punto 1): las Raspberry de campo se actualizarán por el botón «buscar actualizaciones» con los
+   releases normales.
+8. **Guía de instalación en campo** (pospuesta por decisión del dueño, 2026-10-27): una página con
+   pila del reloj, nodos compatibles, los 3 pasos y cómo saber que quedó bien.
 9. **Mapeo NDVI por nodo** (hoy se configura a mano); **`http_sync` al backend del cliente** (hoy
    apagado).
 
