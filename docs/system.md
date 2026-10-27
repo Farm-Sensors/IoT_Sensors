@@ -97,7 +97,7 @@ El admin **autoriza** una imagen (versión + digest). El técnico **confirma** e
 - Comandos físicos hacia riego.
 - PostgreSQL.
 
-## Estado actual y pendientes (2026-10-26)
+## Estado actual y pendientes (2026-10-27)
 
 Foto de dónde estamos; se actualiza aquí mismo cuando cambia algo. Detalle del laboratorio y
 credenciales en `test-data.md`; puertas de la integración en `integration/README.md`.
@@ -106,16 +106,24 @@ credenciales en `test-data.md`; puertas de la integración en `integration/READM
   tras flags salvo las dos excepciones aprobadas (NDVI de último punto y clima de referencia).
   Contrato v2 en **revisión 4** (operación `location`), **aceptada el 2026-10-26** (commit `f336997`,
   digest `9e964fff…`; registro en `integration/README.md`).
-  Laboratorio: admin, `alan2203mx@gmail.com` y `test@gmail.com` + catálogos, sin ranchos activos (el
-  rancho de prueba del radio virtual se eliminó y su gateway 21 se revocó para repetir la prueba desde
-  cero).
+  Laboratorio: admin, `alan2203mx@gmail.com` y `test@gmail.com` + catálogos, y el rancho de prueba
+  «nuevo» (cliente `test@gmail.com`, área «nuevaarea», enlace 24) que el equipo armó a mano desde cero
+  con el panel y la pantalla de la Raspberry el 2026-10-26.
 - **Agro (appliance)**: `main` en `6a95681` (tag `0.9.5`, producción, canal **stable**) y
-  `integration/iot-v2` (canal **beta**) con `main` 0.9.5 unido y los PRs #22–#26 fusionados. La
-  Raspberry de pruebas corre **beta `2.0.0-alpha.30`**, `mode: serial` leyendo un **radio virtual**
-  (tramas reales de `H845D` renombradas a `RPL01`, una cada 60 s para pruebas manuales), **sin
-  vincular** (lista para el flujo completo desde la pantalla). Su stable es el asset oficial 0.9.5.
-  Datos reales conservados (`H845D`, `H4EBF`: 50 972 mediciones); ningún nodo físico transmite
-  desde el 15 sep.
+  `integration/iot-v2` (canal **beta**) con `main` 0.9.5 unido y los PRs #22–#28 fusionados. La
+  Raspberry de pruebas corre **beta `2.0.0-alpha.32`**, `mode: serial` leyendo un **radio virtual**
+  (tramas reales de `H845D` renombradas a `RPL01`, cada 30–60 s para pruebas manuales; un nodo
+  real manda cada 10 min), vinculada al enlace 24. Su stable es el asset oficial 0.9.5. Datos reales
+  conservados (`H845D`, `H4EBF`: 50 972 mediciones); ningún nodo físico transmite desde el 15 sep.
+- **Pantalla *Instalación* del equipo** (Agro beta): Paso 1 dice «Sin vincular» / «Vinculada a la
+  nube» y ofrece **Desvincular equipo** (local; conserva los datos). Paso 2 marca **«Este nodo no es
+  compatible con la nube: hay que actualizar su programa.»** cuando su última trama no es el formato
+  compacto (`"s1":…`), y Paso 3 no deja asignarlo: antes un nodo con firmware viejo quedaba
+  «Confirmado» sin mandar nada a la nube.
+- **Panel *Equipos*** (este repo): lista de tarjetas con estado (Falta vincular / Asignando nodos /
+  Funcionando / Sin datos recientes), asistente de 3 pasos con un paso abierto a la vez y
+  **Revocar enlace** en el detalle. Mover un equipo a otro rancho: Revocar enlace (panel) →
+  Desvincular equipo (pantalla) → Nuevo equipo.
 - **Integración con sensores reales**: verificada el 2026-10-26 con **tramas reales** del log de la
   Raspberry, reproducidas por el agente `alpha.25` instalado en la propia Raspberry (workspace
   aislado) contra el cloud: pairing por código → detección de `mesh-H845D` y `mesh-H4EBF` → dos
@@ -143,17 +151,24 @@ credenciales en `test-data.md`; puertas de la integración en `integration/READM
    integración podría romperlo. Todo lo de la integración se desarrolla y se prueba en **beta**
    (`integration/iot-v2`, `2.0.0-alpha.N`) hasta estar seguros de que funciona; cómo llegará después
    a producción se decide más adelante.
-2. **Firmware de nodos**: solo el payload compacto (`"s1":…`) llega a la nube; verificar o reflashear
-   cada nodo antes de instalarlo. Los nodos solo miden suelo: flujo y ETO llegan `null`.
+2. **Firmware de nodos**: solo el payload compacto (`"s1":…`) llega a la nube; la pantalla ya avisa
+   cuando un nodo no es compatible, pero hay que reflashearlo. Los nodos solo miden suelo: flujo y
+   ETO llegan `null`.
 3. **Endpoint público con HTTPS** para ranchos fuera de la red ITESM (hoy solo `10.32.81.230:3022`
    por HTTP).
 4. **Unir `main` de Agro hacia v2** cada vez que `main` publique (la última unión, 0.9.5, se hizo el
    2026-10-26 con el PR #24 de Agro); `main` nunca recibe nada de v2.
-5. Validar con **nodos reales encendidos** en campo (alcance de radio, energía, calibración).
-6. **Mapeo NDVI por nodo** (hoy se configura a mano); **`http_sync` al backend del cliente** (hoy
+5. Validar con **nodos reales encendidos** en campo (alcance de radio, energía, calibración, y que el
+   stick USB actual `…0B3FA3` escuche la red de los nodos).
+6. **Hora en campo**: las tramas no traen hora; la pone la Raspberry. Si arranca sin internet y su
+   reloj no tiene pila, las lecturas guardadas hasta sincronizar llevan hora equivocada. Instalar la
+   pila del reloj en cada Raspberry de campo.
+7. **Actualizaciones de la línea beta**: los `2.0.0-alpha.N` se instalan a mano; una Raspberry de
+   campo no recibe arreglos hasta decidir cómo se publica la línea v2.
+8. **Guía de instalación en campo** (una página: pila del reloj, nodos compatibles, 3 pasos, cómo
+   saber que quedó bien).
+9. **Mapeo NDVI por nodo** (hoy se configura a mano); **`http_sync` al backend del cliente** (hoy
    apagado).
-7. Limpieza menor: `demo-node-01` inactivo, `C0` no habilitado, paquetes locales acumulados, log del
-   agente de 44 MB con "heartbeat not sent" cada 5 s cuando no hay gateway.
 
 ## Dónde leer más
 

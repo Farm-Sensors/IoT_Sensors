@@ -41,10 +41,10 @@ tag x.y.z pushed  ──►  release-rpi.yml  ──►  GitHub Release (agroio-
 |---|---|
 | Host | `10.32.90.229` (institutional network only) |
 | OS | Ubuntu 26.04 LTS, kernel `7.0.0-1020-raspi`, aarch64 |
-| Installed release | `2.0.0-alpha.30` (beta channel, Agro.io `integration/iot-v2` with `main` 0.9.5 merged), installed under `/opt/agroio/releases/`; the stable package on the device is the official `0.9.5` GitHub asset |
+| Installed release | `2.0.0-alpha.32` (beta channel, Agro.io `integration/iot-v2` with `main` 0.9.5 merged, PRs #22–#28), installed under `/opt/agroio/releases/`; the stable package on the device is the official `0.9.5` GitHub asset |
 | Services | `agroio-edge`, `agroio-ui` and `agroio-ui-webviewer`, all enabled and active |
 | Agent mode | `mode: serial` reading the lab **virtual radio** (`/opt/agroio/data/vradio`), `demo_nodes: 0`, `cloud_lane: v2`, `http_sync` disabled with an empty endpoint |
-| Gateway identity | `unactivated` (reset on 2026-10-26 for a from-scratch run; local data kept) |
+| Gateway identity | `active`: gateway 24 / property 23 (rancho «nuevo»), slot confirmed for `mesh-RPL01`; a synthetic old-format node `mesh-LEG01` was injected once on 2026-10-27 to verify the «no compatible» warning |
 | Local data | 50 972 measurements, 8 497 raw readings, 16 512 alerts; `sync_queue` holds 110 437 historical rows (none pending) |
 | NDVI | latest-point file present (`mesh-DEMO01`); `ndvi.irrigation_areas` is empty, so nothing is queued |
 | Channels | `beta → stable → beta` verified twice on 2026-10-26 with no data loss; only beta carries the v2 lane. Since `2.0.0-alpha.26` the UI's "check for updates" button never offers a release from the other channel (it used to offer the stable release on a beta device and bypass the channel script) |

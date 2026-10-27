@@ -1,7 +1,7 @@
 # Datos de Prueba (verificado 2026-10-26)
 
-El sistema parte de una base limpia (2026-10-10). Hoy no hay ranchos activos: la Raspberry de pruebas
-quedó **sin vincular** y con un radio virtual encendido, lista para probar el flujo completo desde cero.
+El sistema parte de una base limpia (2026-10-10). Hoy hay un rancho de prueba, «nuevo» (cliente
+`test@gmail.com`, área «nuevaarea», enlace 24), armado a mano desde cero con el panel y la Raspberry.
 
 ## 👥 Usuarios
 
@@ -11,9 +11,9 @@ quedó **sin vincular** y con un radio virtual encendido, lista para probar el f
 
 ### Clientes (usuarios finales)
 - **Login:** `alan2203mx@gmail.com` · **Password:** `123` — cliente de prueba (empresa "Agricola del Norte"), **sin predios**.
-- **Login:** `test@gmail.com` · **Password:** `123` — cliente de prueba (empresa "Test"), **sin predios** (el rancho de prueba del radio virtual y su gateway 21 se eliminaron/revocaron el 2026-10-26 para repetir la prueba desde cero).
+- **Login:** `test@gmail.com` · **Password:** `123` — cliente de prueba (empresa "Test"), con el predio **«nuevo»** (área «nuevaarea», enlace 24, alimentado por la Raspberry con el radio virtual).
 
-Ambos entran a un dashboard vacío hasta que se cree un rancho.
+`alan2203mx@gmail.com` entra a un dashboard vacío.
 
 ## 🗄️ Qué conserva la base del cloud
 
@@ -27,7 +27,7 @@ Ambos entran a un dashboard vacío hasta que se cree un rancho.
 
 ## 🍓 Raspberry de pruebas (`10.32.90.229`, `agroio@`)
 
-- Corre el **canal beta** de Agro (**`2.0.0-alpha.30`**, `integration/iot-v2` con `main` 0.9.5 unido), **sin vincular** (identidad reiniciada con `ops/dev/reset-gateway-identity.sh` de Agro; datos locales intactos, respaldo en `~/backups/app-before-reset-20261026_164524.db`). Lee un **radio virtual** (`/opt/agroio/data/vradio`, herramienta `ops/dev/virtual-radio/vradio.py` de Agro) que reproduce tramas reales de `H845D` renombradas a `RPL01`, **una cada 60 s** para pruebas manuales (un nodo real manda cada 10 min); corre a mano, así que un reinicio lo detiene y el agente vuelve al stick USB. Para detenerlo antes: `pkill -f "^python3 vradio.py"` y `sudo -n /opt/agroio/current/ops/scripts/agroio-config.sh --set-serial-port /dev/serial/by-id/usb-Arduino_CatWan_USBStick2040_613863E6330B3FA3-if00` + `agroio-service-control.sh --restart-edge`. Para volver a estable: `sudo /opt/agroio/channel/agroio-channel.sh --switch stable` (instala el paquete local `0.9.5`; en estable la gateway se calla).
+- Corre el **canal beta** de Agro (**`2.0.0-alpha.32`**, `integration/iot-v2` con `main` 0.9.5 unido y PRs #22–#28), **vinculada al enlace 24** (rancho «nuevo»). Respaldo previo al reinicio de identidad del 2026-10-26 en `~/backups/app-before-reset-20261026_164524.db`. En *Instalación* aparece también `mesh-LEG01`, un nodo sintético de formato viejo inyectado el 2026-10-27 para ver el aviso «no compatible»; ya no transmite. Lee un **radio virtual** (`/opt/agroio/data/vradio`, herramienta `ops/dev/virtual-radio/vradio.py` de Agro) que reproduce tramas reales de `H845D` renombradas a `RPL01`, **una cada 60 s** para pruebas manuales (un nodo real manda cada 10 min); corre a mano, así que un reinicio lo detiene y el agente vuelve al stick USB. Para detenerlo antes: `pkill -f "^python3 vradio.py"` y `sudo -n /opt/agroio/current/ops/scripts/agroio-config.sh --set-serial-port /dev/serial/by-id/usb-Arduino_CatWan_USBStick2040_613863E6330B3FA3-if00` + `agroio-service-control.sh --restart-edge`. Para volver a estable: `sudo /opt/agroio/channel/agroio-channel.sh --switch stable` (instala el paquete local `0.9.5`; en estable la gateway se calla).
 - **Canales stable/beta**: el equipo puede cambiar de release en un comando
   (`sudo /opt/agroio/channel/agroio-channel.sh --switch beta|stable`). Cambiar de canal guarda y
   aplica la configuración de cada uno (perfiles en `/etc/agroio/profiles/`) y enciende/apaga el visor
