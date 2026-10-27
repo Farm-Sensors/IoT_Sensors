@@ -46,6 +46,7 @@ Estética terrosa, elegante y orgánica. Layout estilo **"Bento Box"** (cuadríc
 | `--status-danger` | `#EF4444` | `#F87171` | Rojo error / crítico |
 | `--status-info` | `#3B82F6` | `#60A5FA` | Azul info |
 | `--status-*-bg` | alpha 0.14–0.16 | alpha 0.2 | Fondos translúcidos de estado |
+| `--status-danger-text` | `#B91C1C` | `#FCA5A5` | Texto de acciones destructivas (p. ej. «Revocar enlace»); contraste ≥ 4.5:1 |
 
 > Nota: no usar `--state-live/warning/critical` — son nombres de un plan anterior que **no existen** en el código.
 

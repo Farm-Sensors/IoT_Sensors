@@ -33,6 +33,7 @@
   --status-warning-bg: rgba(245, 158, 11, 0.16);
   --status-danger-bg: rgba(239, 68, 68, 0.14);
   --status-info-bg: rgba(59, 130, 246, 0.14);
+  --status-danger-text: #B91C1C; /* texto rojo legible (≥4.5:1) sobre superficies claras */
 
   /* --- Light Borders & Shadows --- */
   --border-glass:     rgba(44, 38, 33, 0.06);
@@ -149,6 +150,7 @@
   --status-warning-bg: rgba(251, 191, 36, 0.2);
   --status-danger-bg: rgba(248, 113, 113, 0.2);
   --status-info-bg: rgba(96, 165, 250, 0.2);
+  --status-danger-text: #FCA5A5;
 
   /* --- Dark Borders & Shadows --- */
   --border-glass:     rgba(236, 230, 222, 0.08);
