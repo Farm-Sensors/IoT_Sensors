@@ -414,13 +414,7 @@ def seed():
         print("    Admin:    admin@sensores.com     / admin123")
         print("    Cliente:  alan2203mx@gmail.com   / 123")
         print(
-            "    Simulador demo (API Key DEMO - Nogal Norte): 99189486-8181-4e8c-8c6d-b3da66e6712b"
-        )
-        print(
-            "    Simulador productivo socio (API Key Nodo Granja Hogar): ak_partner_granja_hogar_001"
-        )
-        print(
-            "    Simulador productivo socio (API Key Nodo Campus Reforestado): ak_partner_campus_reforestado_001\n"
+            "    Telemetría: el seed no crea gateways; usa scripts/dev_gateway.py --property-id N\n"
         )
 
     except Exception as e:

@@ -42,7 +42,7 @@ Detalle y versiones: [`docs/stack.md`](docs/stack.md).
 
 ## Desarrollo Local
 
-**Prerequisitos:** Docker Desktop.
+**Prerequisitos:** Docker, [`uv`](https://docs.astral.sh/uv/) y Node.js 20+.
 
 ```bash
 # Paso 0 — Variables de entorno del backend (obligatorio)
@@ -59,11 +59,16 @@ uv run uvicorn app.main:app --reload --port 5050
 # Paso 3 — Frontend (http://localhost:5173)
 cd frontend && npm install && npm run dev
 
-# Paso 4 — Simulador IoT (credencial de gateway)
-cd simulator && python3 simulator.py --gateway-key gk_... --logical-node-id 12
+# Paso 4 — Datos (desde la raíz; con el backend corriendo)
+make demo-seed                                   # 30 días de lecturas para los 6 nodos del seed
+python3 scripts/dev_gateway.py --property-id 1   # crea el gateway del predio e imprime su credencial
+
+# Paso 5 — Simulador IoT en vivo (usa los valores que imprimió el paso 4)
+cd simulator && uv run --with-requirements requirements.txt \
+  python simulator.py --gateway-key "$SIM_GATEWAY_KEY" --logical-node-id 1 --interval 30
 ```
 
-> El seed crea el admin, el cliente de prueba y los nodos lógicos. La ingesta usa la credencial del gateway del predio. Más opciones del simulador en [`docs/operations.md`](docs/operations.md) y el corte v2 en [`docs/integration/README.md`](docs/integration/README.md).
+> El seed crea el admin (`admin@sensores.com` / `admin123`), el cliente (`alan2203mx@gmail.com` / `123`), 3 predios, 6 áreas y sus nodos lógicos, pero **ningún gateway**: la ingesta exige la credencial de gateway del predio (`gk_...`), que `scripts/dev_gateway.py` obtiene por la API (provisionar → referencia de activación → activar), igual que lo haría un equipo. Úsalo solo contra tu stack local. El login está en `http://localhost:5173/`. Más opciones del simulador en [`docs/operations.md`](docs/operations.md) y el corte v2 en [`docs/integration/README.md`](docs/integration/README.md).
 
 ## Demo Rápida
 
