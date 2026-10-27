@@ -17,6 +17,7 @@ const mocks = vi.hoisted(() => ({
   denyPairing: vi.fn(),
   getPropertyGatewayStatus: vi.fn(),
   getGeoNodes: vi.fn(),
+  revokeGateway: vi.fn(),
 }));
 
 vi.mock("../../components/Toast", () => ({
@@ -41,6 +42,7 @@ vi.mock("../../services/gateways", async (importOriginal) => {
     approvePairing: mocks.approvePairing,
     denyPairing: mocks.denyPairing,
     getPropertyGatewayStatus: mocks.getPropertyGatewayStatus,
+    revokeGateway: mocks.revokeGateway,
   };
 });
 
@@ -323,6 +325,58 @@ describe("GatewayManagement (asistente de enlace)", () => {
     fireEvent.click(screen.getByRole("button", { name: /crear enlace/i }));
 
     await waitFor(() => expect(screen.getByTestId("search")).toHaveTextContent("?gateway=20"));
+  });
+
+  it("revokes the link being viewed and lets the ranch be linked again", async () => {
+    const active = { ...createdGateway, id: 13, status: "active" };
+    const revoked = { ...active, status: "revoked", revoked_at: "2026-10-27T18:00:00Z" };
+    mocks.listGateways.mockResolvedValue({ data: [active] });
+    mocks.getGateway.mockResolvedValue({ data: revoked });
+    mocks.revokeGateway.mockResolvedValue({ data: undefined });
+
+    renderPage("/admin/gateways?gateway=13");
+
+    fireEvent.click(await screen.findByRole("button", { name: "Revocar enlace" }));
+    const dialog = screen.getByRole("dialog");
+    expect(within(dialog).getByText(/«Desvincular equipo»/)).toBeInTheDocument();
+    expect(mocks.revokeGateway).not.toHaveBeenCalled();
+    fireEvent.click(within(dialog).getByRole("button", { name: "Revocar enlace" }));
+
+    await waitFor(() => expect(mocks.revokeGateway).toHaveBeenCalledWith(13));
+    // Vuelve al paso 1 y el enlace pasa a la lista de revocados.
+    expect(
+      await screen.findByRole("heading", { name: "1. Elige el rancho y sus áreas de riego" }),
+    ).toBeInTheDocument();
+    const revokedSummary = screen.getByText("Enlaces revocados (1)");
+    expect(within(revokedSummary.closest("details")!).getByText("Enlace revocado")).toBeInTheDocument();
+    expect(screen.getByText("No hay enlaces vigentes.")).toBeInTheDocument();
+
+    // El rancho ya no aparece ocupado: se puede crear su enlace otra vez (reutiliza el #13).
+    const ranchOption = screen.getByRole("option", { name: "Rancho Prueba · Rancho Prueba SA" });
+    expect(ranchOption).toBeEnabled();
+    const relinked = { ...createdGateway, id: 13, configuration_version: 2 };
+    mocks.provisionGateway.mockResolvedValue({ data: relinked });
+    mocks.getGateway.mockResolvedValue({ data: relinked });
+    fireEvent.change(screen.getByLabelText("Rancho"), { target: { value: "3" } });
+    fireEvent.click(await screen.findByLabelText("Área Norte"));
+    fireEvent.click(screen.getByRole("button", { name: /crear enlace/i }));
+
+    await waitFor(() => expect(mocks.provisionGateway).toHaveBeenCalledWith(3, [16]));
+    expect(await screen.findByText("Configuración lista (versión 2)")).toBeInTheDocument();
+    // Un solo enlace #13, ahora vigente; ya no está entre los revocados.
+    expect(screen.getAllByText(/Enlace #13/)).toHaveLength(1);
+    expect(screen.queryByText(/Enlaces revocados/)).not.toBeInTheDocument();
+  });
+
+  it("does not offer to revoke a link that is already revoked", async () => {
+    mocks.listGateways.mockResolvedValue({
+      data: [{ ...createdGateway, id: 20, status: "revoked", revoked_at: "2026-10-27T18:00:00Z" }],
+    });
+
+    renderPage("/admin/gateways?gateway=20");
+
+    expect(await screen.findByText("Enlaces revocados (1)")).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Revocar enlace" })).not.toBeInTheDocument();
   });
 
   it("keeps the API details tucked away", async () => {

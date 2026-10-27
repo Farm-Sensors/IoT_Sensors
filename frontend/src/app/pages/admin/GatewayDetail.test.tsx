@@ -1,4 +1,4 @@
-import { render, screen, within } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { MemoryRouter, Route, Routes } from "react-router";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type * as GatewaysModule from "../../services/gateways";
@@ -10,6 +10,7 @@ const mocks = vi.hoisted(() => ({
   getGatewayStatus: vi.fn(),
   publishConfiguration: vi.fn(),
   getGeoNodes: vi.fn(),
+  revokeGateway: vi.fn(),
 }));
 
 vi.mock("../../components/Toast", () => ({
@@ -23,6 +24,7 @@ vi.mock("../../services/gateways", async (importOriginal) => {
     getGateway: mocks.getGateway,
     getGatewayStatus: mocks.getGatewayStatus,
     publishConfiguration: mocks.publishConfiguration,
+    revokeGateway: mocks.revokeGateway,
   };
 });
 
@@ -151,5 +153,48 @@ describe("GatewayDetail", () => {
     expect(within(unboundRow).getByText("Nodo Alfalfa")).toBeInTheDocument();
     expect(within(unboundRow).getByText("Sin enlazar")).toBeInTheDocument();
     expect(within(unboundRow).getByText("Sin lecturas")).toBeInTheDocument();
+  });
+
+  it("revokes the link only after confirming and shows it as revoked", async () => {
+    const { data: active } = await mocks.getGateway();
+    mocks.revokeGateway.mockResolvedValue({ data: undefined });
+    renderPage();
+
+    fireEvent.click(await screen.findByRole("button", { name: "Revocar enlace" }));
+    const dialog = screen.getByRole("dialog");
+    expect(within(dialog).getByText(/dejará de poder enviar datos/)).toBeInTheDocument();
+    expect(within(dialog).getByText(/lecturas ya recibidas se conservan/)).toBeInTheDocument();
+    expect(within(dialog).getByText(/«Desvincular equipo»/)).toBeInTheDocument();
+
+    // Cancelar no revoca nada.
+    fireEvent.click(within(dialog).getByRole("button", { name: "Cancelar" }));
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    expect(mocks.revokeGateway).not.toHaveBeenCalled();
+
+    mocks.getGateway.mockResolvedValue({
+      data: { ...active, status: "revoked", revoked_at: "2026-10-27T18:00:00Z" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Revocar enlace" }));
+    fireEvent.click(within(screen.getByRole("dialog")).getByRole("button", { name: "Revocar enlace" }));
+
+    await waitFor(() => expect(mocks.revokeGateway).toHaveBeenCalledWith(10));
+    expect(await screen.findByText("Revocado")).toBeInTheDocument();
+    expect(screen.getByText(/Revocado el/)).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Revocar enlace" })).not.toBeInTheDocument();
+    expect(mocks.showToast).toHaveBeenCalledWith(
+      "Enlace revocado. Las lecturas ya recibidas se conservan.",
+      "success",
+    );
+  });
+
+  it("does not offer to revoke a link that is already revoked", async () => {
+    const { data: active } = await mocks.getGateway();
+    mocks.getGateway.mockResolvedValue({
+      data: { ...active, status: "revoked", revoked_at: "2026-10-27T18:00:00Z" },
+    });
+    renderPage();
+
+    expect(await screen.findByText("Revocado")).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Revocar enlace" })).not.toBeInTheDocument();
   });
 });

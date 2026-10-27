@@ -1,6 +1,6 @@
 import { afterEach, expect, it, vi } from "vitest";
 import { api } from "./api";
-import { approvePairing, denyPairing, lookupPairing } from "./gateways";
+import { approvePairing, denyPairing, lookupPairing, revokeGateway } from "./gateways";
 
 vi.mock("./api", () => ({ api: { get: vi.fn(), post: vi.fn() } }));
 
@@ -42,4 +42,12 @@ it("denies a pairing session by user code", async () => {
   expect(api.post).toHaveBeenCalledWith("/gateways/pairing-sessions/ses_1/deny", {
     user_code: "BCDF-GHJK",
   });
+});
+
+it("revokes a link through the admin endpoint", async () => {
+  vi.mocked(api.post).mockResolvedValue({ data: undefined });
+
+  await revokeGateway(7);
+
+  expect(api.post).toHaveBeenCalledWith("/gateways/7/revoke");
 });

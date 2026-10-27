@@ -74,6 +74,11 @@ export function publishConfiguration(gatewayId: number) {
   return api.post(`/gateways/${gatewayId}/configuration`);
 }
 
+/** Revoca el enlace: el equipo deja de poder enviar datos; las lecturas recibidas se conservan. */
+export function revokeGateway(gatewayId: number) {
+  return api.post<void>(`/gateways/${gatewayId}/revoke`);
+}
+
 export function getPropertyGatewayStatus(propertyId: number) {
   return api.get<GatewayStatus>(`/properties/${propertyId}/gateway/status`);
 }

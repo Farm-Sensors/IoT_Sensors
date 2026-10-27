@@ -4,6 +4,7 @@ import { BentoCard } from "../../components/BentoCard";
 import { GatewayStatusBadge } from "../../components/GatewayStatusBadge";
 import { PageTransition } from "../../components/PageTransition";
 import { PillButton } from "../../components/PillButton";
+import { RevokeLinkButton } from "../../components/RevokeLinkButton";
 import { useToast } from "../../components/Toast";
 import {
   Gateway,
@@ -170,7 +171,7 @@ export function GatewayDetail() {
             </div>
           </div>
           <div className="flex flex-wrap gap-2">
-            {(gateway.configuration_version ?? 0) === 0 ? (
+            {(gateway.configuration_version ?? 0) === 0 && gateway.status !== "revoked" ? (
               <PillButton type="button" loading={publishing} onClick={() => void handlePublish()}>
                 Dejar lista la configuración
               </PillButton>
@@ -181,10 +182,18 @@ export function GatewayDetail() {
             >
               Aprobación de vinculación
             </Link>
+            <RevokeLinkButton gateway={gateway} onRevoked={load} />
           </div>
         </div>
 
         {error && <p className="text-[var(--status-danger)]">{error}</p>}
+        {gateway.status === "revoked" && (
+          <p className="text-sm text-[var(--text-muted)]">
+            Este enlace está revocado: el equipo ya no puede enviar datos y las lecturas recibidas
+            se conservan. Para volver a usar el equipo, en su pantalla toca «Desvincular equipo» y
+            crea el enlace de nuevo en Equipos.
+          </p>
+        )}
 
         <BentoCard>
           <h2 className="text-lg font-semibold">Proceso de instalación</h2>
@@ -239,9 +248,11 @@ export function GatewayDetail() {
               {MANAGEMENT_LABELS[gateway.status] || gateway.status}
             </p>
             <p className="mt-1 text-xs text-[var(--text-muted)]">
-              {gateway.activated_at
-                ? `Activado el ${new Date(gateway.activated_at).toLocaleString("es-MX")}`
-                : "Aún sin activar"}
+              {gateway.revoked_at
+                ? `Revocado el ${new Date(gateway.revoked_at).toLocaleString("es-MX")}`
+                : gateway.activated_at
+                  ? `Activado el ${new Date(gateway.activated_at).toLocaleString("es-MX")}`
+                  : "Aún sin activar"}
             </p>
           </BentoCard>
           <BentoCard>
