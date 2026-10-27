@@ -81,6 +81,11 @@ interface PairingApprovalPanelProps {
   initialCode?: string;
   preselectGatewayId?: number | null;
   onApproved?: (approval: PairingApproval) => void;
+  /**
+   * Dentro del asistente de Equipos: el rancho ya está elegido, los datos del
+   * equipo van plegados y el aviso de éxito lo muestra el asistente.
+   */
+  embedded?: boolean;
 }
 
 /**
@@ -91,6 +96,7 @@ export function PairingApprovalPanel({
   initialCode = "",
   preselectGatewayId = null,
   onApproved,
+  embedded = false,
 }: PairingApprovalPanelProps) {
   const { showToast } = useToast();
   const navigate = useNavigate();
@@ -275,6 +281,8 @@ export function PairingApprovalPanel({
 
   const lookupDisabled = lookupState === "locked" || lookupState === "loading";
 
+  const SectionHeading = embedded ? "h3" : "h2";
+
   return (
     <>
       <form className="flex flex-wrap items-end gap-3" onSubmit={handleLookupSubmit}>
@@ -284,11 +292,12 @@ export function PairingApprovalPanel({
           </label>
           <input
             id="pairing-code"
-            className="rounded-xl border px-3 py-2 font-mono uppercase tracking-widest"
+            className="w-full max-w-[16rem] rounded-xl border px-4 py-3 font-mono text-2xl uppercase tracking-[0.2em]"
             value={codeInput}
             onChange={(event) => setCodeInput(event.target.value)}
             placeholder="BCDF-GHJK"
             autoComplete="off"
+            spellCheck={false}
             disabled={lookupDisabled}
           />
         </div>
@@ -297,7 +306,7 @@ export function PairingApprovalPanel({
         </PillButton>
       </form>
       {formError && (
-        <p role="alert" className="mt-3 text-sm text-[var(--status-danger)]">
+        <p role="alert" className="mt-3 text-sm text-[var(--status-danger-text)]">
           {formError}
         </p>
       )}
@@ -312,7 +321,7 @@ export function PairingApprovalPanel({
 
       {lookupState === "locked" && (
         <BentoCard>
-          <p role="alert" data-testid="pairing-locked" className="text-[var(--status-danger)]">
+          <p role="alert" data-testid="pairing-locked" className="text-[var(--status-danger-text)]">
             {lookupMessage}
           </p>
         </BentoCard>
@@ -320,67 +329,69 @@ export function PairingApprovalPanel({
 
       {lookupState === "unavailable" && (
         <BentoCard>
-          <p role="alert" className="text-[var(--status-danger)]">
+          <p role="alert" className="text-[var(--status-danger-text)]">
             {lookupMessage}
           </p>
         </BentoCard>
       )}
 
       {session && !outcome && (
-        <>
-          <BentoCard>
-            <section aria-labelledby="pairing-session-title">
-              <h2 id="pairing-session-title" className="text-lg font-semibold">
-                Solicitud de emparejamiento
-              </h2>
-              <dl className="mt-3 grid gap-2 text-sm sm:grid-cols-2">
+        <BentoCard className={embedded ? "mt-4" : ""}>
+          <section aria-labelledby="pairing-session-title">
+            <SectionHeading id="pairing-session-title" className="text-lg font-semibold">
+              {embedded ? "Código encontrado" : "Solicitud de emparejamiento"}
+            </SectionHeading>
+            <dl className="mt-3 grid gap-2 text-sm sm:grid-cols-2">
+              <div>
+                <dt className="text-[var(--text-muted)]">Código</dt>
+                <dd className="font-mono text-lg font-semibold tracking-widest">
+                  {session.user_code}
+                </dd>
+              </div>
+              <div>
+                <dt className="text-[var(--text-muted)]">Tiempo restante</dt>
+                <dd data-testid="pairing-remaining">
+                  {expired ? "Caducado" : `${formatRemaining(remainingMs)} min`}
+                </dd>
+              </div>
+              {!embedded && (
+                <>
+                  <div>
+                    <dt className="text-[var(--text-muted)]">Solicitado</dt>
+                    <dd>{new Date(session.requested_at).toLocaleString("es-MX")}</dd>
+                  </div>
+                  <div>
+                    <dt className="text-[var(--text-muted)]">Red de origen</dt>
+                    <dd>{session.source_network ?? "No disponible"}</dd>
+                  </div>
+                </>
+              )}
+            </dl>
+            <details className="mt-3 text-sm" open={!embedded}>
+              <summary className="cursor-pointer text-[var(--text-muted)]">
+                Datos reportados por el equipo
+              </summary>
+              <dl className="mt-2 grid gap-2 sm:grid-cols-3">
                 <div>
-                  <dt className="text-[var(--text-muted)]">Código</dt>
-                  <dd className="font-mono text-lg font-semibold tracking-widest">
-                    {session.user_code}
-                  </dd>
+                  <dt className="text-[var(--text-muted)]">Hostname</dt>
+                  <dd>{session.device.hostname ?? "No reportado"}</dd>
                 </div>
                 <div>
-                  <dt className="text-[var(--text-muted)]">Tiempo restante</dt>
-                  <dd data-testid="pairing-remaining">
-                    {expired ? "Caducado" : `${formatRemaining(remainingMs)} min`}
-                  </dd>
+                  <dt className="text-[var(--text-muted)]">Modelo</dt>
+                  <dd>{session.device.model ?? "No reportado"}</dd>
                 </div>
                 <div>
-                  <dt className="text-[var(--text-muted)]">Solicitado</dt>
-                  <dd>{new Date(session.requested_at).toLocaleString("es-MX")}</dd>
-                </div>
-                <div>
-                  <dt className="text-[var(--text-muted)]">Red de origen</dt>
-                  <dd>{session.source_network ?? "No disponible"}</dd>
+                  <dt className="text-[var(--text-muted)]">Versión del agente</dt>
+                  <dd>{session.device.agent_version ?? "No reportada"}</dd>
                 </div>
               </dl>
-              <section aria-labelledby="pairing-device-title" className="mt-4">
-                <h3 id="pairing-device-title" className="text-sm font-medium text-[var(--text-muted)]">
-                  Datos reportados por el equipo
-                </h3>
-                <dl className="mt-2 grid gap-2 text-sm sm:grid-cols-3">
-                  <div>
-                    <dt className="text-[var(--text-muted)]">Hostname</dt>
-                    <dd>{session.device.hostname ?? "No reportado"}</dd>
-                  </div>
-                  <div>
-                    <dt className="text-[var(--text-muted)]">Modelo</dt>
-                    <dd>{session.device.model ?? "No reportado"}</dd>
-                  </div>
-                  <div>
-                    <dt className="text-[var(--text-muted)]">Versión del agente</dt>
-                    <dd>{session.device.agent_version ?? "No reportada"}</dd>
-                  </div>
-                </dl>
-              </section>
-            </section>
-          </BentoCard>
+            </details>
+          </section>
 
-          <BentoCard>
-            <h2 className="text-lg font-semibold">Rancho a vincular</h2>
-            <div className="mt-3 flex flex-col gap-1">
-              <label htmlFor="pairing-gateway" className="text-sm font-medium">
+          {!embedded && (
+            <div className="mt-6 flex flex-col gap-1">
+              <h2 className="text-lg font-semibold">Rancho a vincular</h2>
+              <label htmlFor="pairing-gateway" className="mt-2 text-sm font-medium">
                 Rancho
               </label>
               <select
@@ -398,78 +409,80 @@ export function PairingApprovalPanel({
                 ))}
               </select>
             </div>
+          )}
 
-            {selectedGateway?.status === "active" && (
-              <p
-                data-testid="replace-credential-warning"
-                className="mt-3 rounded-xl border border-[var(--status-warning,#B45309)] p-3 text-sm text-[var(--text-body)]"
-              >
-                Este rancho ya tiene un equipo vinculado. Al aprobar, este equipo lo reemplaza
-                y el anterior deja de enviar datos; las áreas de riego y sus nodos se
-                conservan.
-                {selectedStatus?.last_heartbeat_at && (
-                  <> Última señal del equipo anterior: {new Date(selectedStatus.last_heartbeat_at).toLocaleString("es-MX")}.</>
-                )}
-              </p>
-            )}
+          {selectedGateway?.status === "active" && (
+            <p
+              data-testid="replace-credential-warning"
+              className="mt-3 rounded-xl border border-[var(--status-warning,#B45309)] p-3 text-sm text-[var(--text-body)]"
+            >
+              Este rancho ya tiene un equipo vinculado. Al aprobar, este equipo lo reemplaza
+              y el anterior deja de enviar datos; las áreas de riego y sus nodos se
+              conservan.
+              {selectedStatus?.last_heartbeat_at && (
+                <> Última señal del equipo anterior: {new Date(selectedStatus.last_heartbeat_at).toLocaleString("es-MX")}.</>
+              )}
+            </p>
+          )}
 
-            <label className="mt-4 flex items-start gap-2 text-sm">
-              <input
-                type="checkbox"
-                className="mt-1"
-                checked={confirmed}
-                onChange={(event) => setConfirmed(event.target.checked)}
-              />
-              <span>
-                Confirmo que este código aparece en la pantalla del equipo que estoy
-                instalando.
-              </span>
-            </label>
+          <label className="mt-4 flex items-start gap-2 text-sm">
+            <input
+              type="checkbox"
+              className="mt-1"
+              checked={confirmed}
+              onChange={(event) => setConfirmed(event.target.checked)}
+            />
+            <span>
+              Confirmo que este código aparece en la pantalla del equipo que estoy
+              instalando.
+            </span>
+          </label>
 
-            <div className="mt-4 flex flex-wrap gap-3">
-              <PillButton
-                type="button"
-                onClick={() => void handleApprove()}
-                disabled={!canApprove}
-                loading={submitting}
-              >
-                Aprobar emparejamiento
-              </PillButton>
-              <PillButton
-                type="button"
-                variant="outline"
-                onClick={() => setDenyOpen(true)}
-                disabled={submitting}
-              >
-                Rechazar
-              </PillButton>
-            </div>
-            {expired && (
-              <p className="mt-3 text-sm text-[var(--status-danger)]">
-                El código caducó. Solicita uno nuevo en el equipo.
-              </p>
-            )}
-          </BentoCard>
-        </>
+          <div className="mt-4 flex flex-wrap gap-3">
+            <PillButton
+              type="button"
+              onClick={() => void handleApprove()}
+              disabled={!canApprove}
+              loading={submitting}
+            >
+              {embedded ? "Aprobar código" : "Aprobar emparejamiento"}
+            </PillButton>
+            <PillButton
+              type="button"
+              variant="outline"
+              onClick={() => setDenyOpen(true)}
+              disabled={submitting}
+            >
+              Rechazar
+            </PillButton>
+          </div>
+          {expired && (
+            <p className="mt-3 text-sm text-[var(--status-danger-text)]">
+              El código caducó. Solicita uno nuevo en el equipo.
+            </p>
+          )}
+        </BentoCard>
       )}
 
-      {outcome && (
-        <BentoCard>
+      {outcome && !(embedded && outcome.kind === "approved") && (
+        <BentoCard className={embedded ? "mt-4" : ""}>
           <p role="status" data-testid="pairing-outcome" className="text-[var(--text-body)]">
             {outcome.message}
           </p>
-          <div className="mt-4">
-            <PillButton type="button" variant="secondary" onClick={() => navigate("/admin/gateways")}>
-              Volver a Equipos
-            </PillButton>
-          </div>
+          {!embedded && (
+            <div className="mt-4">
+              <PillButton type="button" variant="secondary" onClick={() => navigate("/admin/gateways")}>
+                Volver a Equipos
+              </PillButton>
+            </div>
+          )}
         </BentoCard>
       )}
 
       <ConfirmDialog
         open={denyOpen}
         title="¿Rechazar la solicitud?"
-        description="El equipo no recibirá ninguna credencial y deberá iniciar el emparejamiento de nuevo."
+        description="El equipo no recibirá ninguna credencial y deberá pedir un código nuevo."
         confirmLabel="Rechazar"
         cancelLabel="Cancelar"
         variant="danger"

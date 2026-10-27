@@ -98,23 +98,28 @@ describe("GatewayDetail", () => {
     });
   });
 
-  it("shows the installation steps with their progress", async () => {
+  it("leads with the ranch, a plain state and one primary action; IDs stay in a closed disclosure", async () => {
     renderPage();
 
-    expect(await screen.findByRole("heading", { name: "Equipo #10" })).toBeInTheDocument();
-    expect(screen.getByText(/Rancho Prueba · Rancho Prueba SA/)).toBeInTheDocument();
-
-    const steps = screen.getByRole("list");
-    expect(within(steps).getByText("1. Enlace creado")).toBeInTheDocument();
-    expect(within(steps).getByText("Configuración lista (versión 1)")).toBeInTheDocument();
-    expect(within(steps).getByText("2. Credencial vinculada")).toBeInTheDocument();
-    expect(within(steps).getByText("3. Nodos enlazados")).toBeInTheDocument();
-    expect(within(steps).getByText("1 de 2 área(s) confirmadas")).toBeInTheDocument();
+    expect(
+      await screen.findByRole("heading", { level: 1, name: "Rancho Prueba · Rancho Prueba SA" }),
+    ).toBeInTheDocument();
+    expect(screen.getByTestId("equipo-state")).toHaveTextContent("Asignando nodos");
+    expect(screen.getByText("0 de 2 áreas con datos")).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Ver avance" })).toHaveAttribute(
+      "href",
+      "/admin/gateways?gateway=10",
+    );
     // La configuración ya está lista: no se ofrece publicarla de nuevo.
     expect(screen.queryByRole("button", { name: /configuración/i })).not.toBeInTheDocument();
 
+    const support = screen.getByText("Datos para soporte").closest("details")!;
+    expect(support).not.toHaveAttribute("open");
+    expect(within(support).getByText("#10")).toBeInTheDocument();
+    expect(within(support).getByText(/Versión 1/)).toBeInTheDocument();
     // Connectivity badge comes from the live status, not from the management state.
-    expect(screen.getByText("Equipo conectado")).toBeInTheDocument();
+    expect(within(support).getByText("Equipo conectado")).toBeInTheDocument();
+    expect(screen.queryByRole("heading", { name: /Equipo #/ })).not.toBeInTheDocument();
   });
 
   it("offers to finish the configuration of a link created without it", async () => {
@@ -138,21 +143,26 @@ describe("GatewayDetail", () => {
     expect(
       await screen.findByRole("button", { name: "Dejar lista la configuración" }),
     ).toBeInTheDocument();
-    expect(within(screen.getByRole("list")).getByText("Falta dejar lista la configuración")).toBeInTheDocument();
+    expect(screen.getByTestId("equipo-state")).toHaveTextContent("Falta vincular");
+    expect(screen.queryByRole("link", { name: "Vincular equipo" })).not.toBeInTheDocument();
   });
 
-  it("lists every slot with its area, node, binding and identity", async () => {
+  it("lists every area with its node, plain state and last reading", async () => {
     renderPage();
 
     const confirmedRow = await screen.findByRole("row", { name: /Área Nogal/ });
     expect(within(confirmedRow).getByText("Nodo Nogal")).toBeInTheDocument();
-    expect(within(confirmedRow).getByText("Confirmado")).toBeInTheDocument();
-    expect(within(confirmedRow).getAllByText("mesh-DEMO01").length).toBeGreaterThan(0);
+    expect(within(confirmedRow).getByText("Nodo asignado")).toBeInTheDocument();
+    expect(within(confirmedRow).queryByText("mesh-DEMO01")).not.toBeInTheDocument();
 
     const unboundRow = screen.getByRole("row", { name: /Área Alfalfa/ });
     expect(within(unboundRow).getByText("Nodo Alfalfa")).toBeInTheDocument();
-    expect(within(unboundRow).getByText("Sin enlazar")).toBeInTheDocument();
+    expect(within(unboundRow).getByText("Esperando nodo")).toBeInTheDocument();
     expect(within(unboundRow).getByText("Sin lecturas")).toBeInTheDocument();
+
+    // La identidad física queda para soporte.
+    const support = screen.getByText("Datos para soporte").closest("details")!;
+    expect(within(support).getByText(/Área Nogal: mesh-DEMO01/)).toBeInTheDocument();
   });
 
   it("revokes the link only after confirming and shows it as revoked", async () => {
@@ -178,8 +188,8 @@ describe("GatewayDetail", () => {
     fireEvent.click(within(screen.getByRole("dialog")).getByRole("button", { name: "Revocar enlace" }));
 
     await waitFor(() => expect(mocks.revokeGateway).toHaveBeenCalledWith(10));
-    expect(await screen.findByText("Revocado")).toBeInTheDocument();
-    expect(screen.getByText(/Revocado el/)).toBeInTheDocument();
+    await waitFor(() => expect(screen.getByTestId("equipo-state")).toHaveTextContent("Revocado"));
+    await waitFor(() => expect(screen.getByText(/Revocado el/)).toBeInTheDocument());
     expect(screen.queryByRole("button", { name: "Revocar enlace" })).not.toBeInTheDocument();
     expect(mocks.showToast).toHaveBeenCalledWith(
       "Enlace revocado. Las lecturas ya recibidas se conservan.",
@@ -194,7 +204,7 @@ describe("GatewayDetail", () => {
     });
     renderPage();
 
-    expect(await screen.findByText("Revocado")).toBeInTheDocument();
+    expect(await screen.findByTestId("equipo-state")).toHaveTextContent("Revocado");
     expect(screen.queryByRole("button", { name: "Revocar enlace" })).not.toBeInTheDocument();
   });
 });

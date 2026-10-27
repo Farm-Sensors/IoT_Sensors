@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router";
+import { ArrowLeft } from "lucide-react";
 import { BentoCard } from "../../components/BentoCard";
+import { areasWithData, EquipoStateBadge, equipoState } from "../../components/EquipoStateBadge";
 import { GatewayStatusBadge } from "../../components/GatewayStatusBadge";
 import { PageTransition } from "../../components/PageTransition";
 import { PillButton } from "../../components/PillButton";
@@ -19,18 +21,15 @@ import { formatElapsed, parseBackendTimestamp } from "../../utils/datetime";
 import { getErrorMessage } from "../../utils/errors";
 
 const BINDING_LABELS: Record<string, string> = {
-  unbound: "Sin enlazar",
-  pending: "Candidato pendiente",
-  pending_initial: "Candidato pendiente",
-  pending_reassignment: "Reasignación pendiente",
-  confirmed: "Confirmado",
+  unbound: "Esperando nodo",
+  pending: "Nodo propuesto",
+  pending_initial: "Nodo propuesto",
+  pending_reassignment: "Cambio de nodo pendiente",
+  confirmed: "Nodo asignado",
 };
 
-const MANAGEMENT_LABELS: Record<string, string> = {
-  pending_activation: "Pendiente de activación",
-  active: "Activo",
-  revoked: "Revocado",
-};
+const PRIMARY_LINK =
+  "inline-flex items-center justify-center rounded-full bg-[var(--accent-primary)] px-6 py-2.5 font-medium text-[var(--text-inverted)] hover:opacity-90 focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus-ring)] focus-visible:ring-offset-2";
 
 type SlotNode = {
   name: string | null;
@@ -101,39 +100,20 @@ export function GatewayDetail() {
     }
   };
 
-  const slotCount = gateway?.slots.length ?? 0;
-  const confirmedCount = status?.slots.filter((slot) => slot.binding_status === "confirmed").length ?? 0;
-  const steps = [
-    {
-      key: "created",
-      label: "Enlace creado",
-      done: (gateway?.configuration_version ?? 0) > 0,
-      hint:
-        (gateway?.configuration_version ?? 0) > 0
-          ? `Configuración lista (versión ${gateway?.configuration_version})`
-          : "Falta dejar lista la configuración",
-    },
-    {
-      key: "linked",
-      label: "Credencial vinculada",
-      done: gateway?.status === "active",
-      hint:
-        gateway?.status === "active"
-          ? "El equipo ya tiene su credencial"
-          : "El equipo debe emparejarse desde su pantalla",
-    },
-    {
-      key: "bound",
-      label: "Nodos enlazados",
-      done: slotCount > 0 && confirmedCount === slotCount,
-      hint: `${confirmedCount} de ${slotCount} área(s) confirmadas`,
-    },
-  ];
+  const backLink = (
+    <Link
+      className="inline-flex items-center gap-1 rounded text-sm font-medium text-[var(--text-muted)] underline underline-offset-4 hover:text-[var(--text-main)]"
+      to="/admin/gateways"
+    >
+      <ArrowLeft aria-hidden="true" className="h-4 w-4" />
+      Volver a la lista
+    </Link>
+  );
 
-  if (loading) {
+  if (loading && !gateway) {
     return (
       <PageTransition>
-        <p>Cargando...</p>
+        <p role="status">Cargando…</p>
       </PageTransition>
     );
   }
@@ -142,174 +122,89 @@ export function GatewayDetail() {
     return (
       <PageTransition>
         <div className="space-y-4">
-          <p className="text-[var(--status-danger)]">{error || "Equipo no encontrado"}</p>
-          <Link className="underline" to="/admin/gateways">
-            Volver a Equipos
-          </Link>
+          <p role="alert" className="text-[var(--status-danger-text)]">
+            {error || "Equipo no encontrado"}
+          </p>
+          {backLink}
         </div>
       </PageTransition>
     );
   }
 
+  const state = equipoState(gateway, status);
+  const slotCount = gateway.slots.length;
+  const lastHeartbeat = parseBackendTimestamp(status?.last_heartbeat_at);
+  const needsConfiguration = gateway.configuration_version === 0 && state !== "revoked";
+
   return (
     <PageTransition>
       <div className="space-y-6">
-        <div className="flex flex-wrap items-start justify-between gap-3">
-          <div>
-            <Link className="text-sm text-[var(--text-muted)] underline" to="/admin/gateways">
-              ← Equipos
-            </Link>
-            <h1 className="mt-2 text-2xl font-semibold">Equipo #{gateway.id}</h1>
-            <p className="mt-1 text-[var(--text-muted)]">
-              {gatewayRanchLabel(gateway)}
-            </p>
-            <div className="mt-3 flex flex-wrap items-center gap-2">
-              <span className="text-sm text-[var(--text-muted)]">Gestión:</span>
-              <GatewayStatusBadge status={gateway.status} />
-              <span className="text-sm text-[var(--text-muted)]">Conexión:</span>
-              <GatewayStatusBadge edgeStatus={status?.edge_status} />
-            </div>
+        <div className="space-y-3">
+          {backLink}
+          <h1 className="text-2xl font-semibold">{gatewayRanchLabel(gateway)}</h1>
+          <div className="flex flex-wrap items-center gap-x-3 gap-y-2 text-sm text-[var(--text-muted)]">
+            <EquipoStateBadge state={state} />
+            {state !== "revoked" && (
+              <>
+                <span>
+                  {areasWithData(status)} de {slotCount} áreas con datos
+                </span>
+                <span>Última señal del equipo: {lastHeartbeat ? formatElapsed(lastHeartbeat) : "todavía no"}</span>
+              </>
+            )}
           </div>
-          <div className="flex flex-wrap gap-2">
-            {(gateway.configuration_version ?? 0) === 0 && gateway.status !== "revoked" ? (
-              <PillButton type="button" loading={publishing} onClick={() => void handlePublish()}>
-                Dejar lista la configuración
-              </PillButton>
-            ) : null}
-            <Link
-              className="rounded-full border px-3 py-2 text-sm font-medium hover:bg-black/5"
-              to="/admin/gateways/pair"
-            >
-              Aprobación de vinculación
+          {needsConfiguration ? (
+            <PillButton loading={publishing} onClick={() => void handlePublish()}>
+              Dejar lista la configuración
+            </PillButton>
+          ) : state === "unlinked" || state === "assigning" ? (
+            <Link className={PRIMARY_LINK} to={`/admin/gateways?gateway=${gateway.id}`}>
+              {state === "unlinked" ? "Vincular equipo" : "Ver avance"}
             </Link>
-            <RevokeLinkButton gateway={gateway} onRevoked={load} />
-          </div>
+          ) : null}
         </div>
 
-        {error && <p className="text-[var(--status-danger)]">{error}</p>}
-        {gateway.status === "revoked" && (
+        {error && (
+          <p role="alert" className="text-[var(--status-danger-text)]">
+            {error}
+          </p>
+        )}
+        {state === "revoked" && (
           <p className="text-sm text-[var(--text-muted)]">
-            Este enlace está revocado: el equipo ya no puede enviar datos y las lecturas recibidas
-            se conservan. Para volver a usar el equipo, en su pantalla toca «Desvincular equipo» y
-            crea el enlace de nuevo en Equipos.
+            Este equipo ya no puede enviar datos; las lecturas recibidas se conservan.
           </p>
         )}
 
         <BentoCard>
-          <h2 className="text-lg font-semibold">Proceso de instalación</h2>
-          <p className="mt-1 text-sm text-[var(--text-muted)]">
-            El equipo muestra el código de vinculación en su pantalla (Instalación → Paso 1); el
-            administrador lo aprueba en Aprobación de vinculación.
-          </p>
-          <ol className="mt-4 grid gap-3 md:grid-cols-3">
-            {steps.map((step, index) => (
-              <li
-                key={step.key}
-                className={`rounded-xl border p-3 text-sm ${step.done ? "border-[var(--status-active)]" : ""}`}
-              >
-                <p className="font-medium">
-                  {index + 1}. {step.label}
-                </p>
-                <p className="mt-1 text-[var(--text-muted)]">{step.hint}</p>
-                <p className="mt-2 text-xs font-medium">
-                  {step.done ? "Listo" : "Pendiente"}
-                </p>
-              </li>
-            ))}
-          </ol>
-        </BentoCard>
-
-        <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
-          <BentoCard>
-            <p className="text-sm text-[var(--text-muted)]">Último latido del equipo</p>
-            <p className="mt-1 text-lg font-semibold">
-              {formatElapsed(parseBackendTimestamp(status?.last_heartbeat_at))}
-            </p>
-            <p className="mt-1 text-xs text-[var(--text-muted)]">
-              {status?.last_heartbeat_at
-                ? new Date(status.last_heartbeat_at).toLocaleString("es-MX")
-                : "Sin latido todavía"}
-            </p>
-          </BentoCard>
-          <BentoCard>
-            <p className="text-sm text-[var(--text-muted)]">Configuración del equipo</p>
-            <p className="mt-1 text-lg font-semibold">
-              {(gateway.configuration_version ?? 0) > 0
-                ? `Lista (versión ${gateway.configuration_version})`
-                : "Pendiente"}
-            </p>
-            <p className="mt-1 text-xs text-[var(--text-muted)]">
-              Revisión de vínculos: {gateway.bindings_revision}
-            </p>
-          </BentoCard>
-          <BentoCard>
-            <p className="text-sm text-[var(--text-muted)]">Estado de gestión</p>
-            <p className="mt-1 text-lg font-semibold">
-              {MANAGEMENT_LABELS[gateway.status] || gateway.status}
-            </p>
-            <p className="mt-1 text-xs text-[var(--text-muted)]">
-              {gateway.revoked_at
-                ? `Revocado el ${new Date(gateway.revoked_at).toLocaleString("es-MX")}`
-                : gateway.activated_at
-                  ? `Activado el ${new Date(gateway.activated_at).toLocaleString("es-MX")}`
-                  : "Aún sin activar"}
-            </p>
-          </BentoCard>
-          <BentoCard>
-            <p className="text-sm text-[var(--text-muted)]">Áreas de riego</p>
-            <p className="mt-1 text-lg font-semibold">
-              {confirmedCount} de {slotCount} confirmadas
-            </p>
-            <p className="mt-1 text-xs text-[var(--text-muted)]">
-              Las áreas del predio que atiende el equipo
-            </p>
-          </BentoCard>
-        </div>
-
-        <BentoCard>
-          <h2 className="text-lg font-semibold">Áreas de riego del equipo</h2>
+          <h2 className="text-lg font-semibold">Áreas de riego</h2>
           <div className="mt-3 overflow-x-auto">
             <table className="w-full text-left text-sm">
               <thead>
                 <tr className="text-[var(--text-muted)]">
-                  <th className="py-2 pr-4">Área</th>
-                  <th className="py-2 pr-4">Nodo</th>
-                  <th className="py-2 pr-4">Enlace</th>
-                  <th className="py-2 pr-4">Identidad física</th>
-                  <th className="py-2">Última lectura</th>
+                  <th scope="col" className="py-2 pr-4">Área</th>
+                  <th scope="col" className="py-2 pr-4">Nodo</th>
+                  <th scope="col" className="py-2 pr-4">Estado</th>
+                  <th scope="col" className="py-2">Última lectura</th>
                 </tr>
               </thead>
               <tbody>
                 {(status?.slots || []).map((slot) => {
                   const node = slotNodes[slot.irrigation_area_id];
+                  const last = parseBackendTimestamp(slot.latest_reading_at);
                   return (
-                    <tr key={slot.logical_node_id} className="border-t">
-                      <td className="py-2 pr-4">
-                        {node?.area_name || `Área #${slot.irrigation_area_id}`}
-                      </td>
-                      <td className="py-2 pr-4">
-                        {node?.name || "—"}
-                        {node?.serial_number ? (
-                          <span className="block text-xs text-[var(--text-muted)]">{node.serial_number}</span>
-                        ) : null}
-                      </td>
+                    <tr key={slot.logical_node_id} className="border-t border-[var(--border-subtle)]">
+                      <td className="py-2 pr-4">{node?.area_name || `Área ${slot.irrigation_area_id}`}</td>
+                      <td className="py-2 pr-4">{node?.name || "—"}</td>
                       <td className="py-2 pr-4">
                         {BINDING_LABELS[slot.binding_status] || slot.binding_status}
                       </td>
-                      <td className="py-2 pr-4">
-                        {slot.bound_uid || slot.bound_serial || "—"}
-                      </td>
-                      <td className="py-2">
-                        {slot.latest_reading_at
-                          ? `${formatElapsed(parseBackendTimestamp(slot.latest_reading_at))} · ${new Date(slot.latest_reading_at).toLocaleString("es-MX")}`
-                          : "Sin lecturas"}
-                      </td>
+                      <td className="py-2">{last ? formatElapsed(last) : "Sin lecturas"}</td>
                     </tr>
                   );
                 })}
                 {(status?.slots || []).length === 0 && (
                   <tr>
-                    <td className="py-3 text-[var(--text-muted)]" colSpan={5}>
+                    <td className="py-3 text-[var(--text-muted)]" colSpan={4}>
                       Este equipo no tiene áreas de riego.
                     </td>
                   </tr>
@@ -318,6 +213,79 @@ export function GatewayDetail() {
             </table>
           </div>
         </BentoCard>
+
+        {gateway.status !== "revoked" && (
+          <section aria-labelledby="more-actions-title" className="space-y-3">
+            <h2 id="more-actions-title" className="text-base font-semibold">
+              Más acciones
+            </h2>
+            <div className="flex flex-wrap items-center gap-4">
+              {gateway.status === "active" && (
+                <Link
+                  className="rounded text-sm font-medium underline underline-offset-4"
+                  to="/admin/gateways/pair"
+                >
+                  Cambiar el equipo de este rancho
+                </Link>
+              )}
+              <RevokeLinkButton gateway={gateway} onRevoked={load} />
+            </div>
+          </section>
+        )}
+
+        <details className="text-sm">
+          <summary className="cursor-pointer rounded text-[var(--text-muted)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus-ring)]">
+            Datos para soporte
+          </summary>
+          <dl className="mt-3 grid gap-x-6 gap-y-2 sm:grid-cols-2">
+            <div>
+              <dt className="text-[var(--text-muted)]">Enlace</dt>
+              <dd>#{gateway.id}</dd>
+            </div>
+            <div>
+              <dt className="text-[var(--text-muted)]">Configuración</dt>
+              <dd>
+                {gateway.configuration_version > 0
+                  ? `Versión ${gateway.configuration_version}`
+                  : "Pendiente"}
+                {` · revisión de asignaciones ${gateway.bindings_revision}`}
+              </dd>
+            </div>
+            <div>
+              <dt className="text-[var(--text-muted)]">Conexión</dt>
+              <dd>
+                <GatewayStatusBadge edgeStatus={status?.edge_status} />
+              </dd>
+            </div>
+            <div>
+              <dt className="text-[var(--text-muted)]">Último latido</dt>
+              <dd>{lastHeartbeat ? lastHeartbeat.toLocaleString("es-MX") : "Sin latido todavía"}</dd>
+            </div>
+            <div>
+              <dt className="text-[var(--text-muted)]">Fechas</dt>
+              <dd>
+                {gateway.revoked_at
+                  ? `Revocado el ${new Date(gateway.revoked_at).toLocaleString("es-MX")}`
+                  : gateway.activated_at
+                    ? `Activado el ${new Date(gateway.activated_at).toLocaleString("es-MX")}`
+                    : "Aún sin activar"}
+              </dd>
+            </div>
+            <div className="sm:col-span-2">
+              <dt className="text-[var(--text-muted)]">Identidad física de los nodos</dt>
+              <dd>
+                <ul>
+                  {(status?.slots || []).map((slot) => (
+                    <li key={slot.logical_node_id}>
+                      {slotNodes[slot.irrigation_area_id]?.area_name || `Área ${slot.irrigation_area_id}`}:{" "}
+                      {slot.bound_uid || slot.bound_serial || slotNodes[slot.irrigation_area_id]?.serial_number || "—"}
+                    </li>
+                  ))}
+                </ul>
+              </dd>
+            </div>
+          </dl>
+        </details>
       </div>
     </PageTransition>
   );
