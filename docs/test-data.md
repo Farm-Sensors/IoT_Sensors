@@ -57,6 +57,7 @@ Ambos entran a un dashboard vacío hasta que se cree un rancho.
 3. En la pantalla del equipo: *Instalación → Paso 1 · Vincular el equipo con la nube* → **Vincular equipo** → copia el código (`XXXX-XXXX`) → en el panel, *Equipos* → paso 2: escribe el código, elige el rancho, confirma y **Aprobar emparejamiento**.
 4. En la pantalla: *Paso 2 · Nodos que están transmitiendo* → *Paso 3 · Elegir el área de cada nodo* → *Paso 4 · Enviar y confirmar* → **Enviar asignaciones**.
 5. Verifica: *Equipos* → paso 3 (áreas reportando y última lectura) y, como el cliente, el dashboard con humedad, frescura y "Equipo conectado".
+6. Para repetir la prueba o mover el equipo a otro rancho: en *Equipos* abre el enlace (o *Ver detalle*) → **Revocar enlace** y confirma; en la pantalla del equipo toca **Desvincular equipo**; luego vuelve al paso 1 (el mismo rancho ya se puede enlazar otra vez). Las lecturas recibidas se conservan.
 
 ## 🧾 Respaldos de la limpieza (2026-10-10 21:44 UTC)
 

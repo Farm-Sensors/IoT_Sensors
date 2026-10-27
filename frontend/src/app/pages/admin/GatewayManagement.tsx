@@ -5,6 +5,7 @@ import { BentoCard } from "../../components/BentoCard";
 import { PageTransition } from "../../components/PageTransition";
 import { PairingApprovalPanel } from "../../components/PairingApprovalPanel";
 import { PillButton } from "../../components/PillButton";
+import { RevokeLinkButton } from "../../components/RevokeLinkButton";
 import { useToast } from "../../components/Toast";
 import { api } from "../../services/api";
 import {
@@ -361,7 +362,11 @@ export function GatewayManagement() {
       setSelectedPropertyId("");
       setSelectedAreaIds([]);
       setError(null);
-      setGateways((current) => [...current, created.data]);
+      // Un rancho con enlace revocado reutiliza el mismo enlace: reemplázalo, no lo dupliques.
+      setGateways((current) => [
+        ...current.filter((item) => item.id !== created.data.id),
+        created.data,
+      ]);
       setSetup(created.data);
       await refreshSetup(created.data.id);
     } catch (err) {
@@ -388,6 +393,25 @@ export function GatewayManagement() {
     } finally {
       setBusy(false);
     }
+  };
+
+  // Tras revocar, el enlace pasa a «Enlaces revocados» y el asistente vuelve al paso 1.
+  const handleRevoked = async (gatewayId: number) => {
+    try {
+      const res = await getGateway(gatewayId);
+      setGateways((current) => current.map((item) => (item.id === gatewayId ? res.data : item)));
+    } catch (err) {
+      showToast(getErrorMessage(err, "No se pudo actualizar el enlace"), "error");
+    }
+    resetSetup();
+  };
+
+  const resetSetup = () => {
+    setSetup(null);
+    setSetupStatus(null);
+    setSlotNodes({});
+    setOneTimeSecret(null);
+    setQr(null);
   };
 
   const handleCopyReference = async () => {
@@ -518,23 +542,14 @@ export function GatewayManagement() {
           </ol>
           {setup && (
             <div className="mt-4 flex flex-wrap items-center gap-3">
-              <PillButton
-                type="button"
-                variant="outline"
-                onClick={() => {
-                  setSetup(null);
-                  setSetupStatus(null);
-                  setSlotNodes({});
-                  setOneTimeSecret(null);
-                  setQr(null);
-                }}
-              >
+              <PillButton type="button" variant="outline" onClick={resetSetup}>
                 Crear otro enlace
               </PillButton>
               <span className="text-sm text-[var(--text-muted)]">
                 Estás viendo el enlace de {gatewayRanchLabel(setup)}; este botón vuelve al paso 1
                 para empezar otro rancho.
               </span>
+              <RevokeLinkButton gateway={setup} onRevoked={() => handleRevoked(setup.id)} />
             </div>
           )}
         </BentoCard>
