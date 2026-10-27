@@ -173,6 +173,14 @@ credenciales en `test-data.md`; puertas de la integración en `integration/READM
    releases normales.
 8. **Guía de instalación en campo** (pospuesta por decisión del dueño, 2026-10-27): una página con
    pila del reloj, nodos compatibles, los 3 pasos y cómo saber que quedó bien.
+   Nota sobre el punto 7: las actualizaciones de Agro son de **salida** (la Raspberry pregunta a
+   `api.github.com` y descarga), no un webhook de entrada como el autodeploy de Dokploy, así que
+   funcionan desde la red ITESM o desde un rancho con internet (verificado: la Pi de pruebas llega a
+   `api.github.com`). Dos cuidados: el repo Agro.io es **privado**, por lo que cada equipo necesita un
+   token de lectura en `/etc/agroio/github-release.env` (`AGROIO_GITHUB_TOKEN`; sin él GitHub
+   responde 404); y tras la transferencia hay que apuntar el updater al repo nuevo
+   (`DefaultRemote` en `GitHubReleaseUpdateService.cs` o `AGROIO_GITHUB_REPOSITORY`) y renovar el
+   token con acceso a ese repo.
 9. **Mapeo NDVI por nodo** (hoy se configura a mano); **`http_sync` al backend del cliente** (hoy
    apagado).
 
