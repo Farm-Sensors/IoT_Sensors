@@ -188,6 +188,13 @@ credenciales en `test-data.md`; puertas de la integración en `integration/READM
    cambiarlo por equipo); (4) quitar el token de `/etc/agroio/github-release.env` en los equipos
    existentes; (5) verificar en la Pi de pruebas que «buscar actualizaciones» encuentra la versión
    sin token. Consultarlo antes con el equipo de Agro, porque cambia dónde publican.
+   La opción A resuelve **el acceso** (sin token). Para que las actualizaciones en campo queden
+   completas faltan además: (a) la **fusión de v2 a `main`** tras la transferencia, para que el canal
+   normal ya traiga la integración; (b) **nadie las dispara**: no hay revisión automática, alguien
+   tiene que tocar «buscar actualizaciones» en la pantalla de cada equipo (el *update gate* del
+   contrato v2 solo registra autorización/confirmación, no descarga ni instala); decidir entre
+   revisión automática periódica o un aviso al técnico; (c) **el panel no sabe qué versión corre cada
+   equipo**: la versión del agente solo se ve al aprobar el código de vinculación, no después.
 9. **Mapeo NDVI por nodo** (hoy se configura a mano); **`http_sync` al backend del cliente** (hoy
    apagado).
 
