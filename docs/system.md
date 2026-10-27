@@ -176,11 +176,18 @@ credenciales en `test-data.md`; puertas de la integración en `integration/READM
    Nota sobre el punto 7: las actualizaciones de Agro son de **salida** (la Raspberry pregunta a
    `api.github.com` y descarga), no un webhook de entrada como el autodeploy de Dokploy, así que
    funcionan desde la red ITESM o desde un rancho con internet (verificado: la Pi de pruebas llega a
-   `api.github.com`). Dos cuidados: el repo Agro.io es **privado**, por lo que cada equipo necesita un
-   token de lectura en `/etc/agroio/github-release.env` (`AGROIO_GITHUB_TOKEN`; sin él GitHub
-   responde 404); y tras la transferencia hay que apuntar el updater al repo nuevo
-   (`DefaultRemote` en `GitHubReleaseUpdateService.cs` o `AGROIO_GITHUB_REPOSITORY`) y renovar el
-   token con acceso a ese repo.
+   `api.github.com`). El repo Agro.io es **privado**: hoy cada equipo necesita un token de lectura en
+   `/etc/agroio/github-release.env` (`AGROIO_GITHUB_TOKEN`; sin él GitHub responde 404). Un token por
+   equipo expone el código si un equipo se pierde, caduca (≤ 1 año) en silencio y obliga a tocar cada
+   Raspberry para rotarlo.
+   **Decisión (2026-10-27, opción A): repo público solo de versiones.** Al hacer la transferencia y la
+   fusión a `main`: (1) crear en la cuenta nueva un repo público `Agro.io-releases` sin código, solo
+   con los releases y sus paquetes `agroio-rpi-arm64-<versión>.tar.gz`; (2) el flujo de publicación
+   de Agro sube cada release ahí (el código sigue privado); (3) apuntar el updater a ese repo
+   (`DefaultRemote` en `GitHubReleaseUpdateService.cs`; `AGROIO_GITHUB_REPOSITORY` ya permite
+   cambiarlo por equipo); (4) quitar el token de `/etc/agroio/github-release.env` en los equipos
+   existentes; (5) verificar en la Pi de pruebas que «buscar actualizaciones» encuentra la versión
+   sin token. Consultarlo antes con el equipo de Agro, porque cambia dónde publican.
 9. **Mapeo NDVI por nodo** (hoy se configura a mano); **`http_sync` al backend del cliente** (hoy
    apagado).
 
