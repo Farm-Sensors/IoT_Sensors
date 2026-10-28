@@ -1,12 +1,24 @@
-.PHONY: help openapi-sync demo-seed demo-seed-dry demo-live demo-live-partner-vps
+.PHONY: help dev dev-down dev-reset openapi-sync demo-seed demo-seed-dry demo-live demo-live-partner-vps
 
 help:
 	@echo "Targets disponibles:"
+	@echo "  make dev            Levanta MySQL, backend, frontend, datos demo y simulador (local)"
+	@echo "  make dev-down       Detiene el stack local y conserva los datos"
+	@echo "  make dev-reset      Detiene y borra la base local y .dev/ (pide confirmación)"
 	@echo "  make openapi-sync   Regenera openapi.yaml desde el backend activo"
 	@echo "  make demo-seed      Ejecuta seed_demo real para cuenta demo por defecto"
 	@echo "  make demo-seed-dry  Ejecuta seed_demo en dry-run"
 	@echo "  make demo-live      Ejecuta simulator_fast en --quick-demo (requiere SIM_GATEWAY_KEY y SIM_LOGICAL_NODE_IDS)"
 	@echo "  make demo-live-partner-vps  Ejecuta simulador productivo socio (VPS)"
+
+dev:
+	./scripts/dev_up.sh
+
+dev-down:
+	./scripts/dev_down.sh
+
+dev-reset:
+	./scripts/dev_down.sh --reset
 
 openapi-sync:
 	./scripts/sync_openapi.sh

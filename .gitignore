@@ -63,3 +63,6 @@ test.cjs
 test_api.py
 # Local Pi runtime state
 .atl/
+
+# Estado del entorno local (make dev)
+.dev/

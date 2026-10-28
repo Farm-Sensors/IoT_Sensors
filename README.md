@@ -42,7 +42,21 @@ Detalle y versiones: [`docs/stack.md`](docs/stack.md).
 
 ## Desarrollo Local
 
-**Prerequisitos:** Docker, [`uv`](https://docs.astral.sh/uv/) y Node.js 20+.
+**Prerequisitos:** Docker, [`uv`](https://docs.astral.sh/uv/), Node.js 20+, Python 3 y curl. Soportado: Linux, WSL y macOS con bash.
+
+### Un solo comando (recomendado)
+
+```bash
+make dev         # MySQL, backend, frontend, datos demo y simulador en vivo; imprime un resumen
+make dev-down    # detiene todo y conserva los datos
+make dev-reset   # pide escribir "si"; borra la base local y .dev/
+```
+
+`make dev` es idempotente: si el stack ya corre, lo reutiliza (no duplica procesos, gateway ni datos demo). El estado y los logs viven en `.dev/` (ignorado por git). Si falta un prerrequisito o un puerto (3306, 5050, 5173) lo usa otro programa, se detiene antes de cambiar nada.
+
+> **Una copia por equipo:** `docker-compose.yml` fija `container_name: sensores_mysql`, así que solo puede correr un stack local a la vez en la misma máquina.
+
+### Paso a paso
 
 ```bash
 # Paso 0 — Variables de entorno del backend (obligatorio)

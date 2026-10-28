@@ -2,6 +2,10 @@
 
 > Guía operativa: demo reproducible, simulador, ubicaciones del socio, schedulers de Fase 2, scripts de mantenimiento. El despliegue en producción está en `docs/deployment.md`.
 
+## Entorno local
+
+`make dev` levanta MySQL (Docker), backend (5050), frontend (5173), datos demo y el simulador en vivo del predio 1; `make dev-down` lo detiene conservando datos; `make dev-reset` borra la base local y `.dev/` tras escribir `si`. Scripts: `scripts/dev_up.sh` y `scripts/dev_down.sh`. Estado en `.dev/` (git-ignored): `logs/` (`backend.log`, `frontend.log`, `simulator.log`), `pids/` (grupos de procesos) y `state/` (marcador `demo-seeded` y `gateway.env` con la credencial del gateway local, modo 0600). Pasos manuales equivalentes: README, «Desarrollo Local».
+
 ## 1. Ubicaciones del socio (estado actual)
 
 `scripts/setup_partner_locations.py` y los archivos de keys de nodo (`simulator/keys_*.txt`) se retiraron: las API keys por nodo ya no autentican telemetría. Para crear la estructura de un rancho usa el panel Admin: cliente, predio, áreas, nodos lógicos y gateway (`/admin/gateways`, eligiendo el predio y marcando sus áreas). Después, el equipo obtiene su credencial por **emparejamiento** (la pantalla de la Raspberry muestra un código; el admin lo aprueba en `/admin/gateways/pair`) o, como respaldo, con una **referencia de activación** `ar_` de un solo uso. El detalle del proceso vive en `/admin/gateways/:id` (pasos de instalación y ranuras). Para simular, necesitas la credencial de gateway (`gk_...`) y los IDs numéricos de los nodos lógicos (ver sección 2).
