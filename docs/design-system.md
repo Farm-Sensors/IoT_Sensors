@@ -102,6 +102,65 @@ No existe `tailwind.config.js`. Tailwind v4 se configura en CSS: `@theme inline`
 3. **Jerarquía de navegación:** Cliente → Predio → Área de Riego, consistente en toda la app.
 4. **Interacciones simples y predecibles:** sin efectos ruidosos; animaciones sutiles (fade-in-up, stagger, glow solo en métricas prioritarias en vivo).
 
-## 8. Referencia del diseño original
+## 8. Patrones de pantalla
+
+Contrato para los cambios de rediseño 2–4 (`openspec/changes/ui-redesign-*`): cada bloque de una
+página debe corresponder a uno de estos patrones y usar su componente compartido en vez de HTML
+ad-hoc. Referencia de «pantalla enfocada»: `pages/admin/GatewayManagement.tsx` y `GatewayDetail.tsx`
+(lista con badges de estado, una acción primaria, detalle tras un disclosure). Vocabulario y reglas
+de accesibilidad: `docs/ui-redesign-rules.md` §3–§4.
+
+Componentes marcados **(nuevo)** los crea `ui-redesign-1-shell-and-patterns`; los demás ya existen.
+
+| # | Patrón | Componente |
+| :--- | :--- | :--- |
+| 8.1 | Encabezado de página | `PageHeader` **(nuevo)** |
+| 8.2 | Lista de entidades | `BentoCard` (tarjetas) / `ui/table` (tabla) |
+| 8.3 | Badge de estado | `StatusBadge` **(nuevo)**; `EquipoStateBadge` y `GatewayStatusBadge` lo reutilizan |
+| 8.4 | Datos secundarios / de soporte | `Disclosure` **(nuevo)** |
+| 8.5 | Formulario | `ui/dialog` (en diálogo) o página con `BentoCard` |
+| 8.6 | Estados vacío, carga y error | `EmptyState`, `SkeletonCard`, `ErrorState` **(nuevo)** |
+| 8.7 | Confirmación de acción destructiva | `ConfirmDialog` |
+| 8.8 | Pasos de un flujo | `Stepper` **(nuevo)** (extraído del asistente de *Equipos*) |
+
+### 8.1 Encabezado de página
+- Un solo `h1` por página, con `tabIndex={-1}` para recibir el foco al cambiar de paso o de ruta.
+- Subtítulo opcional de **una línea**. A la derecha, **como máximo una acción primaria** (`PillButton primary`); las demás van como `outline` o dentro de la página.
+- Móvil: el título ocupa todo el ancho y la acción pasa debajo, a ancho completo.
+
+### 8.2 Lista de entidades
+- **Tarjetas** cuando cada elemento tiene estado, 2–4 datos y una acción (p. ej. equipos, predios). **Tabla** cuando se comparan muchas filas por las mismas columnas (p. ej. histórico, auditoría).
+- Cada fila/tarjeta es navegable por teclado y muestra su estado con un badge (8.3), no solo con color.
+- Móvil: tablas pasan a tarjetas apiladas o a scroll horizontal **solo dentro de la tabla**, nunca de la página.
+
+### 8.3 Badge de estado
+- Siempre **icono + texto + color** (nunca solo color); texto en `--text-main`, fondo `--status-*-bg`, icono `--status-*`.
+- Tono: `active` (óptimo), `warning` (riesgo leve), `danger` (crítico), `info` (en proceso), `neutral` (inactivo/revocado).
+- El mismo componente en escritorio y móvil; no se oculta el texto en móvil.
+
+### 8.4 Datos secundarios / de soporte
+- Todo lo que no ayuda a la tarea principal (IDs, versiones, referencias) va en un disclosure cerrado, titulado «Datos para soporte» o similar, como en `GatewayDetail`.
+- Implementado sobre `ui/collapsible`: botón con `aria-expanded`, foco visible, objetivo táctil ≥ 44 px.
+
+### 8.5 Formulario: diálogo o página
+- **Diálogo** (`ui/dialog`) para crear/editar con ≤ 5 campos y sin pasos. **Página** para formularios largos o con dependencias entre campos.
+- Etiqueta visible en cada campo; error junto al campo y resumen anunciado (`role="alert"`); foco al primer campo inválido al enviar; al cerrar un diálogo el foco vuelve al botón que lo abrió.
+
+### 8.6 Estados vacío, carga y error
+- **Vacío:** `EmptyState` con icono, título corto, una línea de ayuda y, si aplica, la acción para salir del vacío.
+- **Carga:** `SkeletonCard`/`MetricSkeleton` con la forma del contenido; nunca texto «Cargando…» suelto.
+- **Error:** `ErrorState` con mensaje llano, `role="alert"` y botón «Reintentar»; sin trazas ni códigos en el texto principal.
+
+### 8.7 Confirmación de acción destructiva
+- `ConfirmDialog variant="danger"`: título con el verbo y el objeto («Revocar enlace»), consecuencia en una línea, foco inicial en **Cancelar**, Escape cierra. El texto del botón destructivo usa `--status-danger-text`.
+
+### 8.8 Pasos de un flujo
+- Lista ordenada (`<ol aria-label="Pasos">`) con `aria-current="step"` en el paso actual y texto «Paso N de M»; al avanzar, el foco pasa al encabezado del paso.
+- Móvil: una columna; los pasos completados se resumen en una línea.
+
+### Variantes móviles (390 px)
+Una columna, sin scroll horizontal de la página, objetivos táctiles ≥ 44×44 px, acción primaria a ancho completo, barra de pestañas con todas las entradas alcanzables.
+
+## 9. Referencia del diseño original
 
 - Figma: https://www.figma.com/design/oC6tGH2eDH091njUEnkRPk/IoT-Agricultural-Irrigation-App
