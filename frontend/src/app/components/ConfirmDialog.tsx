@@ -38,9 +38,12 @@ export function ConfirmDialog({
     return () => document.removeEventListener("keydown", handleKey);
   }, [open, onCancel]);
 
-  // Focus cancel button on open (safer default)
+  // Focus cancel button on open (safer default) and give focus back to the opener on close
   useEffect(() => {
-    if (open) cancelRef.current?.focus();
+    if (!open) return;
+    const opener = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    cancelRef.current?.focus();
+    return () => opener?.focus();
   }, [open]);
 
   if (!open) return null;
@@ -51,6 +54,7 @@ export function ConfirmDialog({
       role="dialog"
       aria-modal="true"
       aria-labelledby="confirm-dialog-title"
+      aria-describedby={description ? "confirm-dialog-description" : undefined}
     >
       {/* Backdrop */}
       <div
@@ -66,8 +70,8 @@ export function ConfirmDialog({
       >
         {variant === "danger" && (
           <div className="flex justify-center mb-4">
-            <div className="w-12 h-12 rounded-full bg-[#DC2626]/10 flex items-center justify-center">
-              <AlertTriangle className="w-6 h-6 text-[#DC2626]" />
+            <div className="w-12 h-12 rounded-full bg-[var(--status-danger-bg)] flex items-center justify-center">
+              <AlertTriangle aria-hidden="true" className="w-6 h-6 text-[var(--status-danger)]" />
             </div>
           </div>
         )}
@@ -80,14 +84,14 @@ export function ConfirmDialog({
         </h2>
 
         {description && (
-          <p className="text-sm text-[var(--text-muted)] text-center mb-6">{description}</p>
+          <p id="confirm-dialog-description" className="text-sm text-[var(--text-muted)] text-center mb-6">{description}</p>
         )}
 
         <div className="flex gap-3 mt-6">
           <button
             ref={cancelRef}
             onClick={onCancel}
-            className="flex-1 px-4 py-2.5 rounded-full text-sm font-medium
+            className="flex-1 min-h-[44px] px-4 py-2.5 rounded-full text-sm font-medium
               bg-[var(--card-sand)] text-[var(--text-main)] hover:brightness-95 active:scale-[0.97]
               transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-primary)] focus-visible:ring-offset-2"
           >
@@ -95,11 +99,11 @@ export function ConfirmDialog({
           </button>
           <button
             onClick={onConfirm}
-            className={`flex-1 px-4 py-2.5 rounded-full text-sm font-medium
+            className={`flex-1 min-h-[44px] px-4 py-2.5 rounded-full text-sm font-medium
               active:scale-[0.97] transition-all
               focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2
               ${variant === "danger"
-                ? "bg-[var(--status-danger)] text-white hover:opacity-90 focus-visible:ring-[var(--status-danger)]"
+                ? "bg-[var(--status-danger-solid)] text-white hover:opacity-90 focus-visible:ring-[var(--status-danger-solid)]"
                 : "bg-[var(--accent-primary)] text-[var(--text-inverted)] hover:opacity-90 focus-visible:ring-[var(--accent-primary)]"
               }`}
           >
