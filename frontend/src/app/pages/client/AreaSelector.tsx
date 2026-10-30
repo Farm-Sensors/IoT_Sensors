@@ -3,6 +3,8 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router";
 import { BentoCard } from "../../components/BentoCard";
 import { EmptyState } from "../../components/EmptyState";
+import { ErrorState } from "../../components/ErrorState";
+import { PageHeader } from "../../components/PageHeader";
 import { FreshnessIndicator } from "../../components/FreshnessIndicator";
 import { GatewayStatusBadge } from "../../components/GatewayStatusBadge";
 import { PageTransition } from "../../components/PageTransition";
@@ -59,7 +61,12 @@ function AreaCard({
       role="button"
       tabIndex={0}
       aria-label={`Ver área ${area.name}`}
-      onKeyDown={(e) => e.key === "Enter" && onClick()}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          onClick();
+        }
+      }}
       className="cursor-pointer animate-fade-in-up focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-primary)] rounded-[32px]"
       style={{ animationDelay: `${animationDelay}ms` }}
     >
@@ -71,14 +78,14 @@ function AreaCard({
           <div className="flex items-start justify-between mb-4">
             <div className="flex items-center gap-3">
               <div className="p-3 rounded-[24px] bg-[var(--card-sand)]">
-                <CropIcon className="w-6 h-6" />
+                <CropIcon aria-hidden="true" className="w-6 h-6" />
               </div>
               <div>
                 <h3 className="text-base text-[var(--text-main)] font-medium">{area.name}</h3>
                 <p className="text-sm text-[var(--text-muted)]">{area.area_size || 0} ha</p>
               </div>
             </div>
-            <ChevronRight className="w-5 h-5 text-[var(--text-muted)] flex-shrink-0" />
+            <ChevronRight aria-hidden="true" className="w-5 h-5 text-[var(--text-muted)] flex-shrink-0" />
           </div>
 
           {/* Crop type badge */}
@@ -93,10 +100,10 @@ function AreaCard({
             <div className="flex items-center justify-between mb-1.5">
               <span className="text-xs text-[var(--text-muted)]">Humedad actual</span>
               <span className="text-sm font-bold text-[var(--text-main)]">
-                {humidity !== null ? `${humidity.toFixed(1)}%` : "N/D"}
+                {humidity !== null ? `${humidity.toFixed(1)}%` : "Sin datos"}
               </span>
             </div>
-            <div className="h-2 bg-[var(--progress-track)] rounded-full overflow-hidden">
+            <div aria-hidden="true" className="h-2 bg-[var(--progress-track)] rounded-full overflow-hidden">
               <div
                 className="h-full bg-[var(--accent-primary)] rounded-full transition-all duration-700"
                 style={{ width: humidity !== null ? `${Math.min(100, Math.max(0, humidity))}%` : "0%" }}
@@ -134,8 +141,9 @@ export function AreaSelector() {
 
   if (error) {
     return (
-      <div className="min-h-screen p-4 md:p-6 lg:p-8 flex items-center justify-center">
-        <p className="text-[#DC2626] text-sm">{error}</p>
+      <div className="min-h-screen p-4 md:p-6 lg:p-8">
+        <PageHeader title="Predios y Áreas de Riego" />
+        <ErrorState message={error} />
       </div>
     );
   }
@@ -146,8 +154,10 @@ export function AreaSelector() {
     <PageTransition>
       <div className="min-h-screen p-4 md:p-6 lg:p-8">
         <div className="mb-6">
-          <h1 className="text-2xl md:text-3xl font-serif text-[var(--text-title)] mb-2">Predios y Áreas de Riego</h1>
-          <p className="text-[var(--text-subtle)]">Selecciona un área para ver sus datos en tiempo real</p>
+          <PageHeader
+            title="Predios y Áreas de Riego"
+            subtitle="Selecciona un área para ver sus datos en tiempo real"
+          />
         </div>
 
         {!hasAreas && (
