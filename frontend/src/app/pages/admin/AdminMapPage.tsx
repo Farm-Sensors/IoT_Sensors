@@ -1,11 +1,13 @@
-import { MapPin, RefreshCw, TriangleAlert } from "lucide-react";
+import { CheckCircle2, CircleHelp, Clock, MapPin, MapPinOff, RefreshCw } from "lucide-react";
 import maplibregl, { Map as MapLibreMap } from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { ErrorState } from "../../components/ErrorState";
+import { PageHeader } from "../../components/PageHeader";
 import { PageTransition } from "../../components/PageTransition";
 import { PillButton } from "../../components/PillButton";
+import { StatusBadge, type StatusTone } from "../../components/StatusBadge";
 import {
-  communicationStatusClass,
   communicationStatusLabel,
   fitMapToNodes,
   freshnessText,
@@ -17,6 +19,14 @@ import { useTheme } from "../../context/ThemeContext";
 import { api } from "../../services/api";
 import { GeoNode } from "../../services/nodes";
 import { parseBackendTimestamp } from "../../utils/datetime";
+
+const NODE_STATUS: Record<string, { tone: StatusTone; icon: typeof CheckCircle2 }> = {
+  fresh: { tone: "active", icon: CheckCircle2 },
+  stale: { tone: "warning", icon: Clock },
+  no_data: { tone: "neutral", icon: CircleHelp },
+};
+const FIELD_CLASS =
+  "min-h-[44px] rounded-xl border border-[var(--border-strong)] px-3 py-2 text-[var(--text-main)] bg-[var(--bg-surface)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus-ring)] disabled:opacity-60";
 
 const DEFAULT_LIGHT_STYLE_URL = "https://tiles.openfreemap.org/styles/liberty";
 const DEFAULT_DARK_STYLE_URL = "https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json";
@@ -297,20 +307,20 @@ export function AdminMapPage() {
     <PageTransition>
     <div className="min-h-screen p-4 md:p-6 lg:p-8">
       <div className="mb-5">
-        <h1 className="text-2xl md:text-3xl font-serif text-[var(--text-title)]">Mapa Global de Nodos</h1>
-        <p className="text-[var(--text-subtle)] mt-1">
-          Vista administrativa con filtros por cliente, predio y área para monitoreo geoespacial.
-        </p>
+        <PageHeader
+          title="Mapa Global de Nodos"
+          subtitle="Vista administrativa con filtros por cliente, predio y área para monitoreo geoespacial."
+        />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 mb-4">
         <div className="rounded-[20px] bg-[var(--bg-elevated)] border border-[var(--border-strong)] p-4 lg:col-span-3">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-3 mb-3">
-            <label className="flex flex-col gap-1 text-sm text-[var(--text-subtle)]">
+            <label className="flex flex-col gap-1 text-sm font-medium text-[var(--text-body)]">
               Cliente
               <select
                 disabled={loadingFilters}
-                className="rounded-xl border border-[var(--border-strong)] px-3 py-2 text-[var(--text-main)] bg-[var(--bg-surface)] disabled:opacity-60"
+                className={FIELD_CLASS}
                 value={selectedClientId ?? ""}
                 onChange={(e) => setSelectedClientId(e.target.value ? Number(e.target.value) : null)}
               >
@@ -323,11 +333,11 @@ export function AdminMapPage() {
               </select>
             </label>
 
-            <label className="flex flex-col gap-1 text-sm text-[var(--text-subtle)]">
+            <label className="flex flex-col gap-1 text-sm font-medium text-[var(--text-body)]">
               Predio
               <select
                 disabled={loadingFilters}
-                className="rounded-xl border border-[var(--border-strong)] px-3 py-2 text-[var(--text-main)] bg-[var(--bg-surface)] disabled:opacity-60"
+                className={FIELD_CLASS}
                 value={selectedPropertyId ?? ""}
                 onChange={(e) => setSelectedPropertyId(e.target.value ? Number(e.target.value) : null)}
               >
@@ -340,11 +350,11 @@ export function AdminMapPage() {
               </select>
             </label>
 
-            <label className="flex flex-col gap-1 text-sm text-[var(--text-subtle)]">
+            <label className="flex flex-col gap-1 text-sm font-medium text-[var(--text-body)]">
               Área de riego
               <select
                 disabled={selectedPropertyId === null || loadingFilters}
-                className="rounded-xl border border-[var(--border-strong)] px-3 py-2 text-[var(--text-main)] bg-[var(--bg-surface)] disabled:opacity-60"
+                className={FIELD_CLASS}
                 value={selectedAreaId ?? ""}
                 onChange={(e) => setSelectedAreaId(e.target.value ? Number(e.target.value) : null)}
               >
@@ -364,17 +374,17 @@ export function AdminMapPage() {
                 variant="primary"
                 className="w-full md:w-auto inline-flex items-center justify-center gap-2"
               >
-                <RefreshCw className="w-4 h-4" />
+                <RefreshCw aria-hidden="true" className="w-4 h-4" />
                 Actualizar capa
               </PillButton>
             </div>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
-            <label className="flex flex-col gap-1 text-sm text-[var(--text-subtle)]">
+            <label className="flex flex-col gap-1 text-sm font-medium text-[var(--text-body)]">
               Modo de visualización
               <select
-                className="rounded-xl border border-[var(--border-strong)] px-3 py-2 text-[var(--text-main)] bg-[var(--bg-surface)]"
+                className={FIELD_CLASS}
                 value={viewMode}
                 onChange={(e) => setViewMode(e.target.value as ViewMode)}
               >
@@ -384,28 +394,28 @@ export function AdminMapPage() {
             </label>
 
             <div className="flex flex-wrap items-end gap-3 text-sm text-[var(--text-subtle)]">
-              <label className="inline-flex items-center gap-2">
+              <label className="inline-flex min-h-[44px] items-center gap-2">
                 <input
                   type="checkbox"
-                  className="accent-[var(--accent-primary)]"
+                  className="h-5 w-5 accent-[var(--accent-primary)]"
                   checked={visibleFresh}
                   onChange={(e) => setVisibleFresh(e.target.checked)}
                 />
                 Frescos
               </label>
-              <label className="inline-flex items-center gap-2">
+              <label className="inline-flex min-h-[44px] items-center gap-2">
                 <input
                   type="checkbox"
-                  className="accent-[var(--accent-primary)]"
+                  className="h-5 w-5 accent-[var(--accent-primary)]"
                   checked={visibleStale}
                   onChange={(e) => setVisibleStale(e.target.checked)}
                 />
                 Tardíos
               </label>
-              <label className="inline-flex items-center gap-2">
+              <label className="inline-flex min-h-[44px] items-center gap-2">
                 <input
                   type="checkbox"
-                  className="accent-[var(--accent-primary)]"
+                  className="h-5 w-5 accent-[var(--accent-primary)]"
                   checked={visibleNoData}
                   onChange={(e) => setVisibleNoData(e.target.checked)}
                 />
@@ -414,42 +424,23 @@ export function AdminMapPage() {
             </div>
           </div>
 
-          <div className="mb-3 rounded-xl border border-[var(--border-strong)] bg-[var(--bg-surface)] px-3 py-2.5 text-xs text-[var(--text-muted)]">
-            <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
-              <span className="inline-flex items-center gap-2">
-                <span className="w-2.5 h-2.5 rounded-full bg-[var(--accent-primary)]" />
-                Fresco: {statusCounts.fresh}
-              </span>
-              <span className="inline-flex items-center gap-2">
-                <span className="w-2.5 h-2.5 rounded-full bg-[var(--status-warning)]" />
-                Tardío: {statusCounts.stale}
-              </span>
-              <span className="inline-flex items-center gap-2">
-                <span className="w-2.5 h-2.5 rounded-full bg-[var(--text-subtle)]" />
-                Sin lectura: {statusCounts.no_data}
-              </span>
-              <span className="inline-flex items-center gap-2">
-                <span className="w-2.5 h-2.5 rounded-full bg-[var(--outline-contrast)]" />
-                Sin GPS: {filteredNodesWithoutCoordinates.length}
-              </span>
-            </div>
-          </div>
+          <ul aria-label="Leyenda de estados" className="mb-3 flex flex-wrap items-center gap-2">
+            <li><StatusBadge tone="active" icon={CheckCircle2}>Fresco: {statusCounts.fresh}</StatusBadge></li>
+            <li><StatusBadge tone="warning" icon={Clock}>Tardío: {statusCounts.stale}</StatusBadge></li>
+            <li><StatusBadge tone="neutral" icon={CircleHelp}>Sin lectura: {statusCounts.no_data}</StatusBadge></li>
+            <li><StatusBadge tone="neutral" icon={MapPinOff}>Sin GPS: {filteredNodesWithoutCoordinates.length}</StatusBadge></li>
+          </ul>
 
-          <div className="relative rounded-[18px] overflow-hidden border border-[var(--border-strong)]">
+          <div role="region" aria-label="Mapa global de nodos" className="relative rounded-[18px] overflow-hidden border border-[var(--border-strong)]">
             <div ref={mapContainerRef} className="h-[52vh] md:h-[60vh] w-full bg-[var(--bg-surface)]" />
             {loadingNodes && (
-              <div className="absolute inset-0 bg-[var(--bg-base)]/80 backdrop-blur-sm flex items-center justify-center text-[var(--text-muted)] text-sm">
+              <div role="status" className="absolute inset-0 bg-[var(--bg-base)]/80 backdrop-blur-sm flex items-center justify-center text-[var(--text-body)] text-sm">
                 Cargando nodos geoespaciales...
               </div>
             )}
           </div>
 
-          {displayedError && (
-            <div className="mt-3 rounded-xl border border-[var(--status-danger)]/25 bg-[var(--status-danger-bg)] text-[var(--status-danger)] px-4 py-3 text-sm flex items-center gap-2">
-              <TriangleAlert className="w-4 h-4" />
-              {displayedError}
-            </div>
-          )}
+          {displayedError && <ErrorState message={displayedError} onRetry={fetchNodes} />}
         </div>
 
         <aside className="rounded-[20px] bg-[var(--bg-elevated)] border border-[var(--border-strong)] p-4">
@@ -463,15 +454,18 @@ export function AdminMapPage() {
               <div className="text-[var(--text-muted)]"><strong>Cultivo:</strong> {selectedNode.crop_type_name}</div>
               <div className="text-[var(--text-muted)]">
                 <strong>Estado (config):</strong>{" "}
-                <span className={selectedNode.is_active ? "text-[var(--status-active)]" : "text-[var(--status-danger)]"}>
+                <StatusBadge tone={selectedNode.is_active ? "active" : "danger"} icon={selectedNode.is_active ? CheckCircle2 : MapPinOff}>
                   {selectedNode.is_active ? "Activo" : "Inactivo"}
-                </span>
+                </StatusBadge>
               </div>
               <div className="text-[var(--text-muted)]">
                 <strong>Comunicación:</strong>{" "}
-                <span className={communicationStatusClass(selectedNode.freshness_status)}>
+                <StatusBadge
+                  tone={(NODE_STATUS[selectedNode.freshness_status] ?? NODE_STATUS.no_data).tone}
+                  icon={(NODE_STATUS[selectedNode.freshness_status] ?? NODE_STATUS.no_data).icon}
+                >
                   {communicationStatusLabel(selectedNode.freshness_status)}
-                </span>
+                </StatusBadge>
               </div>
               <div className="text-[var(--text-muted)]"><strong>Frescura:</strong> {freshnessText(selectedNode)}</div>
               {selectedNodeDate && (
@@ -482,6 +476,30 @@ export function AdminMapPage() {
             </div>
           ) : (
             <p className="text-sm text-[var(--text-muted)]">No hay nodos para mostrar con los filtros actuales.</p>
+          )}
+
+          {filteredNodesWithCoordinates.length > 0 && (
+            <div className="mt-4 pt-4 border-t border-[var(--border-strong)]">
+              <h3 className="text-[var(--text-main)] font-medium mb-2">Nodos en el mapa</h3>
+              <ul className="space-y-2 max-h-[220px] overflow-auto pr-1">
+                {filteredNodesWithCoordinates.map((node) => {
+                  const status = NODE_STATUS[node.freshness_status] ?? NODE_STATUS.no_data;
+                  return (
+                    <li key={node.id}>
+                      <button
+                        type="button"
+                        onClick={() => setSelectedNode(node)}
+                        aria-pressed={selectedNode?.id === node.id}
+                        className="flex min-h-[44px] w-full flex-wrap items-center justify-between gap-2 rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface)] px-3 py-2 text-left text-sm text-[var(--text-main)] hover:bg-[var(--hover-overlay)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus-ring)] aria-pressed:border-[var(--accent-primary)]"
+                      >
+                        <span className="font-medium">{node.name || `Nodo #${node.id}`}</span>
+                        <StatusBadge tone={status.tone} icon={status.icon}>{communicationStatusLabel(node.freshness_status)}</StatusBadge>
+                      </button>
+                    </li>
+                  );
+                })}
+              </ul>
+            </div>
           )}
 
           <div className="mt-4 pt-4 border-t border-[var(--border-strong)]">
@@ -502,7 +520,7 @@ export function AdminMapPage() {
           </div>
 
           <div className="mt-4 pt-4 border-t border-[var(--border-strong)] text-xs text-[var(--text-muted)] flex items-start gap-2">
-            <MapPin className="w-4 h-4 mt-0.5" />
+            <MapPin aria-hidden="true" className="w-4 h-4 mt-0.5" />
             <span>
               Base cartográfica: OpenFreeMap sobre OpenStreetMap. Estilo renderizado con MapLibre GL JS.
             </span>

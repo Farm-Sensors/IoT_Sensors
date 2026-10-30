@@ -1,7 +1,10 @@
 import { useEffect, useState } from "react";
-import { Link, useParams } from "react-router";
+import { useParams } from "react-router";
 import { BentoCard } from "../../components/BentoCard";
+import { HierarchyTrail } from "../../components/HierarchyTrail";
+import { PageHeader } from "../../components/PageHeader";
 import { PageTransition } from "../../components/PageTransition";
+import { SkeletonCard } from "../../components/SkeletonCard";
 import { PillButton } from "../../components/PillButton";
 import { useToast } from "../../components/Toast";
 import { api } from "../../services/api";
@@ -109,19 +112,17 @@ export function DashboardPreferences() {
     <PageTransition>
       <div className="min-h-screen p-4 md:p-6 lg:p-8">
         <div className="mb-6">
-          <div className="flex items-center gap-2 text-sm text-[var(--text-subtle)] mb-2">
-            <Link to="/admin/clientes" className="hover:text-[var(--accent-primary)] transition-colors">Clientes</Link>
-            <span>/</span>
-            <span>{clientName}</span>
-            <span>/</span>
-            <span>Dashboard</span>
-          </div>
-          <h1 className="text-2xl md:text-3xl font-serif text-[var(--text-title)] mb-2">
-            Tarjetas del dashboard
-          </h1>
-          <p className="text-[var(--text-subtle)]">
-            Elige qué tarjetas ve <span className="text-[var(--text-main)]">{clientName}</span> en su dashboard.
-          </p>
+          <HierarchyTrail
+            items={[
+              { label: "Clientes", to: "/admin/clientes" },
+              { label: clientName },
+              { label: "Dashboard" },
+            ]}
+          />
+          <PageHeader
+            title="Tarjetas del dashboard"
+            subtitle={`Elige qué tarjetas ve ${clientName} en su dashboard.`}
+          />
         </div>
 
         <div
@@ -135,7 +136,7 @@ export function DashboardPreferences() {
 
         <BentoCard variant="light" className="max-w-3xl">
           {loading ? (
-            <p className="text-[var(--text-subtle)]">Cargando preferencias...</p>
+            <SkeletonCard lines={3} showHeader={false} />
           ) : (
             <>
               <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
