@@ -7,6 +7,8 @@ import { useIsMobile } from "../../hooks/useIsMobile";
 import { usePageVisibility } from "../../hooks/usePageVisibility";
 import { api } from "../../services/api";
 import { EmptyState } from "../../components/EmptyState";
+import { ErrorState } from "../../components/ErrorState";
+import { PageHeader } from "../../components/PageHeader";
 import { FreshnessIndicator } from "../../components/FreshnessIndicator";
 import { GatewayStatusBadge } from "../../components/GatewayStatusBadge";
 import { usePropertyGatewayStatus } from "../../hooks/usePropertyGatewayStatus";
@@ -161,29 +163,23 @@ export function ClientDashboard() {
 
   return (
     <div className="min-h-screen p-4 md:p-6 lg:p-8 overflow-x-hidden">
-      {/* Header */}
+      {/* Encabezado: quién y cuándo; después, qué predio y área se ven, y su estado (la frescura va una sola vez) */}
       <div className="mb-6 md:mb-8 animate-fade-in-up">
-        <div className="mb-4 flex items-center justify-between">
-          <div>
-            <h1 className="mb-1 text-2xl md:text-3xl text-[var(--text-title)]">
-              Hola, {user?.nombre || 'Usuario'}
-            </h1>
-            <p className="text-[var(--text-subtle)]">
-              {new Date().toLocaleDateString("es-MX", {
-                weekday: "long",
-                year: "numeric",
-                month: "long",
-                day: "numeric",
-              })}
-            </p>
-          </div>
-        </div>
+        <PageHeader
+          title={`Hola, ${user?.nombre || "Usuario"}`}
+          subtitle={new Date().toLocaleDateString("es-MX", {
+            weekday: "long",
+            year: "numeric",
+            month: "long",
+            day: "numeric",
+          })}
+        />
 
-        {/* Breadcrumb selectors */}
-        <div className="flex flex-wrap gap-3">
-          <div className="relative">
+        <div role="group" aria-label="Predio y área de riego" className="mt-4 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
+          <div className="relative sm:min-w-[220px]">
             <select
-              className="appearance-none cursor-pointer rounded-full border border-[var(--border-subtle)] bg-[var(--surface-card-primary)] py-2 pl-4 pr-10 font-medium text-[var(--text-body)] transition-colors hover:bg-[var(--hover-overlay)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus-ring)]"
+              aria-label="Predio"
+              className="min-h-[44px] w-full appearance-none cursor-pointer rounded-full border border-[var(--border-subtle)] bg-[var(--surface-card-primary)] py-2 pl-4 pr-10 font-medium text-[var(--text-body)] transition-colors hover:bg-[var(--hover-overlay)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus-ring)]"
               value={selectedProperty?.id ?? ""}
               onChange={(e) => {
                 const prop = properties.find(p => p.id === Number(e.target.value));
@@ -196,13 +192,14 @@ export function ClientDashboard() {
                 <option key={p.id} value={p.id}>{p.name}</option>
               ))}
             </select>
-            <ChevronDown className="pointer-events-none absolute right-4 top-1/2 h-4 w-4 -translate-y-1/2 text-[var(--text-subtle)]" />
+            <ChevronDown aria-hidden="true" className="pointer-events-none absolute right-4 top-1/2 h-4 w-4 -translate-y-1/2 text-[var(--text-subtle)]" />
           </div>
 
           {(selectedProperty || filteredAreas.length > 0) && (
-            <div className="relative">
+            <div className="relative sm:min-w-[220px]">
               <select
-                className="appearance-none cursor-pointer rounded-full border border-[var(--border-subtle)] bg-[var(--surface-card-primary)] py-2 pl-4 pr-10 font-medium text-[var(--text-body)] transition-colors hover:bg-[var(--hover-overlay)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus-ring)]"
+                aria-label="Área de riego"
+                className="min-h-[44px] w-full appearance-none cursor-pointer rounded-full border border-[var(--border-subtle)] bg-[var(--surface-card-primary)] py-2 pl-4 pr-10 font-medium text-[var(--text-body)] transition-colors hover:bg-[var(--hover-overlay)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus-ring)]"
                 value={selectedArea?.id ?? ""}
                 onChange={(e) => {
                   const area = areas.find(a => a.id === Number(e.target.value));
@@ -214,17 +211,16 @@ export function ClientDashboard() {
                   <option key={a.id} value={a.id}>{a.name}</option>
                 ))}
               </select>
-              <ChevronDown className="pointer-events-none absolute right-4 top-1/2 h-4 w-4 -translate-y-1/2 text-[var(--text-subtle)]" />
+              <ChevronDown aria-hidden="true" className="pointer-events-none absolute right-4 top-1/2 h-4 w-4 -translate-y-1/2 text-[var(--text-subtle)]" />
             </div>
           )}
+        </div>
 
-          <div className="flex flex-wrap items-center gap-3">
-            {currentReadings.lastUpdate && <FreshnessIndicator lastUpdate={currentReadings.lastUpdate} />}
-            {gatewayStatus && (
-              <GatewayStatusBadge status={gatewayStatus.status} edgeStatus={gatewayStatus.edge_status} />
-            )}
-          </div>
-
+        <div className="mt-4 flex flex-wrap items-start gap-x-6 gap-y-3">
+          {currentReadings.lastUpdate && <FreshnessIndicator lastUpdate={currentReadings.lastUpdate} />}
+          {gatewayStatus && (
+            <GatewayStatusBadge status={gatewayStatus.status} edgeStatus={gatewayStatus.edge_status} />
+          )}
         </div>
       </div>
 
@@ -233,10 +229,7 @@ export function ClientDashboard() {
       ) : (
         <>
           {activeSnapshot?.error && (
-            <div role="alert" className="mb-4 rounded-2xl bg-[var(--status-danger-bg)] p-4 text-[var(--status-danger)]">
-              <p>{activeSnapshot.error}</p>
-              <button type="button" className="mt-2 underline" onClick={() => setRetry((value) => value + 1)}>Reintentar</button>
-            </div>
+            <ErrorState message={activeSnapshot.error} onRetry={() => setRetry((value) => value + 1)} />
           )}
           {loading ? <div role="status" aria-label="Cargando lecturas"><MetricSkeletonGrid count={isMobile ? 3 : 6} /></div> : !activeSnapshot?.reading ? (
             !activeSnapshot?.error && <EmptyState icon={Database} title="Sin lecturas" description="Esta área todavía no tiene datos de sensores." />

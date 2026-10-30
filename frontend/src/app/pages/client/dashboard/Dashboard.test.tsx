@@ -117,6 +117,34 @@ describe.each([DesktopDashboard, MobileDashboard])("telemetry layout", (Layout) 
   });
 });
 
+describe.each([DesktopDashboard, MobileDashboard])("freshness", (Layout) => {
+  it("is not repeated inside the priority cards", () => {
+    const props = { historicalData: [], currentReadings: toCurrentReadings(reading), prioritySemaphore: defaultSemaphore, showSemaphore: false, connectionState: "online" as const, visibleCards: new Set<DashboardCardKey>(DASHBOARD_CARD_KEYS) };
+    render(<Layout {...props} />);
+    expect(screen.queryByText(/Último dato/)).toBeNull();
+    expect(screen.queryByText(/Datos actuales|Sin reporte reciente/)).toBeNull();
+  });
+
+  it("shows the irrigation state with an icon and text, not color alone", () => {
+    const props = { historicalData: [], currentReadings: toCurrentReadings({ ...reading, irrigation: { ...reading.irrigation!, active: true } }), prioritySemaphore: defaultSemaphore, showSemaphore: false, connectionState: "online" as const, visibleCards: new Set<DashboardCardKey>(DASHBOARD_CARD_KEYS) };
+    render(<Layout {...props} />);
+    const badge = screen.getByText("ACTIVO");
+    expect(badge.querySelector("svg")?.getAttribute("aria-hidden")).toBe("true");
+  });
+});
+
+it("shows the freshness of the area once, in the header", async () => {
+  render(<ClientDashboard />);
+  await screen.findByText("Humedad del Suelo");
+  expect(screen.getAllByText(/Último dato:/)).toHaveLength(1);
+});
+
+it("names both selectors for assistive technology", () => {
+  render(<ClientDashboard />);
+  expect(screen.getByRole("combobox", { name: "Predio" })).toBeTruthy();
+  expect(screen.getByRole("combobox", { name: "Área de riego" })).toBeTruthy();
+});
+
 it("changes freshness at 20 minutes and displays the exact timestamp", () => {
   vi.useFakeTimers();
   vi.setSystemTime(new Date("2026-09-16T12:19:30Z"));

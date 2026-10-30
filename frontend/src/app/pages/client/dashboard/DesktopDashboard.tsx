@@ -6,13 +6,13 @@ import { MetricCard } from "../../../components/MetricCard";
 import {
   getHumidityAxisDomain,
   getIrrigationDisplayState,
-  getIrrigationStatusClass,
   getIrrigationStatusLabel,
   type ConnectionState,
   type PriorityKey,
   type SemaphoreLevel,
 } from "./helpers";
 import type { DashboardCardKey } from "../../../services/dashboardPreferences";
+import { IrrigationStatusBadge } from "./IrrigationStatusBadge";
 import { SemaphorePill } from "./SemaphorePill";
 
 export function DesktopDashboard({
@@ -36,7 +36,6 @@ export function DesktopDashboard({
     connectionState,
   );
   const irrigationStatusLabel = getIrrigationStatusLabel(irrigationDisplayState);
-  const irrigationStatusClass = getIrrigationStatusClass(irrigationDisplayState);
   const isIrrigationLiveActive = irrigationDisplayState === "active";
 
   return (
@@ -50,7 +49,6 @@ export function DesktopDashboard({
           unit="%"
           variant="dark"
           subtitle="Dato prioritario"
-          lastUpdate={currentReadings.lastUpdate}
           priority
         >
           {showSemaphore && (
@@ -95,7 +93,6 @@ export function DesktopDashboard({
           unit="L/min"
           variant="dark"
           subtitle="Dato prioritario"
-          lastUpdate={currentReadings.lastUpdate}
           priority
         >
           {showSemaphore && (
@@ -133,7 +130,6 @@ export function DesktopDashboard({
           unit="mm/día"
           variant="dark"
           subtitle="Evapotranspiración"
-          lastUpdate={currentReadings.lastUpdate}
           priority
         >
           {showSemaphore && (
@@ -150,7 +146,7 @@ export function DesktopDashboard({
       <div className="col-span-12 xl:col-span-4 animate-stagger-1">
         <BentoCard variant="sand">
           <div className="flex items-start justify-between mb-4">
-            <h3 className="text-lg text-[var(--text-main)]">Estado del Riego</h3>
+            <h2 className="text-lg text-[var(--text-main)]">Estado del Riego</h2>
             <div className="relative flex items-center justify-center w-4 h-4">
               {isIrrigationLiveActive && (
                 <span
@@ -168,9 +164,7 @@ export function DesktopDashboard({
           <div className="space-y-3">
             <div className="flex items-center justify-between">
               <span className="text-[var(--text-muted)]">Estado</span>
-              <span className={`font-bold ${irrigationStatusClass}`}>
-                {irrigationStatusLabel}
-              </span>
+              <IrrigationStatusBadge state={irrigationDisplayState} label={irrigationStatusLabel} />
             </div>
             <div className="flex items-center justify-between">
               <span className="text-[var(--text-muted)]">Antigüedad de la lectura</span>
@@ -187,7 +181,7 @@ export function DesktopDashboard({
       {visibleCards.has("soil.details") && (
       <div className="col-span-12 xl:col-span-8">
         <BentoCard variant="light">
-          <h3 className="text-lg text-[var(--text-main)] mb-4">Suelo</h3>
+          <h2 className="text-lg text-[var(--text-main)] mb-4">Suelo</h2>
           <div className="grid grid-cols-3 gap-6">
             <div>
               <p className="text-sm text-[var(--text-muted)] mb-1">Conductividad</p>
@@ -219,9 +213,9 @@ export function DesktopDashboard({
       {visibleCards.has("soil.chart") && (
       <div className="col-span-12 xl:col-span-8 row-span-2 animate-stagger-3">
         <BentoCard variant="light" className="h-full">
-          <h3 className="text-lg text-[var(--text-main)] mb-6">
+          <h2 className="text-lg text-[var(--text-main)] mb-6">
             Humedad del Suelo - Últimas 12 lecturas
-          </h3>
+          </h2>
           {historicalData.length === 0 && <p className="text-[var(--text-muted)]">Sin lecturas recientes para graficar.</p>}
           <div className="h-[300px] min-h-[300px]">
             <ResponsiveContainer width="100%" height="100%" className="animate-chart-entrance">
@@ -281,7 +275,7 @@ export function DesktopDashboard({
       {visibleCards.has("environmental.details") && (
       <div className="col-span-12 xl:col-span-4">
         <BentoCard variant="light" className="h-full">
-          <h3 className="text-lg text-[var(--text-main)] mb-4">Ambiental</h3>
+          <h2 className="text-lg text-[var(--text-main)] mb-4">Ambiental</h2>
           <div className="divide-y divide-[var(--border-subtle)] rounded-[24px] overflow-hidden">
             <div className="flex items-center justify-between p-3 bg-[var(--bg-elevated)] transition-colors hover:bg-[var(--border-subtle)]">
               <div className="flex items-center gap-3">
