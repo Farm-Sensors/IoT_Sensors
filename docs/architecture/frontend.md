@@ -24,7 +24,7 @@ La arquitectura está basada en dominios funcionales (Feature-driven / Role-base
 ```text
 src/app/
 ├── components/       # Componentes reusables de UI (Botones, Tarjetas, Input, etc.)
-│   ├── navigation/   # Menús (DesktopSidebar.tsx, MobileTabBar.tsx)
+│   ├── navigation/   # Menús (DesktopSidebar.tsx, MobileTabBar.tsx) y SkipLink.tsx
 │   ├── notifications/ # Alertas en UI (AlertsPopover)
 │   └── ProtectedRoute.tsx # HOC para blindar rutas según el Rol y JWT.
 ├── context/          # React Context API para estado global (AuthContext, SelectionContext, ThemeContext)
@@ -115,7 +115,8 @@ Actualmente el frontend está en fase de **transición de datos estáticos hacia
 - `services/routePreload.ts`: utilitario para precargar pantallas de mapa y reducir tiempo de primera navegación.
 - `routes.tsx`: rutas protegidas `/cliente/mapa` y `/admin/mapa`.
 - `routes.tsx`: carga diferida (lazy) de pantallas geoespaciales con `Suspense`.
-- `components/navigation/DesktopSidebar.tsx` y `components/navigation/MobileTabBar.tsx`: acceso de navegación al mapa + prefetch condicional en interacción.
+- `components/navigation/DesktopSidebar.tsx` y `components/navigation/MobileTabBar.tsx`: acceso de navegación al mapa + prefetch condicional en interacción; ambos son `nav` con nombre y marcan la página actual con `aria-current` y un indicador visual.
+- Componentes de patrón compartidos (`PageHeader`, `StatusBadge`, `Disclosure`, `ErrorState`, `Stepper`, además de `EmptyState`, `ConfirmDialog`, `SkeletonCard`): contrato en `docs/design-system.md` §8.
 - Fallback UX: cuando un nodo no tiene coordenadas, se muestra en listado lateral de "Nodos sin GPS".
 
 ### 3.9 Módulo IA (Fase 2, Sprints 4-5)
