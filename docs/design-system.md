@@ -167,6 +167,13 @@ Todos viven en `frontend/src/app/components/`. Los marcados **(nuevo)** los cre�
 - **Objetivos táctiles:** botones y enlaces del marco miden ≥ 44 px (`PillButton` tiene `min-h-[44px]`).
 - **Diálogo de confirmación:** `ConfirmDialog` devuelve el foco al elemento que lo abrió y asocia la consecuencia con `aria-describedby`.
 
+### Filtros, exportación y mapa (cliente)
+- **Filtros visibles:** `ReadingDateRangeSelector` muestra siempre un bloque «Filtros activos» (rango rápido, fechas resueltas y ciclo de cultivo) justo encima de los resultados; el rango elegido lleva `aria-pressed` y un icono de check, no solo color. El significado de los filtros (presets de `QUICK_RANGES` + «Personalizado», ciclo, fechas en UTC) no cambia.
+- **Series de una gráfica:** conmutadores (`aria-pressed`) con muestra de color, borde e icono de check cuando están activos; la leyenda de la gráfica usa `--text-body` (el color de la serie solo va en la línea y en la muestra).
+- **Tablas anchas:** `caption` para lectores de pantalla, primera columna fija y la pista «Desliza hacia los lados…» en móvil; el scroll horizontal queda dentro de la tabla.
+- **Exportar:** dos pasos, «1. Elige qué datos» y «2. Descarga». Antes de descargar, un resumen en una línea (área, fechas, ciclo); los tres formatos (CSV, Excel, PDF) son acciones separadas «Descargar …» que bajan el archivo al instante. La consulta es la misma que usa el histórico.
+- **Mapa:** la leyenda usa `StatusBadge` (icono + texto + conteo). Los marcadores del mapa se distinguen solo por color, así que la lista «Nodos en el mapa» ofrece la misma información en texto y abre el detalle del nodo.
+
 ### Variantes móviles (390 px)
 Una columna, sin scroll horizontal de la página, objetivos táctiles ≥ 44×44 px, acción primaria a ancho completo, barra de pestañas con todas las entradas alcanzables.
 

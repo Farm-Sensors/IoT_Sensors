@@ -52,18 +52,17 @@ test("el histórico muestra datos recientes y un rango antiguo vacío", async ({
 });
 
 for (const { label, extension } of [
-  { label: "CSV Ligero y rápido", extension: "csv" },
-  { label: "Excel Análisis detallado", extension: "xlsx" },
-  { label: "PDF Imprimible", extension: "pdf" },
+  { label: "Descargar CSV Ligero y rápido", extension: "csv" },
+  { label: "Descargar Excel Análisis detallado", extension: "xlsx" },
+  { label: "Descargar PDF Imprimible", extension: "pdf" },
 ]) {
   test(`exporta ${extension} con datos de los últimos siete días`, async ({ clientPage: page }, testInfo) => {
     await page.goto("/cliente/exportar");
     await expect(page.getByRole("heading", { level: 1, name: "Exportar Datos" })).toBeVisible();
     await selectDemoArea(page);
     await page.getByRole("button", { name: "Últimos 7 días", exact: true }).click();
-    await page.getByRole("button", { name: label, exact: true }).click();
     const pendingDownload = page.waitForEvent("download");
-    await page.getByRole("button", { name: "Exportar Datos", exact: true }).click();
+    await page.getByRole("button", { name: label, exact: true }).click();
     const download = await pendingDownload;
     expect(download.suggestedFilename().endsWith(`.${extension}`)).toBe(true);
     expect(await download.failure()).toBeNull();

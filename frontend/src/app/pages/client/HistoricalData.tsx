@@ -1,10 +1,12 @@
 import { differenceInCalendarDays, format, parseISO } from "date-fns";
 import { es } from "date-fns/locale";
-import { Download, Loader2 } from "lucide-react";
+import { AlertTriangle, Check, ChartLine, Download, Loader2 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { CartesianGrid, Legend, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { BentoCard } from "../../components/BentoCard";
 import { ChartSkeleton } from "../../components/ChartSkeleton";
+import { EmptyState } from "../../components/EmptyState";
+import { PageHeader } from "../../components/PageHeader";
 import { PageTransition } from "../../components/PageTransition";
 import { PillButton } from "../../components/PillButton";
 import { ReadingDateRangeSelector } from "../../components/ReadingDateRangeSelector";
@@ -37,6 +39,26 @@ function displayValue(value: ReturnType<typeof columns[number]["value"]>) {
   if (value == null) return "Sin datos";
   if (typeof value === "boolean") return value ? "Encendido" : "Apagado";
   return value.toFixed(1);
+}
+
+function SeriesToggle({ active, color, onToggle, children }: { active: boolean; color: string; onToggle: () => void; children: string }) {
+  return (
+    <button
+      type="button"
+      aria-pressed={active}
+      onClick={onToggle}
+      className={`inline-flex min-h-[44px] items-center gap-2 rounded-full px-4 py-2 text-sm font-medium transition-colors
+        focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus-ring)] focus-visible:ring-offset-2
+        ${active
+          ? "border-2 bg-[var(--surface-card-primary)] text-[var(--text-main)]"
+          : "border border-[var(--border-strong)] text-[var(--text-subtle)] hover:bg-[var(--hover-overlay)]"}`}
+      style={active ? { borderColor: color } : undefined}
+    >
+      <span aria-hidden="true" className="h-3 w-3 flex-shrink-0 rounded-full" style={{ backgroundColor: active ? color : "transparent", border: `2px solid ${color}` }} />
+      {children}
+      {active && <Check aria-hidden="true" className="h-4 w-4" />}
+    </button>
+  );
 }
 
 export function HistoricalData() {
@@ -173,77 +195,47 @@ function AreaHistory() {
     <PageTransition>
     <div className="min-h-screen p-4 md:p-6 lg:p-8 overflow-x-hidden">
       <div className="mb-6 animate-fade-in-up">
-        <h1 className="text-2xl md:text-3xl font-serif text-[var(--text-title)] mb-2">Datos Históricos</h1>
-        <p className="text-[var(--text-subtle)]">Consulta el histórico de lecturas de {selectedArea ? selectedArea.name : "tus sensores"}</p>
+        <PageHeader
+          title="Datos Históricos"
+          subtitle={`Consulta el histórico de lecturas de ${selectedArea ? selectedArea.name : "tus sensores"}`}
+        />
       </div>
       <SelectionScopeBar className="mb-6" />
 
-      {!selectedArea && <p role="status">Selecciona un área de riego para consultar sus lecturas.</p>}
+      {!selectedArea && <p role="status" className="mb-4 text-[var(--text-body)]">Selecciona un área de riego para consultar sus lecturas.</p>}
       <BentoCard variant="light" className="mb-6">
         <ReadingDateRangeSelector irrigationAreaId={selectedArea?.id} {...filters} />
       </BentoCard>
 
       {/* Multi-line Chart */}
       <BentoCard variant="light" className="mb-6">
-        <h3 className="text-lg text-[var(--text-title)] mb-6">Gráfica de Métricas</h3>
-        <p className="mb-4 text-xs text-[var(--text-subtle)]">Las horas de la gráfica y la tabla se muestran en tu zona horaria local.</p>
+        <h2 className="text-lg text-[var(--text-title)] mb-2">Gráfica de Métricas</h2>
+        <p className="mb-4 text-sm text-[var(--text-subtle)]">Las horas de la gráfica y la tabla se muestran en tu zona horaria local.</p>
 
         {currentChart?.data && currentChart.data.readings.length < currentChart.data.total && (
-          <p role="status" className="mb-4 text-[var(--status-warning)]">
+          <p role="status" className="mb-4 flex items-start gap-2 rounded-2xl bg-[var(--status-warning-bg)] px-4 py-3 text-sm text-[var(--text-main)]">
+            <AlertTriangle aria-hidden="true" className="mt-0.5 h-4 w-4 flex-shrink-0 text-[var(--status-warning)]" />
             Gráfica parcial: {currentChart.data.readings.length} de {currentChart.data.total} lecturas del rango.
             Reduce el rango para ver más detalle. La tabla y la exportación incluyen todos los resultados.
           </p>
         )}
         {currentChart?.error ? (
-          <div role="alert">{currentChart.error} <button onClick={() => setRetry((n) => n + 1)}>Reintentar gráfica</button></div>
+          <div role="alert" className="flex flex-wrap items-center gap-3 text-[var(--text-body)]">
+            <span>{currentChart.error}</span>
+            <PillButton variant="outline" aria-label="Reintentar gráfica" onClick={() => setRetry((n) => n + 1)}>Reintentar</PillButton>
+          </div>
         ) : chartLoading ? (
           <ChartSkeleton title={false} height="sm" />
         ) : chartData.length > 0 ? (
           <div className="space-y-10 lg:space-y-12">
             <section className="rounded-2xl border border-[var(--border-subtle)] bg-[var(--surface-card-primary)] p-4 md:p-5">
               <div className="space-y-3">
-                <h4 className="text-sm md:text-base text-[var(--text-body)]">Suelo + Ambiental (Temperaturas y Humedades)</h4>
+                <h3 className="text-base font-medium text-[var(--text-body)]">Suelo + Ambiental (Temperaturas y Humedades)</h3>
                 <div className="flex flex-wrap items-center gap-2">
-                  <button
-                    onClick={() => toggleSoilEnvSeries("soilHumidity")}
-                    className={`px-3 py-1.5 rounded-full text-xs md:text-sm transition-all ${
-                      soilEnvSeries.soilHumidity
-                        ? "bg-[var(--accent-primary)] text-[var(--text-inverted)]"
-                        : "bg-[var(--surface-card-primary)] border border-[var(--border-subtle)] text-[var(--text-subtle)] hover:bg-[var(--hover-overlay)] hover:text-[var(--text-body)]"
-                    }`}
-                  >
-                    Humedad suelo
-                  </button>
-                  <button
-                    onClick={() => toggleSoilEnvSeries("relativeHumidity")}
-                    className={`px-3 py-1.5 rounded-full text-xs md:text-sm transition-all ${
-                      soilEnvSeries.relativeHumidity
-                        ? "bg-[var(--accent-gold)] text-[var(--text-inverted)]"
-                        : "bg-[var(--surface-card-primary)] border border-[var(--border-subtle)] text-[var(--text-subtle)] hover:bg-[var(--hover-overlay)] hover:text-[var(--text-body)]"
-                    }`}
-                  >
-                    H. Relativa
-                  </button>
-                  <button
-                    onClick={() => toggleSoilEnvSeries("soilTemp")}
-                    className={`px-3 py-1.5 rounded-full text-xs md:text-sm transition-all ${
-                      soilEnvSeries.soilTemp
-                        ? "bg-[var(--chart-4)] text-[var(--text-inverted)]"
-                        : "bg-[var(--surface-card-primary)] border border-[var(--border-subtle)] text-[var(--text-subtle)] hover:bg-[var(--hover-overlay)] hover:text-[var(--text-body)]"
-                    }`}
-                  >
-                    Temp. suelo
-                  </button>
-                  <button
-                    onClick={() => toggleSoilEnvSeries("airTemp")}
-                    className={`px-3 py-1.5 rounded-full text-xs md:text-sm transition-all ${
-                      soilEnvSeries.airTemp
-                        ? "bg-[var(--chart-3)] text-[var(--text-inverted)]"
-                        : "bg-[var(--surface-card-primary)] border border-[var(--border-subtle)] text-[var(--text-subtle)] hover:bg-[var(--hover-overlay)] hover:text-[var(--text-body)]"
-                    }`}
-                  >
-                    Temp. aire
-                  </button>
+                  <SeriesToggle active={soilEnvSeries.soilHumidity} color="var(--accent-primary)" onToggle={() => toggleSoilEnvSeries("soilHumidity")}>Humedad suelo</SeriesToggle>
+                  <SeriesToggle active={soilEnvSeries.relativeHumidity} color="var(--accent-gold)" onToggle={() => toggleSoilEnvSeries("relativeHumidity")}>H. Relativa</SeriesToggle>
+                  <SeriesToggle active={soilEnvSeries.soilTemp} color="var(--chart-4)" onToggle={() => toggleSoilEnvSeries("soilTemp")}>Temp. suelo</SeriesToggle>
+                  <SeriesToggle active={soilEnvSeries.airTemp} color="var(--chart-3)" onToggle={() => toggleSoilEnvSeries("airTemp")}>Temp. aire</SeriesToggle>
                 </div>
 
                 <div className="relative h-[320px] min-h-[320px]">
@@ -300,7 +292,7 @@ function AreaHistory() {
                         formatter={(value: number, name: string) => getLineValueFormatter(value, name)}
                         labelStyle={{ color: "var(--text-body)", marginBottom: "4px" }}
                       />
-                      <Legend wrapperStyle={{ color: "var(--text-body)" }} />
+                      <Legend formatter={(value) => <span style={{ color: "var(--text-body)" }}>{value}</span>} />
                       {soilEnvSeries.soilHumidity && (
                         <Line key="soil-env-line-soil-humidity" animationId={1101} yAxisId="percent" type="monotone" dataKey="soilHumidity" name="Humedad suelo (%)" stroke="var(--accent-primary)" strokeWidth={2.5} dot={false} />
                       )}
@@ -321,28 +313,10 @@ function AreaHistory() {
 
             <section className="rounded-2xl border border-[var(--border-subtle)] bg-[var(--surface-card-primary)] p-4 md:p-5">
               <div className="space-y-3">
-                <h4 className="text-sm md:text-base text-[var(--text-body)]">Riego + E.T.O.</h4>
+                <h3 className="text-base font-medium text-[var(--text-body)]">Riego + E.T.O.</h3>
                 <div className="flex flex-wrap items-center gap-2">
-                  <button
-                    onClick={() => toggleIrrigationSeries("waterFlow")}
-                    className={`px-3 py-1.5 rounded-full text-xs md:text-sm transition-all ${
-                      irrigationSeries.waterFlow
-                        ? "bg-[var(--accent-gold)] text-[var(--text-inverted)]"
-                        : "bg-[var(--surface-card-primary)] border border-[var(--border-subtle)] text-[var(--text-subtle)] hover:bg-[var(--hover-overlay)] hover:text-[var(--text-body)]"
-                    }`}
-                  >
-                    Flujo de agua
-                  </button>
-                  <button
-                    onClick={() => toggleIrrigationSeries("eto")}
-                    className={`px-3 py-1.5 rounded-full text-xs md:text-sm transition-all ${
-                      irrigationSeries.eto
-                        ? "bg-[var(--accent-primary)] text-[var(--text-inverted)]"
-                        : "bg-[var(--surface-card-primary)] border border-[var(--border-subtle)] text-[var(--text-subtle)] hover:bg-[var(--hover-overlay)] hover:text-[var(--text-body)]"
-                    }`}
-                  >
-                    E.T.O.
-                  </button>
+                  <SeriesToggle active={irrigationSeries.waterFlow} color="var(--accent-gold)" onToggle={() => toggleIrrigationSeries("waterFlow")}>Flujo de agua</SeriesToggle>
+                  <SeriesToggle active={irrigationSeries.eto} color="var(--accent-primary)" onToggle={() => toggleIrrigationSeries("eto")}>E.T.O.</SeriesToggle>
                 </div>
 
                 <div className="relative h-[320px] min-h-[320px]">
@@ -399,7 +373,7 @@ function AreaHistory() {
                         formatter={(value: number, name: string) => getLineValueFormatter(value, name)}
                         labelStyle={{ color: "var(--text-body)", marginBottom: "4px" }}
                       />
-                      <Legend wrapperStyle={{ color: "var(--text-body)" }} />
+                      <Legend formatter={(value) => <span style={{ color: "var(--text-body)" }}>{value}</span>} />
                       {irrigationSeries.waterFlow && (
                         <Line key="irrigation-line-water-flow" animationId={2101} yAxisId="flow" type="monotone" dataKey="waterFlow" name="Flujo agua (L/min)" stroke="var(--accent-gold)" strokeWidth={2.5} dot={false} />
                       )}
@@ -413,22 +387,20 @@ function AreaHistory() {
             </section>
           </div>
         ) : (
-          <div className="w-full h-[120px] flex items-center justify-center text-[var(--text-subtle)]">
-            {selectedArea && "No hay datos para el rango seleccionado"}
-          </div>
+          selectedArea ? <EmptyState icon={ChartLine} title="No hay datos para el rango seleccionado" description="Prueba con otro rango o ciclo de cultivo." /> : null
         )}
       </BentoCard>
 
       {/* Data Table */}
       <BentoCard variant="light">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
-          <h3 className="text-lg text-[var(--text-title)]">
+          <h2 className="text-lg text-[var(--text-title)]">
             Tabla de Datos{" "}
             <span className="text-sm text-[var(--text-subtle)] font-normal">
               {totalItems > 0 && `${totalItems} registros — pág. ${page} de ${totalPages}`}
             </span>
-          </h3>
-          <div className="flex gap-2">
+          </h2>
+          <div role="group" aria-label="Descargar resultados" className="flex flex-wrap gap-2">
             <PillButton variant="secondary" className="text-sm flex items-center gap-2" disabled={exporting || !selectedArea} onClick={() => handleExport('csv')}>
               <Download className="w-4 h-4" /> CSV
             </PillButton>
@@ -441,16 +413,23 @@ function AreaHistory() {
           </div>
         </div>
 
-        {exporting && <p role="status">Descargando archivo…</p>}
-        {exportError && <p role="alert">{exportError}</p>}
-        {currentTable?.error && <div role="alert">{currentTable.error} <button onClick={() => setRetry((n) => n + 1)}>Reintentar histórico</button></div>}
-        {loading && <p role="status">Cargando lecturas…</p>}
+        {exporting && <p role="status" className="mb-2 text-sm text-[var(--text-muted)]">Descargando archivo…</p>}
+        {exportError && <p role="alert" className="mb-2 text-sm text-[var(--status-danger-text)]">{exportError}</p>}
+        {currentTable?.error && (
+          <div role="alert" className="mb-4 flex flex-wrap items-center gap-3 text-[var(--text-body)]">
+            <span>{currentTable.error}</span>
+            <PillButton variant="outline" aria-label="Reintentar histórico" onClick={() => setRetry((n) => n + 1)}>Reintentar</PillButton>
+          </div>
+        )}
+        {loading && <p role="status" className="mb-2 text-sm text-[var(--text-muted)]">Cargando lecturas…</p>}
+        <p className="mb-2 text-sm text-[var(--text-subtle)] md:hidden">Desliza hacia los lados para ver todas las columnas.</p>
         <div className="overflow-x-auto -mx-4 px-4 md:mx-0 md:px-0">
           <table className="w-full min-w-[1500px]">
+            <caption className="sr-only">Lecturas del rango y ciclo seleccionados</caption>
             <thead>
               <tr className="border-b border-[var(--border-strong)]">
-                <th scope="col" className="text-left py-3 px-4 text-xs uppercase tracking-[0.08em] font-semibold text-[var(--text-subtle)]">Fecha/Hora (local)</th>
-                {columns.map(({ label }) => <th key={label} scope="col" className="text-left py-3 px-4 text-xs uppercase tracking-[0.08em] font-semibold text-[var(--text-subtle)]">{label}</th>)}
+                <th scope="col" className="sticky left-0 z-10 bg-[var(--surface-panel)] text-left py-3 px-4 text-sm font-semibold text-[var(--text-subtle)]">Fecha/Hora (local)</th>
+                {columns.map(({ label }) => <th key={label} scope="col" className="text-left py-3 px-4 text-sm font-semibold text-[var(--text-subtle)]">{label}</th>)}
               </tr>
             </thead>
             <tbody className="relative">
@@ -461,7 +440,7 @@ function AreaHistory() {
               )}
               {readings.map((r, i) => (
                 <tr key={r.id} className={i % 2 === 0 ? "bg-[var(--surface-card-primary)]/60 hover:bg-[var(--hover-overlay)]" : "hover:bg-[var(--hover-overlay)] transition-colors"}>
-                  <td className="py-3 px-4 text-sm text-[var(--text-body)]">
+                  <td className="sticky left-0 bg-[var(--surface-panel)] py-3 px-4 text-sm text-[var(--text-body)]">
                     {format(parseISO(normalizeTimestamp(r.timestamp)), "dd MMM yyyy, HH:mm", { locale: es })}
                   </td>
                   {columns.map(({ label, value }) => <td key={label} className="py-3 px-4 text-sm text-[var(--text-body)] font-mono-data font-medium">{displayValue(value(r))}</td>)}
@@ -473,32 +452,14 @@ function AreaHistory() {
 
         {/* Pagination */}
         {totalPages > 1 && (
-          <div className="flex items-center justify-center gap-2 mt-6 flex-wrap">
-            <button
-              disabled={page === 1}
-              onClick={() => setPage(1)}
-              className="px-4 py-2 rounded-full text-sm bg-[var(--surface-card-primary)] border border-[var(--border-subtle)] text-[var(--text-subtle)] hover:bg-[var(--hover-overlay)] hover:text-[var(--text-body)] disabled:opacity-50 transition-all"
-            >
-              Inicio
-            </button>
-            <button
-              disabled={page === 1}
-              onClick={() => setPage(p => p - 1)}
-              className="px-4 py-2 rounded-full text-sm bg-[var(--surface-card-primary)] border border-[var(--border-subtle)] text-[var(--text-subtle)] hover:bg-[var(--hover-overlay)] hover:text-[var(--text-body)] disabled:opacity-50 transition-all"
-            >
-              Anterior
-            </button>
-            <div className="px-4 text-sm text-[var(--text-subtle)] font-medium">
+          <nav aria-label="Paginación de la tabla" className="mt-6 flex flex-wrap items-center justify-center gap-2">
+            <PillButton variant="outline" disabled={page === 1} onClick={() => setPage(1)}>Inicio</PillButton>
+            <PillButton variant="outline" disabled={page === 1} onClick={() => setPage(p => p - 1)}>Anterior</PillButton>
+            <div className="px-4 text-sm font-medium text-[var(--text-subtle)]">
               Página {page} de {totalPages}
             </div>
-            <button
-              disabled={page === totalPages}
-              onClick={() => setPage(p => p + 1)}
-              className="px-4 py-2 rounded-full text-sm bg-[var(--surface-card-primary)] border border-[var(--border-subtle)] text-[var(--text-subtle)] hover:bg-[var(--hover-overlay)] hover:text-[var(--text-body)] disabled:opacity-50 transition-all"
-            >
-              Siguiente
-            </button>
-          </div>
+            <PillButton variant="outline" disabled={page === totalPages} onClick={() => setPage(p => p + 1)}>Siguiente</PillButton>
+          </nav>
         )}
       </BentoCard>
     </div>

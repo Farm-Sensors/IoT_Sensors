@@ -24,22 +24,23 @@ export function ChartSkeleton({
 
   return (
     <BentoCard variant={variant} className="flex flex-col gap-4">
+      <span role="status" className="sr-only">Cargando gráfica</span>
       {/* Title */}
       {title && (
         <>
-          <div className="h-6 w-40 rounded-full animate-pulse bg-black/10" />
-          <div className="h-4 w-56 rounded-full animate-pulse bg-black/10 opacity-50" />
+          <div className="h-6 w-40 rounded-full animate-shimmer" />
+          <div className="h-4 w-56 rounded-full animate-shimmer opacity-60" />
         </>
       )}
 
       {/* Chart placeholder */}
-      <div className={`${heightClass} rounded-[24px] animate-pulse bg-black/10`} />
+      <div className={`${heightClass} rounded-[24px] animate-shimmer`} />
 
       {/* Legend/Controls */}
       <div className="flex gap-3 mt-2">
-        <div className="h-4 w-20 rounded-full animate-pulse bg-black/10 opacity-60" />
-        <div className="h-4 w-20 rounded-full animate-pulse bg-black/10 opacity-60" />
-        <div className="h-4 w-20 rounded-full animate-pulse bg-black/10 opacity-60" />
+        <div className="h-4 w-20 rounded-full animate-shimmer" />
+        <div className="h-4 w-20 rounded-full animate-shimmer" />
+        <div className="h-4 w-20 rounded-full animate-shimmer" />
       </div>
     </BentoCard>
   );
