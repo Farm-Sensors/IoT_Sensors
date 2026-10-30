@@ -34,24 +34,24 @@ export function SelectionScopeBar({
     <div
       className={`rounded-2xl border border-[var(--border-subtle)] bg-[var(--surface-card-primary)] px-4 py-3 ${className}`}
     >
-      <div className="mb-2 flex flex-wrap items-center gap-2 text-xs font-semibold uppercase tracking-[0.12em] text-[var(--text-subtle)]">
-        <span>Contexto Activo</span>
-        {loading && <span className="normal-case tracking-normal">Cargando...</span>}
+      <div className="mb-2 flex flex-wrap items-center gap-2 text-sm font-medium text-[var(--text-subtle)]">
+        <span>Contexto activo</span>
+        {loading && <span role="status">Cargando…</span>}
       </div>
 
       {error && (
-        <p className="mb-3 text-sm text-[var(--status-danger)]">
+        <p role="alert" className="mb-3 text-sm text-[var(--status-danger-text)]">
           No se pudo cargar el contexto de predio/área.
         </p>
       )}
 
       <div className="flex flex-wrap items-center gap-2 text-sm">
         <span className="inline-flex items-center gap-2 rounded-full bg-[var(--surface-card-secondary)] px-3 py-1.5 text-[var(--text-body)]">
-          <MapPinned className="h-4 w-4 text-[var(--accent-primary)]" />
+          <MapPinned aria-hidden="true" className="h-4 w-4 text-[var(--accent-primary)]" />
           Predio: {selectedProperty?.name ?? "Sin seleccionar"}
         </span>
         <span className="inline-flex items-center gap-2 rounded-full bg-[var(--surface-card-secondary)] px-3 py-1.5 text-[var(--text-body)]">
-          <Sprout className="h-4 w-4 text-[var(--accent-primary)]" />
+          <Sprout aria-hidden="true" className="h-4 w-4 text-[var(--accent-primary)]" />
           Área: {selectedArea?.name ?? "Sin seleccionar"}
         </span>
       </div>
@@ -60,6 +60,7 @@ export function SelectionScopeBar({
         <div className="mt-3 grid grid-cols-1 gap-2 md:grid-cols-2">
           <label className="relative">
             <select
+              aria-label="Predio"
               value={selectedProperty?.id ?? ""}
               onChange={(event) => {
                 const nextProperty = properties.find(
@@ -75,7 +76,7 @@ export function SelectionScopeBar({
                 );
                 setSelectedArea(firstArea || null);
               }}
-              className="w-full appearance-none rounded-xl border border-[var(--border-subtle)] bg-[var(--surface-app)] py-2 pl-3 pr-9 text-sm text-[var(--text-body)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus-ring)]"
+              className="w-full appearance-none min-h-[44px] rounded-xl border border-[var(--border-subtle)] bg-[var(--surface-app)] py-2 pl-3 pr-9 text-sm text-[var(--text-body)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus-ring)]"
             >
               <option value="" disabled>
                 Selecciona predio
@@ -86,11 +87,12 @@ export function SelectionScopeBar({
                 </option>
               ))}
             </select>
-            <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[var(--text-subtle)]" />
+            <ChevronDown aria-hidden="true" className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[var(--text-subtle)]" />
           </label>
 
           <label className="relative">
             <select
+              aria-label="Área de riego"
               value={selectedArea?.id ?? ""}
               onChange={(event) => {
                 const nextArea = areas.find(
@@ -105,7 +107,7 @@ export function SelectionScopeBar({
                   setSelectedProperty(nextProperty || null);
                 }
               }}
-              className="w-full appearance-none rounded-xl border border-[var(--border-subtle)] bg-[var(--surface-app)] py-2 pl-3 pr-9 text-sm text-[var(--text-body)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus-ring)]"
+              className="w-full appearance-none min-h-[44px] rounded-xl border border-[var(--border-subtle)] bg-[var(--surface-app)] py-2 pl-3 pr-9 text-sm text-[var(--text-body)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus-ring)]"
             >
               <option value="" disabled>
                 Selecciona área
@@ -116,7 +118,7 @@ export function SelectionScopeBar({
                 </option>
               ))}
             </select>
-            <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[var(--text-subtle)]" />
+            <ChevronDown aria-hidden="true" className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[var(--text-subtle)]" />
           </label>
         </div>
       )}

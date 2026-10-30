@@ -42,10 +42,10 @@ export function FreshnessIndicator({ lastUpdate, variant = "light" }: FreshnessI
 
   return (
     <div
-      className={`flex items-center gap-2 text-sm ${textColor}`}
+      className={`flex items-start gap-2 text-sm ${textColor}`}
       title={`Estado del nodo: ${statusLabel}. Último dato recibido ${getTimeText(minutesAgo)}.`}
     >
-      <span className="relative flex items-center justify-center w-2.5 h-2.5">
+      <span className="relative mt-1.5 flex h-2.5 w-2.5 flex-shrink-0 items-center justify-center">
         {/* Pulsing ring when fresh */}
         {isPulsing && (
           <span
@@ -62,7 +62,10 @@ export function FreshnessIndicator({ lastUpdate, variant = "light" }: FreshnessI
           aria-hidden="true"
         />
       </span>
-      <span>{statusLabel} · Último dato: <time dateTime={lastUpdate.toISOString()}>{lastUpdate.toLocaleString("es-MX")}</time> · {getTimeText(minutesAgo)}</span>
+      <span className="flex flex-col">
+        <span className="font-medium">{statusLabel}</span>
+        <span>Último dato: <time dateTime={lastUpdate.toISOString()}>{lastUpdate.toLocaleString("es-MX")}</time> · {getTimeText(minutesAgo)}</span>
+      </span>
     </div>
   );
 }

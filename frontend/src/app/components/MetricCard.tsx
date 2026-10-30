@@ -26,12 +26,12 @@ export function MetricCard({
   priority = false,
 }: MetricCardProps) {
   return (
-    <BentoCard variant={variant} className="flex flex-col gap-4">
+    <BentoCard variant={variant} className="flex h-full flex-col gap-4">
       <div className="flex items-start justify-between">
         <div>
-          <h3 className={`text-lg ${variant === "dark" || variant === "brown" ? "text-[var(--text-on-dark)]" : "text-[var(--text-main)]"}`}>
+          <h2 className={`text-lg ${variant === "dark" || variant === "brown" ? "text-[var(--text-on-dark)]" : "text-[var(--text-main)]"}`}>
             {title}
-          </h3>
+          </h2>
           {subtitle && (
             <p className={`text-sm mt-1 ${variant === "dark" || variant === "brown" ? "text-[var(--text-on-dark)]/70" : "text-[var(--text-muted)]"}`}>
               {subtitle}
