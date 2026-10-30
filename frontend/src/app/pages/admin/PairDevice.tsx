@@ -1,4 +1,5 @@
 import { useSearchParams } from "react-router";
+import { PageHeader } from "../../components/PageHeader";
 import { PageTransition } from "../../components/PageTransition";
 import { PairingApprovalPanel } from "../../components/PairingApprovalPanel";
 
@@ -9,13 +10,10 @@ export function PairDevice() {
   return (
     <PageTransition>
       <div className="space-y-6">
-        <div>
-          <h1 className="text-2xl font-semibold">Verificar emparejamiento</h1>
-          <p className="mt-2 max-w-3xl text-[var(--text-muted)]">
-            Escribe el código que muestra la pantalla del equipo que estás instalando. Aprueba
-            la solicitud solo si el código coincide.
-          </p>
-        </div>
+        <PageHeader
+          title="Verificar emparejamiento"
+          subtitle="Escribe el código que muestra la pantalla del equipo que estás instalando. Aprueba la solicitud solo si el código coincide."
+        />
         <PairingApprovalPanel initialCode={initialCode} />
       </div>
     </PageTransition>

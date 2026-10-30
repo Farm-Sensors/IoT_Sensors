@@ -368,7 +368,7 @@ export function PairingApprovalPanel({
               )}
             </dl>
             <details className="mt-3 text-sm" open={!embedded}>
-              <summary className="cursor-pointer text-[var(--text-muted)]">
+              <summary className="inline-flex min-h-[44px] cursor-pointer items-center text-[var(--text-muted)]">
                 Datos reportados por el equipo
               </summary>
               <dl className="mt-2 grid gap-2 sm:grid-cols-3">
