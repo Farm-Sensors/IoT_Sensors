@@ -1,10 +1,18 @@
-import { MapPin } from "lucide-react";
+import { CheckCircle2, MapPin, XCircle } from "lucide-react";
+import { FormDialog } from "../../components/FormDialog";
+import { Field } from "../../components/Field";
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router";
 import { Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { BentoCard } from "../../components/BentoCard";
 import { FreshnessIndicator } from "../../components/FreshnessIndicator";
+import { Disclosure } from "../../components/Disclosure";
+import { ErrorState } from "../../components/ErrorState";
 import { GatewayStatusBadge } from "../../components/GatewayStatusBadge";
+import { HierarchyTrail } from "../../components/HierarchyTrail";
+import { PageHeader } from "../../components/PageHeader";
+import { SkeletonCard } from "../../components/SkeletonCard";
+import { StatusBadge } from "../../components/StatusBadge";
 import { MetricCard } from "../../components/MetricCard";
 import { PageTransition } from "../../components/PageTransition";
 import { PillButton } from "../../components/PillButton";
@@ -88,7 +96,7 @@ export function NodeDetail() {
             const sorted = [...readings].sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
             const chartData = sorted.map((r: any) => ({
               time: new Date(r.timestamp).toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' }),
-              soilHumidity: r.soil?.humidity || 0
+              soilHumidity: r.soil?.humidity ?? null
             }));
 
             setHistoricalData(chartData);
@@ -111,8 +119,8 @@ export function NodeDetail() {
   if (loading) {
     return (
       <PageTransition>
-        <div className="min-h-screen p-8 flex items-center justify-center">
-          <p className="text-[var(--text-subtle)]">Cargando nodo...</p>
+        <div className="min-h-screen p-4 md:p-6 lg:p-8">
+          <SkeletonCard lines={4} />
         </div>
       </PageTransition>
     );
@@ -121,10 +129,12 @@ export function NodeDetail() {
   if (error || !node) {
     return (
       <PageTransition>
-        <div className="min-h-screen p-8 flex items-center justify-center">
-          <BentoCard variant="light" className="border border-[var(--status-danger)]/25">
-            <p className="text-[var(--status-danger)] font-medium">{error || "Nodo no encontrado"}</p>
-            <Link to="/admin/nodos" className="text-[var(--accent-primary)] underline mt-4 block">Volver a nodos</Link>
+        <div className="min-h-screen p-4 md:p-6 lg:p-8">
+          <BentoCard variant="light">
+            <ErrorState message={error || "Nodo no encontrado"} />
+            <div className="flex justify-center pb-6">
+              <Link to="/admin/nodos" className="inline-flex min-h-[44px] items-center text-[var(--accent-primary)] underline">Volver a nodos</Link>
+            </div>
           </BentoCard>
         </div>
       </PageTransition>
@@ -187,35 +197,27 @@ export function NodeDetail() {
     <PageTransition>
     <div className="min-h-screen p-4 md:p-6 lg:p-8">
       <div className="mb-6">
-        <div className="flex items-center gap-2 text-sm text-[var(--text-subtle)] mb-2">
-          <Link to="/admin/nodos" className="hover:text-[var(--accent-primary)] transition-colors">Nodos</Link>
-          <span>/</span>
-          <span>{node.name || `Nodo #${node.id}`}</span>
-        </div>
-        <div className="flex items-start justify-between">
-          <div>
-            <h1 className="text-2xl md:text-3xl font-serif text-[var(--text-title)] mb-2">{node.name || `Nodo #${node.id}`}</h1>
-            <p className="text-[var(--text-subtle)] font-mono">{node.serial_number || '-'}</p>
-          </div>
-          <div className="flex items-center gap-3">
-            <span className={`px-4 py-2 rounded-full text-sm font-medium border ${
-              isNodeActive
-                ? "bg-[var(--status-active-bg)] text-[var(--status-active)] border-[var(--status-active)]/35"
-                : "bg-[var(--status-danger-bg)] text-[var(--status-danger)] border-[var(--status-danger)]/35"
-            }`}>
-              {isNodeActive ? "Activo" : "Inactivo"}
-            </span>
-            <PillButton type="button" variant="secondary" onClick={openEditForm}>
+        <HierarchyTrail
+          items={[
+            { label: "Nodos", to: "/admin/nodos" },
+            { label: node.name || `Nodo #${node.id}` },
+          ]}
+        />
+        <PageHeader
+          title={node.name || `Nodo #${node.id}`}
+          subtitle={area?.nombre || area?.name ? `Área: ${area?.nombre || area?.name}` : "Sin área vinculada"}
+          action={
+            <PillButton type="button" variant="primary" onClick={openEditForm}>
               Editar nodo
             </PillButton>
-          </div>
-        </div>
+          }
+        />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
         {/* Node info */}
         <BentoCard variant="light">
-          <h3 className="text-lg font-serif text-[var(--text-title)] mb-4">Información del Nodo</h3>
+          <h2 className="text-lg font-serif text-[var(--text-title)] mb-4">Información del Nodo</h2>
           <div className="space-y-4">
             <div>
               <p className="text-sm text-[var(--text-subtle)] mb-1">Área Vinculada</p>
@@ -225,9 +227,16 @@ export function NodeDetail() {
             </div>
 
             <div>
+              <p className="text-sm text-[var(--text-subtle)] mb-1">Estado</p>
+              <StatusBadge tone={isNodeActive ? "active" : "danger"} icon={isNodeActive ? CheckCircle2 : XCircle}>
+                {isNodeActive ? "Activo" : "Inactivo"}
+              </StatusBadge>
+            </div>
+
+            <div>
               <p className="text-sm text-[var(--text-subtle)] mb-1">Coordenadas GPS</p>
               <div className="flex items-center gap-2">
-                <MapPin className="w-4 h-4 text-[var(--text-subtle)]" />
+                <MapPin aria-hidden="true" className="w-4 h-4 text-[var(--text-subtle)]" />
                 <p className="font-mono text-sm text-[var(--text-main)]">
                   {(node.latitude !== null && node.longitude !== null)
                     ? `${node.latitude}, ${node.longitude}`
@@ -241,6 +250,13 @@ export function NodeDetail() {
               {lastUpdate && <FreshnessIndicator lastUpdate={lastUpdate} />}
               <GatewayStatusBadge />
             </div>
+
+            <Disclosure summary="Datos para soporte">
+              <dl className="space-y-2 font-mono text-[var(--text-main)]">
+                <div><dt className="font-sans text-[var(--text-subtle)]">Número de serie</dt><dd>{node.serial_number || "-"}</dd></div>
+                <div><dt className="font-sans text-[var(--text-subtle)]">ID del nodo</dt><dd>{node.id}</dd></div>
+              </dl>
+            </Disclosure>
           </div>
         </BentoCard>
       </div>
@@ -253,32 +269,29 @@ export function NodeDetail() {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
         <MetricCard
           title="Humedad del Suelo"
-          value={latestReading?.soil?.humidity ?? 0}
+          value={latestReading?.soil?.humidity ?? "Sin datos"}
           unit="%"
           variant="dark"
-          lastUpdate={lastUpdate}
         />
 
         <MetricCard
           title="Flujo de Agua"
-          value={latestReading?.irrigation?.flow_per_minute ?? 0}
+          value={latestReading?.irrigation?.flow_per_minute ?? "Sin datos"}
           unit="L/min"
           variant="dark"
-          lastUpdate={lastUpdate}
         />
 
         <MetricCard
           title="E.T.O."
-          value={latestReading?.environmental?.eto ?? 0}
+          value={latestReading?.environmental?.eto ?? "Sin datos"}
           unit="mm/día"
           variant="dark"
-          lastUpdate={lastUpdate}
         />
       </div>
 
       {/* Chart */}
       <BentoCard variant="light">
-        <h3 className="text-lg font-serif text-[var(--text-title)] mb-6">Humedad del Suelo - Últimas Lecturas</h3>
+        <h2 className="text-lg font-serif text-[var(--text-title)] mb-6">Humedad del Suelo - Últimas Lecturas</h2>
         <div className="h-[300px] min-h-[300px]">
           {historicalData.length > 0 ? (
             <ResponsiveContainer width="100%" height="100%">
@@ -326,56 +339,41 @@ export function NodeDetail() {
         </div>
       </BentoCard>
 
-      {showEditForm && (
-        <div className="fixed inset-0 bg-[var(--surface-page)]/75 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <BentoCard variant="light" className="w-full max-w-md max-h-[90vh] overflow-y-auto">
-            <h2 className="text-xl font-serif text-[var(--text-title)] mb-6">Editar Nodo IoT</h2>
+      {showEditForm && (<FormDialog open title="Editar Nodo IoT" onClose={closeEditForm}>
             <form onSubmit={handleUpdateNode} className="space-y-4">
-              <div>
-                <label className="block text-sm text-[var(--text-subtle)] mb-2">Nombre del Nodo</label>
-                <input
+              <Field label="Nombre del Nodo"><input
                   type="text"
                   value={editName}
                   onChange={(e) => setEditName(e.target.value)}
                   placeholder="Ej: Sensor Nogal-01"
                   className="w-full px-4 py-2.5 rounded-[24px] bg-[var(--surface-panel)] border border-[var(--border-strong)] text-[var(--text-main)] focus:outline-none focus:ring-2 focus:ring-[var(--focus-ring)]"
-                />
-              </div>
+                /></Field>
 
-              <div>
-                <label className="block text-sm text-[var(--text-subtle)] mb-2">Número de Serie</label>
-                <input
+              <Field label="Número de Serie"><input
                   type="text"
                   value={editSerialNumber}
                   onChange={(e) => setEditSerialNumber(e.target.value)}
                   placeholder="SN-2026-001"
                   className="w-full px-4 py-2.5 rounded-[24px] bg-[var(--surface-panel)] border border-[var(--border-strong)] text-[var(--text-main)] focus:outline-none focus:ring-2 focus:ring-[var(--focus-ring)]"
-                />
-              </div>
+                /></Field>
 
               <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-sm text-[var(--text-subtle)] mb-2">Latitud GPS</label>
-                  <input
+                <Field label="Latitud GPS"><input
                     type="number"
                     step="any"
                     value={editLat}
                     onChange={(e) => setEditLat(e.target.value)}
                     placeholder="28.6329"
                     className="w-full px-4 py-2.5 rounded-[24px] bg-[var(--surface-panel)] border border-[var(--border-strong)] text-[var(--text-main)] focus:outline-none focus:ring-2 focus:ring-[var(--focus-ring)]"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm text-[var(--text-subtle)] mb-2">Longitud GPS</label>
-                  <input
+                  /></Field>
+                <Field label="Longitud GPS"><input
                     type="number"
                     step="any"
                     value={editLng}
                     onChange={(e) => setEditLng(e.target.value)}
                     placeholder="-106.0691"
                     className="w-full px-4 py-2.5 rounded-[24px] bg-[var(--surface-panel)] border border-[var(--border-strong)] text-[var(--text-main)] focus:outline-none focus:ring-2 focus:ring-[var(--focus-ring)]"
-                  />
-                </div>
+                  /></Field>
               </div>
 
               <div>
@@ -399,9 +397,7 @@ export function NodeDetail() {
                 </PillButton>
               </div>
             </form>
-          </BentoCard>
-        </div>
-      )}
+          </FormDialog>)}
     </div>
     </PageTransition>
   );
