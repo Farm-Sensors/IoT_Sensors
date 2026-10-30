@@ -1,4 +1,10 @@
-import { Calendar, Plus, Trash2 } from "lucide-react";
+import { Calendar, Plus, Trash2, CheckCircle2 } from "lucide-react";
+import { StatusBadge } from "../../components/StatusBadge";
+import { PageHeader } from "../../components/PageHeader";
+import { SkeletonCard } from "../../components/SkeletonCard";
+import { ConfirmDialog } from "../../components/ConfirmDialog";
+import { FormDialog } from "../../components/FormDialog";
+import { Field } from "../../components/Field";
 import { useEffect, useState } from "react";
 import { BentoCard } from "../../components/BentoCard";
 import { EmptyState } from "../../components/EmptyState";
@@ -74,8 +80,8 @@ export function CropCycleManagement() {
     }
   };
 
+  const [pendingDelete, setPendingDelete] = useState<{ id: number; name: string } | null>(null);
   const handleDelete = async (id: number) => {
-    if (!window.confirm("¿Seguro que deseas eliminar este ciclo?")) return;
     try {
       setLoading(true);
       await api.delete(`/crop-cycles/${id}`);
@@ -97,9 +103,7 @@ export function CropCycleManagement() {
   if (loading && areas.length === 0) {
     return (
       <PageTransition>
-        <div className="flex justify-center items-center min-h-screen p-4 text-[var(--text-subtle)]">
-          Cargando datos...
-        </div>
+        <div className="min-h-screen p-4 md:p-6 lg:p-8"><SkeletonCard lines={4} /></div>
       </PageTransition>
     );
   }
@@ -107,19 +111,21 @@ export function CropCycleManagement() {
   return (
     <PageTransition>
     <div className="min-h-screen p-4 md:p-6 lg:p-8">
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <h1 className="text-2xl md:text-3xl font-serif text-[var(--text-title)] mb-2">Gestión de Ciclos de Cultivo</h1>
-          <p className="text-[var(--text-subtle)]">Administra los ciclos de cultivo por área</p>
-        </div>
-        <PillButton variant="primary" onClick={() => setShowCreateForm(true)}>
-          <Plus className="w-4 h-4 mr-2" />
-          Nuevo Ciclo
-        </PillButton>
+      <div className="mb-6">
+        <PageHeader
+          title="Gestión de Ciclos de Cultivo"
+          subtitle="Administra los ciclos de cultivo por área"
+          action={
+            <PillButton variant="primary" onClick={() => setShowCreateForm(true)}>
+              <Plus aria-hidden="true" className="w-4 h-4 mr-2" />
+              Nuevo Ciclo
+            </PillButton>
+          }
+        />
       </div>
 
       {error && (
-        <div className="mb-4 rounded-2xl border border-[var(--status-danger)]/25 bg-[var(--status-danger-bg)] px-4 py-3 text-sm text-[var(--status-danger)]">
+        <div role="alert" className="mb-4 rounded-2xl border border-[var(--status-danger)]/25 bg-[var(--status-danger-bg)] px-4 py-3 text-sm text-[var(--status-danger-text)]">
           {error}
         </div>
       )}
@@ -133,7 +139,7 @@ export function CropCycleManagement() {
 
           return (
             <BentoCard key={area.id} variant="light">
-              <h3 className="text-lg font-medium text-[var(--text-main)] mb-4">{area.name}</h3>
+              <h2 className="text-lg font-medium text-[var(--text-main)] mb-4">{area.name}</h2>
 
               <div className="space-y-3">
                 {areaCycles.map((cycle) => {
@@ -150,7 +156,7 @@ export function CropCycleManagement() {
                     >
                       <div className="flex items-center gap-4">
                         <div className={`p-2 rounded-full ${isActive ? 'bg-[var(--status-active)] text-[var(--text-inverted)]' : 'bg-[var(--surface-card-secondary)] text-[var(--text-subtle)]'}`}>
-                          <Calendar className="w-5 h-5" />
+                          <Calendar aria-hidden="true" className="w-5 h-5" />
                         </div>
                         <div>
                           <div className="flex items-center gap-2">
@@ -158,19 +164,18 @@ export function CropCycleManagement() {
                               {formatDate(cycle.start_date)} - {cycle.end_date ? formatDate(cycle.end_date) : 'Actual'}
                             </span>
                             {isActive && (
-                              <span className="px-2 py-0.5 text-xs rounded-full bg-[var(--status-active-bg)] text-[var(--status-active)] border border-[var(--status-active)]/30">
-                                Activo
-                              </span>
+                              <StatusBadge tone="active" icon={CheckCircle2}>Activo</StatusBadge>
                             )}
                           </div>
                         </div>
                       </div>
                       <button
                         type="button"
-                        onClick={() => handleDelete(cycle.id)}
-                        className="p-2 rounded-full hover:bg-[var(--status-danger-bg)] transition-colors"
+                        onClick={() => setPendingDelete({ id: cycle.id, name: `${cycle.start_date} — ${cycle.end_date ?? "sin fecha de fin"}` })}
+                        aria-label={`Eliminar el ciclo ${formatDate(cycle.start_date)} - ${cycle.end_date ? formatDate(cycle.end_date) : "Actual"} de ${area.name}`}
+                        className="inline-flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-full hover:bg-[var(--status-danger-bg)] transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus-ring)]"
                       >
-                        <Trash2 className="w-4 h-4 text-[var(--status-danger)]" />
+                        <Trash2 aria-hidden="true" className="w-4 h-4 text-[var(--status-danger)]" />
                       </button>
                     </div>
                   );
@@ -199,14 +204,9 @@ export function CropCycleManagement() {
         )}
       </div>
 
-      {showCreateForm && (
-        <div className="fixed inset-0 bg-[var(--surface-page)]/75 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <BentoCard variant="light" className="w-full max-w-md">
-            <h2 className="text-xl font-serif text-[var(--text-title)] mb-6">Nuevo Ciclo de Cultivo</h2>
+      {showCreateForm && (<FormDialog open title="Nuevo Ciclo de Cultivo" onClose={() => setShowCreateForm(false)}>
             <form onSubmit={handleCreate} className="space-y-4">
-              <div>
-                <label className="block text-sm text-[var(--text-subtle)] mb-2">Área de Riego</label>
-                <select
+              <Field label="Área de Riego"><select
                   required
                   value={formAreaId}
                   onChange={(e) => setFormAreaId(e.target.value)}
@@ -216,29 +216,22 @@ export function CropCycleManagement() {
                   {areas.map((area) => (
                     <option key={area.id} value={area.id}>{area.name}</option>
                   ))}
-                </select>
-              </div>
+                </select></Field>
 
-              <div>
-                <label className="block text-sm text-[var(--text-subtle)] mb-2">Fecha de Inicio</label>
-                <input
+              <Field label="Fecha de Inicio"><input
                   type="date"
                   required
                   value={formStartDate}
                   onChange={(e) => setFormStartDate(e.target.value)}
                   className="w-full px-4 py-2.5 rounded-[24px] bg-[var(--surface-panel)] border border-[var(--border-strong)] text-[var(--text-main)] focus:outline-none focus:ring-2 focus:ring-[var(--focus-ring)]"
-                />
-              </div>
+                /></Field>
 
-              <div>
-                <label className="block text-sm text-[var(--text-subtle)] mb-2">Fecha de Fin (opcional)</label>
-                <input
+              <Field label="Fecha de Fin (opcional)"><input
                   type="date"
                   value={formEndDate}
                   onChange={(e) => setFormEndDate(e.target.value)}
                   className="w-full px-4 py-2.5 rounded-[24px] bg-[var(--surface-panel)] border border-[var(--border-strong)] text-[var(--text-main)] focus:outline-none focus:ring-2 focus:ring-[var(--focus-ring)]"
-                />
-              </div>
+                /></Field>
 
               <div className="flex gap-3 pt-4">
                 <PillButton variant="secondary" type="button" className="flex-1" onClick={() => setShowCreateForm(false)}>
@@ -249,9 +242,21 @@ export function CropCycleManagement() {
                 </PillButton>
               </div>
             </form>
-          </BentoCard>
-        </div>
-      )}
+          </FormDialog>)}
+      <ConfirmDialog
+        open={pendingDelete !== null}
+        variant="danger"
+        title={`¿Eliminar el ciclo de cultivo ${pendingDelete?.name ?? ""}?`}
+        description="Esta acción no se puede deshacer."
+        confirmLabel="Eliminar"
+        onConfirm={() => {
+          const target = pendingDelete;
+          setPendingDelete(null);
+          if (target) void handleDelete(target.id);
+        }}
+        onCancel={() => setPendingDelete(null)}
+      />
+
     </div>
     </PageTransition>
   );
