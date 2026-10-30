@@ -1,0 +1,116 @@
+{
+  "inicio": [
+    "POST /auth/login?"
+  ],
+  "historico: carga inicial": [
+    "GET /crop-cycles?irrigation_area_id=5&page=1&per_page=200",
+    "GET /readings/availability?irrigation_area_id=5&month_start=2026-10-01",
+    "GET /readings?end_date=2026-10-29&irrigation_area_id=5&page=1&per_page=20&start_date=2026-10-23",
+    "GET /readings?end_date=2026-10-29&irrigation_area_id=5&page=1&per_page=200&start_date=2026-10-23",
+    "GET /readings/availability?irrigation_area_id=5&month_start=2026-10-01",
+    "GET /readings?end_date=2026-10-29&irrigation_area_id=5&page=2&per_page=200&start_date=2026-10-23",
+    "GET /readings?end_date=2026-10-29&irrigation_area_id=5&page=3&per_page=200&start_date=2026-10-23",
+    "GET /readings?end_date=2026-10-29&irrigation_area_id=5&page=4&per_page=200&start_date=2026-10-23",
+    "GET /readings?end_date=2026-10-29&irrigation_area_id=5&page=5&per_page=200&start_date=2026-10-23",
+    "GET /readings?end_date=2026-10-29&irrigation_area_id=5&page=6&per_page=200&start_date=2026-10-23"
+  ],
+  "historico: preset Hoy": [
+    "GET /readings?end_date=2026-10-29&irrigation_area_id=5&page=1&per_page=20&start_date=2026-10-29",
+    "GET /readings?end_date=2026-10-29&irrigation_area_id=5&page=1&per_page=200&start_date=2026-10-29",
+    "GET /readings/availability?irrigation_area_id=5&month_start=2026-10-01"
+  ],
+  "historico: preset Últimos 30 días": [
+    "GET /readings?end_date=2026-10-29&irrigation_area_id=5&page=1&per_page=20&start_date=2026-09-30",
+    "GET /readings?end_date=2026-10-29&irrigation_area_id=5&page=1&per_page=200&start_date=2026-09-30",
+    "GET /readings/availability?irrigation_area_id=5&month_start=2026-10-01",
+    "GET /readings?end_date=2026-10-29&irrigation_area_id=5&page=2&per_page=200&start_date=2026-09-30",
+    "GET /readings?end_date=2026-10-29&irrigation_area_id=5&page=3&per_page=200&start_date=2026-09-30",
+    "GET /readings?end_date=2026-10-29&irrigation_area_id=5&page=4&per_page=200&start_date=2026-09-30",
+    "GET /readings?end_date=2026-10-29&irrigation_area_id=5&page=5&per_page=200&start_date=2026-09-30",
+    "GET /readings?end_date=2026-10-29&irrigation_area_id=5&page=6&per_page=200&start_date=2026-09-30",
+    "GET /readings?end_date=2026-10-29&irrigation_area_id=5&page=7&per_page=200&start_date=2026-09-30",
+    "GET /readings?end_date=2026-10-29&irrigation_area_id=5&page=8&per_page=200&start_date=2026-09-30"
+  ],
+  "historico: preset Este mes": [
+    "GET /readings?end_date=2026-10-29&irrigation_area_id=5&page=1&per_page=20&start_date=2026-10-01",
+    "GET /readings?end_date=2026-10-29&irrigation_area_id=5&page=1&per_page=200&start_date=2026-10-01",
+    "GET /readings/availability?irrigation_area_id=5&month_start=2026-10-01",
+    "GET /readings?end_date=2026-10-29&irrigation_area_id=5&page=2&per_page=200&start_date=2026-10-01",
+    "GET /readings?end_date=2026-10-29&irrigation_area_id=5&page=3&per_page=200&start_date=2026-10-01",
+    "GET /readings?end_date=2026-10-29&irrigation_area_id=5&page=4&per_page=200&start_date=2026-10-01",
+    "GET /readings?end_date=2026-10-29&irrigation_area_id=5&page=5&per_page=200&start_date=2026-10-01",
+    "GET /readings?end_date=2026-10-29&irrigation_area_id=5&page=6&per_page=200&start_date=2026-10-01",
+    "GET /readings?end_date=2026-10-29&irrigation_area_id=5&page=7&per_page=200&start_date=2026-10-01",
+    "GET /readings?end_date=2026-10-29&irrigation_area_id=5&page=8&per_page=200&start_date=2026-10-01"
+  ],
+  "historico: preset Este año": [
+    "GET /readings?end_date=2026-10-29&irrigation_area_id=5&page=1&per_page=20&start_date=2026-01-01",
+    "GET /readings?end_date=2026-10-29&irrigation_area_id=5&page=1&per_page=200&start_date=2026-01-01",
+    "GET /readings/availability?irrigation_area_id=5&month_start=2026-10-01",
+    "GET /readings?end_date=2026-10-29&irrigation_area_id=5&page=2&per_page=200&start_date=2026-01-01",
+    "GET /readings?end_date=2026-10-29&irrigation_area_id=5&page=3&per_page=200&start_date=2026-01-01",
+    "GET /readings?end_date=2026-10-29&irrigation_area_id=5&page=4&per_page=200&start_date=2026-01-01",
+    "GET /readings?end_date=2026-10-29&irrigation_area_id=5&page=5&per_page=200&start_date=2026-01-01",
+    "GET /readings?end_date=2026-10-29&irrigation_area_id=5&page=6&per_page=200&start_date=2026-01-01",
+    "GET /readings?end_date=2026-10-29&irrigation_area_id=5&page=7&per_page=200&start_date=2026-01-01",
+    "GET /readings?end_date=2026-10-29&irrigation_area_id=5&page=8&per_page=200&start_date=2026-01-01"
+  ],
+  "historico: preset Últimos 7 días": [
+    "GET /readings?end_date=2026-10-29&irrigation_area_id=5&page=1&per_page=20&start_date=2026-10-23",
+    "GET /readings?end_date=2026-10-29&irrigation_area_id=5&page=1&per_page=200&start_date=2026-10-23",
+    "GET /readings/availability?irrigation_area_id=5&month_start=2026-10-01",
+    "GET /readings?end_date=2026-10-29&irrigation_area_id=5&page=2&per_page=200&start_date=2026-10-23",
+    "GET /readings?end_date=2026-10-29&irrigation_area_id=5&page=3&per_page=200&start_date=2026-10-23",
+    "GET /readings?end_date=2026-10-29&irrigation_area_id=5&page=4&per_page=200&start_date=2026-10-23",
+    "GET /readings?end_date=2026-10-29&irrigation_area_id=5&page=5&per_page=200&start_date=2026-10-23",
+    "GET /readings?end_date=2026-10-29&irrigation_area_id=5&page=6&per_page=200&start_date=2026-10-23"
+  ],
+  "historico: ciclo": [
+    "opciones: Todos los ciclos | 2026-10-01 — Sin fecha de fin",
+    "GET /readings?crop_cycle_id=1&end_date=2026-10-29&irrigation_area_id=5&page=1&per_page=20&start_date=2026-10-23",
+    "GET /readings?crop_cycle_id=1&end_date=2026-10-29&irrigation_area_id=5&page=1&per_page=200&start_date=2026-10-23",
+    "GET /readings?crop_cycle_id=1&end_date=2026-10-29&irrigation_area_id=5&page=2&per_page=200&start_date=2026-10-23",
+    "GET /readings?crop_cycle_id=1&end_date=2026-10-29&irrigation_area_id=5&page=3&per_page=200&start_date=2026-10-23",
+    "GET /readings?crop_cycle_id=1&end_date=2026-10-29&irrigation_area_id=5&page=4&per_page=200&start_date=2026-10-23",
+    "GET /readings?crop_cycle_id=1&end_date=2026-10-29&irrigation_area_id=5&page=5&per_page=200&start_date=2026-10-23",
+    "GET /readings?crop_cycle_id=1&end_date=2026-10-29&irrigation_area_id=5&page=6&per_page=200&start_date=2026-10-23",
+    "GET /readings?crop_cycle_id=1&end_date=2026-10-29&irrigation_area_id=5&page=7&per_page=200&start_date=2026-10-23",
+    "GET /readings?crop_cycle_id=1&end_date=2026-10-29&irrigation_area_id=5&page=8&per_page=200&start_date=2026-10-23"
+  ],
+  "historico: pagina siguiente": [
+    "GET /readings?crop_cycle_id=1&end_date=2026-10-29&irrigation_area_id=5&page=2&per_page=20&start_date=2026-10-23"
+  ],
+  "historico: exportar CSV": [
+    "GET /readings/export?crop_cycle_id=1&end_date=2026-10-29&format=csv&irrigation_area_id=5&start_date=2026-10-23"
+  ],
+  "historico: exportar Excel": [
+    "GET /readings/export?crop_cycle_id=1&end_date=2026-10-29&format=xlsx&irrigation_area_id=5&start_date=2026-10-23"
+  ],
+  "historico: exportar PDF": [
+    "GET /readings/export?crop_cycle_id=1&end_date=2026-10-29&format=pdf&irrigation_area_id=5&start_date=2026-10-23"
+  ],
+  "exportar: carga inicial": [
+    "GET /crop-cycles?irrigation_area_id=5&page=1&per_page=200",
+    "GET /readings/availability?irrigation_area_id=5&month_start=2026-10-01",
+    "GET /readings/availability?irrigation_area_id=5&month_start=2026-10-01"
+  ],
+  "exportar: preset Últimos 30 días": [
+    "GET /readings/availability?irrigation_area_id=5&month_start=2026-10-01"
+  ],
+  "exportar: CSV": [
+    "GET /readings/export?end_date=2026-10-29&format=csv&irrigation_area_id=5&start_date=2026-09-30"
+  ],
+  "exportar: Excel": [
+    "GET /readings/export?end_date=2026-10-29&format=xlsx&irrigation_area_id=5&start_date=2026-09-30"
+  ],
+  "exportar: PDF": [
+    "GET /readings/export?end_date=2026-10-29&format=pdf&irrigation_area_id=5&start_date=2026-09-30"
+  ],
+  "mapa: carga inicial": [
+    "GET /nodes/geo?include_without_coordinates=true&per_page=200",
+    "GET /nodes/geo?include_without_coordinates=true&irrigation_area_id=5&per_page=200&property_id=2"
+  ],
+  "mapa: actualizar capa": [
+    "GET /nodes/geo?include_without_coordinates=true&irrigation_area_id=5&per_page=200&property_id=2"
+  ]
+}
