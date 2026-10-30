@@ -56,11 +56,25 @@ make dev-reset   # pide escribir "si"; borra la base local y .dev/
 
 > **Una copia por equipo:** `docker-compose.yml` fija `container_name: sensores_mysql`, así que solo puede correr un stack local a la vez en la misma máquina.
 
+### Pruebas E2E (Playwright)
+
+Con el stack local arriba (`make dev`), desde `frontend/`:
+
+```bash
+npx playwright install chromium   # una sola vez: descarga el navegador
+npm run test:e2e                  # suite completa (escritorio + móvil)
+npm run test:e2e:ui               # modo interactivo
+```
+
+La suite maneja la app real: no la arranca ni la detiene, y si el backend o el frontend no responden se detiene con «Levanta el stack local con make dev». Crea sus datos con prefijo `E2E ` y los limpia al terminar; los datos del seed no se tocan.
+
 ### Paso a paso
 
 ```bash
 # Paso 0 — Variables de entorno del backend (obligatorio)
 cd backend && cp .env.example .env
+# Para correr las pruebas E2E varias veces seguidas, añade a backend/.env:
+#   LOGIN_RATE_LIMIT_MAX_ATTEMPTS=1000   (por defecto: 10 inicios de sesión por 15 min; `make dev` ya lo añade)
 
 # Paso 1 — Base de Datos (desde la raíz)
 docker compose up -d mysql
