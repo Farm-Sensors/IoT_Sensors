@@ -53,7 +53,7 @@ export function RevokeLinkButton({ gateway, onRevoked, variant = "button" }: Rev
         disabled={revoking}
         aria-busy={revoking}
         onClick={() => setOpen(true)}
-        className={`inline-flex items-center gap-2 font-medium text-[var(--status-danger-text)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus-ring)] focus-visible:ring-offset-2 disabled:opacity-[var(--disabled-opacity)] ${VARIANT_CLASSES[variant]}`}
+        className={`inline-flex min-h-[44px] items-center gap-2 font-medium text-[var(--status-danger-text)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus-ring)] focus-visible:ring-offset-2 disabled:opacity-[var(--disabled-opacity)] ${VARIANT_CLASSES[variant]}`}
       >
         {revoking && <Loader2 aria-hidden="true" className="h-4 w-4 animate-spin" />}
         Revocar enlace

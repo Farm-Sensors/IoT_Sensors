@@ -1,4 +1,8 @@
-import { Pencil, Plus, Radio, Trash2 } from "lucide-react";
+import { Pencil, Plus, Radio, Trash2, CheckCircle2, XCircle } from "lucide-react";
+import { PageHeader } from "../../components/PageHeader";
+import { ConfirmDialog } from "../../components/ConfirmDialog";
+import { FormDialog } from "../../components/FormDialog";
+import { StatusBadge } from "../../components/StatusBadge";
 import { useEffect, useState } from "react";
 import { BentoCard } from "../../components/BentoCard";
 import { EmptyState } from "../../components/EmptyState";
@@ -193,8 +197,8 @@ export function NodeManagement() {
     }
   };
 
+  const [pendingDelete, setPendingDelete] = useState<{ id: number; name: string } | null>(null);
   const handleDelete = async (id: number) => {
-    if (!window.confirm("¿Seguro que deseas eliminar este nodo?")) return;
     try {
       setLoading(true);
       setError(null);
@@ -256,19 +260,21 @@ export function NodeManagement() {
   return (
     <PageTransition>
     <div className="min-h-screen p-4 md:p-6 lg:p-8">
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <h1 className="text-2xl md:text-3xl font-serif text-[var(--text-title)] mb-2">Gestión de Nodos</h1>
-          <p className="text-[var(--text-subtle)]">Administra los sensores IoT del sistema</p>
-        </div>
-        <PillButton variant="primary" onClick={() => setShowCreateForm(true)}>
-          <Plus className="w-4 h-4 mr-2" />
-          Nuevo Nodo
-        </PillButton>
+      <div className="mb-6">
+        <PageHeader
+          title="Gestión de Nodos"
+          subtitle="Administra los sensores IoT del sistema"
+          action={
+            <PillButton variant="primary" onClick={() => setShowCreateForm(true)}>
+              <Plus aria-hidden="true" className="w-4 h-4 mr-2" />
+              Nuevo Nodo
+            </PillButton>
+          }
+        />
       </div>
 
       {error && (
-        <div className="mb-4 rounded-2xl border border-[var(--status-danger)]/25 bg-[var(--status-danger-bg)] px-4 py-3 text-sm text-[var(--status-danger)]">
+        <div role="alert" className="mb-4 rounded-2xl border border-[var(--status-danger)]/25 bg-[var(--status-danger-bg)] px-4 py-3 text-sm text-[var(--status-danger-text)]">
           {error}
         </div>
       )}
@@ -279,13 +285,13 @@ export function NodeManagement() {
           <table className="w-full text-left border-collapse">
             <thead>
               <tr className="border-b border-[var(--border-strong)]">
-                <th scope="col" className="text-left py-3 px-4 text-xs font-semibold uppercase tracking-[0.08em] text-[var(--text-subtle)]">Nombre</th>
-                <th scope="col" className="text-left py-3 px-4 text-xs font-semibold uppercase tracking-[0.08em] text-[var(--text-subtle)]">Serie</th>
-                <th scope="col" className="text-left py-3 px-4 text-xs font-semibold uppercase tracking-[0.08em] text-[var(--text-subtle)]">Área Vinculada</th>
-                <th scope="col" className="text-left py-3 px-4 text-xs font-semibold uppercase tracking-[0.08em] text-[var(--text-subtle)]">GPS</th>
-                <th scope="col" className="text-left py-3 px-4 text-xs font-semibold uppercase tracking-[0.08em] text-[var(--text-subtle)]">Habilitado</th>
-                <th scope="col" className="text-left py-3 px-4 text-xs font-semibold uppercase tracking-[0.08em] text-[var(--text-subtle)]">Última lectura</th>
-                <th scope="col" className="text-left py-3 px-4 text-xs font-semibold uppercase tracking-[0.08em] text-[var(--text-subtle)]">Acciones</th>
+                <th scope="col" className="text-left py-3 px-4 text-sm font-semibold text-[var(--text-subtle)]">Nombre</th>
+                <th scope="col" className="text-left py-3 px-4 text-sm font-semibold text-[var(--text-subtle)]">Serie</th>
+                <th scope="col" className="text-left py-3 px-4 text-sm font-semibold text-[var(--text-subtle)]">Área Vinculada</th>
+                <th scope="col" className="text-left py-3 px-4 text-sm font-semibold text-[var(--text-subtle)]">GPS</th>
+                <th scope="col" className="text-left py-3 px-4 text-sm font-semibold text-[var(--text-subtle)]">Habilitado</th>
+                <th scope="col" className="text-left py-3 px-4 text-sm font-semibold text-[var(--text-subtle)]">Última lectura</th>
+                <th scope="col" className="text-left py-3 px-4 text-sm font-semibold text-[var(--text-subtle)]">Acciones</th>
               </tr>
             </thead>
             <tbody>
@@ -309,13 +315,7 @@ export function NodeManagement() {
                     }
                   </td>
                   <td className="py-4 px-4">
-                    <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
-                      node.is_active
-                        ? 'bg-[var(--accent-primary)]/10 text-[var(--accent-primary)] border border-[var(--accent-primary)]/20'
-                        : 'bg-[var(--status-danger-bg)] text-[var(--status-danger)] border border-[var(--status-danger)]/30'
-                    }`}>
-                      {node.is_active ? 'Sí' : 'No'}
-                    </span>
+                    <StatusBadge tone={node.is_active ? "active" : "danger"} icon={node.is_active ? CheckCircle2 : XCircle}>{node.is_active ? "Sí" : "No"}</StatusBadge>
                   </td>
                   <td className="py-4 px-4 text-sm text-[var(--text-subtle)]">
                     {lastReadings[node.id]
@@ -327,18 +327,20 @@ export function NodeManagement() {
                       <button
                         type="button"
                         onClick={() => handleOpenEdit(node)}
-                        className="p-2 rounded-full hover:bg-[var(--hover-overlay)] transition-colors"
+                        aria-label={`Editar el nodo ${node.name || node.serial_number || `#${node.id}`}`}
+                        className="inline-flex h-11 w-11 items-center justify-center rounded-full hover:bg-[var(--hover-overlay)] transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus-ring)]"
                         title="Editar nodo"
                       >
-                        <Pencil className="w-4 h-4 text-[var(--text-main)]" />
+                        <Pencil aria-hidden="true" className="w-4 h-4 text-[var(--text-main)]" />
                       </button>
                       <button
                         type="button"
-                        onClick={() => handleDelete(node.id)}
-                        className="p-2 rounded-full hover:bg-[var(--status-danger-bg)] transition-colors"
+                        onClick={() => setPendingDelete({ id: node.id, name: node.name || node.serial_number || `#${node.id}` })}
+                        aria-label={`Eliminar el nodo ${node.name || node.serial_number || `#${node.id}`}`}
+                        className="inline-flex h-11 w-11 items-center justify-center rounded-full hover:bg-[var(--status-danger-bg)] transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus-ring)]"
                         title="Eliminar nodo"
                       >
-                        <Trash2 className="w-4 h-4 text-[var(--status-danger)]" />
+                        <Trash2 aria-hidden="true" className="w-4 h-4 text-[var(--status-danger)]" />
                       </button>
                     </div>
                   </td>
@@ -363,10 +365,7 @@ export function NodeManagement() {
       </BentoCard>
 
       {/* Create form */}
-      {showCreateForm && (
-        <div className="fixed inset-0 bg-[var(--surface-page)]/75 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <BentoCard variant="light" className="w-full max-w-md max-h-[90vh] overflow-y-auto">
-            <h2 className="text-xl font-serif text-[var(--text-title)] mb-6">Nuevo Nodo IoT</h2>
+      {showCreateForm && (<FormDialog open title="Nuevo Nodo IoT" onClose={() => setShowCreateForm(false)}>
             <form onSubmit={handleCreate} className="space-y-4">
               <div>
                 <label htmlFor="node-create-area" className="block text-sm text-[var(--text-subtle)] mb-2">Área de Riego (Obligatorio)</label>
@@ -448,15 +447,10 @@ export function NodeManagement() {
                 </PillButton>
               </div>
             </form>
-          </BentoCard>
-        </div>
-      )}
+          </FormDialog>)}
 
       {/* Edit form */}
-      {showEditForm && editingNode && (
-        <div className="fixed inset-0 bg-[var(--surface-page)]/75 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <BentoCard variant="light" className="w-full max-w-md max-h-[90vh] overflow-y-auto">
-            <h2 className="text-xl font-serif text-[var(--text-title)] mb-6">Editar Nodo IoT</h2>
+      {showEditForm && editingNode && (<FormDialog open title="Editar Nodo IoT" onClose={closeEditForm}>
             <form onSubmit={handleUpdate} className="space-y-4">
               <div>
                 <label htmlFor="node-edit-area" className="block text-sm text-[var(--text-subtle)] mb-2">Área de Riego</label>
@@ -545,9 +539,21 @@ export function NodeManagement() {
                 </PillButton>
               </div>
             </form>
-          </BentoCard>
-        </div>
-      )}
+          </FormDialog>)}
+      <ConfirmDialog
+        open={pendingDelete !== null}
+        variant="danger"
+        title={`¿Eliminar el nodo ${pendingDelete?.name ?? ""}?`}
+        description="Esta acción no se puede deshacer."
+        confirmLabel="Eliminar"
+        onConfirm={() => {
+          const target = pendingDelete;
+          setPendingDelete(null);
+          if (target) void handleDelete(target.id);
+        }}
+        onCancel={() => setPendingDelete(null)}
+      />
+
     </div>
     </PageTransition>
   );

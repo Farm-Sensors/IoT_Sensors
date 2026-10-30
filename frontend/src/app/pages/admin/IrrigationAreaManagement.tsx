@@ -1,6 +1,11 @@
-import { Pencil, Plus, Trash2, XCircle } from "lucide-react";
+import { Pencil, Plus, Trash2 } from "lucide-react";
+import { PageHeader } from "../../components/PageHeader";
+import { SkeletonCard } from "../../components/SkeletonCard";
+import { HierarchyTrail } from "../../components/HierarchyTrail";
+import { ConfirmDialog } from "../../components/ConfirmDialog";
+import { FormDialog } from "../../components/FormDialog";
 import { useEffect, useState } from "react";
-import { Link, useParams } from "react-router";
+import { useParams } from "react-router";
 import { BentoCard } from "../../components/BentoCard";
 import { EmptyState } from "../../components/EmptyState";
 import { PageTransition } from "../../components/PageTransition";
@@ -158,8 +163,8 @@ export function IrrigationAreaManagement() {
     }
   };
 
+  const [pendingDelete, setPendingDelete] = useState<{ id: number; name: string } | null>(null);
   const handleDelete = async (areaId: number) => {
-    if (!window.confirm("¿Seguro que deseas eliminar esta área de riego?")) return;
     try {
       await api.delete(`/irrigation-areas/${areaId}`);
       fetchData();
@@ -173,28 +178,24 @@ export function IrrigationAreaManagement() {
     <PageTransition>
     <div className="min-h-screen p-4 md:p-6 lg:p-8">
       <div className="mb-6">
-        <div className="flex items-center gap-2 text-sm text-[var(--text-subtle)] mb-2 flex-wrap">
-          <Link to="/admin/clientes" className="hover:text-[var(--accent-primary)] transition-colors">Clientes</Link>
-          <span>/</span>
-          {clientId ? (
-            <Link to={`/admin/clientes/${clientId}/predios`} className="hover:text-[var(--accent-primary)] transition-colors">
-              {clientName}
-            </Link>
-          ) : (
-             <span>{clientName}</span>
-          )}
-          <span>/</span>
-          <span className="text-[var(--text-main)]">{propertyName}</span>
-          <span>/</span>
-          <span>Áreas de Riego</span>
-        </div>
-        <div className="flex items-center justify-between">
-          <h1 className="text-2xl md:text-3xl font-serif text-[var(--text-title)]">Áreas de Riego</h1>
-          <PillButton variant="primary" onClick={() => setShowCreateForm(true)}>
-            <Plus className="w-4 h-4 mr-2" />
-            Nueva Área
-          </PillButton>
-        </div>
+        <HierarchyTrail
+          items={[
+            { label: "Clientes", to: "/admin/clientes" },
+            { label: clientName, to: clientId ? `/admin/clientes/${clientId}/predios` : undefined },
+            { label: propertyName },
+            { label: "Áreas de Riego" },
+          ]}
+        />
+        <PageHeader
+          title="Áreas de Riego"
+          subtitle={`Áreas de riego de ${propertyName}`}
+          action={
+            <PillButton variant="primary" onClick={() => setShowCreateForm(true)}>
+              <Plus aria-hidden="true" className="w-4 h-4 mr-2" />
+              Nueva Área
+            </PillButton>
+          }
+        />
       </div>
 
       <div className="hidden md:block">
@@ -202,16 +203,16 @@ export function IrrigationAreaManagement() {
           <table className="w-full">
             <thead>
               <tr className="border-b border-[var(--border-strong)]">
-                <th scope="col" className="text-left py-3 px-4 text-xs font-semibold uppercase tracking-[0.08em] text-[var(--text-subtle)]">Nombre</th>
-                <th scope="col" className="text-left py-3 px-4 text-xs font-semibold uppercase tracking-[0.08em] text-[var(--text-subtle)]">Cultivo</th>
-                <th scope="col" className="text-left py-3 px-4 text-xs font-semibold uppercase tracking-[0.08em] text-[var(--text-subtle)]">Tamaño (Ha)</th>
-                <th scope="col" className="text-left py-3 px-4 text-xs font-semibold uppercase tracking-[0.08em] text-[var(--text-subtle)]">Nodo</th>
-                <th scope="col" className="text-right py-3 px-4 text-xs font-semibold uppercase tracking-[0.08em] text-[var(--text-subtle)]">Acciones</th>
+                <th scope="col" className="text-left py-3 px-4 text-sm font-semibold text-[var(--text-subtle)]">Nombre</th>
+                <th scope="col" className="text-left py-3 px-4 text-sm font-semibold text-[var(--text-subtle)]">Cultivo</th>
+                <th scope="col" className="text-left py-3 px-4 text-sm font-semibold text-[var(--text-subtle)]">Tamaño (Ha)</th>
+                <th scope="col" className="text-left py-3 px-4 text-sm font-semibold text-[var(--text-subtle)]">Nodo</th>
+                <th scope="col" className="text-right py-3 px-4 text-sm font-semibold text-[var(--text-subtle)]">Acciones</th>
               </tr>
             </thead>
             <tbody>
               {loading ? (
-                <tr><td colSpan={5} className="py-6 text-center text-[var(--text-subtle)]">Cargando...</td></tr>
+                <tr><td colSpan={5} className="py-6"><SkeletonCard lines={2} showHeader={false} /></td></tr>
               ) : areas.map((area) => (
                 <tr key={area.id} className="border-b border-[var(--border-subtle)] last:border-0 hover:bg-[var(--hover-overlay)] transition-colors">
                   <td className="py-3 px-4 text-[var(--text-main)]">{area.name}</td>
@@ -224,14 +225,14 @@ export function IrrigationAreaManagement() {
                   <td className="py-3 px-4 text-[var(--text-subtle)]">{nodeLabel(nodesByArea[area.id])}</td>
                   <td className="py-3 px-4 flex justify-end gap-2">
                     <PillButton variant="secondary" className="px-3 py-1 text-xs" onClick={() => openEditForm(area)}>
-                      Editar <Pencil className="w-3 h-3 ml-1" />
+                      Editar <Pencil aria-hidden="true" className="w-3 h-3 ml-1" />
                     </PillButton>
                     <PillButton
                       variant="outline"
                       className="px-3 py-1 text-xs border-[var(--status-danger)]/40 text-[var(--status-danger)] hover:bg-[var(--status-danger-bg)]"
-                      onClick={() => handleDelete(area.id)}
+                      onClick={() => setPendingDelete({ id: area.id, name: area.name })}
                     >
-                      Borrar <Trash2 className="w-3 h-3 ml-1" />
+                      Borrar <Trash2 aria-hidden="true" className="w-3 h-3 ml-1" />
                     </PillButton>
                   </td>
                 </tr>
@@ -257,11 +258,11 @@ export function IrrigationAreaManagement() {
       </div>
 
       <div className="grid grid-cols-1 gap-4 md:hidden">
-        {loading && <div className="text-center py-4 text-[var(--text-subtle)]">Cargando...</div>}
+        {loading && <SkeletonCard lines={2} />}
         {!loading && areas.map((area) => (
           <BentoCard key={area.id} variant="light" className="p-4">
             <div className="flex justify-between items-start mb-2">
-              <h3 className="text-[var(--text-main)] font-medium">{area.name}</h3>
+              <h2 className="text-[var(--text-main)] font-medium">{area.name}</h2>
             </div>
             <div className="flex items-center gap-2 mt-2">
                <span className="px-2 py-1 bg-[var(--surface-card-secondary)] border border-[var(--border-subtle)] text-[var(--text-main)] text-xs rounded-full">{area.crop_type?.name || "Sin Cultivo"}</span>
@@ -272,14 +273,14 @@ export function IrrigationAreaManagement() {
             </p>
             <div className="mt-3 flex flex-col gap-2">
               <PillButton variant="secondary" className="w-full justify-center" onClick={() => openEditForm(area)}>
-                Editar <Pencil className="w-4 h-4 ml-1" />
+                Editar <Pencil aria-hidden="true" className="w-4 h-4 ml-1" />
               </PillButton>
               <PillButton
                 variant="outline"
                 className="w-full justify-center border-[var(--status-danger)]/40 text-[var(--status-danger)] hover:bg-[var(--status-danger-bg)]"
-                onClick={() => handleDelete(area.id)}
+                onClick={() => setPendingDelete({ id: area.id, name: area.name })}
               >
-                Borrar Área <Trash2 className="w-4 h-4 ml-1" />
+                Borrar Área <Trash2 aria-hidden="true" className="w-4 h-4 ml-1" />
               </PillButton>
             </div>
           </BentoCard>
@@ -297,13 +298,7 @@ export function IrrigationAreaManagement() {
         )}
       </div>
 
-      {showCreateForm && (
-        <div className="fixed inset-0 bg-[var(--surface-page)]/75 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <BentoCard variant="light" className="w-full max-w-md">
-            <div className="flex justify-between items-center mb-6">
-              <h2 className="text-xl font-serif text-[var(--text-title)]">Nueva Área de Riego</h2>
-              <button onClick={() => setShowCreateForm(false)} type="button" aria-label="Cerrar" className="rounded-full p-1 text-[var(--text-subtle)] hover:bg-[var(--hover-overlay)] transition-colors"><XCircle className="w-6 h-6" /></button>
-            </div>
+      {showCreateForm && (<FormDialog open title="Nueva Área de Riego" onClose={() => setShowCreateForm(false)}>
             <form className="space-y-4" onSubmit={handleCreate}>
               <div>
                 <label htmlFor="area-create-name" className="block text-sm text-[var(--text-subtle)] mb-1">Nombre del Área</label>
@@ -325,27 +320,12 @@ export function IrrigationAreaManagement() {
                 <PillButton variant="primary" className="flex-1 justify-center" type="submit">Guardar</PillButton>
               </div>
             </form>
-          </BentoCard>
-        </div>
-      )}
+          </FormDialog>)}
 
-      {showEditForm && editingArea && (
-        <div className="fixed inset-0 bg-[var(--surface-page)]/75 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <BentoCard variant="light" className="w-full max-w-md">
-            <div className="flex justify-between items-center mb-6">
-              <h2 className="text-xl font-serif text-[var(--text-title)]">Editar Área de Riego</h2>
-              <button
-                onClick={() => {
+      {showEditForm && editingArea && (<FormDialog open title="Editar Área de Riego" onClose={() => {
                   setShowEditForm(false);
                   setEditingArea(null);
-                }}
-                type="button"
-                aria-label="Cerrar"
-                className="rounded-full p-1 text-[var(--text-subtle)] hover:bg-[var(--hover-overlay)] transition-colors"
-              >
-                <XCircle className="w-6 h-6" />
-              </button>
-            </div>
+                }}>
             <form className="space-y-4" onSubmit={handleUpdate}>
               <div>
                 <label htmlFor="area-edit-name" className="block text-sm text-[var(--text-subtle)] mb-1">Nombre del Área</label>
@@ -403,9 +383,21 @@ export function IrrigationAreaManagement() {
                 </PillButton>
               </div>
             </form>
-          </BentoCard>
-        </div>
-      )}
+          </FormDialog>)}
+      <ConfirmDialog
+        open={pendingDelete !== null}
+        variant="danger"
+        title={`¿Eliminar el área de riego ${pendingDelete?.name ?? ""}?`}
+        description="Esta acción no se puede deshacer."
+        confirmLabel="Eliminar"
+        onConfirm={() => {
+          const target = pendingDelete;
+          setPendingDelete(null);
+          if (target) void handleDelete(target.id);
+        }}
+        onCancel={() => setPendingDelete(null)}
+      />
+
     </div>
     </PageTransition>
   );

@@ -4,6 +4,7 @@ import { ArrowLeft } from "lucide-react";
 import { BentoCard } from "../../components/BentoCard";
 import { areasWithData, EquipoStateBadge, equipoState } from "../../components/EquipoStateBadge";
 import { GatewayStatusBadge } from "../../components/GatewayStatusBadge";
+import { PageHeader } from "../../components/PageHeader";
 import { PageTransition } from "../../components/PageTransition";
 import { PillButton } from "../../components/PillButton";
 import { RevokeLinkButton } from "../../components/RevokeLinkButton";
@@ -102,7 +103,7 @@ export function GatewayDetail() {
 
   const backLink = (
     <Link
-      className="inline-flex items-center gap-1 rounded text-sm font-medium text-[var(--text-muted)] underline underline-offset-4 hover:text-[var(--text-main)]"
+      className="inline-flex min-h-[44px] items-center gap-1 rounded text-sm font-medium text-[var(--text-muted)] underline underline-offset-4 hover:text-[var(--text-main)]"
       to="/admin/gateways"
     >
       <ArrowLeft aria-hidden="true" className="h-4 w-4" />
@@ -141,7 +142,7 @@ export function GatewayDetail() {
       <div className="space-y-6">
         <div className="space-y-3">
           {backLink}
-          <h1 className="text-2xl font-semibold">{gatewayRanchLabel(gateway)}</h1>
+          <PageHeader title={gatewayRanchLabel(gateway)} />
           <div className="flex flex-wrap items-center gap-x-3 gap-y-2 text-sm text-[var(--text-muted)]">
             <EquipoStateBadge state={state} />
             {state !== "revoked" && (
@@ -222,7 +223,7 @@ export function GatewayDetail() {
             <div className="flex flex-wrap items-center gap-4">
               {gateway.status === "active" && (
                 <Link
-                  className="rounded text-sm font-medium underline underline-offset-4"
+                  className="inline-flex min-h-[44px] items-center rounded text-sm font-medium underline underline-offset-4"
                   to="/admin/gateways/pair"
                 >
                   Cambiar el equipo de este rancho
@@ -234,7 +235,7 @@ export function GatewayDetail() {
         )}
 
         <details className="text-sm">
-          <summary className="cursor-pointer rounded text-[var(--text-muted)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus-ring)]">
+          <summary className="inline-flex min-h-[44px] cursor-pointer items-center rounded text-[var(--text-muted)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus-ring)]">
             Datos para soporte
           </summary>
           <dl className="mt-3 grid gap-x-6 gap-y-2 sm:grid-cols-2">

@@ -10,6 +10,7 @@ import {
   equipoState,
   slotHasRecentData,
 } from "../../components/EquipoStateBadge";
+import { PageHeader } from "../../components/PageHeader";
 import { PageTransition } from "../../components/PageTransition";
 import { PairingApprovalPanel } from "../../components/PairingApprovalPanel";
 import { PillButton } from "../../components/PillButton";
@@ -66,7 +67,7 @@ const STEP_TITLES = ["Rancho y áreas", "Vincular equipo", "Asignar nodos"];
 // Mientras el asistente está abierto, el avance se actualiza solo.
 const REFRESH_MS = 15_000;
 const OUTLINE_LINK =
-  "inline-flex items-center justify-center rounded-full border border-[var(--outline-contrast)] px-5 py-2 text-sm font-medium text-[var(--text-main)] hover:bg-[var(--hover-overlay)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus-ring)] focus-visible:ring-offset-2";
+  "inline-flex min-h-[44px] items-center justify-center rounded-full border border-[var(--outline-contrast)] px-5 py-2 text-sm font-medium text-[var(--text-main)] hover:bg-[var(--hover-overlay)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus-ring)] focus-visible:ring-offset-2";
 
 // Mensajes llanos para los rechazos al crear el enlace (el API responde en inglés).
 function createLinkErrorMessage(err: unknown): string {
@@ -472,7 +473,7 @@ export function GatewayManagement() {
       )}
       {revokedLinks.length > 0 && (
         <details className="text-sm text-[var(--text-muted)]">
-          <summary className="cursor-pointer rounded font-medium focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus-ring)]">
+          <summary className="inline-flex min-h-[44px] cursor-pointer items-center rounded font-medium focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus-ring)]">
             Revocados ({revokedLinks.length})
           </summary>
           <ul className="mt-2 divide-y divide-[var(--border-subtle)]">
@@ -480,7 +481,7 @@ export function GatewayManagement() {
               <li key={gateway.id} className="flex flex-wrap items-center justify-between gap-2 py-2">
                 <span>{gatewayRanchLabel(gateway)}</span>
                 <Link
-                  className="underline underline-offset-4"
+                  className="inline-flex min-h-[44px] items-center underline underline-offset-4"
                   aria-label={`Ver detalle: ${gatewayRanchLabel(gateway)}`}
                   to={`/admin/gateways/${gateway.id}`}
                 >
@@ -619,7 +620,7 @@ export function GatewayManagement() {
         onApproved={() => handleApproved(gateway.id)}
       />
       <details className="text-sm">
-        <summary className="cursor-pointer rounded text-[var(--text-muted)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus-ring)]">
+        <summary className="inline-flex min-h-[44px] cursor-pointer items-center rounded text-[var(--text-muted)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus-ring)]">
           ¿El equipo no muestra código?
         </summary>
         <div className="mt-3 space-y-3">
@@ -713,7 +714,7 @@ export function GatewayManagement() {
       <button
         type="button"
         onClick={() => setSearchParams({})}
-        className="inline-flex items-center gap-1 rounded text-sm font-medium text-[var(--text-muted)] underline underline-offset-4 hover:text-[var(--text-main)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus-ring)]"
+        className="inline-flex min-h-[44px] items-center gap-1 rounded text-sm font-medium text-[var(--text-muted)] underline underline-offset-4 hover:text-[var(--text-main)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus-ring)]"
       >
         <ArrowLeft aria-hidden="true" className="h-4 w-4" />
         Volver a la lista
@@ -784,7 +785,7 @@ export function GatewayManagement() {
             </div>
           </div>
           <Link
-            className="mt-4 inline-flex items-center justify-center rounded-full bg-[var(--accent-primary)] px-6 py-2.5 font-medium text-[var(--text-inverted)] hover:opacity-90 focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus-ring)] focus-visible:ring-offset-2"
+            className="mt-4 inline-flex min-h-[44px] items-center justify-center rounded-full bg-[var(--accent-primary)] px-6 py-2.5 font-medium text-[var(--text-inverted)] hover:opacity-90 focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus-ring)] focus-visible:ring-offset-2"
             to={`/admin/gateways/${setup.id}`}
           >
             Ver detalle
@@ -802,17 +803,18 @@ export function GatewayManagement() {
   return (
     <PageTransition>
       <div className="space-y-6">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <h1 ref={pageHeadingRef} tabIndex={-1} className="text-2xl font-semibold focus:outline-none">
-            Equipos
-          </h1>
-          {!loading && !wizardOpen && currentLinks.length > 0 && (
-            <PillButton onClick={startNew}>
-              <Plus aria-hidden="true" className="h-4 w-4" />
-              Nuevo equipo
-            </PillButton>
-          )}
-        </div>
+        <PageHeader
+          title="Equipos"
+          headingRef={pageHeadingRef}
+          action={
+            !loading && !wizardOpen && currentLinks.length > 0 ? (
+              <PillButton onClick={startNew}>
+                <Plus aria-hidden="true" className="h-4 w-4" />
+                Nuevo equipo
+              </PillButton>
+            ) : undefined
+          }
+        />
 
         {loadError && (
           <p role="alert" className="text-[var(--status-danger-text)]">

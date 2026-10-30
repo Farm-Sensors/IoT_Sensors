@@ -9,17 +9,13 @@
       "color-contrast": 2
     },
     "desktop /admin/ciclos :: Nuevo Ciclo": {
-      "color-contrast": 2,
-      "label": 2,
-      "select-name": 1
+      "color-contrast": 2
     },
     "desktop /admin/clientes": {
-      "color-contrast": 4
+      "color-contrast": 2
     },
     "desktop /admin/clientes :: Nuevo Cliente": {
-      "button-name": 1,
-      "color-contrast": 4,
-      "label": 6
+      "color-contrast": 2
     },
     "desktop /admin/clientes/:clientId/dashboard": {
       "color-contrast": 2
@@ -28,11 +24,9 @@
       "color-contrast": 2
     },
     "desktop /admin/cultivos": {
-      "button-name": 6,
       "color-contrast": 2
     },
     "desktop /admin/cultivos :: Nuevo Cultivo": {
-      "button-name": 7,
       "color-contrast": 2
     },
     "desktop /admin/gateways": {
@@ -42,13 +36,13 @@
       "color-contrast": 2
     },
     "desktop /admin/gateways/:gatewayId :: Revocar enlace": {
-      "color-contrast": 4
+      "color-contrast": 3
     },
     "desktop /admin/gateways/pair": {
       "color-contrast": 2
     },
     "desktop /admin/mapa": {
-      "color-contrast": 4
+      "color-contrast": 2
     },
     "desktop /admin/nodos": {
       "color-contrast": 2
@@ -57,7 +51,7 @@
       "color-contrast": 2
     },
     "desktop /admin/nodos/:nodeId": {
-      "color-contrast": 3
+      "color-contrast": 2
     },
     "desktop /admin/predios/:predioId/areas": {
       "color-contrast": 2
@@ -96,7 +90,7 @@
     },
     "mobile /admin/ciclos": {},
     "mobile /admin/clientes": {
-      "color-contrast": 3
+      "color-contrast": 1
     },
     "mobile /admin/clientes/:clientId/dashboard": {
       "color-contrast": 1
@@ -105,7 +99,6 @@
       "color-contrast": 1
     },
     "mobile /admin/cultivos": {
-      "button-name": 6,
       "color-contrast": 1
     },
     "mobile /admin/gateways": {
@@ -118,13 +111,13 @@
       "color-contrast": 1
     },
     "mobile /admin/mapa": {
-      "color-contrast": 3
+      "color-contrast": 1
     },
     "mobile /admin/nodos": {
       "color-contrast": 1
     },
     "mobile /admin/nodos/:nodeId": {
-      "color-contrast": 2
+      "color-contrast": 1
     },
     "mobile /admin/predios/:predioId/areas": {},
     "mobile /cliente": {

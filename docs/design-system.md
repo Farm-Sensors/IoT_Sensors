@@ -112,17 +112,18 @@ ad-hoc. Referencia de «pantalla enfocada»: `pages/admin/GatewayManagement.tsx`
 (lista con badges de estado, una acción primaria, detalle tras un disclosure). Vocabulario y reglas
 de accesibilidad: `docs/ui-redesign-rules.md` §3–§4.
 
-Todos viven en `frontend/src/app/components/`. Los marcados **(nuevo)** los creó `ui-redesign-1-shell-and-patterns`; las páginas existentes los adoptan en los cambios 2–4 (no se reescribieron en este).
+Todos viven en `frontend/src/app/components/`. Los marcados **(nuevo)** se crearon durante el rediseño de la ronda 1; las páginas de cliente y de admin ya los usan.
 
 | # | Patrón | Componente |
 | :--- | :--- | :--- |
 | 8.1 | Encabezado de página | `PageHeader` **(nuevo)** |
 | 8.2 | Lista de entidades | `BentoCard` (tarjetas) / `ui/table` (tabla) |
-| 8.3 | Badge de estado | `StatusBadge` **(nuevo)**; `GatewayStatusBadge` e `IrrigationStatusBadge` (dashboard del cliente) ya lo usan; `EquipoStateBadge` (cambio 4) lo adoptará |
+| 8.3 | Badge de estado | `StatusBadge` **(nuevo)**; `GatewayStatusBadge` e `IrrigationStatusBadge` (dashboard del cliente) ya lo usan; `EquipoStateBadge` lo usan |
 | 8.4 | Datos secundarios / de soporte | `Disclosure` **(nuevo)** |
-| 8.5 | Formulario | `ui/dialog` (en diálogo) o página con `BentoCard` |
+| 8.5 | Formulario | `FormDialog` + `Field` (en diálogo) o página con `BentoCard` |
 | 8.6 | Estados vacío, carga y error | `EmptyState`, `SkeletonCard`, `ErrorState` **(nuevo)** |
 | 8.7 | Confirmación de acción destructiva | `ConfirmDialog` |
+| 8.9 | Ubicación en la jerarquía | `HierarchyTrail` **(nuevo)** |
 | 8.8 | Pasos de un flujo | `Stepper` **(nuevo)**, basado en el asistente de *Equipos* (que lo adopta el cambio 4) |
 
 ### 8.1 Encabezado de página
@@ -155,6 +156,14 @@ Todos viven en `frontend/src/app/components/`. Los marcados **(nuevo)** los cre�
 
 ### 8.7 Confirmación de acción destructiva
 - `ConfirmDialog variant="danger"`: título con el verbo y el objeto («Revocar enlace»), consecuencia en una línea, foco inicial en **Cancelar**, Escape cierra. El texto del botón destructivo usa `--status-danger-text`.
+
+### 8.5b Formularios del admin
+- **`FormDialog`** envuelve el `<form>` de cada alta o edición: diálogo con nombre accesible (su título), foco atrapado, Escape y «Cerrar» lo cierran, el foco vuelve al botón que lo abrió y un clic fuera **no** lo cierra (no se pierde lo escrito).
+- **`Field`** asocia la etiqueta visible con su control (`input`, `select`, `textarea`); `FIELD_INPUT_CLASS` da el estilo común con 44 px de alto.
+- **Borrar:** siempre `ConfirmDialog` que nombra la entidad («¿Eliminar el predio X?») con «Esta acción no se puede deshacer.»; ya no se usa `window.confirm`.
+
+### 8.9 Ubicación en la jerarquía
+`HierarchyTrail` es un `nav` de migas con **nombres, no IDs**, en las páginas que dependen de otra: Clientes → cliente → predio → áreas (`/admin/clientes/:id/predios`, `/admin/predios/:id/areas`), el dashboard de un cliente y el detalle de un nodo. El último elemento es el lugar actual; los demás son enlaces cuando existe la ruta.
 
 ### 8.8 Pasos de un flujo
 - Lista ordenada (`<ol aria-label="Pasos">`) con `aria-current="step"` en el paso actual y texto «Paso N de M»; al avanzar, el foco pasa al encabezado del paso.

@@ -1,10 +1,12 @@
-import { AlertCircle, Database, MapPin, Plus, Radio, Users } from "lucide-react";
+import { AlertCircle, Database, MapPin, Plus, Radio, Users, XCircle } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Link } from "react-router";
 import { BentoCard } from "../../components/BentoCard";
+import { PageHeader } from "../../components/PageHeader";
 import { PageTransition } from "../../components/PageTransition";
 import { PillButton } from "../../components/PillButton";
 import { SkeletonGrid } from "../../components/SkeletonCard";
+import { StatusBadge } from "../../components/StatusBadge";
 import { api } from "../../services/api";
 
 export function AdminDashboard() {
@@ -91,10 +93,10 @@ export function AdminDashboard() {
     <PageTransition>
       <div className="min-h-screen p-4 md:p-6 lg:p-8">
       <div className="mb-6">
-        <h1 className="text-2xl md:text-3xl font-serif text-[var(--text-title)] mb-2">Panel de Administración</h1>
-        <p className="text-[var(--text-subtle)]">
-          {new Date().toLocaleDateString('es-MX', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
-        </p>
+        <PageHeader
+          title="Panel de Administración"
+          subtitle={new Date().toLocaleDateString('es-MX', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+        />
       </div>
 
       {loading ? (
@@ -108,7 +110,7 @@ export function AdminDashboard() {
             <BentoCard variant="sand">
               <div className="flex items-start justify-between mb-4">
                 <div className="p-3 rounded-[24px] bg-[var(--accent-primary)]">
-                  <Users className="w-6 h-6 text-[var(--text-inverted)]" />
+                  <Users aria-hidden="true" className="w-6 h-6 text-[var(--text-inverted)]" />
                 </div>
               </div>
               <p className="text-sm text-[var(--text-subtle)] mb-1">Total Clientes</p>
@@ -118,7 +120,7 @@ export function AdminDashboard() {
             <BentoCard variant="sand">
               <div className="flex items-start justify-between mb-4">
                 <div className="p-3 rounded-[24px] bg-[var(--accent-primary)]">
-                  <MapPin className="w-6 h-6 text-[var(--text-inverted)]" />
+                  <MapPin aria-hidden="true" className="w-6 h-6 text-[var(--text-inverted)]" />
                 </div>
               </div>
               <p className="text-sm text-[var(--text-subtle)] mb-1">Total Predios</p>
@@ -128,7 +130,7 @@ export function AdminDashboard() {
             <BentoCard variant="sand">
               <div className="flex items-start justify-between mb-4">
                 <div className="p-3 rounded-[24px] bg-[var(--accent-primary)]">
-                  <Radio className="w-6 h-6 text-[var(--text-inverted)]" />
+                  <Radio aria-hidden="true" className="w-6 h-6 text-[var(--text-inverted)]" />
                 </div>
               </div>
               <p className="text-sm text-[var(--text-subtle)] mb-1">Nodos Habilitados</p>
@@ -140,7 +142,7 @@ export function AdminDashboard() {
             <BentoCard variant="sand">
               <div className="flex items-start justify-between mb-4">
                 <div className="p-3 rounded-[24px] bg-[var(--accent-primary)]">
-                  <Database className="w-6 h-6 text-[var(--text-inverted)]" />
+                  <Database aria-hidden="true" className="w-6 h-6 text-[var(--text-inverted)]" />
                 </div>
               </div>
               <p className="text-sm text-[var(--text-subtle)] mb-1">Lecturas Hoy</p>
@@ -155,11 +157,10 @@ export function AdminDashboard() {
             <div className="lg:col-span-2">
               <BentoCard variant="light">
                 <div className="flex items-center justify-between mb-6">
-                  <h3 className="text-lg text-[var(--text-title)]">Nodos Deshabilitados</h3>
-                  <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-[var(--status-danger-bg)]">
-                    <AlertCircle className="w-4 h-4 text-[var(--status-danger)]" />
-                    <span className="text-sm font-medium text-[var(--status-danger)]">{offlineNodes.length}</span>
-                  </div>
+                  <h2 className="text-lg text-[var(--text-title)]">Nodos Deshabilitados</h2>
+                  <StatusBadge tone={offlineNodes.length > 0 ? "danger" : "neutral"} icon={AlertCircle}>
+                    {offlineNodes.length}
+                  </StatusBadge>
                 </div>
 
                 <div className="space-y-3">
@@ -167,12 +168,10 @@ export function AdminDashboard() {
                     <div key={node.id} className="p-4 rounded-[24px] bg-[var(--surface-card-primary)] border-l-4 border-[var(--status-danger)]">
                       <div className="flex items-start justify-between mb-2">
                         <div>
-                          <h4 className="font-medium text-[var(--text-body)]">{node.name || `Nodo #${node.id}`}</h4>
+                          <h3 className="font-medium text-[var(--text-body)]">{node.name || `Nodo #${node.id}`}</h3>
                           <p className="text-sm text-[var(--text-subtle)]">Serial: {node.serial_number || '-'}</p>
                         </div>
-                        <span className="px-3 py-1 rounded-full bg-[var(--status-danger-bg)] text-[var(--status-danger)] text-xs font-medium">
-                          Deshabilitado
-                        </span>
+                        <StatusBadge tone="danger" icon={XCircle}>Deshabilitado</StatusBadge>
                       </div>
                     </div>
                   ))}
@@ -186,17 +185,17 @@ export function AdminDashboard() {
             {/* Quick Actions & Recent Activity */}
             <div className="space-y-6">
               <BentoCard variant="light">
-                <h3 className="text-lg text-[var(--text-title)] mb-6">Acciones Rápidas</h3>
+                <h2 className="text-lg text-[var(--text-title)] mb-6">Acciones Rápidas</h2>
                 <div className="space-y-3">
                   <Link to="/admin/clientes" className="block">
                     <PillButton variant="primary" className="w-full justify-center">
-                      <Plus className="w-4 h-4 mr-2" />
+                      <Plus aria-hidden="true" className="w-4 h-4 mr-2" />
                       Nuevo Cliente
                     </PillButton>
                   </Link>
                   <Link to="/admin/nodos" className="block">
                     <PillButton variant="secondary" className="w-full justify-center">
-                      <Plus className="w-4 h-4 mr-2" />
+                      <Plus aria-hidden="true" className="w-4 h-4 mr-2" />
                       Nuevo Nodo
                     </PillButton>
                   </Link>
@@ -209,7 +208,7 @@ export function AdminDashboard() {
               </BentoCard>
 
               <BentoCard variant="sand">
-                <h3 className="text-lg text-[var(--text-title)] mb-4">Actividad Reciente</h3>
+                <h2 className="text-lg text-[var(--text-title)] mb-4">Actividad Reciente</h2>
                 <div className="space-y-3">
                   <p className="text-sm text-[var(--text-subtle)]">
                     Consulta la bitácora completa de eventos administrativos y operativos.
