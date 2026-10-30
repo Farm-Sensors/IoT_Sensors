@@ -24,7 +24,7 @@ export default defineConfig({
         isMobile: true,
         hasTouch: true,
       },
-      testMatch: /(?:navigation|client-dashboard|history-export)\.spec\.ts/,
+      testMatch: /(?:navigation|client-dashboard|history-export|a11y)\.spec\.ts/,
     },
   ],
 });

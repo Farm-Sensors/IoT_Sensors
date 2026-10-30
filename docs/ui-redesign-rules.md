@@ -78,8 +78,8 @@ Not edited by any redesign change: `ProtectedRoute.tsx`, `ErrorBoundary.tsx` (lo
 - One `h1` per page and a logical heading order; form fields have visible labels.
 - Status is never conveyed by color alone (icon or text with it).
 - Touch targets at least 44×44 px at the 390 px width.
-- When the automated checks from `openspec/changes/a11y-automated-checks` are on `main`, a PR
-  MUST NOT add new serious or critical violations for the pages it touches.
+- Run `cd frontend && npm run test:a11y`. A PR MUST NOT add new serious or critical violations
+  or increase their node counts versus `e2e/a11y-baseline.json` for the pages it touches.
 
 ## 5. Tests
 
