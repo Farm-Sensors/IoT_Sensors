@@ -11,6 +11,7 @@ import { PillButton } from "../../components/PillButton";
 import { useToast } from "../../components/Toast";
 import { api } from "../../services/api";
 import { getErrorMessage } from "../../utils/errors";
+import { parseBackendTimestamp } from "../../utils/datetime";
 
 function parseCoordinateInput(
   value: string,
@@ -131,7 +132,7 @@ export function NodeDetail() {
   }
 
   const isNodeActive = node.is_active || node.activo;
-  const lastUpdateStr = latestReading ? latestReading.timestamp : null;
+  const lastUpdate = parseBackendTimestamp(latestReading?.timestamp);
 
   const openEditForm = () => {
     setEditName(node.name || "");
@@ -237,7 +238,7 @@ export function NodeDetail() {
             </div>
 
             <div className="flex flex-wrap items-center gap-3">
-              <FreshnessIndicator lastUpdate={lastUpdateStr} />
+              {lastUpdate && <FreshnessIndicator lastUpdate={lastUpdate} />}
               <GatewayStatusBadge />
             </div>
           </div>
@@ -255,7 +256,7 @@ export function NodeDetail() {
           value={latestReading?.soil?.humidity ?? 0}
           unit="%"
           variant="dark"
-          lastUpdate={lastUpdateStr}
+          lastUpdate={lastUpdate}
         />
 
         <MetricCard
@@ -263,7 +264,7 @@ export function NodeDetail() {
           value={latestReading?.irrigation?.flow_per_minute ?? 0}
           unit="L/min"
           variant="dark"
-          lastUpdate={lastUpdateStr}
+          lastUpdate={lastUpdate}
         />
 
         <MetricCard
@@ -271,7 +272,7 @@ export function NodeDetail() {
           value={latestReading?.environmental?.eto ?? 0}
           unit="mm/día"
           variant="dark"
-          lastUpdate={lastUpdateStr}
+          lastUpdate={lastUpdate}
         />
       </div>
 
