@@ -1,8 +1,11 @@
 import { Mail, User } from "lucide-react";
 import { useEffect, useState } from "react";
 import { BentoCard } from "../../components/BentoCard";
+import { ErrorState } from "../../components/ErrorState";
+import { PageHeader } from "../../components/PageHeader";
 import { PageTransition } from "../../components/PageTransition";
 import { PillButton } from "../../components/PillButton";
+import { SkeletonCard } from "../../components/SkeletonCard";
 import { useToast } from "../../components/Toast";
 import { api } from "../../services/api";
 import { UserProfile } from "../../types/api";
@@ -73,8 +76,26 @@ export function ProfilePage() {
   if (loading) {
     return (
       <PageTransition>
-        <div className="flex justify-center items-center min-h-screen p-4 text-[var(--text-subtle)]">
-          Cargando perfil...
+        <div className="min-h-screen p-4 md:p-6 lg:p-8">
+          <div className="max-w-4xl mx-auto space-y-6">
+            <SkeletonCard lines={3} />
+            <SkeletonCard lines={2} />
+          </div>
+        </div>
+      </PageTransition>
+    );
+  }
+
+  if (!profile && error) {
+    return (
+      <PageTransition>
+        <div className="min-h-screen p-4 md:p-6 lg:p-8">
+          <div className="max-w-4xl mx-auto space-y-6">
+            <PageHeader title="Mi Perfil" />
+            <BentoCard>
+              <ErrorState message={error} onRetry={loadProfile} />
+            </BentoCard>
+          </div>
         </div>
       </PageTransition>
     );
@@ -84,25 +105,27 @@ export function ProfilePage() {
     <PageTransition>
       <div className="min-h-screen p-4 md:p-6 lg:p-8">
         <div className="max-w-4xl mx-auto space-y-6">
-          {/* Header */}
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-            <div>
-              <h1 className="text-2xl md:text-3xl font-serif text-[var(--text-main)] mb-2">Mi Perfil</h1>
-              <p className="text-[var(--text-muted)]">Administra tu información personal</p>
-            </div>
-            {profile && (
-              <PillButton
-                variant={isEditing ? "primary" : "secondary"}
-                disabled={saving}
-                onClick={() => (isEditing ? handleSave() : setIsEditing(true))}
-              >
-                {saving ? "Guardando..." : isEditing ? "Guardar Cambios" : "Editar Perfil"}
-              </PillButton>
-            )}
-          </div>
+          <PageHeader
+            title="Mi Perfil"
+            subtitle="Administra tu información personal"
+            action={
+              profile && (
+                <PillButton
+                  variant={isEditing ? "primary" : "secondary"}
+                  disabled={saving}
+                  onClick={() => (isEditing ? handleSave() : setIsEditing(true))}
+                >
+                  {saving ? "Guardando..." : isEditing ? "Guardar Cambios" : "Editar Perfil"}
+                </PillButton>
+              )
+            }
+          />
 
           {error && (
-            <div className="rounded-2xl border border-[var(--status-danger)]/25 bg-[var(--status-danger-bg)] px-4 py-3 text-sm text-[var(--status-danger)]">
+            <div
+              role="alert"
+              className="rounded-2xl border border-[var(--status-danger)]/25 bg-[var(--status-danger-bg)] px-4 py-3 text-sm text-[var(--status-danger-text)]"
+            >
               {error}
             </div>
           )}
@@ -113,7 +136,7 @@ export function ProfilePage() {
               {/* Avatar */}
               <div className="flex flex-col items-center gap-4 flex-shrink-0">
                 <div className="w-28 h-28 rounded-full bg-gradient-to-br from-[var(--accent-primary)] to-[var(--chart-1)] flex items-center justify-center">
-                  <User className="w-14 h-14 text-[var(--text-inverted)]" />
+                  <User aria-hidden="true" className="w-14 h-14 text-[var(--text-inverted)]" />
                 </div>
               </div>
 
@@ -122,7 +145,7 @@ export function ProfilePage() {
                 <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="md:col-span-2">
                     <label htmlFor="profile-name" className="flex items-center gap-2 text-sm text-[var(--text-muted)] mb-2">
-                      <User className="w-4 h-4" />
+                      <User aria-hidden="true" className="w-4 h-4" />
                       Nombre Completo
                     </label>
                     <input
@@ -136,7 +159,7 @@ export function ProfilePage() {
                   </div>
                   <div className="md:col-span-2">
                     <label htmlFor="profile-email" className="flex items-center gap-2 text-sm text-[var(--text-muted)] mb-2">
-                      <Mail className="w-4 h-4" />
+                      <Mail aria-hidden="true" className="w-4 h-4" />
                       Correo Electrónico
                     </label>
                     <input
@@ -155,7 +178,7 @@ export function ProfilePage() {
 
           {/* Subscription Info */}
           <BentoCard>
-            <h3 className="text-[var(--text-main)] mb-4">Plan de Suscripción</h3>
+            <h2 className="text-[var(--text-main)] mb-4">Plan de Suscripción</h2>
             <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
               <div>
                 <span className="inline-block px-4 py-1.5 bg-[var(--accent-primary)] text-[var(--text-inverted)] text-sm rounded-full mb-2">
@@ -165,15 +188,15 @@ export function ProfilePage() {
                   Hasta 20 sensores activos • Acceso completo al histórico
                 </p>
               </div>
-              <PillButton variant="secondary">Ver Planes</PillButton>
+              <PillButton variant="outline">Ver Planes</PillButton>
             </div>
           </BentoCard>
 
           {/* Security */}
           <BentoCard>
-            <h3 className="text-[var(--text-main)] mb-4">Seguridad</h3>
+            <h2 className="text-[var(--text-main)] mb-4">Seguridad</h2>
             <div className="flex flex-col sm:flex-row sm:items-center gap-4">
-              <PillButton variant="secondary">Cambiar Contraseña</PillButton>
+              <PillButton variant="outline">Cambiar Contraseña</PillButton>
               <p className="text-sm text-[var(--text-muted)]">
                 {profile
                   ? `Última actualización: ${formatUpdatedAt(profile.updated_at)}`

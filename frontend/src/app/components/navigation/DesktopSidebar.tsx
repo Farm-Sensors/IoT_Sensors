@@ -64,7 +64,7 @@ export function DesktopSidebar({ role }: DesktopSidebarProps) {
         </div>
         <button
           onClick={handleSidebarToggle}
-          className="p-2 rounded-full hover:bg-sidebar-accent transition-colors flex-shrink-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-sidebar-ring"
+          className="inline-flex h-11 w-11 items-center justify-center rounded-full hover:bg-sidebar-accent transition-colors flex-shrink-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-sidebar-ring"
           aria-label={expanded ? "Colapsar menú" : "Expandir menú"}
         >
           {expanded ? (
@@ -76,7 +76,7 @@ export function DesktopSidebar({ role }: DesktopSidebarProps) {
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 overflow-y-auto space-y-2 pb-4 pt-3">
+      <nav aria-label="Navegación principal" className="flex-1 overflow-y-auto space-y-2 pb-4 pt-3">
         {navItems.map((item) => {
           const Icon = item.icon;
           const currentPath = location.pathname.replace(/\/+$/, "") || "/";
@@ -94,17 +94,23 @@ export function DesktopSidebar({ role }: DesktopSidebarProps) {
               onFocus={() => maybePreloadMaps(item.path)}
               aria-current={isActive ? "page" : undefined}
               title={!expanded ? item.label : undefined}
-              className={`flex items-center gap-3 px-3 py-3 rounded-full transition-all
+              className={`relative flex min-h-[48px] items-center gap-3 px-3 py-3 rounded-full transition-all
                 focus:outline-none focus-visible:ring-2 focus-visible:ring-sidebar-ring focus-visible:ring-offset-1
                 ${expanded ? "mx-2" : "justify-center mx-auto"}
                 ${isActive
-                  ? "bg-sidebar-primary text-sidebar-primary-foreground shadow-soft"
+                  ? "bg-sidebar-primary font-semibold text-sidebar-primary-foreground shadow-soft"
                   : "text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-foreground"
                 }`}
             >
-              <Icon className="w-5 h-5 flex-shrink-0" />
+              {isActive && (
+                <span
+                  aria-hidden="true"
+                  className="absolute left-1.5 top-1/2 h-5 w-1 -translate-y-1/2 rounded-full bg-sidebar-primary-foreground"
+                />
+              )}
+              <Icon aria-hidden="true" className="w-5 h-5 flex-shrink-0" />
               <span
-                className={`font-medium overflow-hidden transition-all duration-300 whitespace-nowrap ${
+                className={`overflow-hidden transition-all duration-300 whitespace-nowrap ${
                   expanded ? "max-w-[200px] opacity-100" : "max-w-0 opacity-0"
                 }`}
               >
@@ -134,7 +140,7 @@ export function DesktopSidebar({ role }: DesktopSidebarProps) {
           <div className={`flex items-center ${expanded ? "gap-1" : "flex-col gap-3"}`}>
             <button
               onClick={toggleTheme}
-              className="p-2 rounded-full hover:bg-sidebar-accent hover:text-sidebar-foreground text-sidebar-foreground/70 transition-colors flex-shrink-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-sidebar-ring"
+              className="inline-flex h-11 w-11 items-center justify-center rounded-full hover:bg-sidebar-accent hover:text-sidebar-foreground text-sidebar-foreground/70 transition-colors flex-shrink-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-sidebar-ring"
               aria-label={theme === "light" ? "Cambiar a tema oscuro" : "Cambiar a tema claro"}
               title="Cambiar tema"
             >
@@ -143,7 +149,7 @@ export function DesktopSidebar({ role }: DesktopSidebarProps) {
 
             <button
               onClick={handleLogout}
-              className="p-2 rounded-full hover:bg-destructive/10 hover:text-destructive text-sidebar-foreground/70 transition-colors flex-shrink-0
+              className="inline-flex h-11 w-11 items-center justify-center rounded-full hover:bg-destructive/10 hover:text-destructive text-sidebar-foreground/70 transition-colors flex-shrink-0
                 focus:outline-none focus-visible:ring-2 focus-visible:ring-sidebar-ring"
               aria-label="Cerrar sesión"
               title="Cerrar sesión"

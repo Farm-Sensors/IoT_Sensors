@@ -1,6 +1,6 @@
 import { jwtDecode } from "jwt-decode";
 import { Eye, EyeOff } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router";
 import { AuthSplitLayout } from "../../components/auth/AuthSplitLayout";
 import { PageTransition } from "../../components/PageTransition";
@@ -19,6 +19,19 @@ export function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
+  const emailRef = useRef<HTMLInputElement>(null);
+  const passwordRef = useRef<HTMLInputElement>(null);
+
+  // Tras un error, el foco va al primer campo a revisar (los campos se reactivan al terminar la carga).
+  useEffect(() => {
+    if (!error || isLoading) return;
+    if (email.trim()) {
+      passwordRef.current?.focus();
+      passwordRef.current?.select();
+    } else {
+      emailRef.current?.focus();
+    }
+  }, [error, isLoading]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Redirect if already authenticated
   useEffect(() => {
@@ -57,9 +70,10 @@ export function LoginPage() {
       >
         {error && (
           <div
+            id="login-error"
             role="alert"
             aria-live="assertive"
-            className="mb-6 rounded-[16px] border border-[#DC2626]/25 bg-[#DC2626]/10 p-4 text-center text-sm text-[#DC2626]"
+            className="mb-6 rounded-[16px] border border-[var(--status-danger)]/25 bg-[var(--status-danger-bg)] p-4 text-center text-sm text-[var(--status-danger-text)]"
           >
             {error}
           </div>
@@ -67,11 +81,12 @@ export function LoginPage() {
 
         <form onSubmit={handleSubmit} className="space-y-5" noValidate>
           <div>
-            <label htmlFor="login-email" className="mb-2 block text-xs font-semibold uppercase tracking-[0.14em] text-[var(--text-subtle)]">
-              Correo Electrónico
+            <label htmlFor="login-email" className="mb-2 block text-sm font-medium text-[var(--text-body)]">
+              Correo electrónico
             </label>
             <input
               id="login-email"
+              ref={emailRef}
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
@@ -82,35 +97,39 @@ export function LoginPage() {
               required
               disabled={isLoading}
               aria-invalid={!!error}
+              aria-describedby={error ? "login-error" : undefined}
             />
           </div>
 
           <div>
-            <label htmlFor="login-password" className="mb-2 block text-xs font-semibold uppercase tracking-[0.14em] text-[var(--text-subtle)]">
+            <label htmlFor="login-password" className="mb-2 block text-sm font-medium text-[var(--text-body)]">
               Contraseña
             </label>
             <div className="relative">
               <input
                 id="login-password"
+                ref={passwordRef}
                 type={showPassword ? "text" : "password"}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="••••••••"
                 autoComplete="current-password"
-                className="w-full rounded-[24px] border border-[var(--border-strong)] bg-[var(--surface-card-primary)] px-5 py-3 pr-12 text-[var(--text-body)] placeholder:text-[var(--text-subtle)]/70
+                className="w-full rounded-[24px] border border-[var(--border-strong)] bg-[var(--surface-card-primary)] px-5 py-3 pr-14 text-[var(--text-body)] placeholder:text-[var(--text-subtle)]/70
                   focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus-ring)] focus-visible:ring-offset-1"
                 required
                 disabled={isLoading}
+                aria-invalid={!!error}
+                aria-describedby={error ? "login-error" : undefined}
               />
               <button
                 type="button"
                 onClick={() => setShowPassword((v) => !v)}
-                className="absolute right-4 top-1/2 -translate-y-1/2 rounded-full p-1 text-[var(--text-subtle)] transition-colors hover:bg-[var(--hover-overlay)] hover:text-[var(--text-body)]
+                className="absolute right-1 top-1/2 inline-flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full text-[var(--text-subtle)] transition-colors hover:bg-[var(--hover-overlay)] hover:text-[var(--text-body)]
                   focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus-ring)]"
                 aria-label={showPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
                 aria-pressed={showPassword}
               >
-                {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                {showPassword ? <EyeOff aria-hidden="true" className="h-4 w-4" /> : <Eye aria-hidden="true" className="h-4 w-4" />}
               </button>
             </div>
           </div>
@@ -118,7 +137,7 @@ export function LoginPage() {
           <div className="flex justify-end">
             <Link
               to="/recuperar-contrasena"
-              className="text-sm text-[var(--text-subtle)] transition-colors hover:text-[var(--accent-primary)] focus:outline-none focus-visible:underline"
+              className="inline-flex min-h-[44px] items-center rounded-full px-3 text-sm text-[var(--text-subtle)] transition-colors hover:text-[var(--accent-primary)] focus:outline-none focus-visible:underline focus-visible:ring-2 focus-visible:ring-[var(--focus-ring)]"
             >
               ¿Olvidé mi contraseña?
             </Link>
