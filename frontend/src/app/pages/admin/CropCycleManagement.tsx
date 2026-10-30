@@ -5,6 +5,7 @@ import { EmptyState } from "../../components/EmptyState";
 import { PageTransition } from "../../components/PageTransition";
 import { PillButton } from "../../components/PillButton";
 import { api } from "../../services/api";
+import { getErrorMessage } from "../../utils/errors";
 
 interface IrrigationArea {
   id: number;
@@ -35,27 +36,13 @@ export function CropCycleManagement() {
       setError(null);
       // Fetch both areas and cycles
       const [areasRes, cyclesRes] = await Promise.all([
-        api.get("/irrigation-areas/all"),
+        api.get("/irrigation-areas"),
         api.get("/crop-cycles")
       ]);
       setAreas(areasRes.data.data || areasRes.data);
       setCycles(cyclesRes.data.data || cyclesRes.data);
     } catch (err: any) {
-      // In case /irrigation-areas/all doesn't exist, we fallback to /irrigation-areas
-      if (err.response?.status === 404 && err.config.url.includes('/all')) {
-          try {
-              const [areasRes, cyclesRes] = await Promise.all([
-                  api.get("/irrigation-areas"),
-                  api.get("/crop-cycles")
-              ]);
-              setAreas(areasRes.data.data || areasRes.data);
-              setCycles(cyclesRes.data.data || cyclesRes.data);
-          } catch(err2: any) {
-             setError(err2.response?.data?.detail || "Error loading data");
-          }
-      } else {
-        setError(err.response?.data?.detail || "Error loading data");
-      }
+      setError(getErrorMessage(err, "Error loading data"));
     } finally {
       setLoading(false);
     }
@@ -82,7 +69,7 @@ export function CropCycleManagement() {
       setFormEndDate("");
       fetchData();
     } catch (err: any) {
-      setError(err.response?.data?.detail || "Error creating crop cycle");
+      setError(getErrorMessage(err, "Error creating crop cycle"));
       setLoading(false);
     }
   };
@@ -94,7 +81,7 @@ export function CropCycleManagement() {
       await api.delete(`/crop-cycles/${id}`);
       fetchData();
     } catch (err: any) {
-      setError(err.response?.data?.detail || "Error deleting crop cycle");
+      setError(getErrorMessage(err, "Error deleting crop cycle"));
       setLoading(false);
     }
   };

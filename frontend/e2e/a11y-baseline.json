@@ -1,0 +1,156 @@
+{
+  "version": 1,
+  "units": {
+    "desktop /": {},
+    "desktop /admin": {
+      "color-contrast": 2
+    },
+    "desktop /admin/ciclos": {
+      "color-contrast": 2
+    },
+    "desktop /admin/ciclos :: Nuevo Ciclo": {
+      "color-contrast": 2,
+      "label": 2,
+      "select-name": 1
+    },
+    "desktop /admin/clientes": {
+      "color-contrast": 4
+    },
+    "desktop /admin/clientes :: Nuevo Cliente": {
+      "button-name": 1,
+      "color-contrast": 4,
+      "label": 6
+    },
+    "desktop /admin/clientes/:clientId/dashboard": {
+      "color-contrast": 2
+    },
+    "desktop /admin/clientes/:clientId/predios": {
+      "color-contrast": 2
+    },
+    "desktop /admin/cultivos": {
+      "button-name": 6,
+      "color-contrast": 2
+    },
+    "desktop /admin/cultivos :: Nuevo Cultivo": {
+      "button-name": 7,
+      "color-contrast": 2
+    },
+    "desktop /admin/gateways": {
+      "color-contrast": 2
+    },
+    "desktop /admin/gateways/:gatewayId": {
+      "color-contrast": 2
+    },
+    "desktop /admin/gateways/:gatewayId :: Revocar enlace": {
+      "color-contrast": 4
+    },
+    "desktop /admin/gateways/pair": {
+      "color-contrast": 2
+    },
+    "desktop /admin/mapa": {
+      "color-contrast": 4
+    },
+    "desktop /admin/nodos": {
+      "color-contrast": 2
+    },
+    "desktop /admin/nodos :: Nuevo Nodo": {
+      "color-contrast": 2
+    },
+    "desktop /admin/nodos/:nodeId": {
+      "color-contrast": 3
+    },
+    "desktop /admin/predios/:predioId/areas": {
+      "color-contrast": 2
+    },
+    "desktop /admin/predios/:predioId/areas :: Nueva Área": {
+      "color-contrast": 2
+    },
+    "desktop /cliente": {
+      "color-contrast": 7
+    },
+    "desktop /cliente/areas": {
+      "color-contrast": 2,
+      "label-content-name-mismatch": 5
+    },
+    "desktop /cliente/exportar": {
+      "color-contrast": 2,
+      "label-content-name-mismatch": 2
+    },
+    "desktop /cliente/historico": {
+      "color-contrast": 3,
+      "label-content-name-mismatch": 2,
+      "scrollable-region-focusable": 1
+    },
+    "desktop /cliente/mapa": {
+      "color-contrast": 3
+    },
+    "desktop /cliente/perfil": {
+      "color-contrast": 2
+    },
+    "desktop /cliente/predio/:predioId": {
+      "color-contrast": 2
+    },
+    "mobile /": {},
+    "mobile /admin": {
+      "color-contrast": 1
+    },
+    "mobile /admin/ciclos": {},
+    "mobile /admin/clientes": {
+      "color-contrast": 3
+    },
+    "mobile /admin/clientes/:clientId/dashboard": {
+      "color-contrast": 1
+    },
+    "mobile /admin/clientes/:clientId/predios": {
+      "color-contrast": 1
+    },
+    "mobile /admin/cultivos": {
+      "button-name": 6,
+      "color-contrast": 1
+    },
+    "mobile /admin/gateways": {
+      "color-contrast": 1
+    },
+    "mobile /admin/gateways/:gatewayId": {
+      "color-contrast": 1
+    },
+    "mobile /admin/gateways/pair": {
+      "color-contrast": 1
+    },
+    "mobile /admin/mapa": {
+      "color-contrast": 3
+    },
+    "mobile /admin/nodos": {
+      "color-contrast": 1
+    },
+    "mobile /admin/nodos/:nodeId": {
+      "color-contrast": 2
+    },
+    "mobile /admin/predios/:predioId/areas": {},
+    "mobile /cliente": {
+      "color-contrast": 1,
+      "scrollable-region-focusable": 1
+    },
+    "mobile /cliente/areas": {
+      "color-contrast": 1,
+      "label-content-name-mismatch": 6
+    },
+    "mobile /cliente/exportar": {
+      "color-contrast": 1,
+      "label-content-name-mismatch": 3
+    },
+    "mobile /cliente/historico": {
+      "color-contrast": 3,
+      "label-content-name-mismatch": 2,
+      "scrollable-region-focusable": 1
+    },
+    "mobile /cliente/mapa": {
+      "color-contrast": 2
+    },
+    "mobile /cliente/perfil": {
+      "color-contrast": 1,
+      "label-content-name-mismatch": 1
+    },
+    "mobile /cliente/predio/:predioId": {}
+  }
+}

@@ -205,3 +205,41 @@ Azure OpenAI (opcional): `AZURE_OPENAI_ENABLED`, `AZURE_OPENAI_ENDPOINT`, `AZURE
 - **Smoke post-deploy**: `./scripts/dokploy_smoke_check.sh <tu-dominio>`.
 - **Smoke IA reports** (login + generate + list + detail): `./scripts/smoke_ai_reports.sh --base-url https://sensores.alanrz.bond --admin-password 'TU_PASSWORD'`.
 - **Sync BD local → VPS** (con backup remoto): `./scripts/sync_db_to_vps.sh --ssh usuario@vps --remote-db-pass 'PASSWORD_VPS' --yes`.
+
+## Revisión automática de accesibilidad
+
+Con el stack local de `make dev` listo, desde `frontend/`:
+
+```bash
+npm run test:a11y
+npm run test:e2e
+```
+
+La suite axe usa WCAG 2 A/AA y 2.1 A/AA, las sesiones de la base E2E y los IDs del seed.
+Escanea 21 páginas en escritorio/móvil y seis estados abiertos solo en escritorio. No modifica
+el seed ni confirma la revocación del equipo: cancela esa confirmación incluso si falla el scan.
+Cada línea `A11Y` identifica pantalla/proyecto y conteos por regla; el adjunto `axe-summary`
+conserva resultados y selectores. Solo serious/critical afectan el gate. Una unidad nueva o un
+conteo mayor falla; uno menor imprime «Baseline puede bajar» y debe actualizarse en ese PR.
+
+Para generar o reducir el baseline, sobre el `main` actualizado y con árbol limpio antes de
+los cambios de instrumentación, ejecutar:
+
+```bash
+A11Y_UPDATE_BASELINE=1 npm run test:a11y
+npm run test:a11y
+```
+
+Revisar el diff de `e2e/a11y-baseline.json` y confirmar que se ejecutaron los 48 estados
+requeridos antes de commitearlo. El modo de actualización reemplaza los conteos de cada unidad
+escaneada: no usarlo para aceptar una regresión de una propuesta de UI. No ejecutar generaciones
+en paralelo (la configuración de la suite utiliza un worker). El baseline mide únicamente las
+páginas, proyectos y estados del diseño de #58; no sustituye la revisión manual de teclado,
+foco, temas y targets táctiles indicada en `ui-redesign-rules.md`.
+
+Al incorporar #58 se corrigieron dos bloqueos de las pantallas escaneadas, con autorización de
+Fabián: Ciclos consulta el endpoint existente `/irrigation-areas` y convierte las respuestas de
+error de validación a texto; Detalle del nodo interpreta el timestamp mediante
+`parseBackendTimestamp` antes de entregarlo al indicador de frescura. Sin una fecha válida no
+renderiza ese indicador. Las pruebas de regresión cubren carga/formulario y error 422 en Ciclos,
+y timestamps UTC con/sin sufijo, ausentes e inválidos en Detalle del nodo.
