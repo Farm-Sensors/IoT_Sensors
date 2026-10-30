@@ -77,12 +77,12 @@
       "label-content-name-mismatch": 2
     },
     "desktop /cliente/historico": {
-      "color-contrast": 3,
+      "color-contrast": 2,
       "label-content-name-mismatch": 2,
       "scrollable-region-focusable": 1
     },
     "desktop /cliente/mapa": {
-      "color-contrast": 3
+      "color-contrast": 2
     },
     "desktop /cliente/perfil": {
       "color-contrast": 2
@@ -140,12 +140,12 @@
       "label-content-name-mismatch": 3
     },
     "mobile /cliente/historico": {
-      "color-contrast": 3,
+      "color-contrast": 1,
       "label-content-name-mismatch": 2,
       "scrollable-region-focusable": 1
     },
     "mobile /cliente/mapa": {
-      "color-contrast": 2
+      "color-contrast": 1
     },
     "mobile /cliente/perfil": {
       "color-contrast": 1,
