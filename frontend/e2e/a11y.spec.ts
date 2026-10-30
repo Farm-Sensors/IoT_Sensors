@@ -63,6 +63,10 @@ for (const screen of screens) {
       await target.getByRole("button", { name: form.button, exact: true }).click();
       await expect(target.getByRole("heading", { name: form.heading, exact: true })).toBeVisible();
     }
+    // El puntero sobre un botón cambia su color (hover) y hace variar el contraste medido.
+    await target.mouse.move(0, 0);
+    // Deja terminar las animaciones de entrada (opacidad) antes de medir contraste.
+    await target.waitForFunction(() => document.getAnimations().every(a => a.playState !== "running"));
     try {
       const results = await new AxeBuilder({ page: target }).withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"]).analyze();
       const violations = results.violations.filter(v => v.impact === "serious" || v.impact === "critical");
