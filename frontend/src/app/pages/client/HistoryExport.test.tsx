@@ -124,8 +124,7 @@ describe.each([HistoricalData, ExportData])("export screen", (Screen) => {
     await screen.findByRole("option", { name: /2026-01-01/ });
     fireEvent.change(screen.getByLabelText("Ciclo de cultivo"), { target: { value: "7" } });
     const isExportPage = Screen === ExportData;
-    fireEvent.click(screen.getByRole("button", { name: isExportPage ? new RegExp(label) : label }));
-    if (isExportPage) fireEvent.click(screen.getByRole("button", { name: "Exportar Datos" }));
+    fireEvent.click(screen.getByRole("button", { name: isExportPage ? new RegExp(`Descargar ${label}`) : label }));
     await waitFor(() => expect(mocks.download).toHaveBeenCalledTimes(1));
     const [endpoint, name] = mocks.download.mock.calls[0];
     const params = new URL(endpoint, "http://local").searchParams;
@@ -140,7 +139,7 @@ describe.each([HistoricalData, ExportData])("export screen", (Screen) => {
   it("surfaces download errors", async () => {
     mocks.download.mockRejectedValue(new Error("failed"));
     render(<Screen />);
-    fireEvent.click(screen.getByRole("button", { name: Screen === ExportData ? "Exportar Datos" : "CSV" }));
+    fireEvent.click(screen.getByRole("button", { name: Screen === ExportData ? /Descargar CSV/ : "CSV" }));
     expect(await screen.findByText("No se pudo exportar. Intenta nuevamente.")).toBeTruthy();
   });
   it("supports an exact custom range without availability clamping", async () => {
@@ -150,7 +149,7 @@ describe.each([HistoricalData, ExportData])("export screen", (Screen) => {
     fireEvent.change(screen.getByLabelText("Día del calendario"), { target: { value: "2025-12-15" } });
     fireEvent.click(screen.getByRole("button", { name: "Fecha fin" }));
     fireEvent.change(screen.getByLabelText("Día del calendario"), { target: { value: "2026-01-02" } });
-    fireEvent.click(screen.getByRole("button", { name: Screen === ExportData ? "Exportar Datos" : "CSV" }));
+    fireEvent.click(screen.getByRole("button", { name: Screen === ExportData ? /Descargar CSV/ : "CSV" }));
     await waitFor(() => expect(mocks.download).toHaveBeenCalledTimes(1));
     expect(mocks.download.mock.calls[0][0]).toContain("start_date=2025-12-15&end_date=2026-01-02");
     expect(screen.getByRole("button", { name: "Personalizado" })).toHaveAttribute("aria-pressed", "true");
@@ -162,4 +161,66 @@ it("does not request readings or allow downloads without an area", () => {
   render(<HistoricalData />);
   expect(mocks.get).not.toHaveBeenCalled();
   expect(screen.getByRole("button", { name: "CSV" })).toBeDisabled();
+});
+
+describe("filters and export summary", () => {
+  it("shows the active filters next to the results and keeps presets pressed state", async () => {
+    render(<HistoricalData />);
+    const summary = await screen.findByTestId("active-filters");
+    expect(summary).toHaveTextContent("Rango: Últimos 7 días");
+    expect(summary).toHaveTextContent(/Fechas: \d{2}\/\d{2}\/\d{4} – \d{2}\/\d{2}\/\d{4}/);
+    expect(summary).toHaveTextContent("Ciclo de cultivo: Todos los ciclos");
+    expect(screen.getByRole("button", { name: "Últimos 7 días" })).toHaveAttribute("aria-pressed", "true");
+    fireEvent.click(screen.getByRole("button", { name: "Este mes" }));
+    expect(screen.getByTestId("active-filters")).toHaveTextContent("Rango: Este mes");
+    expect(screen.getByRole("button", { name: "Últimos 7 días" })).toHaveAttribute("aria-pressed", "false");
+  });
+
+  it("names the cycle in the summary once it is chosen", async () => {
+    render(<HistoricalData />);
+    await screen.findByRole("option", { name: /2026-01-01/ });
+    fireEvent.change(screen.getByLabelText("Ciclo de cultivo"), { target: { value: "7" } });
+    expect(await screen.findByText(/Ciclo de cultivo: 2026-01-01 — Sin fecha de fin/)).toBeTruthy();
+  });
+
+  it("summarizes the export before downloading and offers three separate actions", async () => {
+    render(<ExportData />);
+    expect(screen.getByTestId("export-summary")).toHaveTextContent(/Se exportará Nogal, del \d{2}\/\d{2}\/\d{4} al \d{2}\/\d{2}\/\d{4}, todos los ciclos\./);
+    for (const label of ["CSV", "Excel", "PDF"]) expect(screen.getByRole("button", { name: new RegExp(`Descargar ${label}`) })).toBeEnabled();
+    await screen.findByRole("option", { name: /2026-01-01/ });
+    fireEvent.change(screen.getByLabelText("Ciclo de cultivo"), { target: { value: "7" } });
+    expect(screen.getByTestId("export-summary")).toHaveTextContent("solo el ciclo de cultivo elegido");
+    expect(screen.queryByRole("button", { name: "Exportar Datos" })).toBeNull();
+  });
+
+  it("downloads only the format that was pressed and disables the others meanwhile", async () => {
+    let finish!: () => void;
+    mocks.download.mockImplementation(() => new Promise<void>((resolve) => { finish = resolve; }));
+    render(<ExportData />);
+    fireEvent.click(screen.getByRole("button", { name: /Descargar Excel/ }));
+    await waitFor(() => expect(screen.getByRole("button", { name: /Generando Excel/ })).toBeDisabled());
+    expect(screen.getByRole("button", { name: /Descargar CSV/ })).toBeDisabled();
+    expect(mocks.download).toHaveBeenCalledTimes(1);
+    expect(new URL(mocks.download.mock.calls[0][0], "http://local").searchParams.get("format")).toBe("xlsx");
+    await act(async () => finish());
+    await waitFor(() => expect(screen.getByRole("button", { name: /Descargar CSV/ })).toBeEnabled());
+  });
+
+  it("disables every export action without an area", () => {
+    mocks.selection.selectedArea = null;
+    render(<ExportData />);
+    for (const label of ["CSV", "Excel", "PDF"]) expect(screen.getByRole("button", { name: new RegExp(`Descargar ${label}`) })).toBeDisabled();
+    expect(screen.getByTestId("export-summary")).toHaveTextContent("Selecciona un área de riego para exportar.");
+  });
+
+  it("toggles chart series with aria-pressed", async () => {
+    const yesterday = new Date(Date.now() - 86_400_000).toISOString();
+    mocks.get.mockImplementation((path: string) => path.startsWith("/readings?") && path.includes("per_page=200")
+      ? Promise.resolve({ data: { data: [{ ...reading, timestamp: yesterday }], total: 1, page: 1, per_page: 200 } }) : respond(path));
+    render(<HistoricalData />);
+    const toggle = await screen.findByRole("button", { name: "Humedad suelo" });
+    expect(toggle).toHaveAttribute("aria-pressed", "true");
+    fireEvent.click(toggle);
+    expect(toggle).toHaveAttribute("aria-pressed", "false");
+  });
 });
