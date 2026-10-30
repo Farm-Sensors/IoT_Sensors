@@ -4,13 +4,13 @@ import { BentoCard } from "../../../components/BentoCard";
 import { MetricCard } from "../../../components/MetricCard";
 import {
   getIrrigationDisplayState,
-  getIrrigationStatusClass,
   getIrrigationStatusLabel,
   type ConnectionState,
   type PriorityKey,
   type SemaphoreLevel,
 } from "./helpers";
 import type { DashboardCardKey } from "../../../services/dashboardPreferences";
+import { IrrigationStatusBadge } from "./IrrigationStatusBadge";
 import { SemaphorePill } from "./SemaphorePill";
 
 export function MobileDashboard({
@@ -34,14 +34,13 @@ export function MobileDashboard({
     connectionState,
   );
   const irrigationStatusLabel = getIrrigationStatusLabel(irrigationDisplayState);
-  const irrigationStatusClass = getIrrigationStatusClass(irrigationDisplayState);
   const isIrrigationLiveActive = irrigationDisplayState === "active";
 
   return (
     <div className="space-y-4">
       {showSemaphore && (visibleCards.has("priority.humidity") || visibleCards.has("priority.flow") || visibleCards.has("priority.eto")) && (
         <BentoCard variant="light">
-          <h3 className="text-base text-[var(--text-main)] mb-3">Semáforos de Umbral</h3>
+          <h2 className="text-base text-[var(--text-main)] mb-3">Semáforos de Umbral</h2>
           <div className="grid grid-cols-1 gap-2">
             {visibleCards.has("priority.humidity") && (
               <div className="flex items-center justify-between rounded-[16px] bg-[var(--bg-elevated)] px-3 py-2">
@@ -73,7 +72,6 @@ export function MobileDashboard({
           unit="%"
           variant="dark"
           subtitle="Dato prioritario"
-          lastUpdate={currentReadings.lastUpdate}
           priority
         />
       )}
@@ -85,7 +83,6 @@ export function MobileDashboard({
           unit="L/min"
           variant="dark"
           subtitle="Dato prioritario"
-          lastUpdate={currentReadings.lastUpdate}
         >
           {showSemaphore && (
             <div className="mb-2">
@@ -105,7 +102,6 @@ export function MobileDashboard({
           unit="mm/día"
           variant="dark"
           subtitle="Evapotranspiración"
-          lastUpdate={currentReadings.lastUpdate}
         >
           {showSemaphore && (
             <div className="mb-2">
@@ -118,7 +114,7 @@ export function MobileDashboard({
       {/* Chart */}
       {visibleCards.has("soil.chart") && (
       <BentoCard variant="light">
-        <h3 className="text-lg text-[var(--text-main)] mb-4">Últimas 12 lecturas</h3>
+        <h2 className="text-lg text-[var(--text-main)] mb-4">Últimas 12 lecturas</h2>
         {historicalData.length === 0 && <p className="text-[var(--text-muted)]">Sin lecturas recientes para graficar.</p>}
         <div className="h-[200px] min-h-[200px]">
           <ResponsiveContainer width="100%" height="100%">
@@ -157,15 +153,13 @@ export function MobileDashboard({
       {visibleCards.has("irrigation.status") && (
       <BentoCard variant="sand">
         <div className="flex items-start justify-between mb-4">
-          <h3 className="text-lg text-[var(--text-main)]">Estado del Riego</h3>
+          <h2 className="text-lg text-[var(--text-main)]">Estado del Riego</h2>
           <div className={`w-3 h-3 rounded-full ${isIrrigationLiveActive ? 'bg-[var(--accent-primary)] animate-pulse' : 'bg-[var(--text-muted)]'}`} />
         </div>
         <div className="space-y-3">
           <div className="flex items-center justify-between">
             <span className="text-[var(--text-muted)]">Estado</span>
-            <span className={`font-bold ${irrigationStatusClass}`}>
-              {irrigationStatusLabel}
-            </span>
+            <IrrigationStatusBadge state={irrigationDisplayState} label={irrigationStatusLabel} />
           </div>
           <div className="flex items-center justify-between">
             <span className="text-[var(--text-muted)]">Antigüedad de la lectura</span>
@@ -180,7 +174,7 @@ export function MobileDashboard({
       {/* Horizontal scroll cards for secondary metrics */}
       {visibleCards.has("soil.details") && (
       <div>
-        <h3 className="text-lg text-[var(--text-main)] mb-3">Métricas de Suelo</h3>
+        <h2 className="text-lg text-[var(--text-main)] mb-3">Métricas de Suelo</h2>
         <div className="flex gap-3 overflow-x-auto pb-2 -mx-4 px-4">
           <BentoCard variant="sand" className="min-w-[200px]">
             <p className="text-sm text-[var(--text-muted)] mb-1">Conductividad</p>
@@ -210,7 +204,7 @@ export function MobileDashboard({
       {/* Environmental */}
       {visibleCards.has("environmental.details") && (
       <BentoCard variant="light">
-        <h3 className="text-lg text-[var(--text-main)] mb-4">Ambiental</h3>
+        <h2 className="text-lg text-[var(--text-main)] mb-4">Ambiental</h2>
         <div className="space-y-3">
           <div className="flex items-center justify-between">
             <span className="text-[var(--text-muted)]">Temperatura aire</span>

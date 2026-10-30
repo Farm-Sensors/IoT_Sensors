@@ -25,4 +25,13 @@ describe("GatewayStatusBadge", () => {
     render(<GatewayStatusBadge edgeStatus="connected" />);
     expect(screen.queryByText(/api_key|credential|gk_/i)).toBeNull();
   });
+
+  it("pairs every state with an icon so color is never the only signal", () => {
+    const { rerender } = render(<GatewayStatusBadge edgeStatus="delayed" />);
+    expect(screen.getByTestId("gateway-status-badge").querySelector("svg")).not.toBeNull();
+    rerender(<GatewayStatusBadge status="pending_activation" />);
+    expect(screen.getByTestId("gateway-status-badge").querySelector("svg")).not.toBeNull();
+    rerender(<GatewayStatusBadge />);
+    expect(screen.getByTestId("gateway-status-badge")).toHaveTextContent("Equipo sin estado");
+  });
 });

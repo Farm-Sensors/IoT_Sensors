@@ -100,7 +100,7 @@ No existe `tailwind.config.js`. Tailwind v4 se configura en CSS: `@theme inline`
 ## 7. UX Rules para el dominio (MVP)
 
 1. **Prioridad visual:** `soil.humidity`, `irrigation.flow_per_minute`, `environmental.eto` — las 3 métricas prioritarias tienen el mayor peso visual (cards superiores).
-2. **Frescura siempre visible:** indicador de último dato + tiempo transcurrido en el header del dashboard y en metric cards (`FreshnessIndicator`).
+2. **Frescura siempre visible, una vez por área:** indicador de último dato + tiempo transcurrido en el encabezado del dashboard (`FreshnessIndicator`), junto al selector de predio y área. Las tarjetas de métricas no lo repiten. En listas de áreas (`AreaSelector`, `PropertyDetail`) cada tarjeta de área lleva el suyo.
 3. **Jerarquía de navegación:** Cliente → Predio → Área de Riego, consistente en toda la app.
 4. **Interacciones simples y predecibles:** sin efectos ruidosos; animaciones sutiles (fade-in-up, stagger, glow solo en métricas prioritarias en vivo).
 
@@ -118,7 +118,7 @@ Todos viven en `frontend/src/app/components/`. Los marcados **(nuevo)** los cre�
 | :--- | :--- | :--- |
 | 8.1 | Encabezado de página | `PageHeader` **(nuevo)** |
 | 8.2 | Lista de entidades | `BentoCard` (tarjetas) / `ui/table` (tabla) |
-| 8.3 | Badge de estado | `StatusBadge` **(nuevo)**; `GatewayStatusBadge` (cambio 2) y `EquipoStateBadge` (cambio 4) lo adoptarán |
+| 8.3 | Badge de estado | `StatusBadge` **(nuevo)**; `GatewayStatusBadge` e `IrrigationStatusBadge` (dashboard del cliente) ya lo usan; `EquipoStateBadge` (cambio 4) lo adoptará |
 | 8.4 | Datos secundarios / de soporte | `Disclosure` **(nuevo)** |
 | 8.5 | Formulario | `ui/dialog` (en diálogo) o página con `BentoCard` |
 | 8.6 | Estados vacío, carga y error | `EmptyState`, `SkeletonCard`, `ErrorState` **(nuevo)** |

@@ -1,6 +1,7 @@
 import axios from "axios";
 import { useEffect, useState, type ReactNode } from "react";
 import { BentoCard } from "../../../components/BentoCard";
+import { PillButton } from "../../../components/PillButton";
 import { usePageVisibility } from "../../../hooks/usePageVisibility";
 import { api } from "../../../services/api";
 import type { LatestNdvi, WeatherCurrent } from "../../../types/externalData";
@@ -60,12 +61,12 @@ function SourceCard<T>({ areaId, path, title, hideWhenUnavailable = false, empty
   return (
     <BentoCard>
       <h3 className="mb-3 text-lg text-[var(--text-title)]">{title}</h3>
-      {!state ? <p role="status">Cargando…</p> : state.empty ? (
+      {!state ? <p role="status" className="text-[var(--text-muted)]">Cargando…</p> : state.empty ? (
         <p className="text-[var(--text-muted)]">{emptyMessage}</p>
       ) : state.error ? (
-        <div role="alert" className="text-[var(--status-danger)]">
+        <div role="alert" className="flex flex-col items-start gap-3 text-[var(--text-body)]">
           <p>No se pudo cargar {title.toLowerCase()}.</p>
-          <button type="button" className="mt-2 underline" onClick={() => setRetry((value) => value + 1)}>Reintentar</button>
+          <PillButton variant="outline" onClick={() => setRetry((value) => value + 1)}>Reintentar</PillButton>
         </div>
       ) : state.data === null ? <p>Sin datos disponibles.</p> : children(state.data)}
     </BentoCard>
@@ -75,7 +76,8 @@ function SourceCard<T>({ areaId, path, title, hideWhenUnavailable = false, empty
 export function ExternalDataCards({ areaId }: { areaId: number }) {
   return (
     <section aria-label="Fuentes externas" className="mt-6">
-      <h2 className="mb-4 text-xl text-[var(--text-title)]">Fuentes externas</h2>
+      <h2 className="mb-1 text-xl text-[var(--text-title)]">Fuentes externas</h2>
+      <p className="mb-4 text-sm text-[var(--text-muted)]">Datos de otras fuentes; no son lecturas de tus sensores.</p>
       <div className="grid gap-4 md:grid-cols-2">
         <SourceCard<WeatherCurrent> key={`weather-${areaId}`} areaId={areaId} path="/weather/current" title="Clima de referencia" hideWhenUnavailable emptyMessage="Sin clima de referencia: el predio todavía no tiene ubicación (la reporta el equipo al vincularse)." emptyStatuses={[409]}>
           {(weather) => (
