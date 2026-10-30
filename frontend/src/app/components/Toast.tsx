@@ -29,8 +29,8 @@ const ICONS: Record<ToastType, typeof CheckCircle> = {
 };
 
 const STYLES: Record<ToastType, string> = {
-  success: "bg-[var(--status-active)] text-white",
-  error:   "bg-[var(--status-danger)] text-white",
+  success: "bg-[var(--status-success-solid)] text-white",
+  error:   "bg-[var(--status-danger-solid)] text-white",
   info:    "bg-[var(--bg-elevated)] text-[var(--text-main)] border border-[var(--border-strong)]",
 };
 
@@ -51,11 +51,11 @@ function Toast({
       role="status"
       aria-live="polite"
     >
-      <Icon className="w-5 h-5 flex-shrink-0" />
+      <Icon aria-hidden="true" className="w-5 h-5 flex-shrink-0" />
       <p className="text-sm font-medium flex-1">{item.message}</p>
       <button
         onClick={() => onDismiss(item.id)}
-        className="ml-1 p-1 rounded-full hover:bg-black/10 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-white/50"
+        className="ml-1 inline-flex h-11 w-11 items-center justify-center rounded-full hover:bg-black/10 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-white/50"
         aria-label="Cerrar notificación"
       >
         <X className="w-3.5 h-3.5" />

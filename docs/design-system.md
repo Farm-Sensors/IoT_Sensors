@@ -27,7 +27,7 @@ Estética terrosa, elegante y orgánica. Layout estilo **"Bento Box"** (cuadríc
 ### Acentos y Acciones
 | Token | Light | Dark | Descripción |
 | :--- | :--- | :--- | :--- |
-| `--accent-primary` | `#6D7E5E` | `#8CA478` | Verde olivo. Botones primarios, progreso. |
+| `--accent-primary` | `#5A6B4C` | `#8CA478` | Verde olivo. Botones primarios, progreso. Con `--text-inverted` encima da ≥ 4.5:1 en claro (antes `#6D7E5E`, 3.88:1). |
 | `--accent-gold` | `#A68A61` | `#BDA077` | Marrón dorado. Progreso secundario. |
 | `--accent-glow` | `rgba(109,126,94,0.15)` | `rgba(140,164,120,0.16)` | Glow de prioridad (métricas en vivo). |
 
@@ -35,7 +35,7 @@ Estética terrosa, elegante y orgánica. Layout estilo **"Bento Box"** (cuadríc
 | Token | Light | Dark | Descripción |
 | :--- | :--- | :--- | :--- |
 | `--text-primary` | `#2C2621` | `#ECE6DE` | Marrón casi negro / off-white. Texto principal. |
-| `--text-secondary` | `#6E6359` | `#A79B8D` | Marrón grisáceo. Subtítulos. |
+| `--text-secondary` | `#5C5249` | `#A79B8D` | Marrón grisáceo. Subtítulos y etiquetas; ≥ 4.5:1 también sobre `--card-sand` (antes `#6E6359`, 3.99:1). |
 | `--text-inverted` | `#F4F1EB` | `#12100E` | Texto sobre acentos. |
 
 ### Estados (status)
@@ -47,6 +47,8 @@ Estética terrosa, elegante y orgánica. Layout estilo **"Bento Box"** (cuadríc
 | `--status-info` | `#3B82F6` | `#60A5FA` | Azul info |
 | `--status-*-bg` | alpha 0.14–0.16 | alpha 0.2 | Fondos translúcidos de estado |
 | `--status-danger-text` | `#B91C1C` | `#FCA5A5` | Texto de acciones destructivas (p. ej. «Revocar enlace»); contraste ≥ 4.5:1 |
+| `--status-danger-solid` | `#B91C1C` | `#B91C1C` | **Relleno** con texto blanco: botón destructivo de `ConfirmDialog` y aviso de error de `Toast` (≥ 4.5:1). Igual en ambos temas. |
+| `--status-success-solid` | `#15803D` | `#15803D` | **Relleno** con texto blanco: aviso de éxito de `Toast` (≥ 4.5:1). Igual en ambos temas. |
 
 > Nota: no usar `--state-live/warning/critical` — son nombres de un plan anterior que **no existen** en el código.
 
@@ -102,6 +104,72 @@ No existe `tailwind.config.js`. Tailwind v4 se configura en CSS: `@theme inline`
 3. **Jerarquía de navegación:** Cliente → Predio → Área de Riego, consistente en toda la app.
 4. **Interacciones simples y predecibles:** sin efectos ruidosos; animaciones sutiles (fade-in-up, stagger, glow solo en métricas prioritarias en vivo).
 
-## 8. Referencia del diseño original
+## 8. Patrones de pantalla
+
+Contrato para los cambios de rediseño 2–4 (`openspec/changes/ui-redesign-*`): cada bloque de una
+página debe corresponder a uno de estos patrones y usar su componente compartido en vez de HTML
+ad-hoc. Referencia de «pantalla enfocada»: `pages/admin/GatewayManagement.tsx` y `GatewayDetail.tsx`
+(lista con badges de estado, una acción primaria, detalle tras un disclosure). Vocabulario y reglas
+de accesibilidad: `docs/ui-redesign-rules.md` §3–§4.
+
+Todos viven en `frontend/src/app/components/`. Los marcados **(nuevo)** los creó `ui-redesign-1-shell-and-patterns`; las páginas existentes los adoptan en los cambios 2–4 (no se reescribieron en este).
+
+| # | Patrón | Componente |
+| :--- | :--- | :--- |
+| 8.1 | Encabezado de página | `PageHeader` **(nuevo)** |
+| 8.2 | Lista de entidades | `BentoCard` (tarjetas) / `ui/table` (tabla) |
+| 8.3 | Badge de estado | `StatusBadge` **(nuevo)**; `GatewayStatusBadge` (cambio 2) y `EquipoStateBadge` (cambio 4) lo adoptarán |
+| 8.4 | Datos secundarios / de soporte | `Disclosure` **(nuevo)** |
+| 8.5 | Formulario | `ui/dialog` (en diálogo) o página con `BentoCard` |
+| 8.6 | Estados vacío, carga y error | `EmptyState`, `SkeletonCard`, `ErrorState` **(nuevo)** |
+| 8.7 | Confirmación de acción destructiva | `ConfirmDialog` |
+| 8.8 | Pasos de un flujo | `Stepper` **(nuevo)**, basado en el asistente de *Equipos* (que lo adopta el cambio 4) |
+
+### 8.1 Encabezado de página
+- Un solo `h1` por página, con `tabIndex={-1}` para recibir el foco al cambiar de paso o de ruta.
+- Subtítulo opcional de **una línea**. A la derecha, **como máximo una acción primaria** (`PillButton primary`); las demás van como `outline` o dentro de la página.
+- Móvil: el título ocupa todo el ancho y la acción pasa debajo, a ancho completo.
+
+### 8.2 Lista de entidades
+- **Tarjetas** cuando cada elemento tiene estado, 2–4 datos y una acción (p. ej. equipos, predios). **Tabla** cuando se comparan muchas filas por las mismas columnas (p. ej. histórico, auditoría).
+- Cada fila/tarjeta es navegable por teclado y muestra su estado con un badge (8.3), no solo con color.
+- Móvil: tablas pasan a tarjetas apiladas o a scroll horizontal **solo dentro de la tabla**, nunca de la página.
+
+### 8.3 Badge de estado
+- Siempre **icono + texto + color** (nunca solo color); texto en `--text-main`, fondo `--status-*-bg`, icono `--status-*`.
+- Tono: `active` (óptimo), `warning` (riesgo leve), `danger` (crítico), `info` (en proceso), `neutral` (inactivo/revocado).
+- El mismo componente en escritorio y móvil; no se oculta el texto en móvil.
+
+### 8.4 Datos secundarios / de soporte
+- Todo lo que no ayuda a la tarea principal (IDs, versiones, referencias) va en un disclosure cerrado, titulado «Datos para soporte» o similar, como en `GatewayDetail`.
+- Implementado sobre `ui/collapsible`: botón con `aria-expanded`, foco visible, objetivo táctil ≥ 44 px.
+
+### 8.5 Formulario: diálogo o página
+- **Diálogo** (`ui/dialog`) para crear/editar con ≤ 5 campos y sin pasos. **Página** para formularios largos o con dependencias entre campos.
+- Etiqueta visible en cada campo; error junto al campo y resumen anunciado (`role="alert"`); foco al primer campo inválido al enviar; al cerrar un diálogo el foco vuelve al botón que lo abrió.
+
+### 8.6 Estados vacío, carga y error
+- **Vacío:** `EmptyState` con icono, título corto, una línea de ayuda y, si aplica, la acción para salir del vacío.
+- **Carga:** `SkeletonCard`/`MetricSkeleton` con la forma del contenido; nunca texto «Cargando…» suelto.
+- **Error:** `ErrorState` con mensaje llano, `role="alert"` y botón «Reintentar»; sin trazas ni códigos en el texto principal.
+
+### 8.7 Confirmación de acción destructiva
+- `ConfirmDialog variant="danger"`: título con el verbo y el objeto («Revocar enlace»), consecuencia en una línea, foco inicial en **Cancelar**, Escape cierra. El texto del botón destructivo usa `--status-danger-text`.
+
+### 8.8 Pasos de un flujo
+- Lista ordenada (`<ol aria-label="Pasos">`) con `aria-current="step"` en el paso actual y texto «Paso N de M»; al avanzar, el foco pasa al encabezado del paso.
+- Móvil: una columna; los pasos completados se resumen en una línea.
+
+### Marco de la app (login, navegación, layouts)
+- **Login:** `AuthSplitLayout` muestra el título del formulario como único `h1` (el panel decorativo usa `p`, porque se oculta bajo 1024 px). Tras un error, `LoginPage` lo anuncia (`role="alert"`, `aria-describedby` en ambos campos) y mueve el foco al primer campo a revisar: el correo si está vacío, si no la contraseña.
+- **Navegación:** `DesktopSidebar` y `MobileTabBar` son `nav` con nombre «Navegación principal». La página actual lleva `aria-current="page"` **y** una barra indicadora (lateral en escritorio, superior en móvil) además del relleno de color; en móvil la entrada actual se desplaza a la vista.
+- **Saltar al contenido:** `SkipLink` es el primer elemento enfocable de `AdminLayout` y `ClientLayout`; lleva el foco al `main#contenido`.
+- **Objetivos táctiles:** botones y enlaces del marco miden ≥ 44 px (`PillButton` tiene `min-h-[44px]`).
+- **Diálogo de confirmación:** `ConfirmDialog` devuelve el foco al elemento que lo abrió y asocia la consecuencia con `aria-describedby`.
+
+### Variantes móviles (390 px)
+Una columna, sin scroll horizontal de la página, objetivos táctiles ≥ 44×44 px, acción primaria a ancho completo, barra de pestañas con todas las entradas alcanzables.
+
+## 9. Referencia del diseño original
 
 - Figma: https://www.figma.com/design/oC6tGH2eDH091njUEnkRPk/IoT-Agricultural-Irrigation-App

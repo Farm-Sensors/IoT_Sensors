@@ -2,6 +2,7 @@ import { useEffect, useRef } from "react";
 import { Outlet, useLocation } from "react-router";
 import { DesktopSidebar } from "../components/navigation/DesktopSidebar";
 import { MobileTabBar } from "../components/navigation/MobileTabBar";
+import { SkipLink } from "../components/navigation/SkipLink";
 import { AlertsPopover } from "../components/notifications/AlertsPopover";
 import { SelectionProvider } from "../context/SelectionContext";
 import { useIsMobile } from "../hooks/useIsMobile";
@@ -25,11 +26,14 @@ export function AdminLayout() {
           isMobile ? "min-h-screen" : "h-screen overflow-hidden"
         }`}
       >
+        <SkipLink targetRef={mainRef} />
         {!isMobile && <DesktopSidebar role="admin" />}
 
         <main
+          id="contenido"
           ref={mainRef}
-          className={`flex-1 min-w-0 overflow-x-hidden bg-[var(--surface-page)] ${isMobile ? "pb-20" : "h-screen overflow-y-auto"
+          tabIndex={-1}
+          className={`flex-1 min-w-0 overflow-x-hidden focus:outline-none bg-[var(--surface-page)] ${isMobile ? "pb-20" : "h-screen overflow-y-auto"
             }`}
         >
           <Outlet />

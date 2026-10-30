@@ -13,14 +13,14 @@
   --bg-input:         transparent;
 
   /* --- Light Agricultural Colors --- */
-  --accent-primary:   #6D7E5E;   /* verde olivo */
+  --accent-primary:   #5A6B4C;   /* verde olivo */
   --accent-gold:      #A68A61;   /* marrón dorado */
   --accent-glow:      rgba(109, 126, 94, 0.15);
   --accent-gold-glow: rgba(166, 138, 97, 0.15);
 
   /* --- Light Text --- */
   --text-primary:     #2C2621;   /* marrón casi negro */
-  --text-secondary:   #6E6359;   /* marrón grisáceo */
+  --text-secondary:   #5C5249;   /* marrón grisáceo */
   --text-inverted:    #F4F1EB;   /* crema, sobre fondos oscuros */
   --text-on-dark:     #F4F1EB;   /* Siempre claro, para tarjetas oscuras */
 
@@ -34,6 +34,8 @@
   --status-danger-bg: rgba(239, 68, 68, 0.14);
   --status-info-bg: rgba(59, 130, 246, 0.14);
   --status-danger-text: #B91C1C; /* texto rojo legible (≥4.5:1) sobre superficies claras */
+  --status-danger-solid:  #B91C1C; /* relleno de botón destructivo; texto blanco ≥4.5:1 (igual en ambos temas) */
+  --status-success-solid: #15803D; /* relleno de aviso de éxito; texto blanco ≥4.5:1 (igual en ambos temas) */
 
   /* --- Light Borders & Shadows --- */
   --border-glass:     rgba(44, 38, 33, 0.06);
@@ -68,10 +70,10 @@
   --card-sand:        #E2D4B7;
   --card-dark:        #3B312B;
   --card-brown:       #705541;
-  --accent-green:     #6D7E5E;
+  --accent-green:     #5A6B4C;
   --accent-brown:     #A68A61;
   --text-main:        #2C2621;
-  --text-muted:       #6E6359;
+  --text-muted:       #5C5249;
   --progress-track:   #E6E1D8;
 
   /* ── shadcn/ui standard vars (Light) ── */
@@ -82,13 +84,13 @@
   --card-foreground:              #2C2621;
   --popover:                      #F9F8F4;
   --popover-foreground:           #2C2621;
-  --primary:                      #6D7E5E;
+  --primary:                      #5A6B4C;
   --primary-foreground:           #F4F1EB;
   --secondary:                    #E2D4B7;
   --secondary-foreground:         #2C2621;
   --muted:                        #E2D4B7;
-  --muted-foreground:             #6E6359;
-  --accent:                       #6D7E5E;
+  --muted-foreground:             #5C5249;
+  --accent:                       #5A6B4C;
   --accent-foreground:            #F4F1EB;
   --destructive:                  #d4183d;
   --destructive-foreground:       #ffffff;
@@ -98,21 +100,21 @@
   --switch-background:            #A68A61;
   --font-weight-medium:           500;
   --font-weight-normal:           400;
-  --ring:                         #6D7E5E;
+  --ring:                         #5A6B4C;
   --chart-1:                      #6D7E5E;
   --chart-2:                      #A68A61;
   --chart-3:                      #2C2621; /* text-main */
-  --chart-4:                      #6E6359; /* text-muted */
+  --chart-4:                      #5C5249; /* text-muted */
   --chart-5:                      #705541; /* card-brown */
   --radius:                       32px;
   --sidebar:                      #F9F8F4;
   --sidebar-foreground:           #2C2621;
-  --sidebar-primary:              #6D7E5E;
+  --sidebar-primary:              #5A6B4C;
   --sidebar-primary-foreground:   #F4F1EB;
   --sidebar-accent:               #E2D4B7;
   --sidebar-accent-foreground:    #2C2621;
   --sidebar-border:               rgba(44, 38, 33, 0.1);
-  --sidebar-ring:                 #6D7E5E;
+  --sidebar-ring:                 #5A6B4C;
 }
 
 /* ============================================================

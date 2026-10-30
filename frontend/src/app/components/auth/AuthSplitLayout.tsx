@@ -21,7 +21,7 @@ export function AuthSplitLayout({ heading, description, children, footer }: Auth
           <div>
             <div className="mb-8 inline-flex items-center gap-3 rounded-full border border-[var(--border-glass)] bg-[var(--hover-overlay)] px-4 py-2">
               <span className="flex h-8 w-8 items-center justify-center rounded-full bg-[var(--accent-gold)] text-[var(--text-inverted)]">
-                <Leaf className="h-4 w-4" />
+                <Leaf aria-hidden="true" className="h-4 w-4" />
               </span>
               <div>
                 <p className="text-sm font-semibold tracking-wide">Sensores Agrícolas</p>
@@ -29,9 +29,9 @@ export function AuthSplitLayout({ heading, description, children, footer }: Auth
               </div>
             </div>
 
-            <h1 className="mb-4 text-4xl leading-tight text-[var(--text-on-dark)]">
+            <p className="mb-4 font-serif text-4xl leading-tight text-[var(--text-on-dark)]">
               Monitoreo de Riego Agrícola en Tiempo Real
-            </h1>
+            </p>
             <p className="max-w-xl text-base text-[var(--text-on-dark)]/75">
               Visualiza datos prioritarios de humedad de suelo, flujo y evapotranspiración desde una interfaz
               orgánica, clara y orientada a operación diaria.
@@ -51,11 +51,11 @@ export function AuthSplitLayout({ heading, description, children, footer }: Auth
 
           <div className="grid grid-cols-3 gap-3 text-sm">
             <div>
-              <p className="text-2xl font-semibold font-mono-data text-[var(--accent-primary)]">144+</p>
+              <p className="text-2xl font-semibold font-mono-data text-[var(--text-on-dark)]">144+</p>
               <p className="text-[var(--text-on-dark)]/70">Lecturas/día</p>
             </div>
             <div>
-              <p className="text-2xl font-semibold font-mono-data text-[var(--accent-primary)]">3 cat.</p>
+              <p className="text-2xl font-semibold font-mono-data text-[var(--text-on-dark)]">3 cat.</p>
               <p className="text-[var(--text-on-dark)]/70">Sensores</p>
             </div>
             <div>
@@ -69,7 +69,7 @@ export function AuthSplitLayout({ heading, description, children, footer }: Auth
           <div className="mb-8 flex items-start justify-between gap-3">
             <div className="flex items-center gap-3">
               <div className="flex h-11 w-11 items-center justify-center rounded-[24px] bg-[var(--accent-primary)] text-[var(--text-inverted)]">
-                <Leaf className="h-5 w-5" />
+                <Leaf aria-hidden="true" className="h-5 w-5" />
               </div>
               <div>
                 <p className="text-sm font-semibold text-[var(--text-title)]">Sensores Agrícolas</p>
@@ -80,15 +80,15 @@ export function AuthSplitLayout({ heading, description, children, footer }: Auth
             <button
               type="button"
               onClick={toggleTheme}
-              className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-[var(--border-strong)] bg-[var(--surface-card-primary)] text-[var(--text-body)] transition-colors hover:bg-[var(--hover-overlay)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus-ring)]"
+              className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-[var(--border-strong)] bg-[var(--surface-card-primary)] text-[var(--text-body)] transition-colors hover:bg-[var(--hover-overlay)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus-ring)]"
               aria-label={theme === "light" ? "Cambiar a tema oscuro" : "Cambiar a tema claro"}
             >
-              {theme === "light" ? <Moon className="h-4 w-4" /> : <Sun className="h-4 w-4" />}
+              {theme === "light" ? <Moon aria-hidden="true" className="h-4 w-4" /> : <Sun aria-hidden="true" className="h-4 w-4" />}
             </button>
           </div>
 
           <div className="mb-7">
-            <h2 className="mb-2 text-3xl text-[var(--text-title)]">{heading}</h2>
+            <h1 className="mb-2 text-3xl text-[var(--text-title)]">{heading}</h1>
             <p className="text-sm text-[var(--text-subtle)]">{description}</p>
           </div>
 
