@@ -8,7 +8,19 @@ import { PillButton } from "../../components/PillButton";
 import { useAuth } from "../../context/AuthContext";
 import { api } from "../../services/api";
 
+/** Saludos del acceso: uno distinto cada vez que se abre la página (el primero depende de la hora). */
+export function loginGreetings(date = new Date()): string[] {
+  const h = date.getHours();
+  const byHour = h < 12 ? "Buenos días" : h < 19 ? "Buenas tardes" : "Buenas noches";
+  return [byHour, "Bienvenido de vuelta", "Qué bueno verte", "Tu campo te espera", "Hora de revisar el riego"];
+}
+
 export function LoginPage() {
+  // Se elige una sola vez al abrir la página: el título no cambia mientras se escribe.
+  const [greeting] = useState(() => {
+    const options = loginGreetings();
+    return options[Math.floor(Math.random() * options.length)];
+  });
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { login, isAuthenticated, user } = useAuth();
@@ -65,7 +77,7 @@ export function LoginPage() {
   return (
     <PageTransition>
       <AuthSplitLayout
-        heading="Bienvenido de vuelta"
+        heading={greeting}
         description="Ingresa tus credenciales para acceder al panel de monitoreo."
       >
         {error && (
@@ -73,7 +85,7 @@ export function LoginPage() {
             id="login-error"
             role="alert"
             aria-live="assertive"
-            className="mb-6 rounded-[16px] border border-[var(--status-danger)]/25 bg-[var(--status-danger-bg)] p-4 text-center text-sm text-[var(--status-danger-text)]"
+            className="mb-6 rounded-[var(--radius)] border border-[var(--status-danger)]/25 bg-[var(--status-danger-bg)] p-4 text-sm text-[var(--status-danger-text)]"
           >
             {error}
           </div>
@@ -92,7 +104,7 @@ export function LoginPage() {
               onChange={(e) => setEmail(e.target.value)}
               placeholder="usuario@ejemplo.mx"
               autoComplete="email"
-              className="w-full rounded-[24px] border border-[var(--border-strong)] bg-[var(--surface-card-primary)] px-5 py-3 text-[var(--text-body)] placeholder:text-[var(--text-subtle)]/70
+              className="w-full rounded-[var(--radius)] border border-[var(--border-strong)] bg-[var(--surface-card-primary)] px-5 py-3 text-[var(--text-body)] placeholder:text-[var(--text-subtle)]/70
                 focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus-ring)] focus-visible:ring-offset-1"
               required
               disabled={isLoading}
@@ -114,7 +126,7 @@ export function LoginPage() {
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="••••••••"
                 autoComplete="current-password"
-                className="w-full rounded-[24px] border border-[var(--border-strong)] bg-[var(--surface-card-primary)] px-5 py-3 pr-14 text-[var(--text-body)] placeholder:text-[var(--text-subtle)]/70
+                className="w-full rounded-[var(--radius)] border border-[var(--border-strong)] bg-[var(--surface-card-primary)] px-5 py-3 pr-14 text-[var(--text-body)] placeholder:text-[var(--text-subtle)]/70
                   focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus-ring)] focus-visible:ring-offset-1"
                 required
                 disabled={isLoading}
@@ -137,7 +149,7 @@ export function LoginPage() {
           <div className="flex justify-end">
             <Link
               to="/recuperar-contrasena"
-              className="inline-flex min-h-[44px] items-center rounded-full px-3 text-sm text-[var(--text-subtle)] transition-colors hover:text-[var(--accent-primary)] focus:outline-none focus-visible:underline focus-visible:ring-2 focus-visible:ring-[var(--focus-ring)]"
+              className="inline-flex min-h-[44px] items-center rounded-[var(--radius)] px-3 text-sm text-[var(--text-subtle)] transition-colors hover:text-[var(--accent-primary)] focus:outline-none focus-visible:underline focus-visible:ring-2 focus-visible:ring-[var(--focus-ring)]"
             >
               ¿Olvidé mi contraseña?
             </Link>

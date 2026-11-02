@@ -65,13 +65,13 @@ export function ResetPasswordPage() {
         }
       >
         {error && (
-          <div className="mb-6 rounded-[16px] border border-[#DC2626]/25 bg-[#DC2626]/10 p-4 text-center text-sm text-[#DC2626]">
+          <div className="mb-6 rounded-[var(--radius)] border border-[#DC2626]/25 bg-[#DC2626]/10 p-4 text-center text-sm text-[#DC2626]">
             {error}
           </div>
         )}
 
         {detail && (
-          <div className="mb-6 rounded-[16px] border border-[var(--status-active)]/25 bg-[var(--status-active)]/10 p-4 text-center text-sm text-[var(--status-active)]">
+          <div className="mb-6 rounded-[var(--radius)] border border-[var(--status-active)]/25 bg-[var(--status-active)]/10 p-4 text-center text-sm text-[var(--status-active-text)]">
             {detail}
           </div>
         )}
@@ -86,7 +86,7 @@ export function ResetPasswordPage() {
               value={newPassword}
               onChange={(e) => setNewPassword(e.target.value)}
               placeholder="Mínimo 8 caracteres"
-              className="w-full rounded-[24px] border border-[var(--border-strong)] bg-[var(--surface-card-primary)] px-5 py-3 text-[var(--text-body)] placeholder:text-[var(--text-subtle)]/70 focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus-ring)] focus-visible:ring-offset-1"
+              className="w-full rounded-[var(--radius)] border border-[var(--border-strong)] bg-[var(--surface-card-primary)] px-5 py-3 text-[var(--text-body)] placeholder:text-[var(--text-subtle)]/70 focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus-ring)] focus-visible:ring-offset-1"
               minLength={8}
               required
               disabled={isLoading}
@@ -102,7 +102,7 @@ export function ResetPasswordPage() {
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
               placeholder="Repite tu nueva contraseña"
-              className="w-full rounded-[24px] border border-[var(--border-strong)] bg-[var(--surface-card-primary)] px-5 py-3 text-[var(--text-body)] placeholder:text-[var(--text-subtle)]/70 focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus-ring)] focus-visible:ring-offset-1"
+              className="w-full rounded-[var(--radius)] border border-[var(--border-strong)] bg-[var(--surface-card-primary)] px-5 py-3 text-[var(--text-body)] placeholder:text-[var(--text-subtle)]/70 focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus-ring)] focus-visible:ring-offset-1"
               minLength={8}
               required
               disabled={isLoading}

@@ -1,7 +1,7 @@
 import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { MemoryRouter } from "react-router";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { LoginPage } from "./LoginPage";
+import { LoginPage, loginGreetings } from "./LoginPage";
 
 const mocks = vi.hoisted(() => ({ post: vi.fn() }));
 vi.mock("../../services/api", () => ({ api: { post: mocks.post } }));
@@ -24,7 +24,7 @@ describe("LoginPage", () => {
     renderLogin();
     const headings = screen.getAllByRole("heading", { level: 1 });
     expect(headings).toHaveLength(1);
-    expect(headings[0]).toHaveTextContent("Bienvenido de vuelta");
+    expect(loginGreetings()).toContain(headings[0].textContent);
   });
 
   it("announces a wrong-credentials error and moves focus to the password field", async () => {
