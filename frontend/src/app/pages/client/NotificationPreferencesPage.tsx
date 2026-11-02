@@ -338,19 +338,18 @@ export function NotificationPreferencesPage() {
                         <strong className="font-semibold text-[var(--text-main)]">Información:</strong> solo para que lo sepas.
                       </p>
                       <div className="overflow-x-auto">
-                        <table className="w-full min-w-[420px] border-collapse text-left text-sm">
+                        <table className="w-full border-collapse text-left text-sm">
                           <caption className="sr-only">Avisos de {area.name} por situación, canal y gravedad</caption>
                           <thead>
                             <tr className="border-b border-[var(--border)]">
-                              <th scope="col" className="py-2 pr-2 text-xs font-semibold text-[var(--text-muted)]">Cuándo avisar</th>
                               <th scope="col" className="py-2 pr-2 text-xs font-semibold text-[var(--text-muted)]">Por</th>
                               {SEVERITIES.map((severity) => {
                                 const meta = SEVERITY_META[severity.value];
                                 const Icon = meta.icon;
                                 return (
-                                  <th key={severity.value} scope="col" className="px-2 py-2 text-center text-xs font-semibold">
-                                    <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 ${meta.bg} ${meta.text}`}>
-                                      <Icon aria-hidden="true" className="h-3.5 w-3.5" />
+                                  <th key={severity.value} scope="col" className="px-1 py-2 text-center text-[11px] font-semibold sm:text-xs">
+                                    <span className={`inline-flex items-center gap-1 rounded-full px-1.5 py-0.5 sm:px-2 ${meta.bg} ${meta.text}`}>
+                                      <Icon aria-hidden="true" className="hidden h-3.5 w-3.5 sm:block" />
                                       {severity.label}
                                     </span>
                                   </th>
@@ -358,18 +357,18 @@ export function NotificationPreferencesPage() {
                               })}
                             </tr>
                           </thead>
-                          <tbody>
-                            {ALERT_TYPES.flatMap((alertType) =>
-                              CHANNELS.map((channel, channelIndex) => (
-                                <tr key={`${alertType.value}-${channel.value}`} className={`border-b border-[var(--border)] last:border-b-0 ${channelIndex === 0 ? "" : ""}`}>
-                                  {channelIndex === 0 && (
-                                    <th scope="rowgroup" rowSpan={CHANNELS.length} className="w-[40%] py-2 pr-3 align-top text-left text-sm font-medium text-[var(--text-main)]">
-                                      {alertType.label}
-                                    </th>
-                                  )}
-                                  <th scope="row" className="py-2 pr-2 text-left text-sm font-normal text-[var(--text-body)]">{channel.label}</th>
+                          {ALERT_TYPES.map((alertType) => (
+                            <tbody key={alertType.value}>
+                              <tr>
+                                <th scope="colgroup" colSpan={SEVERITIES.length + 1} className="pb-1 pt-3 text-left text-sm font-semibold text-[var(--text-main)]">
+                                  {alertType.label}
+                                </th>
+                              </tr>
+                              {CHANNELS.map((channel) => (
+                                <tr key={channel.value} className="border-b border-[var(--border)] last:border-b-0">
+                                  <th scope="row" className="py-1 pr-2 text-left text-sm font-normal text-[var(--text-body)]">{channel.label}</th>
                                   {SEVERITIES.map((severity) => (
-                                    <td key={severity.value} className="px-2 py-1 text-center">
+                                    <td key={severity.value} className="px-1 py-0.5 text-center">
                                       <label className="inline-flex h-11 w-11 cursor-pointer items-center justify-center">
                                         <input
                                           type="checkbox"
@@ -382,9 +381,9 @@ export function NotificationPreferencesPage() {
                                     </td>
                                   ))}
                                 </tr>
-                              )),
-                            )}
-                          </tbody>
+                              ))}
+                            </tbody>
+                          ))}
                         </table>
                       </div>
                     </Disclosure>

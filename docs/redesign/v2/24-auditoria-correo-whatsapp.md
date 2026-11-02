@@ -19,3 +19,5 @@ Fase 2 autorizada (ver `README.md`). Solo presentación: el modelo de datos (pre
 - Los valores internos (`threshold`, `inactivity`, `info`…) no cambian ni se envían distinto.
 
 **Aclaración de la gravedad (2026-11-01, a petición de JP):** la columna «Información» no se entendía. Ahora cada columna lleva el mismo icono y color que la alerta correspondiente (Crítica, Aviso, Información) y, sobre la tabla, una línea explica qué significa cada gravedad: «La gravedad la define cada umbral. Crítica: algo urgente. Aviso: conviene revisarlo. Información: solo para que lo sepas».
+
+**Pasada final (2026-11-01):** en móvil la tabla de avisos dejaba la columna «Información» fuera de la pantalla y el nombre de la situación partido en cuatro líneas. Ahora cada situación es un título sobre sus filas Correo y WhatsApp, y la tabla tiene solo cuatro columnas (Por + las tres gravedades), que caben a 390 px sin desplazarse.

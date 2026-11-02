@@ -59,7 +59,7 @@ function AreaTile({ row, weight, now }: { row: AreaOverviewRow; weight: number; 
           </>
         )}
         {ok ? (
-          <div className="relative z-10 font-mono-data text-[28px] font-medium leading-none">{row.humidity!.toFixed(1)}<small className="ml-1 text-xs text-[var(--text-muted)]">% de humedad del suelo</small></div>
+          <div className="relative z-10 font-mono-data text-[28px] font-medium leading-none">{row.humidity!.toFixed(1)}<small className="ml-1 text-xs text-[var(--text-muted)]">% humedad</small></div>
         ) : (
           <div className="relative space-y-0.5">
             <StateBadge state={row.state} />
