@@ -60,18 +60,18 @@ Convenciones: **P** = productor, **A** = admin. Rutas de `main`. API relativa a 
 | A21 | Redirecciones: `/admin/recorrido-v2` → `/admin/gateways`; rutas desconocidas → `/admin` | — | A | — | Equivalentes en v2 | Cada ruta antigua llega a su destino |
 | A22 | Tema y cerrar sesión | Menú lateral | A | Local | Menú de cuenta | Igual que P20 |
 
-## Fase 2 (dormida, sin cambios de lógica)
+## Fase 2 (rediseño de navegación aplicado, 2026-11-01)
 
-Se conservan **ruta, módulo (gate) y comportamiento**. Hoy el menú las oculta y la URL directa funciona. En v2: acceso desde Cuenta o Ajustes **solo si el módulo está activo**. No se encienden flags ni se arranca el perfil `phase2`.
+Se conservan **ruta, módulo (gate) y comportamiento**. El menú agrupa las pantallas en dos secciones con pestañas (`20-navegacion-fase-2.md`): **Alertas** (Recibidas, Reglas de aviso, Cómo me avisan) y **Asistente** (Preguntar, Reportes automáticos, Consumo). Cada pestaña aparece solo si su módulo está encendido; con todos apagados el menú es el de siempre. No se encienden flags ni se arranca el perfil `phase2` en entornos compartidos.
 
 | ID | Función | Ruta(s) | Rol | Módulo | Destino v2 | Verificación |
 |---|---|---|---|---|---|---|
-| F1 | Centro de alertas y detalle | `/cliente/alertas`, `/admin/alertas`, `…/:alertId` | P, A | `alerts` | Cuenta / Ajustes si activo | La ruta carga con módulo apagado, como hoy |
-| F2 | Umbrales | `/cliente/umbrales`, `/admin/umbrales` | P, A | `alerts` | Igual | Idem |
-| F3 | Preferencias de notificación | `/cliente/notificaciones` | P | `notifications` | Cuenta si activo | Idem |
-| F4 | Asistente IA | `/cliente/asistente-ia`, `/admin/asistente-ia` | P, A | `ai_assistant` | Cuenta / Ajustes si activo | Idem |
-| F5 | Reportes IA y detalle | `/cliente/reportes-ia`, `/admin/reportes-ia`, `…/:reportId` | P, A | `ai_reports` | Igual | Con módulo apagado la API responde 503 (hoy visible en consola, hallazgo 17): no empeorar |
-| F6 | Consumo IA | `/admin/consumo-ia` | A | `ai_assistant` | Ajustes si activo | Idem |
+| F1 | Centro de alertas y detalle | `/cliente/alertas`, `/admin/alertas`, `…/:alertId` | P, A | `alerts` | Alertas › Recibidas; Área › Ahora enlaza las alertas sin leer del área (`?area=`) | `items.test.ts`; la ruta carga con módulo apagado, como hoy |
+| F2 | Umbrales | `/cliente/umbrales`, `/admin/umbrales` | P, A | `alerts` | Alertas › Reglas de aviso; Área › Detalles enlaza las de esa área | Idem |
+| F3 | Preferencias de notificación | `/cliente/notificaciones` | P | `notifications` | Alertas › Cómo me avisan | Idem |
+| F4 | Asistente IA | `/cliente/asistente-ia`, `/admin/asistente-ia` | P, A | `ai_assistant` | Asistente › Preguntar | Idem |
+| F5 | Reportes IA y detalle | `/cliente/reportes-ia`, `/admin/reportes-ia`, `…/:reportId` | P, A | `ai_reports` | Asistente › Reportes automáticos | Con módulo apagado la API responde 503 (hallazgo 17): no empeorar |
+| F6 | Consumo IA | `/admin/consumo-ia` | A | `ai_assistant` | Asistente › Consumo (solo admin) | Idem |
 | F7 | Recuperar y restablecer contraseña | `/recuperar-contrasena`, `/restablecer-contrasena` | Público | — | Sin cambio | Enlace «¿Olvidé mi contraseña?» del inicio de sesión conservado |
 | F8 | Inicio de sesión | `/` | Público | — | Sin cambio de lógica | Login con JWT; redirige por rol |
 

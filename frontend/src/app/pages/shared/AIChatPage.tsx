@@ -266,7 +266,7 @@ export function AIChatPage() {
       <div className="min-h-screen p-4 md:p-6 lg:p-8">
         <div className="mb-6">
           <h1 className="text-2xl md:text-3xl font-serif text-[var(--text-title)]">
-            Asistente IA
+            Preguntar al asistente
           </h1>
           <p className="text-[var(--text-subtle)]">{contextHint}</p>
         </div>

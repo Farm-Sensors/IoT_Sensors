@@ -128,7 +128,7 @@ export function AIReportsPage() {
         <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
           <div>
             <h1 className="text-2xl md:text-3xl font-serif text-[var(--text-title)]">
-              Reportes IA
+              Reportes automáticos
             </h1>
             <p className="text-[var(--text-subtle)]">
               {isAdmin

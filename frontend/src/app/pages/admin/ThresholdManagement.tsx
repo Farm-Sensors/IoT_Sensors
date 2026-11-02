@@ -6,6 +6,7 @@ import { PageTransition } from "../../components/PageTransition";
 import { PillButton } from "../../components/PillButton";
 import { useAuth } from "../../context/AuthContext";
 import { useOptionalSelection } from "../../context/SelectionContext";
+import { useAreaFromQuery } from "../../hooks/useAreaFromQuery";
 import { api } from "../../services/api";
 import {
   ThresholdCreatePayload,
@@ -67,6 +68,7 @@ function toNumberOrNull(value: string): number | null {
 export function ThresholdManagement() {
   const { user } = useAuth();
   const selection = useOptionalSelection();
+  useAreaFromQuery();
   const isClientRole = user?.rol === "cliente";
   const selectionLoading = selection?.loading ?? false;
   const selectedClientAreaId = selection?.selectedArea?.id;
@@ -281,7 +283,7 @@ export function ThresholdManagement() {
     <div className="min-h-screen p-4 md:p-6 lg:p-8">
       <div className="mb-6 flex items-center justify-between">
         <div>
-          <h1 className="text-2xl md:text-3xl font-serif text-[var(--text-main)] mb-2">Umbrales de Alertas</h1>
+          <h1 className="text-2xl md:text-3xl font-serif text-[var(--text-main)] mb-2">Reglas de aviso</h1>
           <p className="text-[var(--text-subtle)]">
             Configura rangos para activar alertas automáticas por parámetro
           </p>

@@ -297,7 +297,7 @@ export function NotificationPreferencesPage() {
       <div className="mb-6 flex flex-wrap items-start justify-between gap-3">
         <div>
           <h1 className="text-2xl md:text-3xl text-[var(--text-title)]">
-            Notificaciones
+            Cómo me avisan
           </h1>
           <p className="text-[var(--text-subtle)]">
             Configura qué alertas recibir por área, severidad y canal.

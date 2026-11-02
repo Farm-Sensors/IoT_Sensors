@@ -1,4 +1,5 @@
 import { MapPin, Sprout, Warehouse } from "lucide-react";
+import { AreaAlertsLink } from "../../../components/AreaAlertsLink";
 import { Breadcrumbs } from "../../../components/Breadcrumbs";
 import { useEffect } from "react";
 import { Navigate, NavLink, Outlet, useParams } from "react-router";
@@ -44,6 +45,8 @@ export function AreaLayout() {
           {[area.crop_type?.name, area.area_size ? `${area.area_size} ha` : null].filter(Boolean).join(" · ")}
         </p>
       </div>
+
+      <AreaAlertsLink areaId={area.id} />
 
       <nav aria-label="Secciones del área" className="mb-4 mt-2 flex gap-1 overflow-x-auto border-b border-[var(--border)]" style={{ scrollbarWidth: "none" }}>
         {TABS.map((tab) => (

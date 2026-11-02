@@ -97,10 +97,10 @@ export function AIReportDetailPage() {
               className="mb-3 inline-flex items-center gap-2 text-sm font-medium text-[var(--accent-primary)] hover:opacity-80"
             >
               <ArrowLeft className="h-4 w-4" />
-              Volver a reportes IA
+              Volver a reportes automáticos
             </Link>
             <h1 className="text-2xl md:text-3xl font-serif text-[var(--text-title)]">
-              Detalle de Reporte IA
+              Reporte automático
             </h1>
             <p className="text-[var(--text-subtle)]">
               Resumen operativo para seguimiento en plataforma.

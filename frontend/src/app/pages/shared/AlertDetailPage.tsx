@@ -166,7 +166,7 @@ export function AlertDetailPage() {
               className="mb-3 inline-flex items-center gap-2 text-sm font-medium text-[var(--accent-primary)] hover:opacity-80"
             >
               <ArrowLeft className="h-4 w-4" />
-              Volver a alertas
+              Volver a alertas recibidas
             </Link>
             <h1 className="text-2xl md:text-3xl font-serif text-[var(--text-title)]">
               Recomendación de alerta
@@ -237,9 +237,12 @@ export function AlertDetailPage() {
                   </div>
                   <div className="rounded-xl border border-[var(--border-subtle)] bg-[var(--surface-card-primary)] p-3">
                     <p className="text-xs text-[var(--text-subtle)]">Área</p>
-                    <p className="text-sm font-semibold text-[var(--text-body)]">
-                      {alert.irrigation_area_id}
-                    </p>
+                    <Link
+                      to={isAdmin ? `/admin/areas/${alert.irrigation_area_id}` : `/cliente/area/${alert.irrigation_area_id}`}
+                      className="text-sm font-semibold text-[var(--accent-primary)] underline-offset-4 hover:underline"
+                    >
+                      Ver el área {alert.irrigation_area_id}
+                    </Link>
                   </div>
                   <div className="rounded-xl border border-[var(--border-subtle)] bg-[var(--surface-card-primary)] p-3">
                     <p className="text-xs text-[var(--text-subtle)]">Parámetro</p>

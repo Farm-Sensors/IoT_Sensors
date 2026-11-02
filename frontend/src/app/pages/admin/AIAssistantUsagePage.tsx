@@ -83,7 +83,7 @@ export function AIAssistantUsagePage() {
         <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
           <div>
             <h1 className="text-2xl md:text-3xl font-serif text-[var(--text-title)]">
-              Consumo IA
+              Consumo del asistente
             </h1>
             <p className="text-[var(--text-subtle)]">
               Trazabilidad operativa del asistente conversacional.

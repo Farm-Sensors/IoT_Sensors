@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router";
 import { ErrorState } from "../../../components/ErrorState";
 import { GatewayStatusBadge } from "../../../components/GatewayStatusBadge";
+import { useModules } from "../../../hooks/useModules";
 import { usePropertyGatewayStatus } from "../../../hooks/usePropertyGatewayStatus";
 import { useSelection } from "../../../context/SelectionContext";
 import { api } from "../../../services/api";
@@ -38,6 +39,7 @@ export function AreaDetails() {
   const [error, setError] = useState(false);
   const [retry, setRetry] = useState(0);
   const gateway = usePropertyGatewayStatus(selectedArea?.property_id);
+  const alertsEnabled = useModules().alerts;
 
   useEffect(() => {
     if (!areaId) return;
@@ -128,6 +130,14 @@ export function AreaDetails() {
           <Link to={`/cliente/mapa?area=${selectedArea.id}`} className="mt-4 inline-flex min-h-[44px] items-center rounded-[var(--radius)] border border-[var(--border-strong)] px-4 text-sm font-semibold hover:bg-[var(--accent-soft)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus-ring)]">Abrir el mapa</Link>
         )}
       </section>
+
+      {alertsEnabled && (
+        <section aria-labelledby="det-reglas" className={`${card} md:col-span-2`}>
+          <h2 id="det-reglas" className="mb-1 text-base font-semibold">Avisos de esta área</h2>
+          <p className="text-sm text-[var(--text-muted)]">Define cuándo te avisamos de esta área.</p>
+          <Link to={`/cliente/umbrales?area=${selectedArea.id}`} className="mt-3 inline-flex min-h-[44px] items-center rounded-[var(--radius)] border border-[var(--border-strong)] px-4 text-sm font-semibold hover:bg-[var(--accent-soft)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus-ring)]">Reglas de aviso de esta área</Link>
+        </section>
+      )}
     </div>
   );
 }
