@@ -55,3 +55,7 @@ Rutas, API, permisos, flags, el refresco automático, los filtros disponibles y 
 1. **Nombres de cliente y predio:** la API trae solo ids; los nombres salen de las listas de predios y áreas que la app ya carga (para el cliente se haría una consulta a `/clients`). ¿Se acepta esa consulta extra?
 2. **Subir las críticas sin leer** arriba como grupo «Requieren atención» frente a una lista cronológica simple.
 3. **Cantidad de filtros:** mantener Cliente › Predio › Área, Gravedad, Tipo, Estado y Fechas, o reducir a lo esencial (Área, Gravedad, Sin leer).
+
+## Campana del encabezado (aplicada)
+
+`components/notifications/AlertsPopover.tsx` (productor y administrador) sigue el mismo lenguaje que la lista: gravedad con icono y texto («Crítica», «Aviso», «Información») en lugar de «CRITICAL», dónde («Predio › Área» con nombre, con el cliente para el admin) en lugar de «Nodo 11 · Area 2», sin la clave interna del parámetro, cada fila como un solo enlace al detalle (se quita «Ver recomendación» de cada fila) y marcar como leída como botón discreto. Un solo contador («3 sin leer») en lugar de «3 no leídas · 3 visibles no leídas»; se quita «Actualizar» (se refresca cada 30 s) y quedan «Marcar todas como leídas» y «Ver todas las alertas» / «Ver mis alertas». Los colores fijos (`#7F1D1D`, `#DDE6F4`…) pasan a tokens del tema, así que también funciona en modo oscuro. El botón se llama «Alertas» (con el conteo para lectores de pantalla) en lugar de «Abrir notificaciones». Misma consulta y mismo refresco; sin cambios de lógica.
