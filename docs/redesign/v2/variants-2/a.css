@@ -1,0 +1,78 @@
+/* PROPUESTA A · LEVANTAMIENTO — plano de trabajo: el mapa ocupa la mitad de la pantalla y la lista es una hoja a su lado.
+   Neutros fríos, azul tinta como único acento, líneas finas en lugar de cajas, un solo radio (4 px), Geist. */
+html[data-variant="a"] {
+  --bg: #eff1f3; --surface: #ffffff; --surface-2: #e5e8ea; --ink: #13181d; --muted: #47525b; --line: #d2d8dc;
+  --accent: #1b3a64; --accent-ink: #ffffff; --accent-soft: #dce5f1;
+  --ok: #0e6a3c; --ok-bg: #dff1e7; --warn: #7a4800; --warn-bg: #fdefcf; --bad: #9d1218; --bad-bg: #fbdcdc; --off: #47525b; --off-bg: #e6e9eb;
+  --focus: #0b57d0; --shadow: 0 6px 20px -8px rgba(19, 24, 29, .35); --r: 4px; --r-s: 4px;
+  --font: "Geist", system-ui, sans-serif; --mono: "Geist Mono", ui-monospace, monospace;
+}
+html[data-variant="a"][data-theme="dark"] {
+  --bg: #0f1214; --surface: #161a1d; --surface-2: #1e2327; --ink: #e8ecee; --muted: #9ba6ae; --line: #2a3135;
+  --accent: #a9c1ee; --accent-ink: #0b1a30; --accent-soft: #1b2740;
+  --ok: #5fd69a; --ok-bg: #123021; --warn: #f0bb55; --warn-bg: #352809; --bad: #ff8a8e; --bad-bg: #3a1618; --off: #9ba6ae; --off-bg: #22282c;
+  --focus: #8ab4ff; --shadow: 0 6px 20px -8px rgba(0, 0, 0, .7);
+}
+html[data-variant="a"] body { font-family: var(--font); font-size: 14px; background: var(--bg); }
+html[data-variant="a"] .val, html[data-variant="a"] .prio .v, html[data-variant="a"] .totals .v, html[data-variant="a"] .num, html[data-variant="a"] th { font-family: var(--mono); font-variant-numeric: tabular-nums; }
+html[data-variant="a"] .demo { background: var(--ink); color: var(--bg); font-size: 12px; }
+html[data-variant="a"] .demo .seg button[aria-pressed="true"] { background: var(--bg); color: var(--ink); }
+html[data-variant="a"] .page-title { font-size: 24px; font-weight: 650; letter-spacing: -.02em; }
+html[data-variant="a"] .sub { font-size: 13px; }
+html[data-variant="a"] .summary { background: none; border: 0; padding: 0; margin: 0; display: block; }
+html[data-variant="a"] .pred-head .summary { text-align: right; }
+html[data-variant="a"] .summary .big { font-size: 24px; font-weight: 650; letter-spacing: -.02em; display: block; font-family: var(--font); }
+html[data-variant="a"] .summary .sub2 { color: var(--muted); font-size: 13px; }
+html[data-variant="a"] .rows, html[data-variant="a"] .inbox, html[data-variant="a"] .tree, html[data-variant="a"] .panel, html[data-variant="a"] .totals, html[data-variant="a"] .tablewrap, html[data-variant="a"] .filters, html[data-variant="a"] .chart { border-radius: var(--r); border: 1px solid var(--line); background: var(--surface); }
+html[data-variant="a"] .group > h2 { font-size: 12px; font-weight: 600; color: var(--muted); text-transform: none; letter-spacing: 0; padding: 12px 14px 6px; }
+html[data-variant="a"] .group > h2 small { font-size: 12px; }
+html[data-variant="a"] .group.attn > h2 { color: var(--warn); }
+html[data-variant="a"] .state { background: none; padding: 0; font-weight: 600; font-size: 12px; gap: 5px; border-radius: 0; }
+html[data-variant="a"] .row { border-top: 1px solid var(--line); }
+html[data-variant="a"] .row:hover { background: var(--accent-soft); }
+html[data-variant="a"] .row .name { font-weight: 600; }
+html[data-variant="a"] .row.head { font-size: 11px; font-weight: 500; text-transform: none; letter-spacing: 0; background: none; border-bottom: 0; }
+html[data-variant="a"] .val { font-size: 17px; font-weight: 500; }
+html[data-variant="a"] .prio { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); }
+html[data-variant="a"] .prio .k { font-size: 12px; text-transform: none; letter-spacing: 0; font-weight: 500; }
+html[data-variant="a"] .prio .v { font-size: 46px; font-weight: 500; letter-spacing: -.04em; }
+html[data-variant="a"] .sect > h2 { font-size: 14px; font-weight: 650; }
+html[data-variant="a"] .tabs a[aria-current="page"] { border-bottom-color: var(--accent); }
+html[data-variant="a"] .btn.primary, html[data-variant="a"] .seg2 button[aria-pressed="true"], html[data-variant="a"] .chipset button[aria-pressed="true"] { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+html[data-variant="a"] .next { background: var(--accent-soft); border-radius: var(--r); }
+html[data-variant="a"] .pin { box-shadow: 0 1px 3px rgba(0, 0, 0, .25); }
+html[data-variant="a"] .tree li > button[aria-current="true"] { background: var(--accent-soft); }
+@media (min-width: 861px) {
+  html[data-variant="a"] .top { position: fixed; top: 34px; left: 0; bottom: 0; width: 208px; height: auto; flex-direction: column; align-items: stretch; gap: 4px; padding: 16px 10px; border-right: 1px solid var(--line); border-bottom: 0; background: var(--surface); }
+  html[data-variant="a"] .demo { position: sticky; top: 0; z-index: 60; min-height: 34px; }
+  html[data-variant="a"] .brand { padding: 4px 8px 16px; font-size: 15px; }
+  html[data-variant="a"] .topnav { flex-direction: column; height: auto; gap: 2px; }
+  html[data-variant="a"] .topnav a { min-height: 40px; border: 0; border-radius: var(--r); padding: 0 10px; }
+  html[data-variant="a"] .topnav a[aria-current="page"] { background: var(--accent-soft); color: var(--ink); font-weight: 650; }
+  html[data-variant="a"] .top .iconbtn { margin-top: auto; justify-content: space-between; border-radius: var(--r); }
+  html[data-variant="a"] .menu { right: auto; left: 10px; top: auto; bottom: 62px; width: 196px; }
+  html[data-variant="a"] main { margin-left: 208px; max-width: none; padding: 24px 28px 40px; }
+  /* mapa y hoja de lista: una sola pieza que llena la altura disponible */
+  html[data-variant="a"] .pred-body { grid-template-columns: minmax(400px, 34%) minmax(0, 1fr); gap: 0; height: calc(100vh - 220px); min-height: 560px; border: 1px solid var(--line); border-radius: var(--r); overflow: hidden; background: var(--surface); }
+  html[data-variant="a"] .pred-map { order: 2; height: 100%; min-width: 0; }
+  html[data-variant="a"] .pred-list { order: 1; overflow: auto; border-right: 1px solid var(--line); }
+  html[data-variant="a"] .pred-map .mapwrap { height: 100%; display: flex; flex-direction: column; }
+  html[data-variant="a"] .pred-map .maptop { position: absolute; z-index: 5; top: 10px; left: 10px; right: 54px; margin: 0; pointer-events: none; }
+  html[data-variant="a"] .pred-map .maptop > * { pointer-events: auto; }
+  html[data-variant="a"] .pred-map .mapview { flex: 1; height: auto; border: 0; border-radius: 0; }
+  html[data-variant="a"] .pred-map .mapnote { position: absolute; left: 10px; bottom: 22px; margin: 0; background: var(--surface); padding: 4px 8px; border-radius: var(--r); }
+  html[data-variant="a"] .pred-list .rows { border: 0; border-radius: 0; }
+  html[data-variant="a"] .pred-list .row.head { display: none; }
+  html[data-variant="a"] .pred-list .row { grid-template-columns: 1fr 1fr 1fr; grid-template-areas: "n n s" "h fl e" "f f f"; gap: 6px 10px; padding: 12px 16px; align-items: end; }
+  html[data-variant="a"] .pred-list .row .c-name { grid-area: n; } html[data-variant="a"] .pred-list .row .c-state { grid-area: s; justify-self: end; align-self: start; }
+  html[data-variant="a"] .pred-list .row .c-hum { grid-area: h; } html[data-variant="a"] .pred-list .row .c-flow { grid-area: fl; } html[data-variant="a"] .pred-list .row .c-eto { grid-area: e; }
+  html[data-variant="a"] .pred-list .row .c-fresh { grid-area: f; display: flex; gap: 8px; color: var(--muted); } html[data-variant="a"] .pred-list .row .chev { display: none; }
+  html[data-variant="a"] .pred-list .row .cell-k { display: block; color: var(--muted); font-size: 11px; font-family: var(--font); }
+  html[data-variant="a"] .pred-list .row .c-flow::before { content: "Flujo"; display: block; color: var(--muted); font-size: 11px; font-family: var(--font); }
+  html[data-variant="a"] .pred-list .row .c-eto::before { content: "E.T.O."; display: block; color: var(--muted); font-size: 11px; font-family: var(--font); }
+  html[data-variant="a"] .hoy .mapview { border-radius: var(--r); }
+}
+@media (max-width: 860px) {
+  html[data-variant="a"] .pred-head .summary { text-align: left; }
+  html[data-variant="a"] .tabbar a[aria-current="page"] { background: var(--accent-soft); border-top-color: var(--accent); }
+}

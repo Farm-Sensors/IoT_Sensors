@@ -22,7 +22,7 @@ its own scope; anything else not written down is out of scope.
 
 - **API and data:** no edits to `frontend/src/app/services/`, `frontend/src/app/types/`,
   `frontend/src/app/utils/` (date presets, filters, chart grouping, export), any backend file.
-  Pages that call the API inline (for example `ExportData.tsx`, `ReadingDateRangeSelector.tsx`)
+  Pages that call the API inline (for example `ReadingDateRangeSelector.tsx`)
   keep every `api.*` call, URL and parameter byte-identical. No new endpoints, no change to
   polling intervals or response handling.
 - **Business rules:** freshness threshold (`FRESH_MINUTES_THRESHOLD`), `null` versus measured `0`
@@ -55,7 +55,7 @@ effect and must not edit it):
 
 | Component(s) in `frontend/src/app/components/` | Owner change |
 |---|---|
-| `ui/` (Radix-based primitives), `PillButton`, `BentoCard`, `EmptyState`, `ConfirmDialog`, `Toast`, `SkeletonCard`, `MetricSkeleton`, `AnimatedBackground`, `PageTransition`, `icons/`, `auth/`, `navigation/` | `ui-redesign-1-shell-and-patterns` |
+| `ui/` (Radix-based primitives), `PillButton`, `BentoCard`, `EmptyState`, `ConfirmDialog`, `Toast`, `SkeletonCard`, `MetricSkeleton`, `PageTransition`, `icons/`, `auth/`, `navigation/` | `ui-redesign-1-shell-and-patterns` |
 | `MetricCard`, `FreshnessIndicator` (look only; its freshness math is logic), `GatewayStatusBadge`, `selection/SelectionScopeBar` | `ui-redesign-2-client-dashboard` |
 | `ReadingDateRangeSelector`, `ChartSkeleton` | `ui-redesign-3-history-export-map` |
 | `PairingApprovalPanel`, `EquipoStateBadge`, `RevokeLinkButton` | `ui-redesign-4-admin-pages` |

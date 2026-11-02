@@ -1,0 +1,84 @@
+/* PROPUESTA C · CARTEL — tipografía gigante, reglas negras gruesas, cero radios, bloques planos de color para el estado. */
+html[data-variant="c"] {
+  --bg: #ffffff; --surface: #ffffff; --surface-2: #efefeb; --ink: #0a0a0a; --muted: #3d3d3d; --line: #0a0a0a;
+  --accent: #1b35f0; --accent-ink: #ffffff; --accent-soft: #e2e6ff;
+  --ok: #0a0a0a; --ok-bg: #b9f26a; --warn: #0a0a0a; --warn-bg: #ffc61a; --bad: #0a0a0a; --bad-bg: #ff6b5b; --off: #0a0a0a; --off-bg: #dcdcd6;
+  --focus: #1b35f0; --shadow: none; --r: 0; --r-s: 0;
+  --font: "Archivo", "Helvetica Neue", Arial, sans-serif;
+}
+html[data-variant="c"][data-theme="dark"] {
+  --bg: #0a0a0a; --surface: #0a0a0a; --surface-2: #1c1c1a; --ink: #f4f4ee; --muted: #c9c9c1; --line: #f4f4ee;
+  --accent: #9aa8ff; --accent-ink: #0a0a0a; --accent-soft: #1b2057;
+  --ok: #0a0a0a; --ok-bg: #b9f26a; --warn: #0a0a0a; --warn-bg: #ffc61a; --bad: #0a0a0a; --bad-bg: #ff6b5b; --off: #f4f4ee; --off-bg: #34342f;
+  --focus: #ffe14d;
+}
+html[data-variant="c"] body { font-family: var(--font); font-size: 15px; font-weight: 500; }
+html[data-variant="c"] * { border-radius: 0 !important; }
+html[data-variant="c"] .demo { background: var(--accent); color: var(--accent-ink); font-weight: 700; text-transform: uppercase; letter-spacing: .06em; font-size: 12px; }
+html[data-variant="c"] .demo .seg button[aria-pressed="true"] { background: var(--ink); color: var(--bg); }
+html[data-variant="c"] .page-title { font-size: clamp(36px, 6vw, 68px); font-weight: 900; text-transform: uppercase; letter-spacing: -.04em; line-height: .92; }
+html[data-variant="c"] .sub { color: var(--ink); font-weight: 600; text-transform: uppercase; letter-spacing: .06em; font-size: 12px; margin-top: 10px; }
+html[data-variant="c"] .summary { border: 0; border-top: 6px solid var(--ink); border-bottom: 2px solid var(--ink); padding: 14px 0; background: transparent; margin: 22px 0; }
+html[data-variant="c"] .summary .big { font-size: clamp(26px, 4vw, 44px); font-weight: 900; letter-spacing: -.03em; text-transform: uppercase; }
+html[data-variant="c"] .group > h2 { color: var(--ink); background: var(--ink); color: var(--bg); padding: 8px 12px; font-weight: 800; letter-spacing: .12em; }
+html[data-variant="c"] .group > h2 small { color: var(--bg); opacity: .85; }
+html[data-variant="c"] .group.attn > h2 { background: var(--warn-bg); color: #0a0a0a; } html[data-variant="c"] .group.attn > h2 small { color: #0a0a0a; }
+html[data-variant="c"] .rows, html[data-variant="c"] .inbox, html[data-variant="c"] .panel, html[data-variant="c"] .tree, html[data-variant="c"] .tablewrap, html[data-variant="c"] .mapbox, html[data-variant="c"] .chart, html[data-variant="c"] .filters, html[data-variant="c"] .totals, html[data-variant="c"] .prio { border: 2px solid var(--ink); background: var(--surface); }
+html[data-variant="c"] .row { border-top: 2px solid var(--ink); }
+html[data-variant="c"] .row:hover, html[data-variant="c"] .row.hl { background: var(--accent); color: var(--accent-ink); }
+html[data-variant="c"] .row:hover .meta, html[data-variant="c"] .row:hover .chev, html[data-variant="c"] .row:hover .val small, html[data-variant="c"] .row:hover .c-fresh div { color: var(--accent-ink) !important; }
+html[data-variant="c"] .row.head { background: var(--surface-2); color: var(--ink); font-weight: 800; border-top: 0; }
+html[data-variant="c"] .row .name { font-size: 18px; font-weight: 800; letter-spacing: -.01em; }
+html[data-variant="c"] .val { font-size: 34px; font-weight: 900; letter-spacing: -.04em; }
+html[data-variant="c"] .val small { font-size: 12px; font-weight: 700; text-transform: uppercase; }
+html[data-variant="c"] .state { font-weight: 800; text-transform: uppercase; letter-spacing: .05em; font-size: 12px; padding: 5px 10px 5px 8px; border: 2px solid #0a0a0a; color: #0a0a0a; }
+html[data-variant="c"] .s-sin_nodo { background: repeating-linear-gradient(135deg, var(--off-bg) 0 6px, #fff 6px 12px); } html[data-variant="c"][data-theme="dark"] .s-sin_nodo { background: repeating-linear-gradient(135deg, #cfcfc7 0 6px, #fff 6px 12px); color: #0a0a0a; }
+html[data-variant="c"] .s-sin_datos { background: var(--off-bg); } html[data-variant="c"][data-theme="dark"] .s-sin_datos { background: #dcdcd6; }
+html[data-variant="c"] .prio { border-width: 4px; } html[data-variant="c"] .prio > div { border-left: 2px solid var(--ink); }
+html[data-variant="c"] .prio .k { font-weight: 800; letter-spacing: .1em; color: var(--ink); }
+html[data-variant="c"] .prio .v { font-size: clamp(54px, 7vw, 104px); font-weight: 900; letter-spacing: -.06em; line-height: .9; }
+html[data-variant="c"] .prio > div:first-child { background: var(--accent); color: var(--accent-ink); } html[data-variant="c"] .prio > div:first-child .k, html[data-variant="c"] .prio > div:first-child .v small, html[data-variant="c"] .prio > div:first-child .note { color: var(--accent-ink); }
+html[data-variant="c"] .stale-val { color: var(--ink); text-decoration: line-through; text-decoration-thickness: 3px; }
+html[data-variant="c"] .banner { border: 2px solid var(--ink); } html[data-variant="c"] .banner.warn { background: var(--warn-bg); color: #0a0a0a; } html[data-variant="c"] .banner.off { background: var(--off-bg); color: #0a0a0a; }
+html[data-variant="c"] .sect > h2 { border-bottom: 4px solid var(--ink); text-transform: uppercase; letter-spacing: .06em; font-weight: 900; }
+html[data-variant="c"] .dl dd { font-size: 24px; font-weight: 900; letter-spacing: -.03em; } html[data-variant="c"] .dl > div { border-bottom: 2px solid var(--ink); }
+html[data-variant="c"] .chart .line { stroke: var(--ink); stroke-width: 3; } html[data-variant="c"] .chart .fill { fill: var(--accent); opacity: .22; } html[data-variant="c"] .chart svg circle { fill: var(--accent); } html[data-variant="c"] .chart .grid { stroke: var(--ink); opacity: .35; }
+html[data-variant="c"] .chart text { fill: var(--ink); font-weight: 700; }
+html[data-variant="c"] .tabs { border-bottom: 4px solid var(--ink); gap: 6px; } html[data-variant="c"] .tabs a { border: 2px solid var(--ink); border-bottom: 0; font-weight: 800; text-transform: uppercase; letter-spacing: .06em; color: var(--ink); }
+html[data-variant="c"] .tabs a[aria-current="page"] { background: var(--ink); color: var(--bg); }
+html[data-variant="c"] .btn, html[data-variant="c"] .iconbtn, html[data-variant="c"] .chipset button, html[data-variant="c"] .view-toggle { border: 2px solid var(--ink); font-weight: 800; text-transform: uppercase; letter-spacing: .04em; background: var(--surface); color: var(--ink); }
+html[data-variant="c"] .btn.primary, html[data-variant="c"] .chipset button[aria-pressed="true"], html[data-variant="c"] .view-toggle button[aria-pressed="true"] { background: var(--accent); color: var(--accent-ink); border-color: var(--ink); }
+html[data-variant="c"] .btn:hover { background: var(--ink); color: var(--bg); }
+html[data-variant="c"] .next { background: var(--warn-bg); color: #0a0a0a; border: 2px solid var(--ink); } html[data-variant="c"] .next .btn.primary { background: #0a0a0a; color: #fff; }
+html[data-variant="c"] .task { border-top: 2px solid var(--ink); } html[data-variant="c"] .task .t { font-size: 20px; font-weight: 900; letter-spacing: -.02em; }
+html[data-variant="c"] .totals .v { font-size: 56px; font-weight: 900; letter-spacing: -.05em; } html[data-variant="c"] .totals > div { border-left: 2px solid var(--ink); }
+html[data-variant="c"] .tree li > button { font-weight: 700; } html[data-variant="c"] .tree li > button[aria-current="true"] { background: var(--ink); color: var(--bg); }
+html[data-variant="c"] th { background: var(--ink); color: var(--bg); font-weight: 800; }
+html[data-variant="c"] .pending-c, html[data-variant="c"] .mapnote, html[data-variant="c"] .popup { border-color: var(--ink); color: var(--ink); }
+html[data-variant="c"] .drawer { border-left: 4px solid var(--ink); } html[data-variant="c"] .field input, html[data-variant="c"] .field select { border: 2px solid var(--ink); }
+html[data-variant="c"] .toast { background: var(--accent); color: var(--accent-ink); font-weight: 800; border: 2px solid var(--ink); }
+html[data-variant="c"] .menu { border: 2px solid var(--ink); }
+@media (min-width: 861px) {
+  html[data-variant="c"] .top { height: 76px; border-bottom: 6px solid var(--ink); padding: 0 32px; }
+  html[data-variant="c"] .brand { font-size: 26px; font-weight: 900; text-transform: uppercase; letter-spacing: -.04em; }
+  html[data-variant="c"] .brand svg { display: none; }
+  html[data-variant="c"] .topnav a { text-transform: uppercase; font-weight: 800; letter-spacing: .06em; color: var(--ink); border-bottom: 0; margin: 14px 0; padding: 0 16px; border: 2px solid transparent; }
+  html[data-variant="c"] .topnav a[aria-current="page"] { background: var(--ink); color: var(--bg); }
+  html[data-variant="c"] .topnav a:hover { border-color: var(--ink); }
+  html[data-variant="c"] main { max-width: 1320px; padding: 36px 32px 64px; }
+  html[data-variant="c"] .row { grid-template-columns: minmax(150px, 1.2fr) 104px 116px 116px 196px minmax(112px, .8fr) 16px; }
+  html[data-variant="c"] .split { grid-template-columns: minmax(0, 1fr) 330px; }
+}
+@media (max-width: 860px) {
+  html[data-variant="c"] .top { border-bottom: 4px solid var(--ink); } html[data-variant="c"] .brand { font-weight: 900; text-transform: uppercase; letter-spacing: -.03em; }
+  html[data-variant="c"] .tabbar { background: var(--ink); border-top: 0; } html[data-variant="c"] .tabbar a { color: var(--bg); text-transform: uppercase; font-weight: 800; letter-spacing: .05em; border-top: 0; }
+  html[data-variant="c"] .tabbar a[aria-current="page"] { background: var(--accent); color: var(--accent-ink); }
+  html[data-variant="c"] .row .c-hum .val { font-size: 32px; }
+  html[data-variant="c"] .prio > div { border-left: 0; border-top: 2px solid var(--ink); }
+  html[data-variant="c"] .prio .v { font-size: 44px; letter-spacing: -.05em; }
+  html[data-variant="c"] .prio .k { font-size: 12px; }
+  html[data-variant="c"] .totals > div { border-left: 0; } html[data-variant="c"] .totals > div:nth-child(even) { border-left: 2px solid var(--ink); }
+}
+
+html[data-variant="c"] .prio > div:first-child .stale-val { color: var(--accent-ink); }
+html[data-variant="c"][data-theme="dark"] .banner.off { background: #dcdcd6; }

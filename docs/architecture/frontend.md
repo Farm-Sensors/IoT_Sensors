@@ -24,7 +24,7 @@ La arquitectura está basada en dominios funcionales (Feature-driven / Role-base
 ```text
 src/app/
 ├── components/       # Componentes reusables de UI (Botones, Tarjetas, Input, etc.)
-│   ├── navigation/   # Menús (DesktopSidebar.tsx, MobileTabBar.tsx) y SkipLink.tsx
+│   ├── navigation/   # Marco: DesktopSidebar.tsx (riel), MobileTabBar.tsx, MobileHeader.tsx, SectionTabs.tsx, items.ts y SkipLink.tsx
 │   ├── notifications/ # Alertas en UI (AlertsPopover)
 │   └── ProtectedRoute.tsx # HOC para blindar rutas según el Rol y JWT.
 ├── context/          # React Context API para estado global (AuthContext, SelectionContext, ThemeContext)
@@ -115,7 +115,7 @@ Actualmente el frontend está en fase de **transición de datos estáticos hacia
 - `services/routePreload.ts`: utilitario para precargar pantallas de mapa y reducir tiempo de primera navegación.
 - `routes.tsx`: rutas protegidas `/cliente/mapa` y `/admin/mapa`.
 - `routes.tsx`: carga diferida (lazy) de pantallas geoespaciales con `Suspense`.
-- `components/navigation/DesktopSidebar.tsx` y `components/navigation/MobileTabBar.tsx`: acceso de navegación al mapa + prefetch condicional en interacción; ambos son `nav` con nombre y marcan la página actual con `aria-current` y un indicador visual.
+- `components/navigation/DesktopSidebar.tsx` y `components/navigation/MobileTabBar.tsx`: acceso de navegación + prefetch condicional del mapa (rutas con `/mapa` o `/gateways`) en interacción; ambos son `nav` con nombre y marcan la página actual con `aria-current` y un indicador que no depende del color.
 - Componentes de patrón compartidos (`PageHeader`, `StatusBadge`, `Disclosure`, `ErrorState`, `Stepper`, además de `EmptyState`, `ConfirmDialog`, `SkeletonCard`): contrato en `docs/design-system.md` §8.
 - Fallback UX: cuando un nodo no tiene coordenadas, se muestra en listado lateral de "Nodos sin GPS".
 
@@ -131,9 +131,9 @@ Actualmente el frontend está en fase de **transición de datos estáticos hacia
 
 ## 4. Diseño y UI (UI Guidelines)
 El sistema usa un "Design System" estricto tipo *Bento Box* orgánico:
-- **Colores Principales**: Crema Base (`#F4F1EB`), Hueso (`#F9F8F4`), Arena (`#E2D4B7`), Marrón oscuro (`#3B312B`), Verde Sage (`#6D7E5E`).
-- **Formas**: Bordes muy redondeados (`rounded-[24px]` o `rounded-[32px]`).
-- **Responsive**: Se sigue estrategia Mobile-First. En Móvil, la navegación ocurre abajo (Bottom-Bar: `MobileTabBar`); en Desktop, es lateral (`DesktopSidebar`). Se intercambian respondiendo a `useIsMobile()`.
+- **Colores principales**: neutros con matiz verdoso (`#F1F4F1`, `#FFFFFF`), verde bosque `#00450D` como único acento (identidad provisional, ver `design-system.md`) y estados verde, ámbar y neutro; detalle en `docs/design-system.md`. Identidad **A** del rediseño v2 (fase 1: tokens y marco; componentes de pantalla en fases 2 a 6).
+- **Formas**: radio base de 4 px (`--radius`). Los componentes que aún usan `rounded-[24px]` o `rounded-[32px]` se migran en las fases 2 a 6.
+- **Responsive**: Se sigue estrategia Mobile-First. En móvil, la navegación son las pestañas inferiores (`MobileTabBar`) con un encabezado (`MobileHeader`); en escritorio, un riel lateral (`DesktopSidebar`). Destinos del productor: Mis predios (`/cliente`, predios con sus áreas y resumen de 24 h plegado; de ahí se abre cada Área en `/cliente/area/:id` con pestañas Ahora, Historial y Detalles), Mapa, Cuenta; del admin: Hoy (totales y bandeja de pendientes derivados de datos existentes), Clientes (Directorio: árbol y panel en `/admin/clientes`), Red, Ajustes (con `SectionTabs`). Se intercambian con `useIsMobile()`. Se intercambian respondiendo a `useIsMobile()`.
 
 ---
 
@@ -156,7 +156,7 @@ graph TD
 ```
 
 - El flujo de sesión: el interceptor de `services/api.ts` ante un 401 intenta **una vez** renovar el access token con `POST /auth/refresh` (refresh token persistido por `AuthContext`); si falla, limpia sesión y redirige a `/`.
-- Los items de navegación tienen **fuente única** en `components/navigation/items.ts` (`clientNavItems`/`adminNavItems`), consumidos por `DesktopSidebar` (desktop) y `MobileTabBar` (móvil, misma paridad de rutas).
+- Los items de navegación tienen **fuente única** en `components/navigation/items.ts` (`clientNavItems`/`adminNavItems`, `isNavItemActive`, `sectionTabsFor`), consumidos por `DesktopSidebar`, `MobileTabBar` y `SectionTabs`. Las rutas no cambiaron: las antiguas siguen siendo las mismas y marcan su destino nuevo.
 - Polling en vistas clave (dashboard, alertas, mapas) con guardas de concurrencia y pausa cuando la pestaña está oculta (`usePageVisibility`); mapas en lazy loading con prefetch condicional.
 
 ---
