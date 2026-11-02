@@ -1,5 +1,5 @@
 import { ChevronRight, Warehouse } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { Link } from "react-router";
 import { EmptyState } from "../../components/EmptyState";
 import { ErrorState } from "../../components/ErrorState";
@@ -71,6 +71,48 @@ function AreaTile({ row, weight, now }: { row: AreaOverviewRow; weight: number; 
   );
 }
 
+const TILE_MIN = 158;
+const TILE_GAP = 8;
+
+/**
+ * Las parcelas de un predio. Si caben todas en una fila, su ancho es proporcional a las hectáreas (el plano);
+ * si no caben (muchas áreas o poco espacio), pasan a una cuadrícula de parcelas iguales en vez de partirse en
+ * filas con anchos engañosos. Sin hectáreas registradas, la parcela pesa lo mismo que las demás.
+ */
+function PlotRow({ list, share, now }: { list: AreaOverviewRow[]; share: number; now: number }) {
+  const wrapperRef = useRef<HTMLDivElement>(null);
+  const [available, setAvailable] = useState(0);
+  useLayoutEffect(() => {
+    const el = wrapperRef.current;
+    if (!el) return;
+    const measure = () => setAvailable(el.clientWidth);
+    measure();
+    const observer = new ResizeObserver(measure);
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
+
+  const needed = list.length * TILE_MIN + (list.length - 1) * TILE_GAP;
+  const fits = available === 0 || needed <= available;
+  const known = list.filter((r) => r.area.area_size).map((r) => r.area.area_size as number);
+  const fallbackWeight = known.length ? known.reduce((a, b) => a + b, 0) / known.length : 1;
+  // Ancho del plano: proporcional a las hectáreas del predio, nunca menor que lo que necesitan sus parcelas.
+  const planWidth = available ? Math.min(available, Math.max(Math.round((available * share) / 100), 340, needed)) : undefined;
+
+  return (
+    <div ref={wrapperRef} className="w-full">
+      <div
+        className={fits ? "flex gap-2" : "grid gap-2"}
+        style={fits ? { width: planWidth ?? "100%" } : { gridTemplateColumns: `repeat(auto-fill, minmax(${TILE_MIN}px, 1fr))` }}
+      >
+        {list.map((r) => (
+          <AreaTile key={r.area.id} row={r} weight={fits ? r.area.area_size ?? fallbackWeight : 1} now={now} />
+        ))}
+      </div>
+    </div>
+  );
+}
+
 /** Portada del productor: primero sus predios y áreas; el resumen de 24 h queda plegado al final. El mapa vive en `/cliente/mapa`. */
 export function PropertiesOverview() {
   const { properties, areas, loading: selectionLoading, error: selectionError } = useSelection();
@@ -131,9 +173,7 @@ export function PropertiesOverview() {
                 Detalle del predio<ChevronRight aria-hidden="true" className="h-4 w-4" />
               </Link>
             </div>
-            <div className="flex flex-wrap gap-2" style={{ width: `min(100%, max(${width}%, 340px))` }}>
-              {list.map((r) => <AreaTile key={r.area.id} row={r} weight={r.area.area_size ?? 5} now={now} />)}
-            </div>
+            <PlotRow list={list} share={width} now={now} />
           </section>
         );
       })}
