@@ -21,9 +21,9 @@ export interface Gateway {
   slots: GatewaySlot[];
 }
 
-/** Nombre llano del rancho de un enlace ("Rancho X · Cliente"), aunque el predio se haya borrado. */
+/** Nombre llano del predio de un enlace ("Cliente · Predio X"), aunque el predio se haya borrado. */
 export function gatewayRanchLabel(gateway: Gateway): string {
-  const label = `${gateway.property_name} · ${gateway.client_name}`;
+  const label = `${gateway.client_name} · ${gateway.property_name}`;
   return gateway.property_deleted ? `${label} (predio eliminado)` : label;
 }
 

@@ -1,5 +1,5 @@
 import { Navigate, Outlet, useLocation } from "react-router";
-import { Leaf } from "lucide-react";
+import { BrandSymbol } from "./BrandSymbol";
 import { useAuth } from "../context/AuthContext";
 
 export function ProtectedRoute({ allowedRole }: { allowedRole?: "admin" | "cliente" }) {
@@ -9,9 +9,7 @@ export function ProtectedRoute({ allowedRole }: { allowedRole?: "admin" | "clien
   if (isLoading) {
     return (
       <div className="min-h-screen bg-[var(--bg-base)] flex flex-col items-center justify-center gap-5">
-        <div className="w-16 h-16 rounded-full bg-[var(--accent-primary)] flex items-center justify-center">
-          <Leaf className="w-8 h-8 text-[var(--text-inverted)]" />
-        </div>
+        <BrandSymbol className="h-16 w-16" />
         <div className="flex items-center gap-2">
           <span
             className="block w-2 h-2 rounded-full bg-[var(--accent-primary)] animate-bounce"

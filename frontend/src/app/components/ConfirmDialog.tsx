@@ -65,13 +65,13 @@ export function ConfirmDialog({
 
       {/* Dialog */}
       <div
-        className="relative w-full max-w-sm bg-[var(--bg-surface)] rounded-[32px] p-8 shadow-lg"
+        className="relative w-full max-w-sm bg-[var(--bg-surface)] rounded-[var(--radius)] p-8 shadow-lg"
         style={{ animation: "fadeInUp 0.25s ease-out both" }}
       >
         {variant === "danger" && (
           <div className="flex justify-center mb-4">
             <div className="w-12 h-12 rounded-full bg-[var(--status-danger-bg)] flex items-center justify-center">
-              <AlertTriangle aria-hidden="true" className="w-6 h-6 text-[var(--status-danger)]" />
+              <AlertTriangle aria-hidden="true" className="w-6 h-6 text-[var(--status-danger-text)]" />
             </div>
           </div>
         )}
@@ -91,7 +91,7 @@ export function ConfirmDialog({
           <button
             ref={cancelRef}
             onClick={onCancel}
-            className="flex-1 min-h-[44px] px-4 py-2.5 rounded-full text-sm font-medium
+            className="flex-1 min-h-[44px] px-4 py-2.5 rounded-[var(--radius)] text-sm font-medium
               bg-[var(--card-sand)] text-[var(--text-main)] hover:brightness-95 active:scale-[0.97]
               transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-primary)] focus-visible:ring-offset-2"
           >
@@ -99,7 +99,7 @@ export function ConfirmDialog({
           </button>
           <button
             onClick={onConfirm}
-            className={`flex-1 min-h-[44px] px-4 py-2.5 rounded-full text-sm font-medium
+            className={`flex-1 min-h-[44px] px-4 py-2.5 rounded-[var(--radius)] text-sm font-medium
               active:scale-[0.97] transition-all
               focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2
               ${variant === "danger"

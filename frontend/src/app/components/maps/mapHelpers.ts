@@ -34,8 +34,8 @@ export function communicationStatusLabel(status: GeoNode["freshness_status"]): s
 }
 
 export function communicationStatusClass(status: GeoNode["freshness_status"]): string {
-  if (status === "fresh") return "text-[var(--status-active)]";
-  if (status === "stale") return "text-[var(--status-warning)]";
+  if (status === "fresh") return "text-[var(--status-active-text)]";
+  if (status === "stale") return "text-[var(--status-warning-text)]";
   return "text-[var(--text-muted)]";
 }
 
