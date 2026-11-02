@@ -56,7 +56,7 @@ export function getIrrigationStatusClass(state: IrrigationDisplayState): string 
 }
 
 export function getSemaphoreLabel(level: SemaphoreLevel): string {
-  if (level === null) return "Sin datos de umbral";
+  if (level === null) return "Sin umbral definido";
   if (level === "critical") return "Crítico";
   if (level === "warning") return "Riesgo";
   return "Óptimo";

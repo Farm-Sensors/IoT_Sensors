@@ -265,7 +265,7 @@ it("does not label missing telemetry as optimal when priority status defaults to
   });
   render(<ClientDashboard />);
   await screen.findByText("Humedad del Suelo");
-  expect(await screen.findAllByText("Sin datos de umbral")).toHaveLength(3);
+  expect(await screen.findAllByText("Sin umbral definido")).toHaveLength(3);
   expect(screen.queryByText("Óptimo")).toBeNull();
 });
 
@@ -277,7 +277,7 @@ it("hides the threshold semaphore while the alerts module is off", async () => {
   render(<ClientDashboard />);
   await screen.findByText("Humedad del Suelo");
   await waitFor(() => expect(mocks.get).toHaveBeenCalledWith("/settings/modules"));
-  expect(screen.queryByText("Sin datos de umbral")).toBeNull();
+  expect(screen.queryByText("Sin umbral definido")).toBeNull();
   expect(screen.queryByText("Óptimo")).toBeNull();
 });
 
