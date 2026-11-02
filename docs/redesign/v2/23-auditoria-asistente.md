@@ -38,3 +38,18 @@ Fase 2 autorizada (ver `README.md`). Solo presentación; sin cambios de API, fla
 
 ### Pendiente
 - El filtro de estado «Pendiente» no tiene botón propio (la API acepta un solo estado a la vez); aparece en «Todos».
+
+## 3. Consumo del asistente (solo admin, aplicada)
+
+### Hallazgos
+1. **Cifras mezcladas con filtros:** «Ventana», «Acción», «Usuario ID» y tres tarjetas de resumen en una misma rejilla de 6 columnas; el resto del resumen (`in=… · out=… · ai=… · fallback=…`) era una línea de texto técnica sobre la tabla.
+2. **Valores internos como etiquetas:** «execute», «error», «rate_limited», «Fuente: ai/fallback» y el código HTTP en una columna «Estado».
+3. **«Usuario ID» numérico:** hay que saber el id de la persona.
+4. **Nulo mostrado como cero:** los tokens ausentes salían como `0/0` (`?? 0`), aunque no se hubieran medido.
+5. **Tabla de 8 columnas** que se desplaza de lado a lado.
+
+### Cambios
+- **Filtros en una fila:** periodo, **Usuario por nombre** (lista de usuarios) y resultado en palabras («Preguntas respondidas», «Con error», «Límite excedido»).
+- **Resumen en cuatro cifras:** Preguntas, Respondidas bien (con cuántas fallaron), Respuestas (IA y basadas en reglas) y Tiempo de respuesta, más una frase con los tokens de entrada y salida del periodo.
+- **Registro en filas:** persona y fecha, resultado en palabras (en rojo con texto si falló), fuente, latencia y tokens («—» si no se midieron, nunca 0); proveedor, modelo, código HTTP y error en «Detalles técnicos» plegado.
+- Vacíos con y sin filtro, «Anterior / Siguiente» y hora de actualización. La consulta y los parámetros no cambian.
