@@ -21,10 +21,10 @@ import { AIReportItem, AIReportStatus, listAIReports } from "../../services/aiRe
 const PAGE_SIZE = 20;
 
 const statusStyles: Record<AIReportStatus, string> = {
-  pending: "bg-[var(--status-info-bg)] text-[var(--status-info)]",
-  processing: "bg-[var(--status-warning-bg)] text-[var(--status-warning)]",
+  pending: "bg-[var(--status-info-bg)] text-[var(--status-info-text)]",
+  processing: "bg-[var(--status-warning-bg)] text-[var(--status-warning-text)]",
   completed: "bg-[var(--status-success-bg)] text-[var(--status-success)]",
-  failed: "bg-[var(--status-danger-bg)] text-[var(--status-danger)]",
+  failed: "bg-[var(--status-danger-bg)] text-[var(--status-danger-text)]",
 };
 
 const statusLabels: Record<AIReportStatus, string> = {
@@ -266,7 +266,7 @@ export function AIReportsPage() {
               Cargando reportes IA...
             </div>
           ) : errorMessage ? (
-            <div className="rounded-xl border border-[var(--status-danger)]/30 bg-[var(--status-danger-bg)] px-3 py-2 text-sm text-[var(--status-danger)]">
+            <div className="rounded-xl border border-[var(--status-danger)]/30 bg-[var(--status-danger-bg)] px-3 py-2 text-sm text-[var(--status-danger-text)]">
               {errorMessage}
             </div>
           ) : items.length === 0 ? (

@@ -22,9 +22,9 @@ import {
 } from "../../services/alerts";
 
 const severityStyles: Record<AlertItem["severity"], string> = {
-  info: "bg-[var(--status-info-bg)] text-[var(--status-info)]",
-  warning: "bg-[var(--status-warning-bg)] text-[var(--status-warning)]",
-  critical: "bg-[var(--status-danger-bg)] text-[var(--status-danger)]",
+  info: "bg-[var(--status-info-bg)] text-[var(--status-info-text)]",
+  warning: "bg-[var(--status-warning-bg)] text-[var(--status-warning-text)]",
+  critical: "bg-[var(--status-danger-bg)] text-[var(--status-danger-text)]",
 };
 
 const typeLabels: Record<AlertItem["type"], string> = {
@@ -195,7 +195,7 @@ export function AlertDetailPage() {
           </BentoCard>
         ) : errorMessage && !alert ? (
           <BentoCard variant="light">
-            <div className="rounded-xl border border-[var(--status-danger)]/30 bg-[var(--status-danger-bg)] px-3 py-2 text-sm text-[var(--status-danger)]">
+            <div className="rounded-xl border border-[var(--status-danger)]/30 bg-[var(--status-danger-bg)] px-3 py-2 text-sm text-[var(--status-danger-text)]">
               {errorMessage}
             </div>
           </BentoCard>
@@ -212,7 +212,7 @@ export function AlertDetailPage() {
                   {typeLabels[alert.type]}
                 </span>
                 {!alert.read && (
-                  <span className="rounded-full bg-[var(--status-warning-bg)] px-2.5 py-1 text-xs font-medium text-[var(--status-warning)]">
+                  <span className="rounded-full bg-[var(--status-warning-bg)] px-2.5 py-1 text-xs font-medium text-[var(--status-warning-text)]">
                     No leída
                   </span>
                 )}
@@ -339,7 +339,7 @@ export function AlertDetailPage() {
               )}
 
               {recommendationError && (
-                <p className="mt-4 rounded-xl border border-[var(--status-warning)]/30 bg-[var(--status-warning-bg)] px-3 py-2 text-xs text-[var(--status-warning)]">
+                <p className="mt-4 rounded-xl border border-[var(--status-warning)]/30 bg-[var(--status-warning-bg)] px-3 py-2 text-xs text-[var(--status-warning-text)]">
                   {recommendationError}
                 </p>
               )}

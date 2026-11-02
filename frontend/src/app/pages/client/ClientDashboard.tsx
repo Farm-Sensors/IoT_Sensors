@@ -11,6 +11,7 @@ import { ErrorState } from "../../components/ErrorState";
 import { PageHeader } from "../../components/PageHeader";
 import { FreshnessIndicator } from "../../components/FreshnessIndicator";
 import { GatewayStatusBadge } from "../../components/GatewayStatusBadge";
+import { IrrigationStatusBadge } from "./dashboard/IrrigationStatusBadge";
 import { usePropertyGatewayStatus } from "../../hooks/usePropertyGatewayStatus";
 import { useModules } from "../../hooks/useModules";
 import type { PaginatedResponse, ReadingResponse } from "../../types/api";
@@ -25,12 +26,15 @@ import {
   DASHBOARD_REFRESH_MS,
   defaultSemaphore,
   getConnectionState,
+  getIrrigationDisplayState,
+  getIrrigationStatusLabel,
   resolveVisibleCards,
   type PriorityKey,
   type PriorityStatusItem,
   type SemaphoreLevel,
 } from "./dashboard/helpers";
-export function ClientDashboard() {
+/** `embedded`: dentro de Área › Ahora, donde el encabezado y la elección de área ya los da el Área. */
+export function ClientDashboard({ embedded = false }: { embedded?: boolean } = {}) {
   const isMobile = useIsMobile();
   const isPageVisible = usePageVisibility();
   const { user } = useAuth();
@@ -63,6 +67,7 @@ export function ClientDashboard() {
   const activeSnapshot = snapshot?.areaId === areaId ? snapshot : null;
   const currentReadings = toCurrentReadings(activeSnapshot?.reading ?? null);
   const connectionState = getConnectionState(currentReadings.lastUpdate);
+  const irrigationState = getIrrigationDisplayState(currentReadings.irrigationActive, connectionState);
 
   // Preferencias de dashboard: el cliente las resuelve en /clients/me; el admin,
   // para el cliente del predio seleccionado. Si no hay configuración o la llamada
@@ -125,7 +130,7 @@ export function ClientDashboard() {
       const params = { irrigation_area_id: areaId };
       const [latest, history, priority] = await Promise.allSettled([
         api.get<ReadingResponse | null>("/readings/latest", { params }),
-        api.get<PaginatedResponse<ReadingResponse>>("/readings", { params: { ...params, page: 1, per_page: 12 } }),
+        api.get<PaginatedResponse<ReadingResponse>>("/readings", { params: { ...params, start_date: new Date(Date.now() - 24 * 3600_000).toISOString().slice(0, 10), page: 1, per_page: 200 } }),
         api.get<{ items: PriorityStatusItem[] }>("/readings/priority-status", { params }),
       ]);
       inFlight = false;
@@ -146,7 +151,7 @@ export function ClientDashboard() {
       setSnapshot({
         areaId,
         reading: latestReading,
-        history: history.status === "fulfilled" ? toChartReadings(history.value.data.data) : [],
+        history: history.status === "fulfilled" ? toChartReadings(history.value.data.data).filter((point) => point.fullTime.getTime() >= Date.now() - 24 * 3600_000) : [],
         semaphore,
         error: latest.status === "rejected" ? "No se pudo cargar la última lectura." :
           history.status === "rejected" ? "No se pudieron cargar las lecturas recientes." : null,
@@ -162,10 +167,12 @@ export function ClientDashboard() {
 
 
   return (
-    <div className="min-h-screen p-4 md:p-6 lg:p-8 overflow-x-hidden">
+    <div className={embedded ? "overflow-x-hidden" : "min-h-screen p-4 md:p-6 lg:p-8 overflow-x-hidden"}>
       {/* Encabezado: quién y cuándo; después, qué predio y área se ven, y su estado (la frescura va una sola vez) */}
-      <div className="mb-6 md:mb-8 animate-fade-in-up">
-        <PageHeader
+      <div className="mb-4 md:mb-5 animate-fade-in-up">
+        {!embedded && (
+          <>
+            <PageHeader
           title={`Hola, ${user?.nombre || "Usuario"}`}
           subtitle={new Date().toLocaleDateString("es-MX", {
             weekday: "long",
@@ -179,7 +186,7 @@ export function ClientDashboard() {
           <div className="relative sm:min-w-[220px]">
             <select
               aria-label="Predio"
-              className="min-h-[44px] w-full appearance-none cursor-pointer rounded-full border border-[var(--border-subtle)] bg-[var(--surface-card-primary)] py-2 pl-4 pr-10 font-medium text-[var(--text-body)] transition-colors hover:bg-[var(--hover-overlay)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus-ring)]"
+              className="min-h-[44px] w-full appearance-none cursor-pointer rounded-[var(--radius)] border border-[var(--border-subtle)] bg-[var(--surface-card-primary)] py-2 pl-4 pr-10 font-medium text-[var(--text-body)] transition-colors hover:bg-[var(--hover-overlay)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus-ring)]"
               value={selectedProperty?.id ?? ""}
               onChange={(e) => {
                 const prop = properties.find(p => p.id === Number(e.target.value));
@@ -199,7 +206,7 @@ export function ClientDashboard() {
             <div className="relative sm:min-w-[220px]">
               <select
                 aria-label="Área de riego"
-                className="min-h-[44px] w-full appearance-none cursor-pointer rounded-full border border-[var(--border-subtle)] bg-[var(--surface-card-primary)] py-2 pl-4 pr-10 font-medium text-[var(--text-body)] transition-colors hover:bg-[var(--hover-overlay)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus-ring)]"
+                className="min-h-[44px] w-full appearance-none cursor-pointer rounded-[var(--radius)] border border-[var(--border-subtle)] bg-[var(--surface-card-primary)] py-2 pl-4 pr-10 font-medium text-[var(--text-body)] transition-colors hover:bg-[var(--hover-overlay)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus-ring)]"
                 value={selectedArea?.id ?? ""}
                 onChange={(e) => {
                   const area = areas.find(a => a.id === Number(e.target.value));
@@ -216,9 +223,16 @@ export function ClientDashboard() {
           )}
         </div>
 
-        <div className="mt-4 flex flex-wrap items-start gap-x-6 gap-y-3">
+          </>
+        )}
+
+        <div className={`${embedded ? "" : "mt-4 "}flex flex-wrap items-start gap-x-6 gap-y-3`}>
           {currentReadings.lastUpdate && <FreshnessIndicator lastUpdate={currentReadings.lastUpdate} />}
-          {gatewayStatus && (
+          {embedded ? (
+            visibleCards.has("irrigation.status") && activeSnapshot?.reading && (
+              <IrrigationStatusBadge state={irrigationState} label={getIrrigationStatusLabel(irrigationState)} />
+            )
+          ) : gatewayStatus && (
             <GatewayStatusBadge status={gatewayStatus.status} edgeStatus={gatewayStatus.edge_status} />
           )}
         </div>
@@ -233,22 +247,12 @@ export function ClientDashboard() {
           )}
           {loading ? <div role="status" aria-label="Cargando lecturas"><MetricSkeletonGrid count={isMobile ? 3 : 6} /></div> : !activeSnapshot?.reading ? (
             !activeSnapshot?.error && <EmptyState icon={Database} title="Sin lecturas" description="Esta área todavía no tiene datos de sensores." />
-          ) : isMobile ? (
-            <MobileDashboard
-              historicalData={activeSnapshot.history}
-              currentReadings={currentReadings}
-              prioritySemaphore={activeSnapshot.semaphore}
-              showSemaphore={showSemaphore}
-              connectionState={connectionState}
-              visibleCards={visibleCards}
-            />
           ) : (
-            <DesktopDashboard
+            <AreaNowView
               historicalData={activeSnapshot.history}
               currentReadings={currentReadings}
               prioritySemaphore={activeSnapshot.semaphore}
               showSemaphore={showSemaphore}
-              connectionState={connectionState}
               visibleCards={visibleCards}
             />
           )}
@@ -261,5 +265,4 @@ export function ClientDashboard() {
   );
 }
 
-import { DesktopDashboard } from "./dashboard/DesktopDashboard";
-import { MobileDashboard } from "./dashboard/MobileDashboard";
+import { AreaNowView } from "./dashboard/AreaNowView";

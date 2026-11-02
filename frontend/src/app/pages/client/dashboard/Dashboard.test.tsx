@@ -2,8 +2,7 @@ import { act, cleanup, fireEvent, render, screen, waitFor } from "@testing-libra
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { ReactNode } from "react";
 import { ClientDashboard } from "../ClientDashboard";
-import { DesktopDashboard } from "./DesktopDashboard";
-import { MobileDashboard } from "./MobileDashboard";
+import { AreaNowView } from "./AreaNowView";
 import { ExternalDataCards } from "./ExternalDataCards";
 import { FreshnessIndicator } from "../../../components/FreshnessIndicator";
 import { defaultSemaphore, getConnectionState, getHumidityAxisDomain } from "./helpers";
@@ -100,7 +99,7 @@ it("preserves missing values and measured zeros in chart data without mutating r
   expect(input[0]).toBe(missing);
 });
 
-describe.each([DesktopDashboard, MobileDashboard])("telemetry layout", (Layout) => {
+describe.each([AreaNowView])("telemetry layout", (Layout) => {
   it("renders priority metrics, all units and unknown irrigation independently of false", () => {
     const props = { historicalData: [], currentReadings: toCurrentReadings(reading), prioritySemaphore: defaultSemaphore, showSemaphore: true, connectionState: "online" as const, visibleCards: new Set<DashboardCardKey>(DASHBOARD_CARD_KEYS) };
     const { rerender } = render(<Layout {...props} />);
@@ -108,16 +107,13 @@ describe.each([DesktopDashboard, MobileDashboard])("telemetry layout", (Layout) 
     for (const unit of ["%", "L/min", "mm/día", "dS/m", "MPa"]) expect(screen.getAllByText(unit).length).toBeGreaterThan(0);
     expect(screen.getAllByText("0").length).toBeGreaterThanOrEqual(3);
     expect(screen.getByText("Sin datos")).toBeTruthy();
-    expect(screen.getByText("SIN DATOS")).toBeTruthy();
     expect(screen.queryByText("+0.3 vs ayer")).toBeNull();
-    rerender(<Layout {...props} currentReadings={toCurrentReadings({ ...reading, irrigation: { ...reading.irrigation!, active: false } })} />);
-    expect(screen.getByText("INACTIVO")).toBeTruthy();
     rerender(<Layout {...props} currentReadings={toCurrentReadings({ ...reading, soil: null, irrigation: null, environmental: null })} />);
     expect(screen.getAllByText(/^Sin datos(?: |$)/).length).toBeGreaterThanOrEqual(10);
   });
 });
 
-describe.each([DesktopDashboard, MobileDashboard])("freshness", (Layout) => {
+describe.each([AreaNowView])("freshness", (Layout) => {
   it("is not repeated inside the priority cards", () => {
     const props = { historicalData: [], currentReadings: toCurrentReadings(reading), prioritySemaphore: defaultSemaphore, showSemaphore: false, connectionState: "online" as const, visibleCards: new Set<DashboardCardKey>(DASHBOARD_CARD_KEYS) };
     render(<Layout {...props} />);
@@ -125,11 +121,15 @@ describe.each([DesktopDashboard, MobileDashboard])("freshness", (Layout) => {
     expect(screen.queryByText(/Datos actuales|Sin reporte reciente/)).toBeNull();
   });
 
-  it("shows the irrigation state with an icon and text, not color alone", () => {
-    const props = { historicalData: [], currentReadings: toCurrentReadings({ ...reading, irrigation: { ...reading.irrigation!, active: true } }), prioritySemaphore: defaultSemaphore, showSemaphore: false, connectionState: "online" as const, visibleCards: new Set<DashboardCardKey>(DASHBOARD_CARD_KEYS) };
-    render(<Layout {...props} />);
-    const badge = screen.getByText("ACTIVO");
+  it("shows the irrigation state next to the freshness, with an icon and text, not color alone", async () => {
+    mocks.get.mockImplementation((path: string) => path === "/readings/latest"
+      ? Promise.resolve({ data: { ...reading, timestamp: new Date().toISOString(), irrigation: { ...reading.irrigation!, active: true } } })
+      : respond(path));
+    render(<ClientDashboard embedded />);
+    const badge = await screen.findByText("ACTIVO");
     expect(badge.querySelector("svg")?.getAttribute("aria-hidden")).toBe("true");
+    expect(screen.queryByText("Estado del Riego")).toBeNull();
+    expect(screen.queryByText("Equipo pendiente")).toBeNull();
   });
 });
 
@@ -291,7 +291,7 @@ describe("dashboard card preferences", () => {
 
     expect(await screen.findByText("Humedad del Suelo")).toBeTruthy();
     expect(screen.getByText("Suelo")).toBeTruthy();
-    expect(screen.getByText("Humedad del Suelo - Últimas 12 lecturas")).toBeTruthy();
+    expect(screen.getByText("Humedad del suelo · últimas 24 h")).toBeTruthy();
     expect(screen.queryByText("Flujo de Agua")).toBeNull();
     expect(screen.queryByText("E.T.O.")).toBeNull();
     expect(screen.queryByText("Estado del Riego")).toBeNull();
@@ -308,7 +308,7 @@ describe("dashboard card preferences", () => {
     expect(screen.queryByText("E.T.O.")).toBeNull();
     expect(screen.queryByText("Estado del Riego")).toBeNull();
     expect(screen.queryByText("Suelo")).toBeNull();
-    expect(screen.queryByText("Humedad del Suelo - Últimas 12 lecturas")).toBeNull();
+    expect(screen.queryByText("Humedad del suelo · últimas 24 h")).toBeNull();
     expect(screen.queryByText("Ambiental")).toBeNull();
     expect(screen.queryByText("Fuentes externas")).toBeNull();
   });
@@ -353,7 +353,7 @@ describe("humidity chart", () => {
     mocks.get.mockImplementation(withDashboardCards(["priority.humidity", "soil.chart"]));
     render(<ClientDashboard />);
 
-    expect(await screen.findByText("Humedad del Suelo - Últimas 12 lecturas")).toBeTruthy();
+    expect(await screen.findByText("Humedad del suelo · últimas 24 h")).toBeTruthy();
     // Solo el encabezado de la página muestra el estado del equipo.
     expect(await screen.findAllByText("Equipo conectado")).toHaveLength(1);
   });

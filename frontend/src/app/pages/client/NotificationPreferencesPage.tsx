@@ -331,12 +331,12 @@ export function NotificationPreferencesPage() {
 
       {errorMessage && (
         <BentoCard variant="light" className="mb-4 border border-[var(--status-danger)]/30 bg-[var(--status-danger-bg)]">
-          <p className="text-[var(--status-danger)]">{errorMessage}</p>
+          <p className="text-[var(--status-danger-text)]">{errorMessage}</p>
         </BentoCard>
       )}
       {successMessage && (
         <BentoCard variant="light" className="mb-4 border border-[var(--status-active)]/30 bg-[var(--status-active-bg)]">
-          <p className="text-[var(--status-active)]">{successMessage}</p>
+          <p className="text-[var(--status-active-text)]">{successMessage}</p>
         </BentoCard>
       )}
 

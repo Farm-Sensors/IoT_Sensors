@@ -51,7 +51,7 @@ export function getIrrigationStatusLabel(state: IrrigationDisplayState): string 
 
 export function getIrrigationStatusClass(state: IrrigationDisplayState): string {
   if (state === "active") return "text-[var(--accent-primary)]";
-  if (state === "stale") return "text-[var(--status-warning)]";
+  if (state === "stale") return "text-[var(--status-warning-text)]";
   return "text-[var(--text-muted)]";
 }
 
@@ -65,8 +65,8 @@ export function getSemaphoreLabel(level: SemaphoreLevel): string {
 export function getSemaphoreClass(level: SemaphoreLevel): string {
   if (level === null) return "text-[var(--text-muted)]";
   if (level === "critical") return "bg-[var(--status-danger-bg)] text-[var(--status-danger)]";
-  if (level === "warning") return "bg-[var(--status-warning-bg)] text-[var(--status-warning)]";
-  return "bg-[var(--status-active-bg)] text-[var(--status-active)]";
+  if (level === "warning") return "bg-[var(--status-warning-bg)] text-[var(--status-warning-text)]";
+  return "bg-[var(--status-active-bg)] text-[var(--status-active-text)]";
 }
 
 /** Puntos porcentuales mínimos del eje Y de humedad: 12.90 vs 12.91 debe verse casi plano. */

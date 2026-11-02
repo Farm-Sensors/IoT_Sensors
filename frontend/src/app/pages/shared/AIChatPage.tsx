@@ -523,7 +523,7 @@ export function AIChatPage() {
             </div>
 
             {errorMessage && (
-              <div className="mt-3 rounded-xl border border-[var(--status-danger)]/30 bg-[var(--status-danger-bg)] px-3 py-2 text-sm text-[var(--status-danger)]">
+              <div className="mt-3 rounded-xl border border-[var(--status-danger)]/30 bg-[var(--status-danger-bg)] px-3 py-2 text-sm text-[var(--status-danger-text)]">
                 {errorMessage}
               </div>
             )}
