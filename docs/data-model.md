@@ -46,6 +46,9 @@ erDiagram
         INT id PK
         VARCHAR nombre
         VARCHAR descripcion
+        VARCHAR foto_url
+        VARCHAR foto_credito
+        VARCHAR foto_pagina
         DATETIME creado_en
         DATETIME actualizado_en
         DATETIME eliminado_en
@@ -848,3 +851,7 @@ WHERE p.credencial_hash = SHA2(?, 256)
   AND p.estado = 'active'
   AND p.eliminado_en IS NULL;
 ```
+
+### Foto opcional del cultivo (`tipos_cultivo.foto_*`)
+
+Tres columnas **opcionales** (migración `f31b06d8c909`): `foto_url` (miniatura en Wikimedia, hasta 500 caracteres), `foto_credito` («Autor · Licencia», hasta 255) y `foto_pagina` (página del archivo en Commons). **Nunca se guarda la imagen**, solo su dirección y su atribución. El administrador la elige entre las 6 primeras opciones que ofrece Wikimedia Commons al crear o editar el cultivo; sin valor, el cultivo muestra su ícono. La API solo acepta direcciones de `upload.wikimedia.org` o `thumb.wikimedia.org` (la página, de `commons.wikimedia.org`); quitar la foto borra también su atribución.

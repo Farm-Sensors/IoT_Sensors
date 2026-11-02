@@ -19,6 +19,10 @@ class CropType(Base, TimestampMixin, SoftDeleteMixin):
     descripcion: Mapped[str | None] = mapped_column(
         String(255), nullable=True, default=None
     )
+    # Foto opcional: solo su dirección en Wikimedia Commons y su atribución; nunca la imagen.
+    foto_url: Mapped[str | None] = mapped_column(String(500), nullable=True, default=None)
+    foto_credito: Mapped[str | None] = mapped_column(String(255), nullable=True, default=None)
+    foto_pagina: Mapped[str | None] = mapped_column(String(500), nullable=True, default=None)
 
     # Relationships
     irrigation_areas: Mapped[list["IrrigationArea"]] = relationship(

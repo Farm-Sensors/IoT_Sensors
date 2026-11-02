@@ -89,3 +89,51 @@ class TestDeleteCropType:
             f"/api/v1/crop-types/{sample_crop_type.id}", headers=admin_headers
         )
         assert resp.status_code == 409
+
+
+PHOTO = "https://upload.wikimedia.org/wikipedia/commons/thumb/f/fd/Ejemplo.jpg/320px-Ejemplo.jpg"
+PAGE = "https://commons.wikimedia.org/wiki/File:Ejemplo.jpg"
+
+
+class TestCropTypePhoto:
+    def test_create_with_photo_returns_it(self, client, admin_headers):
+        resp = client.post(
+            "/api/v1/crop-types",
+            json={"name": "Sorgo", "photo_url": PHOTO, "photo_credit": "Autor · CC BY-SA 4.0", "photo_page": PAGE},
+            headers=admin_headers,
+        )
+        assert resp.status_code == 201
+        data = resp.json()
+        assert data["photo_url"] == PHOTO
+        assert data["photo_credit"] == "Autor · CC BY-SA 4.0"
+        assert data["photo_page"] == PAGE
+
+    def test_photo_is_optional_and_defaults_to_none(self, client, admin_headers):
+        resp = client.post("/api/v1/crop-types", json={"name": "Avena"}, headers=admin_headers)
+        assert resp.status_code == 201
+        assert resp.json()["photo_url"] is None
+
+    def test_photo_must_come_from_wikimedia(self, client, admin_headers):
+        resp = client.post(
+            "/api/v1/crop-types",
+            json={"name": "Cebada", "photo_url": "https://ejemplo.com/foto.jpg"},
+            headers=admin_headers,
+        )
+        assert resp.status_code == 422
+
+    def test_update_sets_and_then_removes_photo_with_its_credit(self, client, admin_headers):
+        created = client.post("/api/v1/crop-types", json={"name": "Frijol"}, headers=admin_headers).json()
+        url = f"/api/v1/crop-types/{created['id']}"
+        resp = client.put(url, json={"photo_url": PHOTO, "photo_credit": "Autor", "photo_page": PAGE}, headers=admin_headers)
+        assert resp.status_code == 200
+        assert resp.json()["photo_url"] == PHOTO and resp.json()["photo_credit"] == "Autor"
+        resp = client.put(url, json={"photo_url": None}, headers=admin_headers)
+        assert resp.status_code == 200
+        assert resp.json()["photo_url"] is None
+        assert resp.json()["photo_credit"] is None and resp.json()["photo_page"] is None
+
+    def test_renaming_does_not_touch_the_photo(self, client, admin_headers):
+        created = client.post("/api/v1/crop-types", json={"name": "Lenteja", "photo_url": PHOTO}, headers=admin_headers).json()
+        resp = client.put(f"/api/v1/crop-types/{created['id']}", json={"name": "Lenteja roja"}, headers=admin_headers)
+        assert resp.status_code == 200
+        assert resp.json()["photo_url"] == PHOTO
