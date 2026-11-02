@@ -7,8 +7,9 @@
 Estética terrosa, elegante y orgánica. Layout estilo **"Bento Box"** (cuadrículas asimétricas) con formas suaves y redondeadas. Alto contraste entre bloques de color sólido, tipografía clásica-moderna (serif para títulos, sans para datos), alejado de interfaces SCADA industriales: artesanal y premium.
 
 **Dual theme:**
-- **Light (default):** "Organic Daylight Bento" — base crema cálida, separación por contraste de superficie (no sombras pesadas).
-- **Dark:** "Espresso Glass Premium" (Direction B) — superficies charcoal/marrón oscuro con glassmorphism, acentos cálidos. Mapeado semántico desde el sistema light, sin copiar hex exactos.
+- **Light (default):** identidad provisional **«Sensores Agrícolas»** (`docs/brand/`, sobre la estructura de «Levantamiento»: líneas finas, radio de 4 px) — neutros con un matiz verdoso y un solo acento verde bosque. Referencia visual: `docs/redesign/v2/prototype-a/`.
+- **Dark:** mismos tokens semánticos con superficies carbón frío y acento verde claro `#81C784` (derivado; el paquete de marca no define versión oscura).
+- **Estado de la migración:** completa (fase 7). Todas las pantallas usan los tokens, el marco y el radio `4px` de la identidad A; `BentoCard` y `PillButton` se conservan como componentes, pero con esa forma. Las insignias de estado (`StatusBadge`, semáforo) siguen siendo píldoras.
 
 **Guardrails del dark mode:** sin neón, sin dominancia azulada fría, sin stacks de sombras pesadas, sin cambios de geometría entre modos, contraste de lectura preservado en cards/formularios/tablas.
 
@@ -17,26 +18,27 @@ Estética terrosa, elegante y orgánica. Layout estilo **"Bento Box"** (cuadríc
 ### Fondos y Superficies
 | Token | Light | Dark | Descripción |
 | :--- | :--- | :--- | :--- |
-| `--bg-base` | `#F4F1EB` | `#12100E` | Crema / charcoal. Fondo global. |
-| `--bg-surface` | `#F9F8F4` | `#1A1714` | Hueso claro / dark surface. Tarjetas base. |
-| `--bg-elevated` | `#FFFFFF` | `#221D18` | Superficie elevada (popovers, elevated cards). |
-| `--card-sand` | `#E2D4B7` | `#2C241D` | Arena cálido. Métricas y contenedores de iconos. |
-| `--card-dark` | `#3B312B` | `#241D17` | Marrón café. Tarjetas de contraste. |
-| `--card-brown` | `#705541` | `#31261E` | Marrón medio. Tarjetas secundarias oscuras. |
+| `--bg-base` | `#EFF1F3` | `#0F1214` | Gris frío / carbón. Fondo global. |
+| `--bg-surface` | `#F7F8F9` | `#161A1D` | Superficie base. Tarjetas. |
+| `--bg-elevated` | `#FFFFFF` | `#1E2327` | Superficie elevada (popovers, elevated cards). |
+| `--card-sand` | `#E5E8EA` | `#1E2327` | Gris neutro. Métricas y contenedores de iconos. |
+| `--card-dark` | `#1B2A44` | `#101A2B` | Azul noche. Tarjetas de contraste. |
+| `--card-brown` | `#3D4852` | `#232B31` | Gris pizarra. Tarjetas secundarias oscuras. |
 
 ### Acentos y Acciones
 | Token | Light | Dark | Descripción |
 | :--- | :--- | :--- | :--- |
-| `--accent-primary` | `#5A6B4C` | `#8CA478` | Verde olivo. Botones primarios, progreso. Con `--text-inverted` encima da ≥ 4.5:1 en claro (antes `#6D7E5E`, 3.88:1). |
-| `--accent-gold` | `#A68A61` | `#BDA077` | Marrón dorado. Progreso secundario. |
-| `--accent-glow` | `rgba(109,126,94,0.15)` | `rgba(140,164,120,0.16)` | Glow de prioridad (métricas en vivo). |
+| `--accent-primary` | `#00450D` | `#81C784` | Verde bosque (`--brand-forest`), **único acento**. Botones primarios, progreso, navegación actual. |
+| `--accent-gold` | `#5B6770` | `#9BA6AE` | Gris pizarra. Progreso secundario. |
+| `--accent-soft` | `#E8F5E9` | `#1A2E1C` | Relleno del destino actual en el riel y las pestañas. |
+| `--accent-glow` | `rgba(27,58,100,0.12)` | `rgba(169,193,238,0.16)` | Glow de prioridad (métricas en vivo). |
 
 ### Tipografía y Contraste
 | Token | Light | Dark | Descripción |
 | :--- | :--- | :--- | :--- |
-| `--text-primary` | `#2C2621` | `#ECE6DE` | Marrón casi negro / off-white. Texto principal. |
-| `--text-secondary` | `#5C5249` | `#A79B8D` | Marrón grisáceo. Subtítulos y etiquetas; ≥ 4.5:1 también sobre `--card-sand` (antes `#6E6359`, 3.99:1). |
-| `--text-inverted` | `#F4F1EB` | `#12100E` | Texto sobre acentos. |
+| `--text-primary` | `#13181D` | `#E8ECEE` | Texto principal. |
+| `--text-secondary` | `#47525B` | `#9BA6AE` | Subtítulos y etiquetas. |
+| `--text-inverted` | `#FFFFFF` | `#0B1A30` | Texto sobre acentos. |
 
 ### Estados (status)
 | Token | Light | Dark | Uso |
@@ -61,13 +63,13 @@ Estética terrosa, elegante y orgánica. Layout estilo **"Bento Box"** (cuadríc
 | `--border-glass` | `rgba(44,38,33,0.06)` | `rgba(236,230,222,0.08)` |
 | `--border-subtle` | `rgba(44,38,33,0.04)` | `rgba(236,230,222,0.05)` |
 | `--border-strong` | `rgba(44,38,33,0.12)` | `rgba(236,230,222,0.14)` |
-| `--shadow-soft` | `0 4px 20px rgba(44,38,33,0.02)` | `0 4px 20px rgba(0,0,0,0.22)` |
+| `--shadow-soft` | `0 1px 2px rgba(19,24,29,0.06)` | `0 1px 2px rgba(0,0,0,0.4)` |
 
 ## 3. Tipografía
 
-- **Serif (títulos):** `'Playfair Display', serif` (`--font-serif`) — H1–H4, títulos de tarjetas grandes, peso 500.
-- **Sans (datos/cuerpo):** `'Inter', sans-serif` (`--font-sans`) — valores numéricos, cuerpo, botones, etiquetas, pesos 400–600.
-- **Mono (datos numéricos):** `'JetBrains Mono', monospace` (`--font-mono`) — clase `font-mono-data` con `tabular-nums`.
+- **Títulos:** `'Plus Jakarta Sans'` (`--font-serif`, nombre heredado: ya no es serif) — H1–H4, peso 500.
+- **Texto y datos:** `'Plus Jakarta Sans'` (`--font-sans`) — cuerpo, botones, etiquetas, pesos 400–600.
+- **Mono (solo cifras):** `'Geist Mono'` (`--font-mono`) — clase `font-mono-data` con `tabular-nums`. Las fuentes (Plus Jakarta Sans y Geist Mono, variables, subconjuntos latino y latino extendido) están **alojadas en el repo** (`frontend/public/fonts/`, declaradas en `styles/fonts.css`): la app no depende de Google Fonts y funciona sin conexión.
 
 ## 4. Espaciado y Layout (Bento Grid)
 
@@ -79,8 +81,8 @@ Estética terrosa, elegante y orgánica. Layout estilo **"Bento Box"** (cuadríc
 ## 5. UI y Geometría
 
 ### Radios de Borde
-- **Tarjetas:** `32px` (`rounded-[32px]` / `--radius`).
-- **Botones (Pill):** `9999px` (`rounded-full`).
+- **Tarjetas:** `4px` (`--radius`; `BentoCard` y los paneles).
+- **Botones (`PillButton`, enlaces-botón):** `4px` (`--radius`). Solo insignias y puntos de estado usan `rounded-full`.
 
 ### Sombras y Detalles
 - **Sombras:** evitar sombras fuertes; máx. `--shadow-soft` (difusa, imperceptible). Estilo mayormente *flat*.
@@ -91,7 +93,7 @@ Estética terrosa, elegante y orgánica. Layout estilo **"Bento Box"** (cuadríc
 - **Hover:** `--hover-overlay` (alpha 0.05 light / 0.06 dark) — overlay sutil, no cambio brusco de color.
 - **Pressed:** `--pressed-overlay` (alpha 0.1).
 - **Disabled:** `--disabled-opacity: 0.5`.
-- **Focus:** `--focus-ring` (verde olivo) + `outline-ring/50`.
+- **Focus:** `--focus-ring` (verde bosque) + `outline-ring/50`.
 
 ## 6. Configuración (Tailwind v4 CSS-first)
 
@@ -171,7 +173,7 @@ Todos viven en `frontend/src/app/components/`. Los marcados **(nuevo)** se crear
 
 ### Marco de la app (login, navegación, layouts)
 - **Login:** `AuthSplitLayout` muestra el título del formulario como único `h1` (el panel decorativo usa `p`, porque se oculta bajo 1024 px). Tras un error, `LoginPage` lo anuncia (`role="alert"`, `aria-describedby` en ambos campos) y mueve el foco al primer campo a revisar: el correo si está vacío, si no la contraseña.
-- **Navegación:** `DesktopSidebar` y `MobileTabBar` son `nav` con nombre «Navegación principal». La página actual lleva `aria-current="page"` **y** una barra indicadora (lateral en escritorio, superior en móvil) además del relleno de color; en móvil la entrada actual se desplaza a la vista.
+- **Navegación:** `DesktopSidebar` (riel lateral fijo de 208 px, escritorio) y `MobileTabBar` (pestañas inferiores con todos los destinos, móvil) son `nav` con nombre «Navegación principal». En móvil, `MobileHeader` aloja la marca y el menú de cuenta (tema y cerrar sesión). La página actual lleva `aria-current="page"`, fondo `--accent-soft` y **negrita** (indicador que no depende del color; en móvil además una barra superior). `SectionTabs` (solo admin) muestra las pestañas de Clientes, Red y Ajustes. Fuente única de destinos y secciones: `components/navigation/items.ts`.
 - **Saltar al contenido:** `SkipLink` es el primer elemento enfocable de `AdminLayout` y `ClientLayout`; lleva el foco al `main#contenido`.
 - **Objetivos táctiles:** botones y enlaces del marco miden ≥ 44 px (`PillButton` tiene `min-h-[44px]`).
 - **Diálogo de confirmación:** `ConfirmDialog` devuelve el foco al elemento que lo abrió y asocia la consecuencia con `aria-describedby`.
@@ -189,3 +191,15 @@ Una columna, sin scroll horizontal de la página, objetivos táctiles ≥ 44×44
 ## 9. Referencia del diseño original
 
 - Figma: https://www.figma.com/design/oC6tGH2eDH091njUEnkRPk/IoT-Agricultural-Irrigation-App
+## Movimiento
+
+`@media (prefers-reduced-motion: reduce)` (en `theme.css`) apaga animaciones y transiciones, incluidas las infinitas. Se retiró `AnimatedBackground` (fondo animado del layout raíz).
+
+
+## Identidad provisional «Sensores Agrícolas» (2026-11-01)
+
+Paquete de marca en `docs/brand/` (brief, guía visual, instrucciones y SVG). **Nombre e identidad provisionales**, no una decisión comercial definitiva. Aplicada solo en presentación:
+- **Tokens** en `styles/theme.css`: `--brand-forest #00450D`, `--brand-green #2E7D32`, `--brand-lime #8BC34A` (solo acentos, nunca texto pequeño sobre blanco: 2,1:1), `--brand-mist #E8F5E9`; texto `#1F2937`. Los estados semánticos (rojo, ámbar, azul de información, verde de «en línea») no cambian.
+- **Logo:** `frontend/public/brand/` (símbolo, logo, favicon, app icon). Componente `components/BrandSymbol.tsx` (versión clara u oscura según el tema). Se usa en el riel lateral, el encabezado móvil, la carga y el login; el eslogan «Tecnología que impulsa el campo.» solo aparece en el login. `index.html`: favicon, `apple-touch-icon` y `theme-color`.
+- **Contrastes medidos:** texto blanco sobre verde bosque 11,3:1; acento sobre superficie en oscuro 8,8:1; texto sobre acento en oscuro 8,6:1; gris de apoyo 7,1–8,0:1.
+- **Ajuste tras revisión (2026-11-01):** símbolo más grande en la navegación (40 px en el riel, 36 px en el encabezado móvil; el nombre pasa a dos líneas como en el logo), ondas del login más tenues, y texto de estados con tokens propios `--status-active-text` (`#166534`), `--status-warning-text` (`#92400E`) e `--status-info-text` (`#1D4ED8`) en claro (≥4,5:1 también sobre su fondo tintado); los colores base de estado quedan solo para puntos y rellenos. Los textos verdes pequeños de la marca (`#00450D`) ya medían 10:1.
