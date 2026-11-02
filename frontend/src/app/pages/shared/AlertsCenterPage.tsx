@@ -60,6 +60,7 @@ export function AlertsCenterPage() {
   const [unreadTotal, setUnreadTotal] = useState(0);
   const [updatedAt, setUpdatedAt] = useState<Date | null>(null);
   const [updatingIds, setUpdatingIds] = useState<Set<number>>(new Set());
+  const [leavingIds, setLeavingIds] = useState<Set<number>>(new Set());
   const [markingAllRead, setMarkingAllRead] = useState(false);
   const [animatedIds, setAnimatedIds] = useState<Set<number>>(new Set());
 
@@ -214,12 +215,21 @@ export function AlertsCenterPage() {
     setUpdatingIds((previous) => new Set(previous).add(alertId));
     try {
       await markAlertRead(alertId, true);
-      setItems((previous) =>
-        previous.map((item) =>
-          item.id === alertId ? { ...item, read: true, read_at: new Date().toISOString() } : item,
-        ),
-      );
       setUnreadTotal((count) => Math.max(0, count - 1));
+      // Barrido a la derecha y, después, la fila pasa a «Leídas» (o sale si se está viendo solo lo sin leer).
+      setLeavingIds((previous) => new Set(previous).add(alertId));
+      window.setTimeout(() => {
+        setItems((previous) =>
+          readFilter === "unread"
+            ? previous.filter((item) => item.id !== alertId)
+            : previous.map((item) => (item.id === alertId ? { ...item, read: true, read_at: new Date().toISOString() } : item)),
+        );
+        setLeavingIds((previous) => {
+          const next = new Set(previous);
+          next.delete(alertId);
+          return next;
+        });
+      }, 420);
     } catch (error) {
       console.error("Failed to mark alert as read", error);
       setErrorMessage("No fue posible marcar la alerta como leída");
@@ -278,7 +288,7 @@ export function AlertsCenterPage() {
         key={item.id}
         className={`flex items-stretch overflow-hidden rounded-[var(--radius)] border border-[var(--border)] bg-[var(--card)] ${
           animatedIds.has(item.id) ? "animate-fade-in-down" : ""
-        }`}
+        } ${leavingIds.has(item.id) ? "alert-sweep-out" : ""}`}
       >
         <span aria-hidden="true" className={`w-1 flex-shrink-0 ${meta.bar}`} />
         <Link

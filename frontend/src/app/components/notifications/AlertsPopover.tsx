@@ -53,6 +53,7 @@ export function AlertsPopover({
   const [alerts, setAlerts] = useState<AlertItem[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [updatingIds, setUpdatingIds] = useState<Set<number>>(new Set());
+  const [leavingIds, setLeavingIds] = useState<Set<number>>(new Set());
   const [markingAllRead, setMarkingAllRead] = useState(false);
 
   const alertsPagePath = isAdmin ? "/admin/alertas" : "/cliente/alertas";
@@ -66,7 +67,7 @@ export function AlertsPopover({
 
     try {
       const [alertsPage, unreadCountValue] = await Promise.all([
-        listAlerts({ page: 1, per_page: 12 }),
+        listAlerts({ page: 1, per_page: 12, read: false }),
         getUnreadAlertsCount(),
       ]);
 
@@ -101,12 +102,17 @@ export function AlertsPopover({
 
     try {
       await markAlertRead(alertId, true);
-      setAlerts((previous) =>
-        previous.map((item) =>
-          item.id === alertId ? { ...item, read: true, read_at: new Date().toISOString() } : item,
-        ),
-      );
       setUnreadCount((previous) => Math.max(0, previous - 1));
+      // La alerta se va con un barrido a la derecha y luego sale de la lista (la campana solo muestra lo sin leer).
+      setLeavingIds((previous) => new Set(previous).add(alertId));
+      window.setTimeout(() => {
+        setAlerts((previous) => previous.filter((item) => item.id !== alertId));
+        setLeavingIds((previous) => {
+          const next = new Set(previous);
+          next.delete(alertId);
+          return next;
+        });
+      }, 420);
     } catch (error) {
       console.error("Failed to mark alert as read", error);
       setErrorMessage("No fue posible actualizar la alerta");
@@ -194,7 +200,7 @@ export function AlertsPopover({
               </div>
             ) : alerts.length === 0 ? (
               <p className="px-3 py-8 text-center text-sm text-[var(--text-muted)]">
-                Aún no hay alertas. Aparecen cuando una medición sale de sus umbrales o un nodo deja de enviar datos.
+                No tienes alertas sin leer. Las que ya leíste están en «{isAdmin ? "Todas las alertas" : "Mis alertas"}».
               </p>
             ) : (
               <ul className="space-y-2">
@@ -207,7 +213,7 @@ export function AlertsPopover({
                   return (
                     <li
                       key={item.id}
-                      className="flex items-stretch overflow-hidden rounded-[var(--radius)] border border-[var(--border)] bg-[var(--card)]"
+                      className={`flex items-stretch overflow-hidden rounded-[var(--radius)] border border-[var(--border)] bg-[var(--card)] ${leavingIds.has(item.id) ? "alert-sweep-out" : ""}`}
                     >
                       <span aria-hidden="true" className={`w-1 flex-shrink-0 ${meta.bar}`} />
                       <Link
