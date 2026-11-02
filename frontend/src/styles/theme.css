@@ -597,6 +597,10 @@
 
 /* Movimiento reducido: sin animaciones ni transiciones largas (también las infinitas) */
 
+/* ── Nivel de humedad de una parcela: el agua sube al cargar y su superficie ondula despacio ── */
+@keyframes tile-wave { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+.tile-wave { animation: tile-wave 9s linear infinite; }
+
 /* ── Alerta marcada como leída: barrido a la derecha y la fila se pliega ── */
 @keyframes alert-sweep-out {
   0% { opacity: 1; transform: none; max-height: 180px; }

@@ -1,4 +1,5 @@
 import { ChevronRight, Warehouse } from "lucide-react";
+import { useEffect, useState } from "react";
 import { Link } from "react-router";
 import { EmptyState } from "../../components/EmptyState";
 import { ErrorState } from "../../components/ErrorState";
@@ -19,6 +20,12 @@ function AreaTile({ row, weight, now }: { row: AreaOverviewRow; weight: number; 
   const ok = row.state === "al_dia" && row.humidity !== null;
   const minutes = row.lastUpdate ? minutesSince(row.lastUpdate, now) : null;
   const level = ok ? Math.min(100, Math.max(0, row.humidity!)) : 0;
+  // El agua sube desde 0 hasta su nivel al cargar: así se entiende que es un medidor y no una barra rota.
+  const [shown, setShown] = useState(0);
+  useEffect(() => {
+    const frame = requestAnimationFrame(() => setShown(level));
+    return () => cancelAnimationFrame(frame);
+  }, [level]);
   const detail = [row.area.crop_type?.name, row.area.area_size ? `${row.area.area_size} ha` : null].filter(Boolean).join(" · ");
   return (
     <Link
@@ -34,9 +41,25 @@ function AreaTile({ row, weight, now }: { row: AreaOverviewRow; weight: number; 
       </div>
       {/* Cuerpo de la parcela: el nivel de agua sube dentro de esta zona, nunca bajo el nombre. */}
       <div className="relative flex h-[104px] flex-none items-end p-3">
-        {ok && <span aria-hidden="true" className="absolute inset-x-0 bottom-0 border-t-2 border-[var(--accent-primary)] bg-[var(--accent-soft)] transition-[height] duration-700" style={{ height: `${Math.max(level, 4)}%` }} />}
+        {ok && (
+          <>
+            <span aria-hidden="true" className="absolute inset-x-0 bottom-0 bg-[var(--accent-soft)] transition-[height] duration-[1100ms] ease-out" style={{ height: `${Math.max(shown, 4)}%` }}>
+              {/* Superficie del agua: una onda lenta que da vida al nivel sin cambiar su valor. */}
+              <span className="absolute inset-x-0 -top-[5px] h-[10px] overflow-hidden">
+                <svg viewBox="0 0 200 10" preserveAspectRatio="none" className="tile-wave h-full w-[200%] text-[var(--accent-soft)]">
+                  <path d="M0 5Q12.5 0 25 5T50 5T75 5T100 5T125 5T150 5T175 5T200 5V10H0Z" fill="currentColor" />
+                  <path d="M0 5Q12.5 0 25 5T50 5T75 5T100 5T125 5T150 5T175 5T200 5" fill="none" stroke="var(--accent-primary)" strokeWidth="1.2" vectorEffect="non-scaling-stroke" />
+                </svg>
+              </span>
+            </span>
+            {/* Escala: marcas al 25, 50 y 75 % para que se lea como medidor. */}
+            {[25, 50, 75].map((mark) => (
+              <span key={mark} aria-hidden="true" className="absolute right-0 h-px w-2 bg-[var(--text-muted)] opacity-50" style={{ bottom: `${mark}%` }} />
+            ))}
+          </>
+        )}
         {ok ? (
-          <div className="relative font-mono-data text-[28px] font-medium leading-none">{row.humidity!.toFixed(1)}<small className="ml-1 text-xs text-[var(--text-muted)]">% humedad</small></div>
+          <div className="relative z-10 font-mono-data text-[28px] font-medium leading-none">{row.humidity!.toFixed(1)}<small className="ml-1 text-xs text-[var(--text-muted)]">% de humedad del suelo</small></div>
         ) : (
           <div className="relative space-y-0.5">
             <StateBadge state={row.state} />

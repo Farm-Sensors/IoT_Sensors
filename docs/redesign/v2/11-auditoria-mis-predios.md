@@ -106,3 +106,7 @@ JP: la ruta «Mis predios › Predio › Área» es por donde se navega y debía
 - **Íconos que repiten los de la app:** Mis predios (almacén), predio (pin) y área (brote).
 - **Móvil:** una sola fila; el primer tramo muestra solo su ícono (con el nombre disponible para lectores de pantalla) y los nombres largos se truncan; el nombre completo sigue en el título de la página.
 - Comprobado con clics reales: área → predio → portada, en escritorio, oscuro y móvil. typecheck, 159 unitarias y build; sin errores de JavaScript ni desborde.
+
+## Ronda 10 · el nivel de agua ya no parece un fallo (2026-11-01)
+
+JP: el nivel de agua dentro de cada parcela gusta, pero al estar estático parecía un error. **Cambios:** el agua **sube desde 0 hasta su nivel al cargar** (1,1 s) para que se lea como un medidor; la superficie **ondula despacio** (9 s, `.tile-wave` en `theme.css`; con «reducir movimiento» se queda quieta); se sustituye la línea dura que cruzaba la cifra por una onda del mismo tono; el valor queda por encima del agua (`z-10`) y dice «% de humedad del suelo»; y se añaden **marcas de escala al 25, 50 y 75 %** en el borde. El nivel sigue sin juzgar si es poco o mucho (no hay umbrales en esta pantalla).
