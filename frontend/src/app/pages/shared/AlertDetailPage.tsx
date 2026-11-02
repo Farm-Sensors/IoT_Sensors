@@ -166,7 +166,7 @@ export function AlertDetailPage() {
               className="mb-3 inline-flex items-center gap-2 text-sm font-medium text-[var(--accent-primary)] hover:opacity-80"
             >
               <ArrowLeft className="h-4 w-4" />
-              Volver a alertas recibidas
+              {isAdmin ? "Volver a todas las alertas" : "Volver a mis alertas"}
             </Link>
             <h1 className="text-2xl md:text-3xl font-serif text-[var(--text-title)]">
               Recomendación de alerta

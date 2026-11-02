@@ -134,8 +134,8 @@ export function AreaDetails() {
       {alertsEnabled && (
         <section aria-labelledby="det-reglas" className={`${card} md:col-span-2`}>
           <h2 id="det-reglas" className="mb-1 text-base font-semibold">Avisos de esta área</h2>
-          <p className="text-sm text-[var(--text-muted)]">Define cuándo te avisamos de esta área.</p>
-          <Link to={`/cliente/umbrales?area=${selectedArea.id}`} className="mt-3 inline-flex min-h-[44px] items-center rounded-[var(--radius)] border border-[var(--border-strong)] px-4 text-sm font-semibold hover:bg-[var(--accent-soft)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus-ring)]">Reglas de aviso de esta área</Link>
+          <p className="text-sm text-[var(--text-muted)]">Define a partir de qué valores te avisamos de esta área.</p>
+          <Link to={`/cliente/umbrales?area=${selectedArea.id}`} className="mt-3 inline-flex min-h-[44px] items-center rounded-[var(--radius)] border border-[var(--border-strong)] px-4 text-sm font-semibold hover:bg-[var(--accent-soft)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus-ring)]">Umbrales de esta área</Link>
         </section>
       )}
     </div>

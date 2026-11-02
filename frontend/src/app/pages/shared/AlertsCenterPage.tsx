@@ -254,7 +254,7 @@ export function AlertsCenterPage() {
     <div className="min-h-screen p-4 md:p-6 lg:p-8">
       <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h1 className="text-2xl md:text-3xl font-serif text-[var(--text-title)]">Alertas recibidas</h1>
+          <h1 className="text-2xl md:text-3xl font-serif text-[var(--text-title)]">{isAdmin ? "Todas las alertas" : "Mis alertas"}</h1>
           <p className="text-[var(--text-subtle)]">
             {isAdmin
               ? "Vista global de alertas de nodos, áreas y umbrales"

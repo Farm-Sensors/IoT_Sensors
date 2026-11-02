@@ -40,10 +40,10 @@ describe("navegación v2", () => {
 
   it("cada sección de Fase 2 solo muestra las pestañas de sus módulos encendidos", () => {
     const on = { alerts: true, ai_assistant: true, ai_reports: true, notifications: true };
-    expect(sectionTabsFor("/cliente/alertas", on)?.map((t) => t.label)).toEqual(["Recibidas", "Reglas de aviso", "Cómo me avisan"]);
-    expect(sectionTabsFor("/cliente/umbrales", { ...on, notifications: false })?.map((t) => t.label)).toEqual(["Recibidas", "Reglas de aviso"]);
+    expect(sectionTabsFor("/cliente/alertas", on)?.map((t) => t.label)).toEqual(["Mis alertas", "Umbrales", "Correo y WhatsApp"]);
+    expect(sectionTabsFor("/cliente/umbrales", { ...on, notifications: false })?.map((t) => t.label)).toEqual(["Mis alertas", "Umbrales"]);
     expect(sectionTabsFor("/admin/consumo-ia", on)?.map((t) => t.label)).toEqual(["Preguntar", "Reportes automáticos", "Consumo"]);
-    expect(sectionTabsFor("/admin/alertas/12", on)?.map((t) => t.label)).toEqual(["Recibidas", "Reglas de aviso"]);
+    expect(sectionTabsFor("/admin/alertas/12", on)?.map((t) => t.label)).toEqual(["Todas las alertas", "Umbrales"]);
     // Una sola pestaña visible: no hay barra.
     expect(sectionTabsFor("/cliente/reportes-ia", { ...on, ai_assistant: false })).toBeNull();
     expect(sectionTabsFor("/cliente/notificaciones", { ...MODULES_OFF, notifications: true })).toBeNull();

@@ -43,16 +43,16 @@ interface NavSection {
 /**
  * Navegación por cosas, no por herramientas (docs/redesign/v2/02-arquitectura.md).
  * Las pantallas de Fase 2 se agrupan en dos secciones con pestañas (docs/redesign/v2/20-navegacion-fase-2.md):
- * «Alertas» (recibidas, reglas de aviso y cómo me avisan) y «Asistente» (preguntar, reportes automáticos y consumo).
+ * «Alertas» (mis alertas, umbrales y canales de aviso) y «Asistente» (preguntar, reportes automáticos y consumo).
  * Las rutas no cambian de dirección y cada módulo sigue ocultándose con su flag.
  */
 const clientAlerts: NavSection = {
   label: "Alertas",
   icon: Bell,
   tabs: [
-    { path: "/cliente/alertas", label: "Recibidas", module: "alerts" },
-    { path: "/cliente/umbrales", label: "Reglas de aviso", module: "alerts" },
-    { path: "/cliente/notificaciones", label: "Cómo me avisan", module: "notifications" },
+    { path: "/cliente/alertas", label: "Mis alertas", module: "alerts" },
+    { path: "/cliente/umbrales", label: "Umbrales", module: "alerts" },
+    { path: "/cliente/notificaciones", label: "Correo y WhatsApp", module: "notifications" },
   ],
 };
 const clientAssistant: NavSection = {
@@ -67,8 +67,8 @@ const adminAlerts: NavSection = {
   label: "Alertas",
   icon: Bell,
   tabs: [
-    { path: "/admin/alertas", label: "Recibidas", module: "alerts" },
-    { path: "/admin/umbrales", label: "Reglas de aviso", module: "alerts" },
+    { path: "/admin/alertas", label: "Todas las alertas", module: "alerts" },
+    { path: "/admin/umbrales", label: "Umbrales", module: "alerts" },
   ],
 };
 const adminAssistant: NavSection = {

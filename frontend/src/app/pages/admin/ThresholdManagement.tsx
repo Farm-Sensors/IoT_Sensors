@@ -283,9 +283,9 @@ export function ThresholdManagement() {
     <div className="min-h-screen p-4 md:p-6 lg:p-8">
       <div className="mb-6 flex items-center justify-between">
         <div>
-          <h1 className="text-2xl md:text-3xl font-serif text-[var(--text-main)] mb-2">Reglas de aviso</h1>
+          <h1 className="text-2xl md:text-3xl font-serif text-[var(--text-main)] mb-2">Umbrales</h1>
           <p className="text-[var(--text-subtle)]">
-            Configura rangos para activar alertas automáticas por parámetro
+            Define a partir de qué valores te avisamos de cada medición.
           </p>
         </div>
         <PillButton variant="primary" onClick={openCreate}>

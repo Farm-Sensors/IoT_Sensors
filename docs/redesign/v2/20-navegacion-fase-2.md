@@ -1,6 +1,6 @@
 # Navegación de las pantallas de Fase 2 (aplicada el 2026-11-01)
 
-> **Estado:** aprobada por JP («Asistente» sin «IA» y Consumo como pestaña) y aplicada. Menú de 5 destinos (productor) y 6 (admin), pestañas por módulo (`SectionTabs`), `?area=` en Alertas y Reglas de aviso (`useAreaFromQuery`), línea «N alertas sin leer» en Área (`AreaAlertsLink`) y enlace a las reglas del área en Detalles. En móvil, el administrador conserva sus 6 destinos con la barra desplazable (Ajustes sigue en la barra, no en el menú de cuenta). Textos y estética de cada pantalla: siguiente etapa.
+> **Estado:** aprobada por JP («Asistente» sin «IA» y Consumo como pestaña) y aplicada. Menú de 5 destinos (productor) y 6 (admin), pestañas por módulo (`SectionTabs`), `?area=` en Alertas y Umbrales (`useAreaFromQuery`), línea «N alertas sin leer» en Área (`AreaAlertsLink`) y enlace a los umbrales del área en Detalles. En móvil, el administrador conserva sus 6 destinos con la barra desplazable (Ajustes sigue en la barra, no en el menú de cuenta). Textos y estética de cada pantalla: siguiente etapa.
 
 Autorizado el 2026-11-01 (ver `../README.md`). Alcance: **solo navegación y arquitectura de información**; la estética va después. Sin cambios de backend, API, base de datos, permisos, flags ni lógica. Las rutas actuales **no cambian de dirección**; solo cambia dónde se llega a ellas y cómo se agrupan. Cada módulo sigue ocultándose con su flag.
 
@@ -20,7 +20,7 @@ En móvil la barra inferior del productor pasa de 3 a 8 destinos, y la del admin
 3. **Las alertas no están ligadas a las cosas.** El área, que ya tiene su propia página, no muestra ni enlaza sus alertas; el Centro de Alertas pide elegir «Predio» y «Área» en un panel de contexto aparte, aunque la URL ya dice de qué área se habla (rompe el principio «se navega por cosas»).
 4. **La campana** (admin y productor) abre el Centro de Alertas, pero este no sabe de dónde vienes.
 5. **Los umbrales son por área**, pero se llega a ellos desde un menú global, no desde el área.
-6. **Vocabulario:** «Umbrales» es término técnico; el productor entiende «reglas de aviso».
+6. **Vocabulario:** «Notificaciones» no dice por dónde llegan los avisos (es correo y WhatsApp).
 
 ## 3. Propuesta
 
@@ -37,9 +37,9 @@ Con un módulo apagado desaparece solo lo suyo: si ninguno está encendido, el m
 
 | Sección | Pestañas | Ruta | Visible si |
 |---|---|---|---|
-| **Alertas** | Recibidas | `…/alertas` (y `…/alertas/:id`) | `alerts` |
-| | Reglas de aviso (antes «Umbrales») | `…/umbrales` | `alerts` |
-| | Cómo me avisan (antes «Notificaciones», solo productor) | `/cliente/notificaciones` | `notifications` |
+| **Alertas** | Mis alertas (admin: Todas las alertas) | `…/alertas` (y `…/alertas/:id`) | `alerts` |
+| | Umbrales | `…/umbrales` | `alerts` |
+| | Correo y WhatsApp (antes «Notificaciones», solo productor) | `/cliente/notificaciones` | `notifications` |
 | **Asistente** | Preguntar (la conversación) | `…/asistente-ia` | `ai_assistant` |
 | | Reportes automáticos | `…/reportes-ia` (y `…/:id`) | `ai_reports` |
 | | Consumo (solo admin) | `/admin/consumo-ia` | `ai_assistant` |
@@ -49,14 +49,14 @@ Cada pestaña es la pantalla actual, sin cambios de lógica. La sección usa el 
 ### Nombres
 
 - **«Asistente»** en el menú (sin «IA»): la sección dice en su encabezado una línea de qué es cada pestaña («Pregunta sobre tus datos» / «Resúmenes que se generan solos»).
-- **«Reglas de aviso»** en vez de «Umbrales» y **«Cómo me avisan»** en vez de «Notificaciones»: lo que hace, no la herramienta. Las rutas conservan sus nombres.
+- **«Umbrales»** se conserva (JP lo prefirió a «Reglas de aviso» y «Rangos»). **«Correo y WhatsApp»** reemplaza a «Notificaciones» porque dice por dónde llegan los avisos, y **«Mis alertas»** nombra la lista (admin: «Todas las alertas»). Rutas sin cambios.
 
 ### Ligar las alertas a las cosas (sin pantallas nuevas)
 
 - **Área › Ahora:** si hay alertas activas del área, una línea «N alertas sin leer» enlaza a `…/alertas?area=ID`. Sin alertas o con el módulo apagado no se muestra nada.
-- **Área › Detalles:** enlace «Reglas de aviso de esta área» a `…/umbrales?area=ID`.
-- **Alertas › Recibidas:** el filtro de área sale de la URL (`?area=`) en vez del panel «Contexto activo»; el panel solo se conserva como filtro opcional. El detalle de una alerta enlaza a su área.
-- **La campana** sigue llevando a Alertas › Recibidas; cada fila al detalle de la alerta (como hoy).
+- **Área › Detalles:** enlace «Umbrales de esta área» a `…/umbrales?area=ID`.
+- **Alertas › Mis alertas:** el filtro de área sale de la URL (`?area=`) en vez del panel «Contexto activo»; el panel solo se conserva como filtro opcional. El detalle de una alerta enlaza a su área.
+- **La campana** sigue llevando a Alertas › Mis alertas; cada fila al detalle de la alerta (como hoy).
 - **Mapa y portada:** sin cambios (la portada no muestra alertas: «Atención» sigue significando problema de datos).
 
 ### Móvil
@@ -71,7 +71,7 @@ Rutas, módulos (flags), permisos, API, textos de negocio, alertas y su generaci
 ## 5. Orden de implementación
 
 1. `items.ts`: agrupar en 5 y 6 destinos con sus pestañas por módulo (`navItemsFor`, `sectionTabsFor` para productor y admin) y actualizar `MobileTabBar`.
-2. Renombrar las entradas (Asistente, Reglas de aviso, Cómo me avisan) en menú, pestañas y encabezados.
+2. Renombrar las entradas (Asistente, Mis alertas, Umbrales, Correo y WhatsApp) en menú, pestañas y encabezados.
 3. Enlaces entre área y alertas/reglas (`?area=`) y filtro de área desde la URL.
 4. Pruebas de navegación (`items.test.ts`) y documentación (`04-paridad.md`, `design-system.md` si cambia algún patrón).
 

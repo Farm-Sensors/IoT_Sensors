@@ -62,13 +62,13 @@ Convenciones: **P** = productor, **A** = admin. Rutas de `main`. API relativa a 
 
 ## Fase 2 (rediseño de navegación aplicado, 2026-11-01)
 
-Se conservan **ruta, módulo (gate) y comportamiento**. El menú agrupa las pantallas en dos secciones con pestañas (`20-navegacion-fase-2.md`): **Alertas** (Recibidas, Reglas de aviso, Cómo me avisan) y **Asistente** (Preguntar, Reportes automáticos, Consumo). Cada pestaña aparece solo si su módulo está encendido; con todos apagados el menú es el de siempre. No se encienden flags ni se arranca el perfil `phase2` en entornos compartidos.
+Se conservan **ruta, módulo (gate) y comportamiento**. El menú agrupa las pantallas en dos secciones con pestañas (`20-navegacion-fase-2.md`): **Alertas** (Mis alertas, Umbrales, Correo y WhatsApp) y **Asistente** (Preguntar, Reportes automáticos, Consumo). Cada pestaña aparece solo si su módulo está encendido; con todos apagados el menú es el de siempre. No se encienden flags ni se arranca el perfil `phase2` en entornos compartidos.
 
 | ID | Función | Ruta(s) | Rol | Módulo | Destino v2 | Verificación |
 |---|---|---|---|---|---|---|
-| F1 | Centro de alertas y detalle | `/cliente/alertas`, `/admin/alertas`, `…/:alertId` | P, A | `alerts` | Alertas › Recibidas; Área › Ahora enlaza las alertas sin leer del área (`?area=`) | `items.test.ts`; la ruta carga con módulo apagado, como hoy |
-| F2 | Umbrales | `/cliente/umbrales`, `/admin/umbrales` | P, A | `alerts` | Alertas › Reglas de aviso; Área › Detalles enlaza las de esa área | Idem |
-| F3 | Preferencias de notificación | `/cliente/notificaciones` | P | `notifications` | Alertas › Cómo me avisan | Idem |
+| F1 | Centro de alertas y detalle | `/cliente/alertas`, `/admin/alertas`, `…/:alertId` | P, A | `alerts` | Alertas › Mis alertas; Área › Ahora enlaza las alertas sin leer del área (`?area=`) | `items.test.ts`; la ruta carga con módulo apagado, como hoy |
+| F2 | Umbrales | `/cliente/umbrales`, `/admin/umbrales` | P, A | `alerts` | Alertas › Umbrales; Área › Detalles enlaza las de esa área | Idem |
+| F3 | Preferencias de notificación | `/cliente/notificaciones` | P | `notifications` | Alertas › Correo y WhatsApp | Idem |
 | F4 | Asistente IA | `/cliente/asistente-ia`, `/admin/asistente-ia` | P, A | `ai_assistant` | Asistente › Preguntar | Idem |
 | F5 | Reportes IA y detalle | `/cliente/reportes-ia`, `/admin/reportes-ia`, `…/:reportId` | P, A | `ai_reports` | Asistente › Reportes automáticos | Con módulo apagado la API responde 503 (hallazgo 17): no empeorar |
 | F6 | Consumo IA | `/admin/consumo-ia` | A | `ai_assistant` | Asistente › Consumo (solo admin) | Idem |
