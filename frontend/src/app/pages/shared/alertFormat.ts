@@ -49,3 +49,14 @@ export function formatValue(alert: Pick<AlertItem, "parameter" | "detected_value
   const value = alert.detected_value.toLocaleString("es-MX", { maximumFractionDigits: 2 });
   return meta?.unit ? `${value} ${meta.unit}` : value;
 }
+
+/** Mediciones agrupadas para los selectores (la clave interna nunca se muestra). */
+export const PARAMETER_GROUPS: Array<{ group: string; items: Array<{ value: string; label: string; unit: string }> }> = [
+  { group: "Suelo", items: ["soil.humidity", "soil.temperature", "soil.conductivity", "soil.water_potential"].map((value) => ({ value, ...PARAMETERS[value] })) },
+  { group: "Riego", items: ["irrigation.flow_per_minute", "irrigation.accumulated_liters", "irrigation.active"].map((value) => ({ value, ...PARAMETERS[value] })) },
+  { group: "Ambiente", items: ["environmental.eto", "environmental.temperature", "environmental.relative_humidity", "environmental.wind_speed", "environmental.solar_radiation"].map((value) => ({ value, ...PARAMETERS[value] })) },
+];
+
+export function parameterUnit(parameter: string): string {
+  return PARAMETERS[parameter]?.unit ?? "";
+}
