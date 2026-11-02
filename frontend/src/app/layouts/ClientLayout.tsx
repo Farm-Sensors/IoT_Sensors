@@ -1,6 +1,7 @@
 import { useEffect, useRef } from "react";
 import { Outlet, useLocation } from "react-router";
 import { DesktopSidebar } from "../components/navigation/DesktopSidebar";
+import { MobileHeader } from "../components/navigation/MobileHeader";
 import { MobileTabBar } from "../components/navigation/MobileTabBar";
 import { SkipLink } from "../components/navigation/SkipLink";
 import { AlertsPopover } from "../components/notifications/AlertsPopover";
@@ -23,24 +24,25 @@ export function ClientLayout() {
     <SelectionProvider persistenceKey="client">
       <div
         className={`bg-background flex overflow-x-hidden transition-colors duration-300 ${
-          isMobile ? "min-h-screen" : "h-screen overflow-hidden"
+          isMobile ? "min-h-screen flex-col" : "h-screen overflow-hidden"
         }`}
       >
         <SkipLink targetRef={mainRef} />
         {!isMobile && <DesktopSidebar role="client" />}
+        {isMobile && <MobileHeader role="client" />}
 
         <main
           id="contenido"
           ref={mainRef}
           tabIndex={-1}
-          className={`flex-1 min-w-0 overflow-x-hidden focus:outline-none bg-[var(--surface-page)] ${isMobile ? "pb-20" : "h-screen overflow-y-auto"
+          className={`flex-1 min-w-0 overflow-x-hidden focus:outline-none bg-[var(--surface-page)] ${isMobile ? "pb-24" : "h-screen overflow-y-auto"
             }`}
         >
           <Outlet />
         </main>
 
         {alertsEnabled && (
-          <AlertsPopover className={isMobile ? "fixed top-3 right-3 z-40" : "fixed top-4 right-6 z-40"} />
+          <AlertsPopover className={isMobile ? "fixed top-1.5 right-16 z-50" : "fixed top-4 right-6 z-40"} />
         )}
 
         {isMobile && <MobileTabBar role="client" />}

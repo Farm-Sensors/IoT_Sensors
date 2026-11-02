@@ -35,7 +35,7 @@ describe.each(["client", "admin"] as const)("%s navigation", (role) => {
     serveModules(MODULES_OFF);
     render(<MemoryRouter><DesktopSidebar role={role} /></MemoryRouter>);
     await waitFor(() => expect(mocks.get).toHaveBeenCalledWith("/settings/modules"));
-    expect(screen.getByText("Dashboard")).toBeTruthy();
+    expect(screen.getByText(role === "client" ? "Mis predios" : "Hoy")).toBeTruthy();
     for (const label of PHASE2[role]) expect(screen.queryByText(label)).toBeNull();
   });
 
@@ -61,7 +61,7 @@ describe.each(["client", "admin"] as const)("%s navigation", (role) => {
 describe("current page marker", () => {
   it("marks the current entry with aria-current and a non-color indicator, on desktop and mobile", async () => {
     serveModules(MODULES_OFF);
-    const { container, unmount } = render(
+    const { unmount } = render(
       <MemoryRouter initialEntries={["/admin/clientes"]}>
         <DesktopSidebar role="admin" />
       </MemoryRouter>,
@@ -71,7 +71,8 @@ describe("current page marker", () => {
     const current = screen.getAllByRole("link").filter((link) => link.getAttribute("aria-current") === "page");
     expect(current).toHaveLength(1);
     expect(current[0].textContent).toBe("Clientes");
-    expect(container.querySelectorAll('[aria-hidden="true"].rounded-full.h-5.w-1')).toHaveLength(1);
+    // Indicador que no depende del color: el destino actual va en negrita.
+    expect(current[0].className).toContain("font-semibold");
     unmount();
 
     render(
@@ -81,6 +82,6 @@ describe("current page marker", () => {
     );
     expect(screen.getByRole("navigation", { name: "Navegación principal" })).toBeTruthy();
     expect(screen.getByLabelText("Clientes")).toHaveAttribute("aria-current", "page");
-    expect(screen.getByLabelText("Mapa")).not.toHaveAttribute("aria-current");
+    expect(screen.getByLabelText("Red")).not.toHaveAttribute("aria-current");
   });
 });

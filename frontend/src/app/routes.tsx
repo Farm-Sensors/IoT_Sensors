@@ -14,10 +14,10 @@ import { ResetPasswordPage } from "./pages/auth/ResetPasswordPage";
 
 // Client pages
 import { ThresholdManagement } from "./pages/admin/ThresholdManagement";
-import { AreaSelector } from "./pages/client/AreaSelector";
-import { ClientDashboard } from "./pages/client/ClientDashboard";
-import { ExportData } from "./pages/client/ExportData";
-import { HistoricalData } from "./pages/client/HistoricalData";
+import { AreaDetails } from "./pages/client/area/AreaDetails";
+import { AreaLayout } from "./pages/client/area/AreaLayout";
+import { AreaHistory, AreaNow, ToAreaHistory } from "./pages/client/area/AreaTabs";
+import { PropertiesOverview } from "./pages/client/PropertiesOverview";
 import { NotificationPreferencesPage } from "./pages/client/NotificationPreferencesPage";
 import { ProfilePage } from "./pages/client/ProfilePage";
 import { PropertyDetail } from "./pages/client/PropertyDetail";
@@ -31,17 +31,15 @@ import { AIReportsPage } from "./pages/shared/AIReportsPage";
 import { AdminDashboard } from "./pages/admin/AdminDashboard";
 import { AIAssistantUsagePage } from "./pages/admin/AIAssistantUsagePage";
 import { AuditLogsPage } from "./pages/admin/AuditLogsPage";
-import { ClientManagement } from "./pages/admin/ClientManagement";
+import { ClientDirectory } from "./pages/admin/ClientDirectory";
 import { CropCycleManagement } from "./pages/admin/CropCycleManagement";
 import { CropTypeManagement } from "./pages/admin/CropTypeManagement";
 import { DashboardPreferences } from "./pages/admin/DashboardPreferences";
-import { IrrigationAreaManagement } from "./pages/admin/IrrigationAreaManagement";
 import { NodeDetail } from "./pages/admin/NodeDetail";
 import { GatewayManagement } from "./pages/admin/GatewayManagement";
 import { GatewayDetail } from "./pages/admin/GatewayDetail";
 import { PairDevice } from "./pages/admin/PairDevice";
 import { NodeManagement } from "./pages/admin/NodeManagement";
-import { PropertyManagement } from "./pages/admin/PropertyManagement";
 
 const ClientMapPage = lazy(() => loadClientMapPage().then((module) => ({ default: module.ClientMapPage })));
 
@@ -104,11 +102,21 @@ export const router = createBrowserRouter([
             children: [
               {
                 index: true,
-                Component: ClientDashboard,
+                Component: PropertiesOverview,
               },
               {
+                path: "area/:areaId",
+                Component: AreaLayout,
+                children: [
+                  { index: true, Component: AreaNow },
+                  { path: "historial", Component: AreaHistory },
+                  { path: "detalles", Component: AreaDetails },
+                ],
+              },
+              {
+                // Ruta antigua: la lista de predios es ahora la portada.
                 path: "areas",
-                Component: AreaSelector,
+                element: <Navigate to="/cliente" replace />,
               },
               {
                 path: "mapa",
@@ -119,12 +127,13 @@ export const router = createBrowserRouter([
                 ),
               },
               {
+                // Rutas antiguas: el historial y la descarga viven en Área › Historial.
                 path: "historico",
-                Component: HistoricalData,
+                Component: ToAreaHistory,
               },
               {
                 path: "exportar",
-                Component: ExportData,
+                Component: ToAreaHistory,
               },
               {
                 path: "alertas",
@@ -183,19 +192,23 @@ export const router = createBrowserRouter([
               },
               {
                 path: "clientes",
-                Component: ClientManagement,
+                Component: ClientDirectory,
               },
               {
                 path: "clientes/:clientId/predios",
-                Component: PropertyManagement,
+                Component: ClientDirectory,
               },
               {
                 path: "clientes/:clientId/dashboard",
                 Component: DashboardPreferences,
               },
               {
+                path: "areas/:areaId",
+                Component: ClientDirectory,
+              },
+              {
                 path: "predios/:predioId/areas",
-                Component: IrrigationAreaManagement,
+                Component: ClientDirectory,
               },
               {
                 path: "cultivos",
