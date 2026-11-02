@@ -32,7 +32,7 @@ describe.each(["client", "admin"] as const)("%s navigation", (role) => {
     serveModules(MODULES_OFF);
     render(<MemoryRouter><DesktopSidebar role={role} /></MemoryRouter>);
     await waitFor(() => expect(mocks.get).toHaveBeenCalledWith("/settings/modules"));
-    expect(screen.getByText(role === "client" ? "Mis predios" : "Hoy")).toBeTruthy();
+    expect(screen.getByText(role === "client" ? "Mis predios" : "Inicio")).toBeTruthy();
     for (const label of PHASE2[role]) expect(screen.queryByText(label)).toBeNull();
   });
 

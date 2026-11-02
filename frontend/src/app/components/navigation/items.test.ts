@@ -4,14 +4,14 @@ import { isNavItemActive, isSectionTabActive, navItemsFor, sectionTabsFor } from
 
 describe("navegación v2", () => {
   it("el admin tiene 4 destinos con los módulos de Fase 2 apagados y el productor 3", () => {
-    expect(navItemsFor("admin", MODULES_OFF).map((i) => i.label)).toEqual(["Hoy", "Clientes", "Red", "Ajustes"]);
+    expect(navItemsFor("admin", MODULES_OFF).map((i) => i.label)).toEqual(["Inicio", "Clientes", "Red", "Ajustes"]);
     expect(navItemsFor("client", MODULES_OFF).map((i) => i.label)).toEqual(["Mis predios", "Mapa", "Cuenta"]);
   });
 
   it("las rutas antiguas siguen marcando su destino nuevo", () => {
     const admin = navItemsFor("admin", MODULES_OFF);
     const current = (path: string) => admin.filter((i) => isNavItemActive(i, path)).map((i) => i.label);
-    expect(current("/admin")).toEqual(["Hoy"]);
+    expect(current("/admin")).toEqual(["Inicio"]);
     expect(current("/admin/predios/3/areas")).toEqual(["Clientes"]);
     expect(current("/admin/ciclos")).toEqual(["Clientes"]);
     expect(current("/admin/areas/4")).toEqual(["Clientes"]);
@@ -35,7 +35,7 @@ describe("navegación v2", () => {
   it("con los módulos de Fase 2 encendidos el menú se agrupa en 5 y 6 destinos", () => {
     const on = { alerts: true, ai_assistant: true, ai_reports: true, notifications: true };
     expect(navItemsFor("client", on).map((i) => i.label)).toEqual(["Mis predios", "Mapa", "Alertas", "Asistente", "Cuenta"]);
-    expect(navItemsFor("admin", on).map((i) => i.label)).toEqual(["Hoy", "Clientes", "Red", "Alertas", "Asistente", "Ajustes"]);
+    expect(navItemsFor("admin", on).map((i) => i.label)).toEqual(["Inicio", "Clientes", "Red", "Alertas", "Asistente", "Ajustes"]);
   });
 
   it("cada sección de Fase 2 solo muestra las pestañas de sus módulos encendidos", () => {

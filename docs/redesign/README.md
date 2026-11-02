@@ -107,3 +107,5 @@ Se aplicó el paquete de marca (`docs/brand/`) sobre la UX aprobada: tokens verd
 JP autorizó rediseñar la **presentación** de las pantallas de Fase 2 (alertas, umbrales, notificaciones, asistente de IA, reportes y consumo de IA) dentro del PR #71. No cambia backend, API, base de datos ni lógica, y **no activa funcionalidad**: los flags siguen apagados en `config.py` y en los entornos compartidos.
 
 Para poder verlas durante el rediseño, en el `backend/.env` **local** (ignorado por git) se encendieron solo los módulos de interfaz: `ALERTS_ENABLED`, `NOTIFICATIONS_ENABLED`, `AI_REPORTS_ENABLED` y `AI_ASSISTANT_ENABLED`. Siguen apagados `AZURE_OPENAI_ENABLED`, los canales de correo y WhatsApp y el perfil `phase2` de Docker (sin tareas programadas ni llamadas externas). Para volver a ocultarlas, poner esos cuatro en `false` y reiniciar el backend.
+
+**Nombre de la portada del admin (2026-11-01):** «Hoy» pasó a llamarse **«Inicio»**. Los documentos de auditoría anteriores a esa fecha siguen diciendo «Hoy».

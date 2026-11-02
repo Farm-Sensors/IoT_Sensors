@@ -16,7 +16,7 @@ const CLIENT_ENTRIES: Entry[] = [
 ];
 
 const ADMIN_ENTRIES: Entry[] = [
-  { desktop: "Hoy", mobile: "Hoy", path: "/admin", h1: "Hoy" },
+  { desktop: "Inicio", mobile: "Inicio", path: "/admin", h1: "Inicio" },
   { desktop: "Clientes", mobile: "Clientes", path: "/admin/clientes", h1: "Clientes" },
   { desktop: "Red", mobile: "Red", path: "/admin/gateways", h1: "Equipos" },
   { desktop: "Ajustes", mobile: "Ajustes", path: "/admin/cultivos", h1: "Catálogo de Cultivos" },
@@ -27,7 +27,7 @@ const CLIENT_HIDDEN = ["Alertas", "Asistente IA", "Chat IA", "Reportes IA", "IA"
 const ADMIN_HIDDEN = ["Umbrales", "Alertas", "Asistente IA", "Chat IA", "Consumo IA", "Uso IA", "Reportes IA", "IA"];
 
 const ROLES = [
-  { role: "admin", home: "/admin", homeLabel: "Hoy", entries: ADMIN_ENTRIES, hidden: ADMIN_HIDDEN },
+  { role: "admin", home: "/admin", homeLabel: "Inicio", entries: ADMIN_ENTRIES, hidden: ADMIN_HIDDEN },
   { role: "cliente", home: "/cliente", homeLabel: "Mis predios", entries: CLIENT_ENTRIES, hidden: CLIENT_HIDDEN },
 ] as const;
 

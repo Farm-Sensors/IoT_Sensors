@@ -5,7 +5,6 @@ import { Link } from "react-router";
 import { PageHeader } from "../../components/PageHeader";
 import { PageTransition } from "../../components/PageTransition";
 import { SkeletonGrid } from "../../components/SkeletonCard";
-import { useModules } from "../../hooks/useModules";
 import { usePageVisibility } from "../../hooks/usePageVisibility";
 import { api } from "../../services/api";
 import { listGateways } from "../../services/gateways";
@@ -74,7 +73,6 @@ export function AdminDashboard() {
   const [offlineNodes, setOfflineNodes] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const { items: pending, summary, error: pendingError } = usePending();
-  const alertsOn = useModules().alerts;
   const [updatedAt, setUpdatedAt] = useState(() => Date.now());
   const [, tick] = useState(0);
   useEffect(() => { const id = window.setInterval(() => tick((n) => n + 1), 15_000); return () => window.clearInterval(id); }, []);
@@ -160,14 +158,12 @@ export function AdminDashboard() {
     <PageTransition>
       <div className="mx-auto max-w-[1000px] p-4 md:p-8">
         <PageHeader
-          title="Hoy"
+          title="Inicio"
           subtitle={summary ? `${summary.al_dia} de ${summary.total} áreas al día · ${new Date().toLocaleDateString('es-MX', { weekday: 'long', day: 'numeric', month: 'long' })}` : new Date().toLocaleDateString('es-MX', { weekday: 'long', day: 'numeric', month: 'long' })}
           action={
-            <div className="flex flex-wrap items-center gap-2">
-              <Link to="/admin/clientes" className={`${actionBtn} border-[var(--accent-primary)] bg-[var(--accent-primary)] text-[var(--text-inverted)] hover:opacity-90`}>Nuevo Cliente</Link>
-              <Link to="/admin/nodos" className={`${actionBtn} border-[var(--border-strong)] bg-[var(--card)] hover:bg-[var(--accent-soft)]`}>Nuevo Nodo</Link>
-              <Link to="/admin/auditoria" className={`${actionBtn} border-transparent text-[var(--accent-primary)] underline-offset-4 hover:underline`}>Registro de eventos</Link>
-              {alertsOn && <Link to="/admin/umbrales" className={`${actionBtn} border-transparent text-[var(--accent-primary)] underline-offset-4 hover:underline`}>Configurar Umbrales</Link>}
+            <div className="grid grid-cols-2 gap-2 sm:flex">
+              <Link to="/admin/clientes" className={`${actionBtn} border-[var(--accent-primary)] bg-[var(--accent-primary)] text-[var(--text-inverted)] hover:opacity-90 sm:w-40`}>Nuevo Cliente</Link>
+              <Link to="/admin/nodos" className={`${actionBtn} border-[var(--border-strong)] bg-[var(--card)] hover:bg-[var(--accent-soft)] sm:w-40`}>Nuevo Nodo</Link>
             </div>
           }
         />

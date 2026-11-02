@@ -54,3 +54,7 @@ Se partió de la pregunta «¿qué quiere ver primero un administrador y por qu�
 - **3. Totales al final y pequeños** (clientes, predios, nodos habilitados, lecturas hoy, hora de actualización; sigue el refresco de 3 s). La salud general («4 de 6 áreas al día») va en el subtítulo.
 - Se quitaron la barra de franjas y el mapa. Botones en el encabezado igual que antes («Configurar Umbrales» solo con alertas activas).
 - Pruebas: typecheck, 162 unitarias (nueva: orden por antigüedad y datos de cliente/lugar/desde cuándo) y build; sin errores de JavaScript.
+
+## Cambio de nombre y de acciones (2026-11-01)
+
+JP: «Hoy» no convence y hay demasiados botones arriba. **La pantalla se llama ahora «Inicio»** (menú, título y pruebas); las rutas no cambian (`/admin`). **Acciones del encabezado:** quedan solo las dos de crear, **Nuevo Cliente** y **Nuevo Nodo**, con el mismo tamaño (40 de ancho en escritorio, mitad y mitad en móvil). **Registro de eventos** y **Configurar umbrales** salen del encabezado porque ya tienen su sitio en el menú: Registro de eventos es una pestaña de Ajustes y Umbrales es una pestaña de Alertas.

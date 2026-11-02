@@ -101,7 +101,7 @@ const clientCore = {
   cuenta: { path: "/cliente/perfil", icon: User, label: "Cuenta" } as NavItem,
 };
 const adminCore = {
-  hoy: { path: "/admin", icon: Home, label: "Hoy", exact: true } as NavItem,
+  hoy: { path: "/admin", icon: Home, label: "Inicio", exact: true } as NavItem,
   clientes: { path: "/admin/clientes", icon: Users, label: "Clientes", match: ["/admin/predios", "/admin/areas", "/admin/ciclos"] } as NavItem,
   red: { path: "/admin/gateways", icon: Network, label: "Red", match: ["/admin/nodos", "/admin/mapa"] } as NavItem,
   ajustes: { path: "/admin/cultivos", icon: Sprout, label: "Ajustes", match: ["/admin/auditoria"] } as NavItem,
