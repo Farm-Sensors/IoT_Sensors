@@ -1,6 +1,6 @@
 # Componentes
 
-La base es `main` (`af67be8`), no v1. **No reutilizar nada creado en v1** (`AppShell`, `MoreSheet`, `ContextSwitcher`, `ResponsiveTable`, `useOpenFromQuery`, `cycleLabel`, `pages/admin/gateways/`, `status.ts`, `fields.ts` y similares) salvo razón técnica justificada y escrita aquí.
+La base es `main` (`af67be8`).
 
 ## Conservar sin cambios de lógica
 

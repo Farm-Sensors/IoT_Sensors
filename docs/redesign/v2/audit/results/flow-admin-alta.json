@@ -1,0 +1,40 @@
+{
+  "desktop": {
+    "acciones": 31,
+    "click": 14,
+    "fill": 13,
+    "select": 3,
+    "goto_url": 1,
+    "pantallas": [
+      "/admin",
+      "/admin/clientes",
+      "/admin/clientes/48/predios",
+      "/admin/predios/41/areas",
+      "/admin/ciclos",
+      "/admin/nodos"
+    ],
+    "notas": [
+      "enlaces \"Ciclos\" visibles tras crear el área: 0"
+    ],
+    "http_errors": []
+  },
+  "mobile": {
+    "acciones": 31,
+    "click": 14,
+    "fill": 13,
+    "select": 3,
+    "goto_url": 1,
+    "pantallas": [
+      "/admin",
+      "/admin/clientes",
+      "/admin/clientes/49/predios",
+      "/admin/predios/42/areas",
+      "/admin/ciclos",
+      "/admin/nodos"
+    ],
+    "notas": [
+      "enlaces \"Ciclos\" visibles tras crear el área: 0"
+    ],
+    "http_errors": []
+  }
+}

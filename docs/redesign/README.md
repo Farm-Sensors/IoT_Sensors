@@ -11,14 +11,11 @@ Reconstruir la experiencia de IoT_Sensors desde las tareas del usuario: navegaci
 | Trabajo | Estado |
 |---|---|
 | Propuesta de arquitectura, flujos y dirección visual | **Hecha**, dirección aceptada y **validada** con auditoría y prototipo |
-| Reversión de v1 | **EJECUTADA** (2026-10-31): la implementación es igual a `main`; respaldo verificado fuera del repo (ver `v2/06-git-inventario.md`) |
 | Auditoría real con Playwright | **Hecha** (`v2/01-auditoria.md`, evidencia en `v2/audit/`), con base de datos aislada |
 | Inventario de flujos y de paridad funcional | **Completos y medidos** (`v2/03-flujos.md`, `v2/04-paridad.md`) |
 | Prototipo navegable | **Construido y probado** (`v2/prototype/`); enlace privado abajo |
 | Identidad visual | **Elegida: A (Levantamiento)**; prototipo final en `v2/prototype-a/` |
-| Implementación de v2 | **En curso: las 7 fases hechas** el 2026-11-01; falta que JP revise, decida los puntos pendientes y autorice commits/PR |
-
-**Se detiene aquí.** La siguiente etapa necesita la aprobación explícita del usuario.
+| Implementación de v2 | **Hecha** (7 fases, 2026-11-01) con la identidad provisional «Sensores Agrícolas»; en revisión en el PR #71 |
 
 ## Propuestas visuales (pendientes de elegir)
 
@@ -46,7 +43,6 @@ Lista completa (21 hallazgos): `v2/01-auditoria.md`.
 ## Qué sigue, en este orden
 
 1. **El usuario autoriza empezar la implementación** (fase 1 de `v2/09-fases.md`, con la identidad A) y decide lo pendiente (abajo).
-2. ~~Reversión de v1~~ **hecha** (ver `v2/06-git-inventario.md`; respaldo fuera del repo).
 3. Implementar por fases (`v2/09-fases.md`), una revisión del usuario al final de cada una.
 4. En cada fase: pruebas (`npm test -- --run`, `npm run typecheck`, `npm run build`, `npx playwright test`), axe en claro **y** oscuro, revisar capturas a 390 y 1366 px, y comparar peticiones con `main`.
 
@@ -54,20 +50,17 @@ Lista completa (21 hallazgos): `v2/01-auditoria.md`.
 
 | # | Decisión | Recomendación |
 |---|---|---|
-| 1 | ~~Autorizar la reversión de v1~~ | **Resuelta**: ejecutada el 2026-10-31 |
 | 0 | ~~Elegir la identidad visual~~ | **Resuelta**: A |
 | 2 | Pantalla para que el admin vea lo que ve un cliente (`AGENTS.md` §3, clase C) | Autorizar una vista de solo lectura que reutilice «Área»; el requisito ya está documentado |
 | 3 | «Ver Planes», «Plan Profesional», «Cambiar Contraseña» | Ocultarlos hasta definirlos; hoy engañan |
 | 4 | ¿El productor ve «Equipo pendiente»? (las 4 áreas DEMO lo muestran, y es correcto) | Mostrarlo solo al admin |
 | 5 | Acentos de `utils/datetime.ts` («Hace 1 dia») y «SIN COMUNICACION» | Autorizar la corrección: es una cadena |
-| 6 | Revisión con Alan: ¿un PR por fase? Destino de las capturas de 8 MB de v1 | Un PR por fase; capturas fuera del repo |
+| 6 | Revisión con Alan: ¿un PR por fase? | Un solo PR con un commit por etapa (PR #71); las capturas pesadas quedan fuera del repo |
 | 7 | ~~Aprobar la identidad visual del prototipo original~~ | **Sustituida** por la decisión 0: el usuario no aprobó esa estética |
 | 8 | **Nuevo:** «Red» y «Ajustes» están como maqueta mínima en el prototipo; ¿se quiere un prototipo completo de esas dos antes de implementar? | No es necesario: su lógica no cambia, solo su marco |
 
 ## Decisiones aprobadas
 
-- El rediseño v1 (etapas 0-7, sin commit) fue **rechazado y no es la base**. No reutilizar sus componentes, estilos, layouts ni decisiones de UX salvo razón técnica justificada.
-- Revertir v1 dejará la implementación como `main` (`af67be8`), conservando su documentación y evidencia. Se prepara, no se ejecuta sin autorización.
 - **Identidad visual nueva**, en lugar de la crema, olivo y Playfair anteriores.
 - **Móvil y escritorio al mismo nivel.**
 - La dirección de navegación y arquitectura de `v2/02-arquitectura.md` es adecuada.
@@ -85,7 +78,6 @@ Lista completa (21 hallazgos): `v2/01-auditoria.md`.
 | `v2/03-flujos.md` | Flujos medidos en `main` y pasos en v2 |
 | `v2/04-paridad.md` | Cada función (productor, admin, Fase 2) con su destino y verificación |
 | `v2/05-prototipo-y-visual.md` | Especificación visual, prototipo construido y pruebas |
-| `v2/06-git-inventario.md` | Estado de Git (95 entradas, verificado) y plan de reversión |
 | `v2/07-componentes.md` | Conservar, reemplazar, crear |
 | `v2/08-restricciones.md` | Reglas que no se pueden romper |
 | `v2/09-fases.md` | Fases y criterios de aceptación |
@@ -96,21 +88,14 @@ Lista completa (21 hallazgos): `v2/01-auditoria.md`.
 | `v2/prototype-a/` | **Prototipo final con la identidad A** (referencia visual de la implementación) |
 | `v2/audit/` | Scripts, resultados y capturas de la auditoría |
 
-Los demás `.md` y `screenshots/` de esta carpeta son del **rediseño v1 rechazado**: sirven como consulta, no como guía. Sus capturas muestran `main` antes de v1, y `~/Desktop/rediseno-antes-despues.pdf` es lo que el usuario **no** quiere repetir.
-
-## Por qué falló v1
-
-Partí de la estructura existente y mejoré pantalla por pantalla, sin preguntar qué viene a hacer cada usuario. Quedaron el mismo menú lateral, las mismas páginas, las mismas tarjetas y la misma paleta. El usuario lo vio «todo igual».
-
 ## Avisos para el modelo siguiente
 
 - Lee `AGENTS.md`: Fase 2 bloqueada, vocabulario y documentación obligatoria.
-- No reportes cifras sin medirlas: en v1 anuncié 12 → 9 acciones y el real fue 13 → 12; en esta etapa se corrigieron además «13 acciones» (real: 31) y «a 768 px ninguna acción se ve» (real: la mitad).
-- Mira las capturas además de las pruebas: en v1 dos errores visibles pasaron todas las pruebas. En el prototipo, una medición táctil encontró 66 controles por debajo de 44 px que las pruebas funcionales no detectaban.
+- No reportes cifras sin medirlas: se corrigieron «13 acciones» (real: 31) y «a 768 px ninguna acción se ve» (real: la mitad).
+- Mira las capturas además de las pruebas: en el prototipo, una medición táctil encontró 66 controles por debajo de 44 px que las pruebas funcionales no detectaban.
 - El suite a11y de la app solo mide tema claro.
 - La auditoría usó una **copia** de la base: no hay que tocar `sensores_mysql`. Recreación en `v2/01-auditoria.md`.
 - Engram no estaba disponible: el contexto vive aquí y en la memoria de archivos.
-- Antes de implementar, repite la verificación de `v2/06-git-inventario.md` (estado de Git), porque el árbol de trabajo puede haber cambiado.
 
 
 ## Identidad provisional «Sensores Agrícolas» (2026-11-01)

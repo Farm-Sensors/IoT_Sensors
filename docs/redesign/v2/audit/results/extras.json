@@ -1,0 +1,161 @@
+{
+  "admin_en_cliente": {
+    "ruta_final": "/admin"
+  },
+  "admin_panel_texto": "Panel de Administración sábado, 31 de octubre de 2026 Total Clientes 6 Total Predios 6 Nodos Habilitados 8/8 Lecturas Hoy 948 Nodos Deshabilitados 0 Todos los nodos registrados están habilitados. Acciones Rápidas Nuevo Cliente Nuevo Nodo Configurar Umbrales Actividad Reciente Consulta la bitácora completa de eventos administrativos y operativos. Ver Auditoría",
+  "nuevo_cliente_panel": {
+    "ruta": "/admin/clientes",
+    "dialogo_abierto": 0
+  },
+  "nuevo_nodo_panel": {
+    "ruta": "/admin/nodos",
+    "dialogo_abierto": 0
+  },
+  "equipo_asistente": {
+    "texto": "Equipos Volver a la lista Nuevo equipo Paso 1 de 3 Rancho y áreas Elige el rancho y marca las áreas que atenderá el equipo. Rancho Selecciona un rancho… DEMO - Rancho Norte · Agricola del Norte (ya tiene equipo) Granja Hogar · Agricola del Norte Campus Reforestado · Agricola del Norte Predio Audit desktop-29809 · Empresa Auditoria desktop-29809 Predio Audit desktop-46749 · Empresa Auditoria desktop-46749 Predio Audit mobile-63207 · Empresa Auditoria mobile-63207 Crear y continuar 0 áreas elegida",
+    "dialogo": 0
+  },
+  "equipos_filas": 15,
+  "movil_cliente": {
+    "scrollW": 389,
+    "clientW": 389,
+    "items": [
+      {
+        "t": "Inicio",
+        "x": 12,
+        "w": 56,
+        "h": 52,
+        "visible_en_pantalla": true
+      },
+      {
+        "t": "Predios",
+        "x": 72,
+        "w": 61,
+        "h": 52,
+        "visible_en_pantalla": true
+      },
+      {
+        "t": "Mapa",
+        "x": 137,
+        "w": 56,
+        "h": 52,
+        "visible_en_pantalla": true
+      },
+      {
+        "t": "Histórico",
+        "x": 197,
+        "w": 67,
+        "h": 52,
+        "visible_en_pantalla": true
+      },
+      {
+        "t": "Exportar",
+        "x": 268,
+        "w": 66,
+        "h": 52,
+        "visible_en_pantalla": true
+      },
+      {
+        "t": "Perfil",
+        "x": 338,
+        "w": 56,
+        "h": 52,
+        "visible_en_pantalla": false
+      },
+      {
+        "t": "Tema",
+        "x": 398,
+        "w": 56,
+        "h": 52,
+        "visible_en_pantalla": false
+      },
+      {
+        "t": "Salir",
+        "x": 458,
+        "w": 56,
+        "h": 52,
+        "visible_en_pantalla": false
+      }
+    ]
+  },
+  "movil_cliente_objetivos_menores_44": [],
+  "movil_admin": {
+    "scrollW": 389,
+    "clientW": 389,
+    "items": [
+      {
+        "t": "Inicio",
+        "x": 12,
+        "w": 56,
+        "h": 52,
+        "visible_en_pantalla": true
+      },
+      {
+        "t": "Clientes",
+        "x": 72,
+        "w": 64,
+        "h": 52,
+        "visible_en_pantalla": true
+      },
+      {
+        "t": "Mapa",
+        "x": 140,
+        "w": 56,
+        "h": 52,
+        "visible_en_pantalla": true
+      },
+      {
+        "t": "Nodos",
+        "x": 200,
+        "w": 56,
+        "h": 52,
+        "visible_en_pantalla": true
+      },
+      {
+        "t": "Equipos",
+        "x": 260,
+        "w": 64,
+        "h": 52,
+        "visible_en_pantalla": true
+      },
+      {
+        "t": "Catálogo",
+        "x": 328,
+        "w": 68,
+        "h": 52,
+        "visible_en_pantalla": false
+      },
+      {
+        "t": "Auditoría",
+        "x": 400,
+        "w": 68,
+        "h": 52,
+        "visible_en_pantalla": false
+      },
+      {
+        "t": "Tema",
+        "x": 472,
+        "w": 56,
+        "h": 52,
+        "visible_en_pantalla": false
+      },
+      {
+        "t": "Salir",
+        "x": 532,
+        "w": 56,
+        "h": 52,
+        "visible_en_pantalla": false
+      }
+    ]
+  },
+  "movil_admin_objetivos_menores_44": [],
+  "clientes_768": {
+    "total": 48,
+    "dentro_del_viewport": 24,
+    "scrollW": 768
+  },
+  "clientes_390": {
+    "total": 72,
+    "dentro": 60
+  }
+}

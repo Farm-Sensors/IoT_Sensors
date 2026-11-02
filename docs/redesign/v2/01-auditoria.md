@@ -6,7 +6,7 @@
 
 | Aspecto | Valor |
 |---|---|
-| Código auditado | `git archive af67be8 frontend` en una carpeta temporal (no el árbol de trabajo, que tiene v1). El backend es idéntico en `main` y en el árbol (`git diff af67be8 -- backend` vacío) |
+| Código auditado | `git archive af67be8 frontend` en una carpeta temporal (no el árbol de trabajo). El backend es idéntico en `main` y en el árbol (`git diff af67be8 -- backend` vacío) |
 | Base de datos | **Copia aislada.** `mysqldump` de solo lectura de `sensores_mysql` a un MySQL 8 efímero en `127.0.0.1:3307` (contenedor `audit_mysql`, sin volumen). Verificado: 28 086 lecturas en ambas |
 | Servicios | Backend `:5051` (variables de entorno propias, sin tocar `backend/.env`) y Vite `:5174` apuntando a él. El stack del usuario (`:3306`, `:5050`, `:5173`) no se tocó |
 | Fase 2 | Apagada. Ningún flag ni perfil se encendió |
@@ -102,7 +102,7 @@ Al terminar: `docker rm -f audit_mysql`, parar `uvicorn` y `vite`. **El dump con
 
 ## Correcciones a la propuesta por lo medido
 
-- La cifra «13 acciones» del alta en `main` era derivada. **Medido: 31 acciones** (14 clics, 13 campos escritos, 3 selecciones y 1 URL manual) en 6 pantallas. El método cuenta cada acción del usuario; la cifra no es comparable con la de v1.
+- La cifra «13 acciones» del alta en `main` era derivada. **Medido: 31 acciones** (14 clics, 13 campos escritos, 3 selecciones y 1 URL manual) en 6 pantallas. El método cuenta cada acción del usuario.
 - «A 768 px ninguna acción se ve» era demasiado fuerte. **Medido:** caben 24 de 48.
 - Se añaden los hallazgos 8, 14, 17, 19 y 20, que no estaban.
 - Lo previsto sobre Mis predios, Área, Hoy y Directorio se mantiene; ningún dato contradice la dirección aprobada.

@@ -1,0 +1,1000 @@
+{
+  "cliente-desktop": {
+    "nav": [],
+    "routes": {
+      "/cliente": {
+        "url": "/cliente",
+        "h1": [
+          "Sensores Agrícolas",
+          "Hola, Alan Test",
+          "Humedad del Suelo"
+        ],
+        "text": "Saltar al contenido Sensores Agrícolas Monitoreo de riego IoT Dashboard Predios Mapa Histórico Exportar Perfil A Alan Test Cliente Hola, Alan Test sábado, 31 de octubre de 2026 Seleccione predio... DEMO - Rancho Norte Granja Hogar Campus Reforestado Seleccione área... Area Granja Hogar Sin reporte reciente Último dato: 29/10/2026, 9:00:00 p.m. · hace 49h 52min Humedad del Suelo Dato prioritario 62",
+        "scrollW": 1366,
+        "clientW": 1366,
+        "console": [
+          "error: Failed to load resource: the server responded with a status of 409 (Conflict)",
+          "error: Failed to load resource: the server responded with a status of 404 (Not Found)",
+          "error: Failed to load resource: the server responded with a status of 404 (Not Found)"
+        ],
+        "http": [
+          "409 GET /api/v1/weather/current?irrigation_area_id=5",
+          "404 GET /api/v1/ndvi-snapshots/latest?irrigation_area_id=5",
+          "404 GET /api/v1/properties/2/gateway/status"
+        ],
+        "hscroll": false
+      },
+      "/cliente/areas": {
+        "url": "/cliente/areas",
+        "h1": [
+          "Sensores Agrícolas",
+          "Predios y Áreas de Riego",
+          "DEMO - Rancho Norte"
+        ],
+        "text": "Saltar al contenido Sensores Agrícolas Monitoreo de riego IoT Dashboard Predios Mapa Histórico Exportar Perfil A Alan Test Cliente Predios y Áreas de Riego Selecciona un área para ver sus datos en tiempo real DEMO - Rancho Norte Sonora, México DEMO - Nogal Norte 12.5 ha Nogal Humedad actual 40.0% Datos actuales Último dato: 31/10/2026, 10:51:15 p.m. · hace 1 min Equipo pendiente DEMO - Alfalfa Est",
+        "scrollW": 1366,
+        "clientW": 1366,
+        "console": [
+          "error: Failed to load resource: the server responded with a status of 404 (Not Found)",
+          "error: Failed to load resource: the server responded with a status of 404 (Not Found)"
+        ],
+        "http": [
+          "404 GET /api/v1/properties/2/gateway/status",
+          "404 GET /api/v1/properties/3/gateway/status"
+        ],
+        "hscroll": false
+      },
+      "/cliente/mapa": {
+        "url": "/cliente/mapa",
+        "h1": [
+          "Sensores Agrícolas",
+          "Mapa de Nodos",
+          "Detalle de nodo"
+        ],
+        "text": "Saltar al contenido Sensores Agrícolas Monitoreo de riego IoT Dashboard Predios Mapa Histórico Exportar Perfil A Alan Test Cliente Mapa de Nodos Visualiza la ubicación geográfica y frescura de cada nodo IoT en tus áreas de riego. Predio DEMO - Rancho Norte Granja Hogar Campus Reforestado Área de riego Area Granja Hogar Actualizar capa Fresco: 0 Tardío: 1 Sin lectura: 0 Sin GPS: 0 MapLibre | OpenFr",
+        "scrollW": 1366,
+        "clientW": 1366,
+        "console": [
+          "warning: [.WebGL-0x10c0045e800]GL Driver Message (OpenGL, Performance, GL_CLOSE_PATH_NV, High): GPU stall due to ReadPixels",
+          "warning: [.WebGL-0x10c0045e800]GL Driver Message (OpenGL, Performance, GL_CLOSE_PATH_NV, High): GPU stall due to ReadPixels",
+          "warning: [.WebGL-0x10c0045e800]GL Driver Message (OpenGL, Performance, GL_CLOSE_PATH_NV, High): GPU stall due to ReadPixels",
+          "warning: [.WebGL-0x10c0045e800]GL Driver Message (OpenGL, Performance, GL_CLOSE_PATH_NV, High): GPU stall due to ReadPixels (this message will no longer repeat)",
+          "warning: Expected value to be of type number, but found null instead.",
+          "warning: Expected value to be of type number, but found null instead.",
+          "warning: Expected value to be of type number, but found null instead."
+        ],
+        "http": [],
+        "hscroll": false
+      },
+      "/cliente/historico": {
+        "url": "/cliente/historico",
+        "h1": [
+          "Sensores Agrícolas",
+          "Datos Históricos",
+          "Gráfica de Métricas"
+        ],
+        "text": "Saltar al contenido Sensores Agrícolas Monitoreo de riego IoT Dashboard Predios Mapa Histórico Exportar Perfil A Alan Test Cliente Datos Históricos Consulta el histórico de lecturas de Area Granja Hogar Contexto activo Predio: Granja Hogar Área: Area Granja Hogar Selecciona predio DEMO - Rancho Norte Granja Hogar Campus Reforestado Selecciona área Area Granja Hogar Hoy Últimos 7 días Últimos 30 dí",
+        "scrollW": 1366,
+        "clientW": 1366,
+        "console": [],
+        "http": [],
+        "hscroll": false
+      },
+      "/cliente/exportar": {
+        "url": "/cliente/exportar",
+        "h1": [
+          "Sensores Agrícolas",
+          "Exportar Datos",
+          "1. Elige qué datos"
+        ],
+        "text": "Saltar al contenido Sensores Agrícolas Monitoreo de riego IoT Dashboard Predios Mapa Histórico Exportar Perfil A Alan Test Cliente Exportar Datos Descarga el histórico de tus sensores en diferentes formatos Contexto activo Predio: Granja Hogar Área: Area Granja Hogar Selecciona predio DEMO - Rancho Norte Granja Hogar Campus Reforestado Selecciona área Area Granja Hogar 1. Elige qué datos Hoy Últim",
+        "scrollW": 1366,
+        "clientW": 1366,
+        "console": [],
+        "http": [],
+        "hscroll": false
+      },
+      "/cliente/perfil": {
+        "url": "/cliente/perfil",
+        "h1": [
+          "Sensores Agrícolas",
+          "Mi Perfil",
+          "Plan de Suscripción"
+        ],
+        "text": "Saltar al contenido Sensores Agrícolas Monitoreo de riego IoT Dashboard Predios Mapa Histórico Exportar Perfil A Alan Test Cliente Mi Perfil Administra tu información personal Editar Perfil Nombre Completo Correo Electrónico Plan de Suscripción Plan Profesional Hasta 20 sensores activos • Acceso completo al histórico Ver Planes Seguridad Cambiar Contraseña Última actualización: 29 de octubre de 20",
+        "scrollW": 1366,
+        "clientW": 1366,
+        "console": [],
+        "http": [],
+        "hscroll": false
+      },
+      "/cliente/alertas": {
+        "url": "/cliente/alertas",
+        "h1": [
+          "Sensores Agrícolas",
+          "Centro de Alertas"
+        ],
+        "text": "Saltar al contenido Sensores Agrícolas Monitoreo de riego IoT Dashboard Predios Mapa Histórico Exportar Perfil A Alan Test Cliente Centro de Alertas Alertas de tus áreas de riego Actualizar Contexto activo Predio: Granja Hogar Área: Area Granja Hogar Selecciona predio DEMO - Rancho Norte Granja Hogar Campus Reforestado Selecciona área Area Granja Hogar Severidad Todas Info Warning Critical Tipo To",
+        "scrollW": 1366,
+        "clientW": 1366,
+        "console": [],
+        "http": [],
+        "hscroll": false
+      },
+      "/cliente/umbrales": {
+        "url": "/cliente/umbrales",
+        "h1": [
+          "Sensores Agrícolas",
+          "Umbrales de Alertas"
+        ],
+        "text": "Saltar al contenido Sensores Agrícolas Monitoreo de riego IoT Dashboard Predios Mapa Histórico Exportar Perfil A Alan Test Cliente Umbrales de Alertas Configura rangos para activar alertas automáticas por parámetro Nuevo Umbral Área de riego Todas DEMO - Nogal Norte DEMO - Alfalfa Este DEMO - Chile Principal DEMO - Área 2 Area Granja Hogar Area Campus Reforestado Parámetro Todos Suelo: Conductivid",
+        "scrollW": 1366,
+        "clientW": 1366,
+        "console": [],
+        "http": [],
+        "hscroll": false
+      },
+      "/cliente/notificaciones": {
+        "url": "/cliente/notificaciones",
+        "h1": [
+          "Sensores Agrícolas",
+          "Notificaciones",
+          "Interruptor global"
+        ],
+        "text": "Saltar al contenido Sensores Agrícolas Monitoreo de riego IoT Dashboard Predios Mapa Histórico Exportar Perfil A Alan Test Cliente Notificaciones Configura qué alertas recibir por área, severidad y canal. Recargar Guardar cambios Interruptor global Si está apagado, no se envía ninguna notificación externa. Activado DEMO - Rancho Norte Sonora, México DEMO - Nogal Norte Umbral 6 de 6 activas Todo ON",
+        "scrollW": 1366,
+        "clientW": 1366,
+        "console": [],
+        "http": [],
+        "hscroll": false
+      },
+      "/cliente/asistente-ia": {
+        "url": "/cliente/asistente-ia",
+        "h1": [
+          "Sensores Agrícolas",
+          "Asistente IA"
+        ],
+        "text": "Saltar al contenido Sensores Agrícolas Monitoreo de riego IoT Dashboard Predios Mapa Histórico Exportar Perfil A Alan Test Cliente Asistente IA Consulta operativa del contexto activo: Granja Hogar / Area Granja Hogar. Contexto activo Predio: Granja Hogar Área: Area Granja Hogar Selecciona predio DEMO - Rancho Norte Granja Hogar Campus Reforestado Selecciona área Area Granja Hogar Ventana de anális",
+        "scrollW": 1366,
+        "clientW": 1366,
+        "console": [],
+        "http": [],
+        "hscroll": false
+      },
+      "/cliente/reportes-ia": {
+        "url": "/cliente/reportes-ia",
+        "h1": [
+          "Sensores Agrícolas",
+          "Reportes IA"
+        ],
+        "text": "Saltar al contenido Sensores Agrícolas Monitoreo de riego IoT Dashboard Predios Mapa Histórico Exportar Perfil A Alan Test Cliente Reportes IA Resumen diario de hallazgos y recomendaciones de tus áreas. Actualizar Contexto activo Predio: Granja Hogar Área: Area Granja Hogar Selecciona predio DEMO - Rancho Norte Granja Hogar Campus Reforestado Selecciona área Area Granja Hogar Estado Todos Pendient",
+        "scrollW": 1366,
+        "clientW": 1366,
+        "console": [
+          "error: Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+          "error: Failed to fetch AI reports AxiosError: Request failed with status code 503\n    at settle (http://localhost:5174/node_modules/.vite/deps/axios.js?v=7efd2ea2:1319:7)\n    at XMLHttpRequest.onloadend (htt",
+          "error: Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+          "error: Failed to fetch AI reports AxiosError: Request failed with status code 503\n    at settle (http://localhost:5174/node_modules/.vite/deps/axios.js?v=7efd2ea2:1319:7)\n    at XMLHttpRequest.onloadend (htt"
+        ],
+        "http": [
+          "503 GET /api/v1/ai-reports?page=1&per_page=20",
+          "503 GET /api/v1/ai-reports?page=1&per_page=20&irrigation_area_id=5"
+        ],
+        "hscroll": false
+      },
+      "/cliente/predio/1": {
+        "url": "/cliente/predio/1",
+        "h1": [
+          "Sensores Agrícolas",
+          "Granja Hogar",
+          "Sensores por Área"
+        ],
+        "text": "Saltar al contenido Sensores Agrícolas Monitoreo de riego IoT Dashboard Predios Mapa Histórico Exportar Perfil A Alan Test Cliente Granja Hogar 28.6850292,-106.0765387 Sensores por Área Nodo Granja Hogar Activo Area Granja Hogar Áreas de Riego Area Granja Hogar 1 ha Humedad 62.9% Sin reporte reciente Último dato: 29/10/2026, 9:00:00 p.m. · hace 49h 52min",
+        "scrollW": 1366,
+        "clientW": 1366,
+        "console": [
+          "error: Failed to load resource: the server responded with a status of 404 (Not Found)"
+        ],
+        "http": [
+          "404 GET /api/v1/properties/2/gateway/status"
+        ],
+        "hscroll": false
+      },
+      "/cliente/inexistente": {
+        "url": "/cliente",
+        "h1": [
+          "Sensores Agrícolas",
+          "Hola, Alan Test",
+          "Humedad del Suelo"
+        ],
+        "text": "Saltar al contenido Sensores Agrícolas Monitoreo de riego IoT Dashboard Predios Mapa Histórico Exportar Perfil A Alan Test Cliente Hola, Alan Test sábado, 31 de octubre de 2026 Seleccione predio... DEMO - Rancho Norte Granja Hogar Campus Reforestado Seleccione área... Area Granja Hogar Sin reporte reciente Último dato: 29/10/2026, 9:00:00 p.m. · hace 49h 52min Humedad del Suelo Dato prioritario 62",
+        "scrollW": 1366,
+        "clientW": 1366,
+        "console": [
+          "error: Failed to load resource: the server responded with a status of 409 (Conflict)",
+          "error: Failed to load resource: the server responded with a status of 404 (Not Found)",
+          "error: Failed to load resource: the server responded with a status of 404 (Not Found)"
+        ],
+        "http": [
+          "409 GET /api/v1/weather/current?irrigation_area_id=5",
+          "404 GET /api/v1/properties/2/gateway/status",
+          "404 GET /api/v1/ndvi-snapshots/latest?irrigation_area_id=5"
+        ],
+        "hscroll": false
+      }
+    }
+  },
+  "cliente-mobile": {
+    "nav": [
+      {
+        "tag": "A",
+        "text": "Inicio",
+        "href": "/cliente"
+      },
+      {
+        "tag": "A",
+        "text": "Predios",
+        "href": "/cliente/areas"
+      },
+      {
+        "tag": "A",
+        "text": "Mapa",
+        "href": "/cliente/mapa"
+      },
+      {
+        "tag": "A",
+        "text": "Histórico",
+        "href": "/cliente/historico"
+      },
+      {
+        "tag": "A",
+        "text": "Exportar",
+        "href": "/cliente/exportar"
+      },
+      {
+        "tag": "A",
+        "text": "Perfil",
+        "href": "/cliente/perfil"
+      },
+      {
+        "tag": "BUTTON",
+        "text": "Tema",
+        "href": null
+      },
+      {
+        "tag": "BUTTON",
+        "text": "Salir",
+        "href": null
+      }
+    ],
+    "routes": {
+      "/cliente": {
+        "url": "/cliente",
+        "h1": [
+          "Hola, Alan Test",
+          "Humedad del Suelo",
+          "Flujo de Agua"
+        ],
+        "text": "Saltar al contenido Hola, Alan Test sábado, 31 de octubre de 2026 Seleccione predio... DEMO - Rancho Norte Granja Hogar Campus Reforestado Seleccione área... Area Granja Hogar Sin reporte reciente Último dato: 29/10/2026, 9:00:00 p.m. · hace 49h 53min Humedad del Suelo Dato prioritario 62.85 % Flujo de Agua Dato prioritario 0 L/min Acumulado: 1235.24 L E.T.O. Evapotranspiración 0.436 mm/día Última",
+        "scrollW": 390,
+        "clientW": 390,
+        "console": [
+          "error: Failed to load resource: the server responded with a status of 409 (Conflict)",
+          "error: Failed to load resource: the server responded with a status of 404 (Not Found)",
+          "error: Failed to load resource: the server responded with a status of 404 (Not Found)"
+        ],
+        "http": [
+          "409 GET /api/v1/weather/current?irrigation_area_id=5",
+          "404 GET /api/v1/properties/2/gateway/status",
+          "404 GET /api/v1/ndvi-snapshots/latest?irrigation_area_id=5"
+        ],
+        "hscroll": false
+      },
+      "/cliente/areas": {
+        "url": "/cliente/areas",
+        "h1": [
+          "Predios y Áreas de Riego",
+          "DEMO - Rancho Norte",
+          "Granja Hogar"
+        ],
+        "text": "Saltar al contenido Predios y Áreas de Riego Selecciona un área para ver sus datos en tiempo real DEMO - Rancho Norte Sonora, México DEMO - Nogal Norte 12.5 ha Nogal Humedad actual 40.0% Datos actuales Último dato: 31/10/2026, 10:51:15 p.m. · hace 1 min Equipo pendiente DEMO - Alfalfa Este 8 ha Alfalfa Humedad actual 38.3% Datos actuales Último dato: 31/10/2026, 10:51:15 p.m. · hace 1 min Equipo p",
+        "scrollW": 390,
+        "clientW": 390,
+        "console": [
+          "error: Failed to load resource: the server responded with a status of 404 (Not Found)",
+          "error: Failed to load resource: the server responded with a status of 404 (Not Found)"
+        ],
+        "http": [
+          "404 GET /api/v1/properties/2/gateway/status",
+          "404 GET /api/v1/properties/3/gateway/status"
+        ],
+        "hscroll": false
+      },
+      "/cliente/mapa": {
+        "url": "/cliente/mapa",
+        "h1": [
+          "Mapa de Nodos",
+          "Detalle de nodo"
+        ],
+        "text": "Saltar al contenido Mapa de Nodos Visualiza la ubicación geográfica y frescura de cada nodo IoT en tus áreas de riego. Predio DEMO - Rancho Norte Granja Hogar Campus Reforestado Área de riego Area Granja Hogar Actualizar capa Fresco: 0 Tardío: 1 Sin lectura: 0 Sin GPS: 0 MapLibre | OpenFreeMap © OpenMapTiles Data from OpenStreetMap Detalle de nodo Nodo Granja Hogar Predio: Granja Hogar Área: Area ",
+        "scrollW": 390,
+        "clientW": 390,
+        "console": [
+          "warning: [.WebGL-0x10c090f0e00]GL Driver Message (OpenGL, Performance, GL_CLOSE_PATH_NV, High): GPU stall due to ReadPixels",
+          "warning: [.WebGL-0x10c090f0e00]GL Driver Message (OpenGL, Performance, GL_CLOSE_PATH_NV, High): GPU stall due to ReadPixels",
+          "warning: [.WebGL-0x10c090f0e00]GL Driver Message (OpenGL, Performance, GL_CLOSE_PATH_NV, High): GPU stall due to ReadPixels",
+          "warning: [.WebGL-0x10c090f0e00]GL Driver Message (OpenGL, Performance, GL_CLOSE_PATH_NV, High): GPU stall due to ReadPixels (this message will no longer repeat)",
+          "warning: Expected value to be of type number, but found null instead.",
+          "warning: Expected value to be of type number, but found null instead.",
+          "warning: Expected value to be of type number, but found null instead."
+        ],
+        "http": [],
+        "hscroll": false
+      },
+      "/cliente/historico": {
+        "url": "/cliente/historico",
+        "h1": [
+          "Datos Históricos",
+          "Gráfica de Métricas",
+          "Tabla de Datos 739 registros — pág. 1 de 37"
+        ],
+        "text": "Saltar al contenido Datos Históricos Consulta el histórico de lecturas de Area Granja Hogar Contexto activo Predio: Granja Hogar Área: Area Granja Hogar Selecciona predio DEMO - Rancho Norte Granja Hogar Campus Reforestado Selecciona área Area Granja Hogar Hoy Últimos 7 días Últimos 30 días Este mes Este año Personalizado Fecha inicio 25/10/2026 Fecha fin 31/10/2026 Ciclo de cultivo Todos los cicl",
+        "scrollW": 390,
+        "clientW": 390,
+        "console": [],
+        "http": [],
+        "hscroll": false
+      },
+      "/cliente/exportar": {
+        "url": "/cliente/exportar",
+        "h1": [
+          "Exportar Datos",
+          "1. Elige qué datos",
+          "2. Descarga"
+        ],
+        "text": "Saltar al contenido Exportar Datos Descarga el histórico de tus sensores en diferentes formatos Contexto activo Predio: Granja Hogar Área: Area Granja Hogar Selecciona predio DEMO - Rancho Norte Granja Hogar Campus Reforestado Selecciona área Area Granja Hogar 1. Elige qué datos Hoy Últimos 7 días Últimos 30 días Este mes Este año Personalizado Fecha inicio 25/10/2026 Fecha fin 31/10/2026 Ciclo de",
+        "scrollW": 390,
+        "clientW": 390,
+        "console": [],
+        "http": [],
+        "hscroll": false
+      },
+      "/cliente/perfil": {
+        "url": "/cliente/perfil",
+        "h1": [
+          "Mi Perfil",
+          "Plan de Suscripción",
+          "Seguridad"
+        ],
+        "text": "Saltar al contenido Mi Perfil Administra tu información personal Editar Perfil Nombre Completo Correo Electrónico Plan de Suscripción Plan Profesional Hasta 20 sensores activos • Acceso completo al histórico Ver Planes Seguridad Cambiar Contraseña Última actualización: 29 de octubre de 2026 Inicio Predios Mapa Histórico Exportar Perfil Tema Salir",
+        "scrollW": 390,
+        "clientW": 390,
+        "console": [],
+        "http": [],
+        "hscroll": false
+      },
+      "/cliente/alertas": {
+        "url": "/cliente/alertas",
+        "h1": [
+          "Centro de Alertas"
+        ],
+        "text": "Saltar al contenido Centro de Alertas Alertas de tus áreas de riego Actualizar Contexto activo Predio: Granja Hogar Área: Area Granja Hogar Selecciona predio DEMO - Rancho Norte Granja Hogar Campus Reforestado Selecciona área Area Granja Hogar Severidad Todas Info Warning Critical Tipo Todos Umbral Inactividad Estado Todas No leidas Leidas Rango de fechas Fecha inicio 24/10/2026 Fecha fin 31/10/20",
+        "scrollW": 390,
+        "clientW": 390,
+        "console": [],
+        "http": [],
+        "hscroll": false
+      },
+      "/cliente/umbrales": {
+        "url": "/cliente/umbrales",
+        "h1": [
+          "Umbrales de Alertas"
+        ],
+        "text": "Saltar al contenido Umbrales de Alertas Configura rangos para activar alertas automáticas por parámetro Nuevo Umbral Área de riego Todas DEMO - Nogal Norte DEMO - Alfalfa Este DEMO - Chile Principal DEMO - Área 2 Area Granja Hogar Area Campus Reforestado Parámetro Todos Suelo: Conductividad Suelo: Temperatura Suelo: Humedad Suelo: Potencial hídrico Riego: Activo Riego: Litros acumulados Riego: Flu",
+        "scrollW": 390,
+        "clientW": 390,
+        "console": [],
+        "http": [],
+        "hscroll": false
+      },
+      "/cliente/notificaciones": {
+        "url": "/cliente/notificaciones",
+        "h1": [
+          "Notificaciones",
+          "Interruptor global",
+          "DEMO - Rancho Norte"
+        ],
+        "text": "Saltar al contenido Notificaciones Configura qué alertas recibir por área, severidad y canal. Recargar Guardar cambios Interruptor global Si está apagado, no se envía ninguna notificación externa. Activado DEMO - Rancho Norte Sonora, México DEMO - Nogal Norte Umbral 6 de 6 activas Todo ON Todo OFF Email ON WhatsApp ON CANAL INFO WARNING CRITICAL Email On WhatsApp On Inactividad 6 de 6 activas Todo",
+        "scrollW": 390,
+        "clientW": 390,
+        "console": [],
+        "http": [],
+        "hscroll": false
+      },
+      "/cliente/asistente-ia": {
+        "url": "/cliente/asistente-ia",
+        "h1": [
+          "Asistente IA"
+        ],
+        "text": "Saltar al contenido Asistente IA Consulta operativa del contexto activo: Granja Hogar / Area Granja Hogar. Contexto activo Predio: Granja Hogar Área: Area Granja Hogar Selecciona predio DEMO - Rancho Norte Granja Hogar Campus Reforestado Selecciona área Area Granja Hogar Ventana de análisis Últimas 24 horas Últimas 72 horas Últimos 7 días Este chat usa automáticamente el predio/área seleccionados ",
+        "scrollW": 390,
+        "clientW": 390,
+        "console": [],
+        "http": [],
+        "hscroll": false
+      },
+      "/cliente/reportes-ia": {
+        "url": "/cliente/reportes-ia",
+        "h1": [
+          "Reportes IA"
+        ],
+        "text": "Saltar al contenido Reportes IA Resumen diario de hallazgos y recomendaciones de tus áreas. Actualizar Contexto activo Predio: Granja Hogar Área: Area Granja Hogar Selecciona predio DEMO - Rancho Norte Granja Hogar Campus Reforestado Selecciona área Area Granja Hogar Estado Todos Pendiente Procesando Completado Fallido Rango de fechas Fecha inicio 24/10/2026 Fecha fin 31/10/2026 Filtros activos Fe",
+        "scrollW": 390,
+        "clientW": 390,
+        "console": [
+          "error: Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+          "error: Failed to fetch AI reports AxiosError: Request failed with status code 503\n    at settle (http://localhost:5174/node_modules/.vite/deps/axios.js?v=7efd2ea2:1319:7)\n    at XMLHttpRequest.onloadend (htt",
+          "error: Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+          "error: Failed to fetch AI reports AxiosError: Request failed with status code 503\n    at settle (http://localhost:5174/node_modules/.vite/deps/axios.js?v=7efd2ea2:1319:7)\n    at XMLHttpRequest.onloadend (htt"
+        ],
+        "http": [
+          "503 GET /api/v1/ai-reports?page=1&per_page=20",
+          "503 GET /api/v1/ai-reports?page=1&per_page=20&irrigation_area_id=5"
+        ],
+        "hscroll": false
+      },
+      "/cliente/predio/1": {
+        "url": "/cliente/predio/1",
+        "h1": [
+          "Granja Hogar",
+          "Sensores por Área",
+          "Áreas de Riego"
+        ],
+        "text": "Saltar al contenido Granja Hogar 28.6850292,-106.0765387 Sensores por Área Nodo Granja Hogar Activo Area Granja Hogar Áreas de Riego Area Granja Hogar 1 ha Humedad 62.9% Sin reporte reciente Último dato: 29/10/2026, 9:00:00 p.m. · hace 49h 53min Inicio Predios Mapa Histórico Exportar Perfil Tema Salir",
+        "scrollW": 390,
+        "clientW": 390,
+        "console": [
+          "error: Failed to load resource: the server responded with a status of 404 (Not Found)"
+        ],
+        "http": [
+          "404 GET /api/v1/properties/2/gateway/status"
+        ],
+        "hscroll": false
+      },
+      "/cliente/inexistente": {
+        "url": "/cliente",
+        "h1": [
+          "Hola, Alan Test",
+          "Humedad del Suelo",
+          "Flujo de Agua"
+        ],
+        "text": "Saltar al contenido Hola, Alan Test sábado, 31 de octubre de 2026 Seleccione predio... DEMO - Rancho Norte Granja Hogar Campus Reforestado Seleccione área... Area Granja Hogar Sin reporte reciente Último dato: 29/10/2026, 9:00:00 p.m. · hace 49h 53min Humedad del Suelo Dato prioritario 62.85 % Flujo de Agua Dato prioritario 0 L/min Acumulado: 1235.24 L E.T.O. Evapotranspiración 0.436 mm/día Última",
+        "scrollW": 390,
+        "clientW": 390,
+        "console": [
+          "error: Failed to load resource: the server responded with a status of 409 (Conflict)",
+          "error: Failed to load resource: the server responded with a status of 404 (Not Found)",
+          "error: Failed to load resource: the server responded with a status of 404 (Not Found)"
+        ],
+        "http": [
+          "409 GET /api/v1/weather/current?irrigation_area_id=5",
+          "404 GET /api/v1/properties/2/gateway/status",
+          "404 GET /api/v1/ndvi-snapshots/latest?irrigation_area_id=5"
+        ],
+        "hscroll": false
+      }
+    }
+  },
+  "admin-desktop": {
+    "nav": [],
+    "routes": {
+      "/admin": {
+        "url": "/admin",
+        "h1": [
+          "Sensores Agrícolas",
+          "Panel de Administración",
+          "Nodos Deshabilitados"
+        ],
+        "text": "Saltar al contenido Sensores Agrícolas Monitoreo de riego IoT Dashboard Clientes Mapa Nodos Equipos Catálogo Auditoría A Administrador Admin Panel de Administración sábado, 31 de octubre de 2026 Total Clientes 2 Total Predios 3 Nodos Habilitados 6/6 Lecturas Hoy 948 Nodos Deshabilitados 0 Todos los nodos registrados están habilitados. Acciones Rápidas Nuevo Cliente Nuevo Nodo Configurar Umbrales A",
+        "scrollW": 1366,
+        "clientW": 1366,
+        "console": [],
+        "http": [],
+        "hscroll": false
+      },
+      "/admin/clientes": {
+        "url": "/admin/clientes",
+        "h1": [
+          "Sensores Agrícolas",
+          "Gestión de Clientes",
+          "Agricola del Norte"
+        ],
+        "text": "Saltar al contenido Sensores Agrícolas Monitoreo de riego IoT Dashboard Clientes Mapa Nodos Equipos Catálogo Auditoría A Administrador Admin Gestión de Clientes Administra los clientes del sistema Nuevo Cliente Empresa Contacto Email Teléfono Estado Acciones Agricola del Norte Alan Test [correo] - Activo Editar Predios Dashboard Borrar Sin Empresa Juan López [correo] - Activo Ed",
+        "scrollW": 1366,
+        "clientW": 1366,
+        "console": [],
+        "http": [],
+        "hscroll": false
+      },
+      "/admin/mapa": {
+        "url": "/admin/mapa",
+        "h1": [
+          "Sensores Agrícolas",
+          "Mapa Global de Nodos",
+          "Detalle de nodo"
+        ],
+        "text": "Saltar al contenido Sensores Agrícolas Monitoreo de riego IoT Dashboard Clientes Mapa Nodos Equipos Catálogo Auditoría A Administrador Admin Mapa Global de Nodos Vista administrativa con filtros por cliente, predio y área para monitoreo geoespacial. Cliente Todos los clientes Agricola del Norte Sin Empresa Predio Todos los predios DEMO - Rancho Norte Granja Hogar Campus Reforestado Área de riego T",
+        "scrollW": 1366,
+        "clientW": 1366,
+        "console": [
+          "warning: [.WebGL-0x11c0cc4fc00]GL Driver Message (OpenGL, Performance, GL_CLOSE_PATH_NV, High): GPU stall due to ReadPixels",
+          "warning: [.WebGL-0x11c0cc4fc00]GL Driver Message (OpenGL, Performance, GL_CLOSE_PATH_NV, High): GPU stall due to ReadPixels",
+          "warning: [.WebGL-0x11c0cc4fc00]GL Driver Message (OpenGL, Performance, GL_CLOSE_PATH_NV, High): GPU stall due to ReadPixels",
+          "warning: [.WebGL-0x11c0cc4fc00]GL Driver Message (OpenGL, Performance, GL_CLOSE_PATH_NV, High): GPU stall due to ReadPixels (this message will no longer repeat)",
+          "warning: Expected value to be of type number, but found null instead.",
+          "warning: Expected value to be of type number, but found null instead.",
+          "warning: Expected value to be of type number, but found null instead."
+        ],
+        "http": [],
+        "hscroll": false
+      },
+      "/admin/nodos": {
+        "url": "/admin/nodos",
+        "h1": [
+          "Sensores Agrícolas",
+          "Gestión de Nodos"
+        ],
+        "text": "Saltar al contenido Sensores Agrícolas Monitoreo de riego IoT Dashboard Clientes Mapa Nodos Equipos Catálogo Auditoría A Administrador Admin Gestión de Nodos Administra los sensores IoT del sistema Nuevo Nodo Nombre Serie Área Vinculada GPS Habilitado Última lectura Acciones Nodo DEMO - Nogal Norte - DEMO - Nogal Norte · DEMO - Rancho Norte 29.0892, -110.9588 Sí Hace 2 min Nodo DEMO - Alfalfa Este",
+        "scrollW": 1366,
+        "clientW": 1366,
+        "console": [],
+        "http": [],
+        "hscroll": false
+      },
+      "/admin/gateways": {
+        "url": "/admin/gateways",
+        "h1": [
+          "Sensores Agrícolas",
+          "Equipos",
+          "DEMO - Rancho Norte · Agricola del Norte"
+        ],
+        "text": "Saltar al contenido Sensores Agrícolas Monitoreo de riego IoT Dashboard Clientes Mapa Nodos Equipos Catálogo Auditoría A Administrador Admin Equipos Nuevo equipo DEMO - Rancho Norte · Agricola del Norte Asignando nodos 0 de 4 áreas con datos Ver avance Revocados (15)",
+        "scrollW": 1366,
+        "clientW": 1366,
+        "console": [],
+        "http": [],
+        "hscroll": false
+      },
+      "/admin/gateways/pair": {
+        "url": "/admin/gateways/pair",
+        "h1": [
+          "Sensores Agrícolas",
+          "Verificar emparejamiento"
+        ],
+        "text": "Saltar al contenido Sensores Agrícolas Monitoreo de riego IoT Dashboard Clientes Mapa Nodos Equipos Catálogo Auditoría A Administrador Admin Verificar emparejamiento Escribe el código que muestra la pantalla del equipo que estás instalando. Aprueba la solicitud solo si el código coincide. Código del equipo Buscar código",
+        "scrollW": 1366,
+        "clientW": 1366,
+        "console": [],
+        "http": [],
+        "hscroll": false
+      },
+      "/admin/cultivos": {
+        "url": "/admin/cultivos",
+        "h1": [
+          "Sensores Agrícolas",
+          "Catálogo de Cultivos",
+          "Nogal"
+        ],
+        "text": "Saltar al contenido Sensores Agrícolas Monitoreo de riego IoT Dashboard Clientes Mapa Nodos Equipos Catálogo Auditoría A Administrador Admin Catálogo de Cultivos Gestiona los tipos de cultivo disponibles Nuevo Cultivo Nogal Sin descripción Alfalfa Sin descripción Manzana Sin descripción Maíz Sin descripción Chile Sin descripción Algodón Sin descripción",
+        "scrollW": 1366,
+        "clientW": 1366,
+        "console": [],
+        "http": [],
+        "hscroll": false
+      },
+      "/admin/ciclos": {
+        "url": "/admin/ciclos",
+        "h1": [
+          "Sensores Agrícolas",
+          "Gestión de Ciclos de Cultivo",
+          "Area Granja Hogar"
+        ],
+        "text": "Saltar al contenido Sensores Agrícolas Monitoreo de riego IoT Dashboard Clientes Mapa Nodos Equipos Catálogo Auditoría A Administrador Admin Gestión de Ciclos de Cultivo Administra los ciclos de cultivo por área Nuevo Ciclo Area Granja Hogar 30 de septiembre de 2026 - Actual Activo",
+        "scrollW": 1366,
+        "clientW": 1366,
+        "console": [],
+        "http": [],
+        "hscroll": false
+      },
+      "/admin/auditoria": {
+        "url": "/admin/auditoria",
+        "h1": [
+          "Sensores Agrícolas",
+          "Bitácora de Auditoría"
+        ],
+        "text": "Saltar al contenido Sensores Agrícolas Monitoreo de riego IoT Dashboard Clientes Mapa Nodos Equipos Catálogo Auditoría A Administrador Admin Bitácora de Auditoría Historial de cambios administrativos en la plataforma Actualizar Acción Entidad Desde Hasta 0 eventos registrados Página 1 de 1 No hay eventos para los filtros seleccionados.",
+        "scrollW": 1366,
+        "clientW": 1366,
+        "console": [],
+        "http": [],
+        "hscroll": false
+      },
+      "/admin/umbrales": {
+        "url": "/admin/umbrales",
+        "h1": [
+          "Sensores Agrícolas",
+          "Umbrales de Alertas"
+        ],
+        "text": "Saltar al contenido Sensores Agrícolas Monitoreo de riego IoT Dashboard Clientes Mapa Nodos Equipos Catálogo Auditoría A Administrador Admin Umbrales de Alertas Configura rangos para activar alertas automáticas por parámetro Nuevo Umbral Área de riego Todas DEMO - Nogal Norte DEMO - Alfalfa Este DEMO - Chile Principal DEMO - Área 2 Area Granja Hogar Area Campus Reforestado Parámetro Todos Suelo: C",
+        "scrollW": 1366,
+        "clientW": 1366,
+        "console": [],
+        "http": [],
+        "hscroll": false
+      },
+      "/admin/alertas": {
+        "url": "/admin/alertas",
+        "h1": [
+          "Sensores Agrícolas",
+          "Centro de Alertas"
+        ],
+        "text": "Saltar al contenido Sensores Agrícolas Monitoreo de riego IoT Dashboard Clientes Mapa Nodos Equipos Catálogo Auditoría A Administrador Admin Centro de Alertas Vista global de alertas de nodos, áreas y umbrales Actualizar Contexto activo Predio: Sin seleccionar Área: Sin seleccionar Selecciona predio DEMO - Rancho Norte Granja Hogar Campus Reforestado Selecciona área DEMO - Nogal Norte DEMO - Alfal",
+        "scrollW": 1366,
+        "clientW": 1366,
+        "console": [],
+        "http": [],
+        "hscroll": false
+      },
+      "/admin/asistente-ia": {
+        "url": "/admin/asistente-ia",
+        "h1": [
+          "Sensores Agrícolas",
+          "Asistente IA"
+        ],
+        "text": "Saltar al contenido Sensores Agrícolas Monitoreo de riego IoT Dashboard Clientes Mapa Nodos Equipos Catálogo Auditoría A Administrador Admin Asistente IA Consulta operativa global o por cliente/área. Contexto activo Predio: Sin seleccionar Área: Sin seleccionar Selecciona predio DEMO - Rancho Norte Granja Hogar Campus Reforestado Selecciona área DEMO - Nogal Norte DEMO - Alfalfa Este DEMO - Chile ",
+        "scrollW": 1366,
+        "clientW": 1366,
+        "console": [],
+        "http": [],
+        "hscroll": false
+      },
+      "/admin/consumo-ia": {
+        "url": "/admin/consumo-ia",
+        "h1": [
+          "Sensores Agrícolas",
+          "Consumo IA"
+        ],
+        "text": "Saltar al contenido Sensores Agrícolas Monitoreo de riego IoT Dashboard Clientes Mapa Nodos Equipos Catálogo Auditoría A Administrador Admin Consumo IA Trazabilidad operativa del asistente conversacional. Actualizar Ventana 24 horas 72 horas 7 días Acción Todas execute error rate_limited Usuario ID Solicitudes 0 Éxito 0% Latencia promedio - in=0 · out=0 · ai=0 · fallback=0 Página 1 de 1 No fue pos",
+        "scrollW": 1366,
+        "clientW": 1366,
+        "console": [
+          "error: Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+          "error: Failed to fetch AI assistant usage AxiosError: Request failed with status code 503\n    at settle (http://localhost:5174/node_modules/.vite/deps/axios.js?v=7efd2ea2:1319:7)\n    at XMLHttpRequest.onload"
+        ],
+        "http": [
+          "503 GET /api/v1/ai-assistant/usage?page=1&per_page=20&hours=24"
+        ],
+        "hscroll": false
+      },
+      "/admin/reportes-ia": {
+        "url": "/admin/reportes-ia",
+        "h1": [
+          "Sensores Agrícolas",
+          "Reportes IA"
+        ],
+        "text": "Saltar al contenido Sensores Agrícolas Monitoreo de riego IoT Dashboard Clientes Mapa Nodos Equipos Catálogo Auditoría A Administrador Admin Reportes IA Vista global de reportes generados por cliente y área. Actualizar Contexto activo Predio: Sin seleccionar Área: Sin seleccionar Selecciona predio DEMO - Rancho Norte Granja Hogar Campus Reforestado Selecciona área DEMO - Nogal Norte DEMO - Alfalfa",
+        "scrollW": 1366,
+        "clientW": 1366,
+        "console": [
+          "error: Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+          "error: Failed to fetch AI reports AxiosError: Request failed with status code 503\n    at settle (http://localhost:5174/node_modules/.vite/deps/axios.js?v=7efd2ea2:1319:7)\n    at XMLHttpRequest.onloadend (htt"
+        ],
+        "http": [
+          "503 GET /api/v1/ai-reports?page=1&per_page=20"
+        ],
+        "hscroll": false
+      },
+      "/admin/recorrido-v2": {
+        "url": "/admin/gateways",
+        "h1": [
+          "Sensores Agrícolas",
+          "Equipos",
+          "DEMO - Rancho Norte · Agricola del Norte"
+        ],
+        "text": "Saltar al contenido Sensores Agrícolas Monitoreo de riego IoT Dashboard Clientes Mapa Nodos Equipos Catálogo Auditoría A Administrador Admin Equipos Nuevo equipo DEMO - Rancho Norte · Agricola del Norte Asignando nodos 0 de 4 áreas con datos Ver avance Revocados (15)",
+        "scrollW": 1366,
+        "clientW": 1366,
+        "console": [],
+        "http": [],
+        "hscroll": false
+      },
+      "/admin/inexistente": {
+        "url": "/admin",
+        "h1": [
+          "Sensores Agrícolas",
+          "Panel de Administración",
+          "Nodos Deshabilitados"
+        ],
+        "text": "Saltar al contenido Sensores Agrícolas Monitoreo de riego IoT Dashboard Clientes Mapa Nodos Equipos Catálogo Auditoría A Administrador Admin Panel de Administración sábado, 31 de octubre de 2026 Total Clientes 2 Total Predios 3 Nodos Habilitados 6/6 Lecturas Hoy 948 Nodos Deshabilitados 0 Todos los nodos registrados están habilitados. Acciones Rápidas Nuevo Cliente Nuevo Nodo Configurar Umbrales A",
+        "scrollW": 1366,
+        "clientW": 1366,
+        "console": [],
+        "http": [],
+        "hscroll": false
+      }
+    }
+  },
+  "admin-mobile": {
+    "nav": [
+      {
+        "tag": "A",
+        "text": "Inicio",
+        "href": "/admin"
+      },
+      {
+        "tag": "A",
+        "text": "Clientes",
+        "href": "/admin/clientes"
+      },
+      {
+        "tag": "A",
+        "text": "Mapa",
+        "href": "/admin/mapa"
+      },
+      {
+        "tag": "A",
+        "text": "Nodos",
+        "href": "/admin/nodos"
+      },
+      {
+        "tag": "A",
+        "text": "Equipos",
+        "href": "/admin/gateways"
+      },
+      {
+        "tag": "A",
+        "text": "Catálogo",
+        "href": "/admin/cultivos"
+      },
+      {
+        "tag": "A",
+        "text": "Auditoría",
+        "href": "/admin/auditoria"
+      },
+      {
+        "tag": "BUTTON",
+        "text": "Tema",
+        "href": null
+      },
+      {
+        "tag": "BUTTON",
+        "text": "Salir",
+        "href": null
+      }
+    ],
+    "routes": {
+      "/admin": {
+        "url": "/admin",
+        "h1": [
+          "Panel de Administración",
+          "Nodos Deshabilitados",
+          "Acciones Rápidas"
+        ],
+        "text": "Saltar al contenido Panel de Administración sábado, 31 de octubre de 2026 Total Clientes 2 Total Predios 3 Nodos Habilitados 6/6 Lecturas Hoy 948 Nodos Deshabilitados 0 Todos los nodos registrados están habilitados. Acciones Rápidas Nuevo Cliente Nuevo Nodo Configurar Umbrales Actividad Reciente Consulta la bitácora completa de eventos administrativos y operativos. Ver Auditoría Inicio Clientes Ma",
+        "scrollW": 390,
+        "clientW": 390,
+        "console": [],
+        "http": [],
+        "hscroll": false
+      },
+      "/admin/clientes": {
+        "url": "/admin/clientes",
+        "h1": [
+          "Gestión de Clientes",
+          "Agricola del Norte",
+          "Sin Empresa"
+        ],
+        "text": "Saltar al contenido Gestión de Clientes Administra los clientes del sistema Nuevo Cliente Agricola del Norte Alan Test Activo [correo] Sin teléfono Editar Ver Predios Dashboard Borrar Cliente Sin Empresa Juan López Activo [correo] Sin teléfono Editar Ver Predios Dashboard Borrar Cliente Inicio Clientes Mapa Nodos Equipos Catálogo Auditoría Tema Salir",
+        "scrollW": 390,
+        "clientW": 390,
+        "console": [],
+        "http": [],
+        "hscroll": false
+      },
+      "/admin/mapa": {
+        "url": "/admin/mapa",
+        "h1": [
+          "Mapa Global de Nodos",
+          "Detalle de nodo"
+        ],
+        "text": "Saltar al contenido Mapa Global de Nodos Vista administrativa con filtros por cliente, predio y área para monitoreo geoespacial. Cliente Todos los clientes Agricola del Norte Sin Empresa Predio Todos los predios DEMO - Rancho Norte Granja Hogar Campus Reforestado Área de riego Todas las áreas Actualizar capa Modo de visualización Marcadores individuales Clusters automáticos Frescos Tardíos Sin lec",
+        "scrollW": 390,
+        "clientW": 390,
+        "console": [
+          "warning: [.WebGL-0x10408d11e00]GL Driver Message (OpenGL, Performance, GL_CLOSE_PATH_NV, High): GPU stall due to ReadPixels",
+          "warning: [.WebGL-0x10408d11e00]GL Driver Message (OpenGL, Performance, GL_CLOSE_PATH_NV, High): GPU stall due to ReadPixels",
+          "warning: [.WebGL-0x10408d11e00]GL Driver Message (OpenGL, Performance, GL_CLOSE_PATH_NV, High): GPU stall due to ReadPixels",
+          "warning: [.WebGL-0x10408d11e00]GL Driver Message (OpenGL, Performance, GL_CLOSE_PATH_NV, High): GPU stall due to ReadPixels (this message will no longer repeat)",
+          "warning: Expected value to be of type number, but found null instead.",
+          "warning: Expected value to be of type number, but found null instead.",
+          "warning: Expected value to be of type number, but found null instead."
+        ],
+        "http": [],
+        "hscroll": false
+      },
+      "/admin/nodos": {
+        "url": "/admin/nodos",
+        "h1": [
+          "Gestión de Nodos"
+        ],
+        "text": "Saltar al contenido Gestión de Nodos Administra los sensores IoT del sistema Nuevo Nodo Nombre Serie Área Vinculada GPS Habilitado Última lectura Acciones Nodo DEMO - Nogal Norte - DEMO - Nogal Norte · DEMO - Rancho Norte 29.0892, -110.9588 Sí Hace 2 min Nodo DEMO - Alfalfa Este - DEMO - Alfalfa Este · DEMO - Rancho Norte 29.0901, -110.9521 Sí Hace 2 min Nodo DEMO - Chile Principal - DEMO - Chile ",
+        "scrollW": 390,
+        "clientW": 390,
+        "console": [],
+        "http": [],
+        "hscroll": false
+      },
+      "/admin/gateways": {
+        "url": "/admin/gateways",
+        "h1": [
+          "Equipos",
+          "DEMO - Rancho Norte · Agricola del Norte"
+        ],
+        "text": "Saltar al contenido Equipos Nuevo equipo DEMO - Rancho Norte · Agricola del Norte Asignando nodos 0 de 4 áreas con datos Ver avance Revocados (15) Inicio Clientes Mapa Nodos Equipos Catálogo Auditoría Tema Salir",
+        "scrollW": 390,
+        "clientW": 390,
+        "console": [],
+        "http": [],
+        "hscroll": false
+      },
+      "/admin/gateways/pair": {
+        "url": "/admin/gateways/pair",
+        "h1": [
+          "Verificar emparejamiento"
+        ],
+        "text": "Saltar al contenido Verificar emparejamiento Escribe el código que muestra la pantalla del equipo que estás instalando. Aprueba la solicitud solo si el código coincide. Código del equipo Buscar código Inicio Clientes Mapa Nodos Equipos Catálogo Auditoría Tema Salir",
+        "scrollW": 390,
+        "clientW": 390,
+        "console": [],
+        "http": [],
+        "hscroll": false
+      },
+      "/admin/cultivos": {
+        "url": "/admin/cultivos",
+        "h1": [
+          "Catálogo de Cultivos",
+          "Nogal",
+          "Alfalfa"
+        ],
+        "text": "Saltar al contenido Catálogo de Cultivos Gestiona los tipos de cultivo disponibles Nuevo Cultivo Nogal Sin descripción Alfalfa Sin descripción Manzana Sin descripción Maíz Sin descripción Chile Sin descripción Algodón Sin descripción Inicio Clientes Mapa Nodos Equipos Catálogo Auditoría Tema Salir",
+        "scrollW": 390,
+        "clientW": 390,
+        "console": [],
+        "http": [],
+        "hscroll": false
+      },
+      "/admin/ciclos": {
+        "url": "/admin/ciclos",
+        "h1": [
+          "Gestión de Ciclos de Cultivo",
+          "Area Granja Hogar"
+        ],
+        "text": "Saltar al contenido Gestión de Ciclos de Cultivo Administra los ciclos de cultivo por área Nuevo Ciclo Area Granja Hogar 30 de septiembre de 2026 - Actual Activo Inicio Clientes Mapa Nodos Equipos Catálogo Auditoría Tema Salir",
+        "scrollW": 390,
+        "clientW": 390,
+        "console": [],
+        "http": [],
+        "hscroll": false
+      },
+      "/admin/auditoria": {
+        "url": "/admin/auditoria",
+        "h1": [
+          "Bitácora de Auditoría"
+        ],
+        "text": "Saltar al contenido Bitácora de Auditoría Historial de cambios administrativos en la plataforma Actualizar Acción Entidad Desde Hasta 0 eventos registrados Página 1 de 1 No hay eventos para los filtros seleccionados. Inicio Clientes Mapa Nodos Equipos Catálogo Auditoría Tema Salir",
+        "scrollW": 390,
+        "clientW": 390,
+        "console": [],
+        "http": [],
+        "hscroll": false
+      },
+      "/admin/umbrales": {
+        "url": "/admin/umbrales",
+        "h1": [
+          "Umbrales de Alertas"
+        ],
+        "text": "Saltar al contenido Umbrales de Alertas Configura rangos para activar alertas automáticas por parámetro Nuevo Umbral Área de riego Todas DEMO - Nogal Norte DEMO - Alfalfa Este DEMO - Chile Principal DEMO - Área 2 Area Granja Hogar Area Campus Reforestado Parámetro Todos Suelo: Conductividad Suelo: Temperatura Suelo: Humedad Suelo: Potencial hídrico Riego: Activo Riego: Litros acumulados Riego: Flu",
+        "scrollW": 390,
+        "clientW": 390,
+        "console": [],
+        "http": [],
+        "hscroll": false
+      },
+      "/admin/alertas": {
+        "url": "/admin/alertas",
+        "h1": [
+          "Centro de Alertas"
+        ],
+        "text": "Saltar al contenido Centro de Alertas Vista global de alertas de nodos, áreas y umbrales Actualizar Contexto activo Predio: Sin seleccionar Área: Sin seleccionar Selecciona predio DEMO - Rancho Norte Granja Hogar Campus Reforestado Selecciona área DEMO - Nogal Norte DEMO - Alfalfa Este DEMO - Chile Principal DEMO - Área 2 Area Granja Hogar Area Campus Reforestado Severidad Todas Info Warning Criti",
+        "scrollW": 390,
+        "clientW": 390,
+        "console": [],
+        "http": [],
+        "hscroll": false
+      },
+      "/admin/asistente-ia": {
+        "url": "/admin/asistente-ia",
+        "h1": [
+          "Asistente IA"
+        ],
+        "text": "Saltar al contenido Asistente IA Consulta operativa global o por cliente/área. Contexto activo Predio: Sin seleccionar Área: Sin seleccionar Selecciona predio DEMO - Rancho Norte Granja Hogar Campus Reforestado Selecciona área DEMO - Nogal Norte DEMO - Alfalfa Este DEMO - Chile Principal DEMO - Área 2 Area Granja Hogar Area Campus Reforestado Ventana de análisis Últimas 24 horas Últimas 72 horas Ú",
+        "scrollW": 390,
+        "clientW": 390,
+        "console": [],
+        "http": [],
+        "hscroll": false
+      },
+      "/admin/consumo-ia": {
+        "url": "/admin/consumo-ia",
+        "h1": [
+          "Consumo IA"
+        ],
+        "text": "Saltar al contenido Consumo IA Trazabilidad operativa del asistente conversacional. Actualizar Ventana 24 horas 72 horas 7 días Acción Todas execute error rate_limited Usuario ID Solicitudes 0 Éxito 0% Latencia promedio - in=0 · out=0 · ai=0 · fallback=0 Página 1 de 1 No fue posible cargar el consumo del asistente IA. Inicio Clientes Mapa Nodos Equipos Catálogo Auditoría Tema Salir",
+        "scrollW": 390,
+        "clientW": 390,
+        "console": [
+          "error: Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+          "error: Failed to fetch AI assistant usage AxiosError: Request failed with status code 503\n    at settle (http://localhost:5174/node_modules/.vite/deps/axios.js?v=7efd2ea2:1319:7)\n    at XMLHttpRequest.onload"
+        ],
+        "http": [
+          "503 GET /api/v1/ai-assistant/usage?page=1&per_page=20&hours=24"
+        ],
+        "hscroll": false
+      },
+      "/admin/reportes-ia": {
+        "url": "/admin/reportes-ia",
+        "h1": [
+          "Reportes IA"
+        ],
+        "text": "Saltar al contenido Reportes IA Vista global de reportes generados por cliente y área. Actualizar Contexto activo Predio: Sin seleccionar Área: Sin seleccionar Selecciona predio DEMO - Rancho Norte Granja Hogar Campus Reforestado Selecciona área DEMO - Nogal Norte DEMO - Alfalfa Este DEMO - Chile Principal DEMO - Área 2 Area Granja Hogar Area Campus Reforestado Estado Todos Pendiente Procesando Co",
+        "scrollW": 390,
+        "clientW": 390,
+        "console": [
+          "error: Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+          "error: Failed to fetch AI reports AxiosError: Request failed with status code 503\n    at settle (http://localhost:5174/node_modules/.vite/deps/axios.js?v=7efd2ea2:1319:7)\n    at XMLHttpRequest.onloadend (htt"
+        ],
+        "http": [
+          "503 GET /api/v1/ai-reports?page=1&per_page=20"
+        ],
+        "hscroll": false
+      },
+      "/admin/recorrido-v2": {
+        "url": "/admin/gateways",
+        "h1": [
+          "Equipos",
+          "DEMO - Rancho Norte · Agricola del Norte"
+        ],
+        "text": "Saltar al contenido Equipos Nuevo equipo DEMO - Rancho Norte · Agricola del Norte Asignando nodos 0 de 4 áreas con datos Ver avance Revocados (15) Inicio Clientes Mapa Nodos Equipos Catálogo Auditoría Tema Salir",
+        "scrollW": 390,
+        "clientW": 390,
+        "console": [],
+        "http": [],
+        "hscroll": false
+      },
+      "/admin/inexistente": {
+        "url": "/admin",
+        "h1": [
+          "Panel de Administración",
+          "Nodos Deshabilitados",
+          "Acciones Rápidas"
+        ],
+        "text": "Saltar al contenido Panel de Administración sábado, 31 de octubre de 2026 Total Clientes 2 Total Predios 3 Nodos Habilitados 6/6 Lecturas Hoy 948 Nodos Deshabilitados 0 Todos los nodos registrados están habilitados. Acciones Rápidas Nuevo Cliente Nuevo Nodo Configurar Umbrales Actividad Reciente Consulta la bitácora completa de eventos administrativos y operativos. Ver Auditoría Inicio Clientes Ma",
+        "scrollW": 390,
+        "clientW": 390,
+        "console": [],
+        "http": [],
+        "hscroll": false
+      }
+    }
+  }
+}

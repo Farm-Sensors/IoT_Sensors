@@ -86,6 +86,6 @@ Se conservan **ruta, módulo (gate) y comportamiento**. Hoy el menú las oculta 
 
 ## Cómo verificar la paridad
 
-1. Antes de implementar: guardar una grabación de las peticiones de cada tarea de `main` (técnica de `s7`, ver `06-git-inventario.md`).
+1. Antes de implementar: guardar una grabación de las peticiones de cada tarea de `main`.
 2. Por cada fase: repetir las tareas en v2 y comparar peticiones (mismas rutas y parámetros).
 3. Fase 7: recorrer esta tabla fila por fila con evidencia (captura o prueba).

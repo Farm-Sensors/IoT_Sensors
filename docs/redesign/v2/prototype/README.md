@@ -1,6 +1,6 @@
 # Prototipo v2
 
-Prototipo **navegable** del rediseño v2. HTML, CSS y JavaScript sin dependencias ni compilación; no usa nada de `frontend/` ni de v1. Especificación y resultados de pruebas: `../05-prototipo-y-visual.md`.
+Prototipo **navegable** del rediseño v2. HTML, CSS y JavaScript sin dependencias ni compilación; no usa nada de `frontend/`. Especificación y resultados de pruebas: `../05-prototipo-y-visual.md`.
 
 ## Abrir
 

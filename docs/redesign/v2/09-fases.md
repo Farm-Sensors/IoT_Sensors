@@ -4,11 +4,10 @@ Cada fase termina en una revisión del usuario. Una fase no empieza sin aprobar 
 
 ## Antes de implementar
 
-**Estado al 2026-10-31 (actualizado):** P1 (reversión) **hecha**. Falta elegir identidad visual (`10-propuestas-visuales.md`) antes de la fase 1. P2 (auditoría), P3 (inventarios) y P4 (prototipo) **hechas**; falta la **compuerta** (aprobación del usuario). 
+**Estado:** preparación (P1 a P4) y las 7 fases de implementación hechas; en revisión en el PR #71.
 
 | Fase | Entrega | Aceptación |
 |---|---|---|
-| **P1. Reversión** ✅ | Plan de `06-git-inventario.md` | Solo con autorización; `frontend/` igual a `af67be8`; `docs/redesign/` intacto; respaldo fuera del repo |
 | **P2. Auditoría** ✅ | `01-auditoria.md`, evidencia en `audit/` | Base aislada; todas las tareas recorridas en 390 y 1366; datos originales sin cambios |
 | **P3. Inventarios** ✅ | `03-flujos.md` y `04-paridad.md` completos | Toda ruta, menú y acción con destino; pasos medidos |
 | **P4. Prototipo** ✅ | `prototype/` y enlace | Interactivo; 4 pantallas; escritorio y móvil; claro y oscuro; sin clase D |
@@ -43,7 +42,6 @@ Las tareas de `01-auditoria.md` se hacen con menos esfuerzo medido; ninguna func
 
 Resumen con recomendación en `README.md` («Decisiones que necesitan al usuario»).
 
-1. Autorizar la reversión de v1 y cuándo.
 2. Pantalla de admin para ver lo que ve un cliente (clase C).
 3. «Ver Planes», «Plan Profesional» y «Cambiar Contraseña», que hoy no parecen funcionar.
 4. Si «Equipo pendiente» debe verlo el productor.

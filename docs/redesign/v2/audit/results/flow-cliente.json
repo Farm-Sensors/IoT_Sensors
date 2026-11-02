@@ -1,0 +1,120 @@
+{
+  "desktop": {
+    "P1": {
+      "acciones": 1,
+      "ruta": "/cliente/areas",
+      "texto_frescura": 8,
+      "areas_visibles": 0
+    },
+    "P2_desde_lista": {
+      "acciones": 1,
+      "ruta_tras_click": "/cliente",
+      "area_mostrada": "2",
+      "h": "Hola, Alan Test sábado, 31 de octubre de 2026 Seleccione predio... DEMO - Ranc"
+    },
+    "P2_selectores": {
+      "acciones": 1,
+      "nota": "cambiar de área dentro del mismo predio; otro predio = 2 selecciones",
+      "area_antes": "2",
+      "area_despues": "2",
+      "ruta": "/cliente"
+    },
+    "P5_enlace_directo": {
+      "url": "http://localhost:5174/cliente",
+      "area_en_sesion_nueva": "5",
+      "conserva_area": false
+    },
+    "P3_historico_csv": {
+      "acciones": 3,
+      "descarga": "export_DEMO - Alfalfa Este_2026-10-31.csv",
+      "nota": "1 ir a Histórico + 1 preset + 1 CSV, con el área ya elegida"
+    },
+    "P3_exportar_csv": {
+      "acciones": 2,
+      "descarga": "export_DEMO - Alfalfa Este_2026-10-31.csv"
+    },
+    "P6_perfil": {
+      "Ver Planes": {
+        "dialogo": 0,
+        "ruta_igual": true,
+        "peticiones_nuevas": 1
+      },
+      "Cambiar Contraseña": {
+        "dialogo": 0,
+        "ruta_igual": true,
+        "peticiones_nuevas": 1
+      },
+      "Editar Perfil": {
+        "inputs_habilitados": 1,
+        "botones": [
+          "Guardar Cambios",
+          "Ver Planes",
+          "Cambiar Contraseña"
+        ]
+      }
+    },
+    "predio_huerfano": {
+      "texto": "DEMO - Rancho Norte Sonora, México Equipo pendiente Sensores por Área Nodo DEMO - Nogal Norte Activo DEMO - Nogal Norte Nodo DEMO - Alfalfa Este Activo DEMO - Alfalfa Este Nodo DEMO - Chile Principal Activo DEMO - Chile Principal Nodo DEMO - Prueba E2E Activo DEMO - Área 2 Áreas de Riego DEM",
+      "enlaces_entrantes_en_areas": "ver crawl: no hay enlace"
+    }
+  },
+  "mobile": {
+    "P1": {
+      "acciones": 1,
+      "ruta": "/cliente/areas",
+      "texto_frescura": 8,
+      "areas_visibles": 0
+    },
+    "P2_desde_lista": {
+      "acciones": 1,
+      "ruta_tras_click": "/cliente",
+      "area_mostrada": "2",
+      "h": "Hola, Alan Test sábado, 31 de octubre de 2026 Seleccione predio... DEMO - Ranc"
+    },
+    "P2_selectores": {
+      "acciones": 1,
+      "nota": "cambiar de área dentro del mismo predio; otro predio = 2 selecciones",
+      "area_antes": "2",
+      "area_despues": "2",
+      "ruta": "/cliente"
+    },
+    "P5_enlace_directo": {
+      "url": "http://localhost:5174/cliente",
+      "area_en_sesion_nueva": "5",
+      "conserva_area": false
+    },
+    "P3_historico_csv": {
+      "acciones": 3,
+      "descarga": "export_DEMO - Alfalfa Este_2026-10-31.csv",
+      "nota": "1 ir a Histórico + 1 preset + 1 CSV, con el área ya elegida"
+    },
+    "P3_exportar_csv": {
+      "acciones": 2,
+      "descarga": "export_DEMO - Alfalfa Este_2026-10-31.csv"
+    },
+    "P6_perfil": {
+      "Ver Planes": {
+        "dialogo": 0,
+        "ruta_igual": true,
+        "peticiones_nuevas": 1
+      },
+      "Cambiar Contraseña": {
+        "dialogo": 0,
+        "ruta_igual": true,
+        "peticiones_nuevas": 1
+      },
+      "Editar Perfil": {
+        "inputs_habilitados": 1,
+        "botones": [
+          "Guardar Cambios",
+          "Ver Planes",
+          "Cambiar Contraseña"
+        ]
+      }
+    },
+    "predio_huerfano": {
+      "texto": "DEMO - Rancho Norte Sonora, México Equipo pendiente Sensores por Área Nodo DEMO - Nogal Norte Activo DEMO - Nogal Norte Nodo DEMO - Alfalfa Este Activo DEMO - Alfalfa Este Nodo DEMO - Chile Principal Activo DEMO - Chile Principal Nodo DEMO - Prueba E2E Activo DEMO - Área 2 Áreas de Riego DEM",
+      "enlaces_entrantes_en_areas": "ver crawl: no hay enlace"
+    }
+  }
+}

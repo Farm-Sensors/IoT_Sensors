@@ -19,7 +19,7 @@
 
 ## Cómo se construyeron (y qué limita la comparación)
 
-Las tres comparten el **mismo marcado, los mismos datos y el mismo JavaScript**; cada una es una hoja CSS que reescribe color, tipografía, formas **y composición** (barra o riel lateral, filas o tarjetas, medidores). Eso garantiza que la UX es idéntica, pero también limita lo que se ve: no se rediseñaron componentes con otra estructura HTML (por ejemplo, el mapa es la misma ilustración y las gráficas son las mismas series). Una propuesta aprobada se implementaría con sus propios componentes. No reutilizan nada de v1 (Playfair, crema, olivo) ni de la implementación real.
+Las tres comparten el **mismo marcado, los mismos datos y el mismo JavaScript**; cada una es una hoja CSS que reescribe color, tipografía, formas **y composición** (barra o riel lateral, filas o tarjetas, medidores). Eso garantiza que la UX es idéntica, pero también limita lo que se ve: no se rediseñaron componentes con otra estructura HTML (por ejemplo, el mapa es la misma ilustración y las gráficas son las mismas series). Una propuesta aprobada se implementaría con sus propios componentes. No reutilizan nada de la implementación real.
 
 ## Resumen comparativo
 

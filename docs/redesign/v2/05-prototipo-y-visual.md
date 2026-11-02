@@ -10,7 +10,6 @@
 - Datos: copia estática de la API de la base aislada, sustituyendo correos y nombres personales. Debe mostrar un área al día, una sin comunicación y una sin datos.
 - Formularios simulados: nada se guarda, y debe verse qué partes son simuladas.
 - Solo clases A y B de `02-arquitectura.md`. Lo de clase C, marcado como pendiente. Nada de clase D.
-- No reutiliza componentes, estilos ni layouts de v1.
 - Probarlo con Playwright a 390 y 1366 px antes de presentarlo.
 
 ## Dirección visual: instrumento de campo
