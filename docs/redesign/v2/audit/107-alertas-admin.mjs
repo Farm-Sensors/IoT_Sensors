@@ -12,10 +12,11 @@ const items=[
 const run=async(tag,w,h,mob,data)=>{
   const ctx=await b.newContext({viewport:{width:w,height:h},isMobile:mob}); const p=await ctx.newPage();
   await p.route('**/api/v1/alerts**',async r=>{const u=new URL(r.request().url()); const path=u.pathname;
-    if(path.endsWith('/unread-count')) return r.fulfill({json:{unread_count:data.filter(a=>!a.read).length}});
+    if(path.endsWith('/unread-count')){const aid=u.searchParams.get('irrigation_area_id'); return r.fulfill({json:{unread_count:data.filter(a=>!a.read&&(!aid||String(a.irrigation_area_id)===aid)).length}});}
     if(/\/alerts\/\d+\/recommendation$/.test(path)) return r.fulfill({json:{alert_id:1,recommendation:'Revisa el equipo de riego del área y confirma que la válvula abre.',source:'fallback',generated_at:iso(1),error_detail:null}});
     const m=path.match(/\/alerts\/(\d+)$/); if(m) return r.fulfill({json:items.find(a=>a.id==m[1])||items[0]});
-    return r.fulfill({json:{page:1,per_page:20,total:data.length,data}});});
+    const aid=u.searchParams.get('irrigation_area_id'); const rows=aid?data.filter(a=>String(a.irrigation_area_id)===aid):data;
+    return r.fulfill({json:{page:1,per_page:20,total:rows.length,data:rows}});});
   await p.goto(B+'/'); await p.getByLabel('Correo Electrónico').fill('admin@sensores.com'); await p.getByLabel('Contraseña',{exact:true}).fill('admin123'); await p.getByRole('button',{name:'Iniciar Sesión'}).click(); await p.waitForTimeout(3000);
   await p.goto(B+'/admin/alertas'); await p.waitForTimeout(2500); await p.screenshot({path:O+tag+'-lista.png',fullPage:true});
   if(data.length){ await p.goto(B+'/admin/alertas/1'); await p.waitForTimeout(2500); await p.screenshot({path:O+tag+'-detalle.png',fullPage:true}); }

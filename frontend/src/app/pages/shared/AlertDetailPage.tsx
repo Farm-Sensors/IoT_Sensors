@@ -41,7 +41,7 @@ export function AlertDetailPage() {
   const isAdmin = location.pathname.startsWith("/admin");
   const alertsPath = isAdmin ? "/admin/alertas" : "/cliente/alertas";
   const thresholdsPath = isAdmin ? "/admin/umbrales" : "/cliente/umbrales";
-  const placeOf = useAlertPlaces(isAdmin);
+  const { placeOf } = useAlertPlaces(isAdmin);
   const parsedAlertId = Number(alertId);
 
   const [alert, setAlert] = useState<AlertItem | null>(null);

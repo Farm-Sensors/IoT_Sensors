@@ -51,6 +51,7 @@ export function AlertsCenterPage() {
   const animationTimeoutsRef = useRef<number[]>([]);
 
   const [areaId, setAreaId] = useState<number>(() => Number(searchParams.get("area")) || 0);
+  const [propertyId, setPropertyId] = useState<number>(0);
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [items, setItems] = useState<AlertItem[]>([]);
@@ -74,14 +75,25 @@ export function AlertsCenterPage() {
   const alertDetailBasePath = isAdmin ? "/admin/alertas" : "/cliente/alertas";
   const thresholdsPath = isAdmin ? "/admin/umbrales" : "/cliente/umbrales";
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
-  const scopedAreaId = areaId || undefined;
 
-  const placeOf = useAlertPlaces(isAdmin);
+  const { placeOf, clientOf } = useAlertPlaces(isAdmin);
   const areas = selection?.areas ?? [];
   const properties = selection?.properties ?? [];
 
+  // Con `?area=` (por ejemplo desde Área › Ahora) el predio de esa área se elige solo.
+  useEffect(() => {
+    if (!areaId || propertyId) return;
+    const area = areas.find((a) => a.id === areaId);
+    if (area) setPropertyId(area.property_id);
+  }, [areaId, propertyId, areas]);
+
+  const propertyAreas = useMemo(() => areas.filter((a) => a.property_id === propertyId), [areas, propertyId]);
+  // La API filtra por un área a la vez: para «todo el predio» se pide cada área y se unen los resultados.
+  const scopeAreaIds: number[] | null = areaId ? [areaId] : propertyId ? propertyAreas.map((a) => a.id) : null;
+  const scopeKey = scopeAreaIds ? scopeAreaIds.join(",") : "all";
+
   const activeFilterCount = [alertType, startDate || endDate].filter(Boolean).length;
-  const hasFilters = Boolean(areaId || severity || alertType || readFilter !== "all" || startDate || endDate);
+  const hasFilters = Boolean(areaId || propertyId || severity || alertType || readFilter !== "all" || startDate || endDate);
 
   const fetchAlerts = useCallback(
     async (options?: { silent?: boolean; animateNew?: boolean }) => {
@@ -95,23 +107,39 @@ export function AlertsCenterPage() {
       }
 
       const scope = {
-        irrigation_area_id: scopedAreaId,
         severity: severity || undefined,
         alert_type: alertType || undefined,
         start_date: startDate || undefined,
         end_date: endDate || undefined,
       };
+      const readParam = readFilter === "all" ? undefined : readFilter === "read";
 
       try {
-        const [response, unread] = await Promise.all([
-          listAlerts({
-            page,
-            per_page: PAGE_SIZE,
-            ...scope,
-            read: readFilter === "all" ? undefined : readFilter === "read",
-          }),
-          getUnreadAlertsCount(scope).catch(() => null),
-        ]);
+        let response: { total: number; data: AlertItem[] };
+        let unread: number | null;
+        if (scopeAreaIds === null) {
+          const [list, count] = await Promise.all([
+            listAlerts({ page, per_page: PAGE_SIZE, ...scope, read: readParam }),
+            getUnreadAlertsCount(scope).catch(() => null),
+          ]);
+          response = { total: list.total ?? 0, data: list.data ?? [] };
+          unread = count;
+        } else if (scopeAreaIds.length === 0) {
+          response = { total: 0, data: [] };
+          unread = 0;
+        } else {
+          const lists = await Promise.all(
+            scopeAreaIds.map((id) =>
+              listAlerts({ page: 1, per_page: Math.min(200, page * PAGE_SIZE), ...scope, irrigation_area_id: id, read: readParam }),
+            ),
+          );
+          const counts = await Promise.all(
+            scopeAreaIds.map((id) => getUnreadAlertsCount({ ...scope, irrigation_area_id: id }).catch(() => null)),
+          );
+          const merged = lists.flatMap((l) => l.data ?? []).sort((x, y) => (x.timestamp < y.timestamp ? 1 : x.timestamp > y.timestamp ? -1 : 0));
+          response = { total: lists.reduce((sum, l) => sum + (l.total ?? 0), 0), data: merged.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE) };
+          unread = counts.some((c) => c === null) ? null : counts.reduce<number>((sum, c) => sum + (c ?? 0), 0);
+        }
 
         const nextItems = response.data ?? [];
         if (animateNew) {
@@ -155,7 +183,8 @@ export function AlertsCenterPage() {
         }
       }
     },
-    [page, severity, alertType, readFilter, startDate, endDate, scopedAreaId],
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [page, severity, alertType, readFilter, startDate, endDate, scopeKey],
   );
 
   useEffect(() => {
@@ -207,13 +236,14 @@ export function AlertsCenterPage() {
     setMarkingAllRead(true);
     setErrorMessage(null);
     try {
-      await markAllAlertsRead({
-        irrigation_area_id: scopedAreaId,
+      const scope = {
         severity: severity || undefined,
         alert_type: alertType || undefined,
         start_date: startDate || undefined,
         end_date: endDate || undefined,
-      });
+      };
+      if (scopeAreaIds === null) await markAllAlertsRead(scope);
+      else await Promise.all(scopeAreaIds.map((id) => markAllAlertsRead({ ...scope, irrigation_area_id: id })));
       await fetchAlerts();
     } catch (error) {
       console.error("Failed to mark all alerts as read", error);
@@ -225,6 +255,7 @@ export function AlertsCenterPage() {
 
   const clearFilters = () => {
     setAreaId(0);
+    setPropertyId(0);
     setSeverity("");
     setAlertType("");
     setReadFilter("all");
@@ -235,7 +266,6 @@ export function AlertsCenterPage() {
 
   const unreadItems = useMemo(() => items.filter((item) => !item.read), [items]);
   const readItems = useMemo(() => items.filter((item) => item.read), [items]);
-  const propertyById = new Map(properties.map((p) => [p.id, p.name]));
 
   const renderRow = (item: AlertItem) => {
     const meta = SEVERITY_META[item.severity];
@@ -319,23 +349,47 @@ export function AlertsCenterPage() {
         <div className="mb-4 rounded-[var(--radius)] border border-[var(--border)] bg-[var(--card)] p-3">
           <div className="flex flex-wrap items-center gap-2">
             <label className="min-w-[200px] flex-1">
-              <span className="sr-only">Área</span>
+              <span className="sr-only">Predio</span>
               <select
-                value={areaId}
+                value={propertyId}
                 onChange={(event) => {
-                  setAreaId(Number(event.target.value));
+                  setPropertyId(Number(event.target.value));
+                  setAreaId(0);
                   setPage(1);
                 }}
                 className={`${control} w-full`}
               >
-                <option value={0}>Todas las áreas</option>
-                {areas.map((area) => (
-                  <option key={area.id} value={area.id}>
-                    {propertyById.get(area.property_id) ? `${propertyById.get(area.property_id)} › ${area.name}` : area.name}
-                  </option>
-                ))}
+                <option value={0}>Todos los predios</option>
+                {properties.map((property) => {
+                  const client = clientOf(property.id);
+                  return (
+                    <option key={property.id} value={property.id}>
+                      {client ? `${client} › ${property.name}` : property.name}
+                    </option>
+                  );
+                })}
               </select>
             </label>
+            {propertyId > 0 && (
+              <label className="min-w-[180px] flex-1">
+                <span className="sr-only">Área del predio</span>
+                <select
+                  value={areaId}
+                  onChange={(event) => {
+                    setAreaId(Number(event.target.value));
+                    setPage(1);
+                  }}
+                  className={`${control} w-full`}
+                >
+                  <option value={0}>Todas las áreas del predio ({propertyAreas.length})</option>
+                  {propertyAreas.map((area) => (
+                    <option key={area.id} value={area.id}>
+                      {area.name}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            )}
             <label>
               <span className="sr-only">Gravedad</span>
               <select

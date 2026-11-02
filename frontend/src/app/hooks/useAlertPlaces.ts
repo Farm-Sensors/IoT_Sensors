@@ -14,7 +14,11 @@ export interface AlertPlace {
  * Nombres para las alertas, que traen solo ids: predio y área salen de lo que la app ya carga
  * (`SelectionContext`); el cliente, de una consulta a `/clients` solo para el admin.
  */
-export function useAlertPlaces(isAdmin: boolean): (areaId: number) => AlertPlace {
+export function useAlertPlaces(isAdmin: boolean): {
+  placeOf: (areaId: number) => AlertPlace;
+  /** Nombre del cliente dueño del predio (solo admin). */
+  clientOf: (propertyId: number) => string | undefined;
+} {
   const selection = useOptionalSelection();
   const areas = selection?.areas;
   const properties = selection?.properties;
@@ -36,7 +40,7 @@ export function useAlertPlaces(isAdmin: boolean): (areaId: number) => AlertPlace
     };
   }, [isAdmin]);
 
-  return useCallback(
+  const placeOf = useCallback(
     (areaId: number) => {
       const area = areas?.find((a) => a.id === areaId);
       if (!area) return { area: `Área ${areaId}`, where: `Área ${areaId}` };
@@ -51,4 +55,14 @@ export function useAlertPlaces(isAdmin: boolean): (areaId: number) => AlertPlace
     },
     [areas, properties, clientNames, isAdmin],
   );
+
+  const clientOf = useCallback(
+    (propertyId: number) => {
+      const property = properties?.find((p) => p.id === propertyId);
+      return isAdmin && property ? clientNames.get(property.client_id) : undefined;
+    },
+    [properties, clientNames, isAdmin],
+  );
+
+  return { placeOf, clientOf };
 }
