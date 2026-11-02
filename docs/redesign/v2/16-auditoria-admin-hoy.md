@@ -58,3 +58,7 @@ Se partió de la pregunta «¿qué quiere ver primero un administrador y por qu�
 ## Cambio de nombre y de acciones (2026-11-01)
 
 JP: «Hoy» no convence y hay demasiados botones arriba. **La pantalla se llama ahora «Inicio»** (menú, título y pruebas); las rutas no cambian (`/admin`). **Acciones del encabezado:** quedan solo las dos de crear, **Nuevo Cliente** y **Nuevo Nodo**, con el mismo tamaño (40 de ancho en escritorio, mitad y mitad en móvil). **Registro de eventos** y **Configurar umbrales** salen del encabezado porque ya tienen su sitio en el menú: Registro de eventos es una pestaña de Ajustes y Umbrales es una pestaña de Alertas.
+
+## Cuando todo está bien (2026-11-01)
+
+JP preguntó qué se ve en «Inicio» si todo está configurado y todos los nodos envían datos. **Antes:** solo una línea («Todos los nodos están enviando datos») y las cifras en letra pequeña: casi una pantalla vacía. **Ahora:** un bloque **«Todo en orden»** («Todos los nodos están enviando datos y no hay nada por configurar») con cuatro cifras como tarjetas (Clientes, Predios, Nodos habilitados y Lecturas hoy; las tres primeras llevan a su pantalla) y la hora de la última actualización. En cuanto hay algo urgente o por configurar, vuelve la vista de pendientes de siempre y las cifras regresan a la línea del pie.

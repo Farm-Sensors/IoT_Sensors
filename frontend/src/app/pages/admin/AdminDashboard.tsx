@@ -152,6 +152,8 @@ export function AdminDashboard() {
   const toSetUp = (pending ?? []).filter((i) => i.kind !== "sin_comunicacion" && i.kind !== "sin_datos");
   const grouped = PENDING_ORDER.map((kind) => ({ kind, list: toSetUp.filter((i) => i.kind === kind) })).filter((g) => g.list.length);
   const setUpCount = toSetUp.length + offlineNodes.length;
+  // Todo bien: nada urgente y nada por configurar. En lugar de una pantalla casi vacía, se muestra «Todo en orden» con las cifras.
+  const allGood = pending !== null && urgent.length === 0 && setUpCount === 0;
   const actionBtn = "inline-flex h-11 items-center border justify-center rounded-[var(--radius)] px-4 text-sm font-semibold focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus-ring)] focus-visible:ring-offset-2";
 
   return (
@@ -174,8 +176,46 @@ export function AdminDashboard() {
           </div>
         ) : (
           <>
+            {allGood && (
+              <section aria-labelledby="orden-h" className="mt-8">
+                <div className="flex items-start gap-3 rounded-[var(--radius)] border border-[var(--border)] bg-[var(--card)] p-5">
+                  <CheckCircle2 aria-hidden="true" className="mt-0.5 h-6 w-6 flex-shrink-0 text-[var(--status-success-solid)]" />
+                  <div>
+                    <h2 id="orden-h" className="text-xl font-semibold">Todo en orden</h2>
+                    <p className="mt-1 text-sm text-[var(--text-muted)]">Todos los nodos están enviando datos y no hay nada por configurar.</p>
+                  </div>
+                </div>
+                <ul className="mt-4 grid grid-cols-2 gap-3 md:grid-cols-4">
+                  {[
+                    { label: stats.clients === 1 ? "Cliente" : "Clientes", value: stats.clients.toLocaleString(), to: "/admin/clientes" },
+                    { label: stats.properties === 1 ? "Predio" : "Predios", value: stats.properties.toLocaleString(), to: "/admin/clientes" },
+                    { label: "Nodos habilitados", value: `${stats.nodesActive}/${stats.nodesTotal}`, to: "/admin/nodos" },
+                    { label: "Lecturas hoy", value: stats.readingsToday.toLocaleString(), to: null },
+                  ].map((tile) => {
+                    const body = (
+                      <>
+                        <span className="block text-xs text-[var(--text-muted)]">{tile.label}</span>
+                        <span className="block font-mono-data text-2xl font-medium">{tile.value}</span>
+                      </>
+                    );
+                    const box = "block rounded-[var(--radius)] border border-[var(--border)] bg-[var(--card)] px-4 py-3";
+                    return (
+                      <li key={tile.label}>
+                        {tile.to ? (
+                          <Link to={tile.to} className={`${box} hover:bg-[var(--accent-soft)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus-ring)]`}>{body}</Link>
+                        ) : (
+                          <div className={box}>{body}</div>
+                        )}
+                      </li>
+                    );
+                  })}
+                </ul>
+                <p className="mt-4 text-sm text-[var(--text-muted)]">Actualizado {minutes < 1 ? "hace un momento" : `hace ${minutes} min`}</p>
+              </section>
+            )}
+
             {/* 1. Lo único que afecta al cliente ahora: datos que dejaron de llegar. */}
-            <section aria-labelledby="urgente-h" className="mt-8">
+            {!allGood && <section aria-labelledby="urgente-h" className="mt-8">
               <h2 id="urgente-h" className="mb-3 flex items-baseline gap-3 text-xl font-semibold">
                 Datos que dejaron de llegar
                 {pending && <span className={`font-mono-data text-base ${urgent.length ? "text-[var(--status-danger-text)]" : "text-[var(--text-muted)]"}`}>{urgent.length}</span>}
@@ -207,7 +247,7 @@ export function AdminDashboard() {
                   ))}
                 </ul>
               )}
-            </section>
+            </section>}
 
             {/* 2. Lo que falta configurar: puede esperar, el cliente aún no lo nota. */}
             {pending && setUpCount > 0 && (
@@ -248,9 +288,9 @@ export function AdminDashboard() {
             )}
 
             {/* 3. Totales: casi nunca cambian lo que se hace, van al final y pequeños. */}
-            <p className="mt-10 border-t border-[var(--border)] pt-3 text-sm text-[var(--text-muted)]">
+            {!allGood && <p className="mt-10 border-t border-[var(--border)] pt-3 text-sm text-[var(--text-muted)]">
               {stats.clients} {stats.clients === 1 ? "cliente" : "clientes"} · {stats.properties} {stats.properties === 1 ? "predio" : "predios"} · {stats.nodesActive}/{stats.nodesTotal} nodos habilitados · {stats.readingsToday.toLocaleString()} lecturas hoy · Actualizado {minutes < 1 ? "hace un momento" : `hace ${minutes} min`}
-            </p>
+            </p>}
           </>
         )}
       </div>
