@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useOptionalSelection } from "../context/SelectionContext";
 import { api } from "../services/api";
 
@@ -18,6 +18,8 @@ export function useAlertPlaces(isAdmin: boolean): {
   placeOf: (areaId: number) => AlertPlace;
   /** Nombre del cliente dueño del predio (solo admin). */
   clientOf: (propertyId: number) => string | undefined;
+  /** Clientes (solo admin), por nombre, para elegirlos en filtros. */
+  clients: Array<{ id: number; name: string }>;
 } {
   const selection = useOptionalSelection();
   const areas = selection?.areas;
@@ -64,5 +66,10 @@ export function useAlertPlaces(isAdmin: boolean): {
     [properties, clientNames, isAdmin],
   );
 
-  return { placeOf, clientOf };
+  const clients = useMemo(
+    () => Array.from(clientNames.entries()).map(([id, name]) => ({ id, name })).sort((a, b) => a.name.localeCompare(b.name, "es")),
+    [clientNames],
+  );
+
+  return { placeOf, clientOf, clients };
 }
