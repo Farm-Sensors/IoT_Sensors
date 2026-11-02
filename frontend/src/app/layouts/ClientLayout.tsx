@@ -3,6 +3,7 @@ import { Outlet, useLocation } from "react-router";
 import { DesktopSidebar } from "../components/navigation/DesktopSidebar";
 import { MobileHeader } from "../components/navigation/MobileHeader";
 import { MobileTabBar } from "../components/navigation/MobileTabBar";
+import { SectionTabs } from "../components/navigation/SectionTabs";
 import { SkipLink } from "../components/navigation/SkipLink";
 import { AlertsPopover } from "../components/notifications/AlertsPopover";
 import { SelectionProvider } from "../context/SelectionContext";
@@ -38,6 +39,7 @@ export function ClientLayout() {
           className={`flex-1 min-w-0 overflow-x-hidden focus:outline-none bg-[var(--surface-page)] ${isMobile ? "pb-24" : "h-screen overflow-y-auto"
             }`}
         >
+          <SectionTabs />
           <Outlet />
         </main>
 

@@ -1,10 +1,11 @@
 import { Link, useLocation } from "react-router";
+import { useModules } from "../../hooks/useModules";
 import { isSectionTabActive, sectionTabsFor } from "./items";
 
-/** Pestañas de sección del admin (Clientes, Red, Ajustes): llevan a las pantallas hermanas. */
+/** Pestañas de sección (Clientes, Red, Ajustes, Alertas y Asistente): llevan a las pantallas hermanas. */
 export function SectionTabs() {
   const { pathname } = useLocation();
-  const tabs = sectionTabsFor(pathname);
+  const tabs = sectionTabsFor(pathname, useModules());
   if (!tabs) return null;
   return (
     <nav aria-label="Secciones" className="flex gap-1 overflow-x-auto border-b border-[var(--border)] px-4 pt-3 md:px-8" style={{ scrollbarWidth: "none" }}>

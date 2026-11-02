@@ -13,10 +13,7 @@ vi.mock("../../context/AuthContext", () => ({
 vi.mock("../../context/ThemeContext", () => ({ useTheme: () => ({ theme: "light", toggleTheme: vi.fn() }) }));
 
 const ALL_ON: Modules = { alerts: true, ai_assistant: true, ai_reports: true, notifications: true };
-const PHASE2 = {
-  client: ["Alertas", "Asistente IA", "Reportes IA", "Umbrales", "Notificaciones"],
-  admin: ["Umbrales", "Alertas", "Asistente IA", "Consumo IA", "Reportes IA"],
-} as const;
+const PHASE2 = { client: ["Alertas", "Asistente"], admin: ["Alertas", "Asistente"] } as const;
 
 function serveModules(modules: Modules) {
   mocks.get.mockImplementation((path: string) =>
@@ -48,12 +45,13 @@ describe.each(["client", "admin"] as const)("%s navigation", (role) => {
   it("filters the mobile tab bar the same way and asks the server only once", async () => {
     serveModules({ ...MODULES_OFF, ai_reports: true });
     const { unmount } = render(<MemoryRouter><MobileTabBar role={role} /></MemoryRouter>);
-    expect(await screen.findByLabelText("IA")).toBeTruthy();
+    // Solo está encendido el módulo de reportes: aparece «Asistente» (que lleva a los reportes) y no «Alertas».
+    const assistant = await screen.findByLabelText("Asistente");
+    expect(assistant).toHaveAttribute("href", `/${role === "client" ? "cliente" : "admin"}/reportes-ia`);
     expect(screen.queryByLabelText("Alertas")).toBeNull();
-    expect(screen.queryByLabelText("Chat IA")).toBeNull();
     unmount();
     render(<MemoryRouter><MobileTabBar role={role} /></MemoryRouter>);
-    expect(screen.getByLabelText("IA")).toBeTruthy();
+    expect(screen.getByLabelText("Asistente")).toBeTruthy();
     expect(mocks.get).toHaveBeenCalledTimes(1);
   });
 });
