@@ -502,8 +502,8 @@ export function AIChatPage() {
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="mt-3 flex items-end gap-2">
-          <label className="min-w-0 flex-1">
+        <form onSubmit={handleSubmit} className="mt-3 flex items-stretch gap-2">
+          <label className="block min-w-0 flex-1">
             <span className="sr-only">Tu pregunta</span>
             <textarea
               value={input}
@@ -516,13 +516,13 @@ export function AIChatPage() {
               }}
               placeholder="Escribe tu pregunta… (Enter envía, Mayús+Enter salto de línea)"
               rows={2}
-              className="w-full resize-none rounded-[var(--radius)] border border-[var(--border-strong)] bg-[var(--surface-panel)] px-3 py-2 text-sm text-[var(--text-body)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus-ring)]"
+              className="block w-full resize-none rounded-[var(--radius)] border border-[var(--border-strong)] bg-[var(--surface-panel)] px-3 py-2 text-sm text-[var(--text-body)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus-ring)]"
             />
           </label>
           <button
             type="submit"
             disabled={loading || isStreaming || !input.trim()}
-            className="inline-flex min-h-[44px] items-center gap-2 rounded-[var(--radius)] bg-[var(--accent-primary)] px-4 text-sm font-semibold text-[var(--text-inverted)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus-ring)] focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+            className="inline-flex min-h-[44px] items-center justify-center gap-2 rounded-[var(--radius)] bg-[var(--accent-primary)] px-4 text-sm font-semibold text-[var(--text-inverted)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus-ring)] focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
           >
             <Send aria-hidden="true" className="h-4 w-4" />
             Enviar
