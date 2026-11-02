@@ -1,5 +1,7 @@
 # Auditoría de diseño · Admin › Alertas (Todas las alertas y detalle)
 
+> **Estado: aplicada (2026-11-01).** JP dejó las tres decisiones a mi criterio y se resolvieron así: (1) se acepta la consulta a `/clients` solo para el admin (hook `useAlertPlaces`); (2) en lugar de un grupo «Requieren atención», la lista se divide en **Sin leer** y **Leídas**, y la gravedad se ve en la barra, el icono y el texto de cada fila; (3) filtros reducidos a **Área, Gravedad y Sin leer/Todas/Leídas**, con Tipo y Fechas en «Más filtros». Además, el rango de fechas ya no aparece como aplicado cuando no lo está (antes mostraba «Últimos 7 días» sin filtrar). Archivos: `pages/shared/AlertsCenterPage.tsx`, `AlertDetailPage.tsx`, `alertFormat.ts` y `hooks/useAlertPlaces.ts`. La campana del encabezado (`AlertsPopover`) queda para la siguiente pantalla.
+
 Fase 2 autorizada (ver `README.md`). Navegación ya resuelta en `20-navegacion-fase-2.md`; aquí solo la **presentación** de la lista y del detalle. El productor reutiliza las mismas pantallas («Mis alertas»), así que lo que se decida aquí se aplica a los dos. Sin cambios de lógica, API ni flags.
 
 **Cómo se auditó:** la base no tiene alertas, así que se simularon respuestas de `/alerts` en el navegador (6 alertas: 2 críticas, 2 de aviso, 1 informativa; umbral e inactividad; leídas y sin leer) sin escribir en la base. Script: `audit/107-alertas-admin.mjs`; capturas en `audit/results/alertas-admin/` (1366 y 390 px).

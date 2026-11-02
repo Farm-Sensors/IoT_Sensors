@@ -8,6 +8,7 @@ import { Disclosure } from "../../components/Disclosure";
 import { PageTransition } from "../../components/PageTransition";
 import { ReadingDateRangeSelector } from "../../components/ReadingDateRangeSelector";
 import { useOptionalSelection } from "../../context/SelectionContext";
+import { useAlertPlaces } from "../../hooks/useAlertPlaces";
 import { usePageVisibility } from "../../hooks/usePageVisibility";
 import {
   AlertItem,
@@ -16,7 +17,6 @@ import {
   markAlertRead,
   markAllAlertsRead,
 } from "../../services/alerts";
-import { api } from "../../services/api";
 import { parseBackendTimestamp } from "../../utils/datetime";
 import { describeReading, SEVERITY_META, TYPE_LABEL } from "./alertFormat";
 
@@ -61,7 +61,6 @@ export function AlertsCenterPage() {
   const [updatingIds, setUpdatingIds] = useState<Set<number>>(new Set());
   const [markingAllRead, setMarkingAllRead] = useState(false);
   const [animatedIds, setAnimatedIds] = useState<Set<number>>(new Set());
-  const [clientNames, setClientNames] = useState<Map<number, string>>(new Map());
 
   const [severity, setSeverity] = useState<"" | AlertItem["severity"]>("");
   const [alertType, setAlertType] = useState<"" | AlertItem["type"]>("");
@@ -77,35 +76,9 @@ export function AlertsCenterPage() {
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
   const scopedAreaId = areaId || undefined;
 
-  // Nombres: predio y área salen de lo que la app ya carga; el cliente, de una consulta (solo admin).
+  const placeOf = useAlertPlaces(isAdmin);
   const areas = selection?.areas ?? [];
   const properties = selection?.properties ?? [];
-  useEffect(() => {
-    if (!isAdmin) return;
-    let cancelled = false;
-    api
-      .get("/clients", { params: { per_page: 100 } })
-      .then((response) => {
-        if (cancelled) return;
-        const list: Array<{ id: number; company_name: string }> = response.data?.data ?? [];
-        setClientNames(new Map(list.map((c) => [c.id, c.company_name])));
-      })
-      .catch(() => undefined);
-    return () => {
-      cancelled = true;
-    };
-  }, [isAdmin]);
-
-  const placeOf = useCallback(
-    (alertAreaId: number): { where: string } => {
-      const area = areas.find((a) => a.id === alertAreaId);
-      if (!area) return { where: `Área ${alertAreaId}` };
-      const property = properties.find((p) => p.id === area.property_id);
-      const client = isAdmin && property ? clientNames.get(property.client_id) : undefined;
-      return { where: [client, property?.name, area.name].filter(Boolean).join(" › ") };
-    },
-    [areas, properties, clientNames, isAdmin],
-  );
 
   const activeFilterCount = [alertType, startDate || endDate].filter(Boolean).length;
   const hasFilters = Boolean(areaId || severity || alertType || readFilter !== "all" || startDate || endDate);
