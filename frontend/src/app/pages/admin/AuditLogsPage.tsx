@@ -21,6 +21,24 @@ import {
 
 const PAGE_SIZE = 20;
 
+// Nombres en español de lo que escribe el sistema en el registro; si llega uno nuevo se muestra tal cual.
+const ACTION_LABELS: Record<string, string> = {
+  create: "Creación", update: "Cambio", delete: "Eliminación", execute: "Ejecución", error: "Error", rate_limited: "Límite excedido",
+};
+const ENTITY_LABELS: Record<string, string> = {
+  password_recovery: "Recuperación de contraseña",
+  password_reset_forgot_email: "Recuperación de contraseña (correo)",
+  password_reset_forgot_ip: "Recuperación de contraseña (IP)",
+  password_reset_confirm_ip: "Recuperación de contraseña (confirmación)",
+  threshold: "Umbral", alert: "Alerta", inactivity_scan: "Revisión de inactividad", notification_preference: "Preferencia de notificación",
+  alert_notification_dispatch: "Envío de notificación", alert_ai_recommendation: "Recomendación de IA",
+  ai_assistant_chat: "Asistente de IA", ai_report_generation: "Reporte de IA",
+};
+const actionLabel = (value: string) => ACTION_LABELS[value] ?? value;
+const entityLabel = (value: string) => ENTITY_LABELS[value] ?? value;
+const FILTER_ENTITIES = ["password_recovery", "threshold", "alert", "inactivity_scan", "notification_preference", "alert_notification_dispatch", "ai_assistant_chat", "ai_report_generation"];
+const FILTER_ACTIONS = ["create", "update", "delete", "execute", "error", "rate_limited"];
+
 function formatRelativeDate(iso: string): string {
   const parsed = new Date(iso);
   if (Number.isNaN(parsed.getTime())) return iso;
@@ -65,7 +83,7 @@ export function AuditLogsPage() {
       setTotal(response.total ?? 0);
     } catch (error) {
       console.error("Failed to fetch audit logs", error);
-      setErrorMessage("No fue posible cargar la bitacora de auditoria");
+      setErrorMessage("No fue posible cargar el registro de eventos");
     } finally {
       setLoading(false);
     }
@@ -95,9 +113,9 @@ export function AuditLogsPage() {
     <div className="min-h-screen p-4 md:p-6 lg:p-8">
       <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h1 className="text-2xl md:text-3xl font-serif text-[var(--text-title)]">Bitácora de Auditoría</h1>
+          <h1 className="text-2xl md:text-3xl font-serif text-[var(--text-title)]">Registro de eventos</h1>
           <p className="text-[var(--text-subtle)]">
-            Historial de cambios administrativos en la plataforma
+            Restablecimientos de contraseña y, cuando se activen, alertas y umbrales
           </p>
         </div>
 
@@ -111,30 +129,18 @@ export function AuditLogsPage() {
         <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-4">
           <label className="flex flex-col gap-1 text-sm text-[var(--text-subtle)]">
             Acción
-            <input
-              type="text"
-              value={action}
-              placeholder="create, update, delete, execute"
-              onChange={(event) => {
-                setAction(event.target.value.trim());
-                setPage(1);
-              }}
-              className="rounded-[20px] border border-[var(--border-strong)] bg-[var(--surface-panel)] px-3 py-2 text-[var(--text-main)] focus:outline-none focus:ring-2 focus:ring-[var(--focus-ring)]"
-            />
+            <select value={action} onChange={(event) => { setAction(event.target.value); setPage(1); }} className="min-h-[44px] rounded-[var(--radius)] border border-[var(--border-strong)] bg-[var(--surface-panel)] px-3 py-2 text-[var(--text-main)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus-ring)]">
+              <option value="">Todas</option>
+              {FILTER_ACTIONS.map((value) => <option key={value} value={value}>{actionLabel(value)}</option>)}
+            </select>
           </label>
 
           <label className="flex flex-col gap-1 text-sm text-[var(--text-subtle)]">
-            Entidad
-            <input
-              type="text"
-              value={entity}
-              placeholder="threshold, alert, inactivity_scan"
-              onChange={(event) => {
-                setEntity(event.target.value.trim());
-                setPage(1);
-              }}
-              className="rounded-[20px] border border-[var(--border-strong)] bg-[var(--surface-panel)] px-3 py-2 text-[var(--text-main)] focus:outline-none focus:ring-2 focus:ring-[var(--focus-ring)]"
-            />
+            Qué se registró
+            <select value={entity} onChange={(event) => { setEntity(event.target.value); setPage(1); }} className="min-h-[44px] rounded-[var(--radius)] border border-[var(--border-strong)] bg-[var(--surface-panel)] px-3 py-2 text-[var(--text-main)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus-ring)]">
+              <option value="">Todo</option>
+              {FILTER_ENTITIES.map((value) => <option key={value} value={value}>{entityLabel(value)}</option>)}
+            </select>
           </label>
 
           <label className="flex flex-col gap-1 text-sm text-[var(--text-subtle)]">
@@ -146,7 +152,7 @@ export function AuditLogsPage() {
                 setStartDate(event.target.value);
                 setPage(1);
               }}
-              className="rounded-[20px] border border-[var(--border-strong)] bg-[var(--surface-panel)] px-3 py-2 text-[var(--text-main)] focus:outline-none focus:ring-2 focus:ring-[var(--focus-ring)]"
+              className="rounded-[var(--radius)] border border-[var(--border-strong)] bg-[var(--surface-panel)] px-3 py-2 text-[var(--text-main)] focus:outline-none focus:ring-2 focus:ring-[var(--focus-ring)]"
             />
           </label>
 
@@ -159,7 +165,7 @@ export function AuditLogsPage() {
                 setEndDate(event.target.value);
                 setPage(1);
               }}
-              className="rounded-[20px] border border-[var(--border-strong)] bg-[var(--surface-panel)] px-3 py-2 text-[var(--text-main)] focus:outline-none focus:ring-2 focus:ring-[var(--focus-ring)]"
+              className="rounded-[var(--radius)] border border-[var(--border-strong)] bg-[var(--surface-panel)] px-3 py-2 text-[var(--text-main)] focus:outline-none focus:ring-2 focus:ring-[var(--focus-ring)]"
             />
           </label>
         </div>
@@ -168,7 +174,7 @@ export function AuditLogsPage() {
       <BentoCard variant="light" className="overflow-hidden">
         <div className="mb-4 flex items-center justify-between">
           <span className="text-sm text-[var(--text-subtle)]">
-            {total} eventos registrados
+            {total} {total === 1 ? "evento registrado" : "eventos registrados"}
           </span>
 
           <div className="flex items-center gap-2">
@@ -197,15 +203,15 @@ export function AuditLogsPage() {
         {loading ? (
           <div className="flex items-center justify-center gap-2 py-12 text-[var(--text-subtle)]">
             <Loader2 className="h-5 w-5 animate-spin" />
-            Cargando bitacora...
+            Cargando eventos…
           </div>
         ) : errorMessage ? (
-          <div className="rounded-2xl border border-[var(--status-danger)]/25 bg-[var(--status-danger-bg)] px-3 py-2 text-sm text-[var(--status-danger)]">
+          <div className="rounded-2xl border border-[var(--status-danger)]/25 bg-[var(--status-danger-bg)] px-3 py-2 text-sm text-[var(--status-danger-text)]">
             {errorMessage}
           </div>
         ) : normalizedItems.length === 0 ? (
           <div className="rounded-2xl border border-[var(--border-strong)] bg-[var(--surface-panel)] px-3 py-6 text-center text-sm text-[var(--text-subtle)]">
-            No hay eventos para los filtros seleccionados.
+            {action || entity || startDate || endDate ? "Ningún evento coincide con el filtro." : "Aún no hay eventos registrados. Aquí aparecen los restablecimientos de contraseña y, cuando se activen, las alertas y los umbrales."}
           </div>
         ) : (
           <div className="overflow-x-auto">
@@ -215,7 +221,7 @@ export function AuditLogsPage() {
                   <th className="px-3 py-2 text-xs font-semibold uppercase tracking-[0.08em] text-[var(--text-subtle)]">Fecha</th>
                   <th className="px-3 py-2 text-xs font-semibold uppercase tracking-[0.08em] text-[var(--text-subtle)]">Usuario</th>
                   <th className="px-3 py-2 text-xs font-semibold uppercase tracking-[0.08em] text-[var(--text-subtle)]">Acción</th>
-                  <th className="px-3 py-2 text-xs font-semibold uppercase tracking-[0.08em] text-[var(--text-subtle)]">Entidad</th>
+                  <th className="px-3 py-2 text-xs font-semibold uppercase tracking-[0.08em] text-[var(--text-subtle)]">Qué se registró</th>
                   <th className="px-3 py-2 text-xs font-semibold uppercase tracking-[0.08em] text-[var(--text-subtle)]">Detalle</th>
                   <th className="px-3 py-2 text-xs font-semibold uppercase tracking-[0.08em] text-[var(--text-subtle)]">Ver</th>
                 </tr>
@@ -229,9 +235,9 @@ export function AuditLogsPage() {
                     <td className="px-3 py-3 text-sm text-[var(--text-main)]">
                       {item.user?.full_name ?? "Sistema"}
                     </td>
-                    <td className="px-3 py-3 text-sm text-[var(--text-main)]">{item.action}</td>
+                    <td className="px-3 py-3 text-sm text-[var(--text-main)]">{actionLabel(item.action)}</td>
                     <td className="px-3 py-3 text-sm text-[var(--text-main)]">
-                      {item.entity}
+                      {entityLabel(item.entity)}
                       {item.entity_id ? ` #${item.entity_id}` : ""}
                     </td>
                     <td className="px-3 py-3 text-sm text-[var(--text-subtle)] max-w-[420px] truncate">
@@ -271,8 +277,8 @@ export function AuditLogsPage() {
                 <p><strong>Fecha:</strong> {selectedLog.created_at}</p>
                 <p><strong>Usuario:</strong> {selectedLog.user?.full_name ?? "Sistema"}</p>
                 <p><strong>Email:</strong> {selectedLog.user?.email ?? "-"}</p>
-                <p><strong>Acción:</strong> {selectedLog.action}</p>
-                <p><strong>Entidad:</strong> {selectedLog.entity}</p>
+                <p><strong>Acción:</strong> {actionLabel(selectedLog.action)}</p>
+                <p><strong>Qué se registró:</strong> {entityLabel(selectedLog.entity)}</p>
                 <p><strong>ID Entidad:</strong> {selectedLog.entity_id ?? "-"}</p>
                 <p><strong>Detalle:</strong> {selectedLog.detail ?? "-"}</p>
               </div>

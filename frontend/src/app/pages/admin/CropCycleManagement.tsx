@@ -1,6 +1,7 @@
 import { Calendar, Plus, Trash2, CheckCircle2 } from "lucide-react";
 import { StatusBadge } from "../../components/StatusBadge";
 import { PageHeader } from "../../components/PageHeader";
+import { useEmbedded } from "../../components/EmbeddedPanel";
 import { SkeletonCard } from "../../components/SkeletonCard";
 import { ConfirmDialog } from "../../components/ConfirmDialog";
 import { FormDialog } from "../../components/FormDialog";
@@ -25,14 +26,16 @@ interface CropCycle {
   end_date: string | null;
 }
 
-export function CropCycleManagement() {
+/** `areaId`: solo los ciclos de esa área (Directorio › Área › Ciclos); sin él, todas las áreas. */
+export function CropCycleManagement({ areaId }: { areaId?: number } = {}) {
+  const embedded = useEmbedded();
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [areas, setAreas] = useState<IrrigationArea[]>([]);
   const [cycles, setCycles] = useState<CropCycle[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const [formAreaId, setFormAreaId] = useState("");
+  const [formAreaId, setFormAreaId] = useState(areaId ? String(areaId) : "");
   const [formStartDate, setFormStartDate] = useState("");
   const [formEndDate, setFormEndDate] = useState("");
 
@@ -45,8 +48,10 @@ export function CropCycleManagement() {
         api.get("/irrigation-areas"),
         api.get("/crop-cycles")
       ]);
-      setAreas(areasRes.data.data || areasRes.data);
-      setCycles(cyclesRes.data.data || cyclesRes.data);
+      const allAreas = areasRes.data.data || areasRes.data;
+      const allCycles = cyclesRes.data.data || cyclesRes.data;
+      setAreas(areaId ? allAreas.filter((a: IrrigationArea) => a.id === areaId) : allAreas);
+      setCycles(areaId ? allCycles.filter((c: CropCycle) => c.irrigation_area_id === areaId) : allCycles);
     } catch (err: any) {
       setError(getErrorMessage(err, "Error loading data"));
     } finally {
@@ -56,7 +61,7 @@ export function CropCycleManagement() {
 
   useEffect(() => {
     fetchData();
-  }, []);
+  }, [areaId]);
 
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -70,7 +75,7 @@ export function CropCycleManagement() {
         end_date: formEndDate ? formEndDate : null,
       });
       setShowCreateForm(false);
-      setFormAreaId("");
+      setFormAreaId(areaId ? String(areaId) : "");
       setFormStartDate("");
       setFormEndDate("");
       fetchData();
@@ -91,6 +96,8 @@ export function CropCycleManagement() {
       setLoading(false);
     }
   };
+
+  const shortDate = (iso: string) => new Date(`${iso}T00:00:00`).toLocaleDateString("es-MX", { day: "2-digit", month: "2-digit", year: "numeric" });
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('es-ES', {
@@ -113,8 +120,7 @@ export function CropCycleManagement() {
     <div className="min-h-screen p-4 md:p-6 lg:p-8">
       <div className="mb-6">
         <PageHeader
-          title="Gestión de Ciclos de Cultivo"
-          subtitle="Administra los ciclos de cultivo por área"
+          title={embedded ? "" : "Ciclos de cultivo"}
           action={
             <PillButton variant="primary" onClick={() => setShowCreateForm(true)}>
               <Plus aria-hidden="true" className="w-4 h-4 mr-2" />
@@ -130,6 +136,50 @@ export function CropCycleManagement() {
         </div>
       )}
 
+      {!embedded ? (
+        loading && areas.length === 0 ? null : areas.length === 0 ? (
+          <EmptyState icon={Calendar} title="Sin áreas de riego" description="Aún no existen áreas para crear ciclos de cultivo." />
+        ) : (
+          <ul className="divide-y divide-[var(--border)] overflow-hidden rounded-[var(--radius)] border border-[var(--border)] bg-[var(--card)]">
+            {[...areas]
+              .map((area) => {
+                const own = cycles.filter((c) => c.irrigation_area_id === area.id).sort((x, y) => y.start_date.localeCompare(x.start_date));
+                const active = own.find((c) => !c.end_date || new Date(c.end_date) > new Date());
+                return { area, own, active };
+              })
+              // Primero las áreas sin ciclo activo: son las que necesitan atención.
+              .sort((x, y) => Number(Boolean(x.active)) - Number(Boolean(y.active)) || x.area.name.localeCompare(y.area.name))
+              .map(({ area, own, active }) => (
+                <li key={area.id} className="px-4 py-3">
+                  <div className="flex flex-wrap items-center justify-between gap-3">
+                    <div className="min-w-0">
+                      <h2 className="truncate text-base font-semibold">{area.name}</h2>
+                      <p className={`text-sm ${active ? "text-[var(--text-muted)]" : "text-[var(--status-danger-text)]"}`}>
+                        {active ? `Ciclo activo desde ${shortDate(active.start_date)}${active.end_date ? ` · termina ${shortDate(active.end_date)}` : ""}` : "Sin ciclo activo"}
+                      </p>
+                    </div>
+                    {!active && (
+                      <button type="button" onClick={() => { setFormAreaId(String(area.id)); setShowCreateForm(true); }} aria-label={`Crear ciclo de ${area.name}`} className="inline-flex min-h-[44px] items-center justify-center gap-1.5 rounded-[var(--radius)] bg-[var(--accent-primary)] px-4 text-sm font-semibold text-[var(--text-inverted)] hover:opacity-90 focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus-ring)] focus-visible:ring-offset-2">Crear ciclo</button>
+                    )}
+                  </div>
+                  {own.length > 0 && (
+                    <details className="mt-2 text-sm">
+                      <summary className="inline-flex min-h-[40px] cursor-pointer items-center text-[var(--text-muted)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus-ring)]">{own.length} {own.length === 1 ? "ciclo en el historial" : "ciclos en el historial"}</summary>
+                      <ul className="divide-y divide-[var(--border)]">
+                        {own.map((cycle) => (
+                          <li key={cycle.id} className="flex items-center justify-between gap-3 py-1">
+                            <span className="font-mono-data">{shortDate(cycle.start_date)} – {cycle.end_date ? shortDate(cycle.end_date) : "sin fecha de fin"}</span>
+                            <button type="button" onClick={() => setPendingDelete({ id: cycle.id, name: `${cycle.start_date} — ${cycle.end_date ?? "sin fecha de fin"}` })} aria-label={`Eliminar el ciclo ${shortDate(cycle.start_date)} de ${area.name}`} className="inline-flex h-11 w-11 items-center justify-center rounded-[var(--radius)] hover:bg-[var(--status-danger-bg)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus-ring)]"><Trash2 aria-hidden="true" className="h-4 w-4 text-[var(--status-danger-text)]" /></button>
+                          </li>
+                        ))}
+                      </ul>
+                    </details>
+                  )}
+                </li>
+              ))}
+          </ul>
+        )
+      ) : (
       <div className="space-y-6">
         {areas.map((area) => {
           const areaCycles = cycles.filter(c => c.irrigation_area_id === area.id)
@@ -139,7 +189,7 @@ export function CropCycleManagement() {
 
           return (
             <BentoCard key={area.id} variant="light">
-              <h2 className="text-lg font-medium text-[var(--text-main)] mb-4">{area.name}</h2>
+              {!embedded && <h2 className="text-lg font-medium text-[var(--text-main)] mb-4">{area.name}</h2>}
 
               <div className="space-y-3">
                 {areaCycles.map((cycle) => {
@@ -148,7 +198,7 @@ export function CropCycleManagement() {
                   return (
                     <div
                       key={cycle.id}
-                      className={`p-4 rounded-[24px] border flex items-center justify-between ${
+                      className={`p-4 rounded-[var(--radius)] border flex items-center justify-between ${
                         isActive
                           ? "bg-[var(--status-active-bg)] border-[var(--status-active)]/40"
                           : "bg-[var(--surface-panel)] border-[var(--border-subtle)]"
@@ -175,7 +225,7 @@ export function CropCycleManagement() {
                         aria-label={`Eliminar el ciclo ${formatDate(cycle.start_date)} - ${cycle.end_date ? formatDate(cycle.end_date) : "Actual"} de ${area.name}`}
                         className="inline-flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-full hover:bg-[var(--status-danger-bg)] transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus-ring)]"
                       >
-                        <Trash2 aria-hidden="true" className="w-4 h-4 text-[var(--status-danger)]" />
+                        <Trash2 aria-hidden="true" className="w-4 h-4 text-[var(--status-danger-text)]" />
                       </button>
                     </div>
                   );
@@ -203,6 +253,7 @@ export function CropCycleManagement() {
           />
         )}
       </div>
+      )}
 
       {showCreateForm && (<FormDialog open title="Nuevo Ciclo de Cultivo" onClose={() => setShowCreateForm(false)}>
             <form onSubmit={handleCreate} className="space-y-4">
@@ -210,7 +261,7 @@ export function CropCycleManagement() {
                   required
                   value={formAreaId}
                   onChange={(e) => setFormAreaId(e.target.value)}
-                  className="w-full px-4 py-2.5 rounded-[24px] bg-[var(--surface-panel)] border border-[var(--border-strong)] text-[var(--text-main)] focus:outline-none focus:ring-2 focus:ring-[var(--focus-ring)]"
+                  className="w-full px-4 py-2.5 rounded-[var(--radius)] bg-[var(--surface-panel)] border border-[var(--border-strong)] text-[var(--text-main)] focus:outline-none focus:ring-2 focus:ring-[var(--focus-ring)]"
                 >
                   <option value="">Seleccionar área</option>
                   {areas.map((area) => (
@@ -223,14 +274,14 @@ export function CropCycleManagement() {
                   required
                   value={formStartDate}
                   onChange={(e) => setFormStartDate(e.target.value)}
-                  className="w-full px-4 py-2.5 rounded-[24px] bg-[var(--surface-panel)] border border-[var(--border-strong)] text-[var(--text-main)] focus:outline-none focus:ring-2 focus:ring-[var(--focus-ring)]"
+                  className="w-full px-4 py-2.5 rounded-[var(--radius)] bg-[var(--surface-panel)] border border-[var(--border-strong)] text-[var(--text-main)] focus:outline-none focus:ring-2 focus:ring-[var(--focus-ring)]"
                 /></Field>
 
               <Field label="Fecha de Fin (opcional)"><input
                   type="date"
                   value={formEndDate}
                   onChange={(e) => setFormEndDate(e.target.value)}
-                  className="w-full px-4 py-2.5 rounded-[24px] bg-[var(--surface-panel)] border border-[var(--border-strong)] text-[var(--text-main)] focus:outline-none focus:ring-2 focus:ring-[var(--focus-ring)]"
+                  className="w-full px-4 py-2.5 rounded-[var(--radius)] bg-[var(--surface-panel)] border border-[var(--border-strong)] text-[var(--text-main)] focus:outline-none focus:ring-2 focus:ring-[var(--focus-ring)]"
                 /></Field>
 
               <div className="flex gap-3 pt-4">

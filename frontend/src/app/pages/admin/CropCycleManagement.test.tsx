@@ -21,5 +21,5 @@ it("renders a validation error as text instead of crashing React", async () => {
   get.mockRejectedValue({ response: { status: 422, data: { detail: [{ type: "int_parsing", loc: ["path", "id"], msg: "Invalid area", input: "all" }] } } });
   render(<CropCycleManagement />);
   expect(await screen.findByText(/Invalid area/)).toBeVisible();
-  expect(screen.getByRole("heading", { name: "Gestión de Ciclos de Cultivo" })).toBeVisible();
+  expect(screen.getByRole("heading", { name: "Ciclos de cultivo" })).toBeVisible();
 });

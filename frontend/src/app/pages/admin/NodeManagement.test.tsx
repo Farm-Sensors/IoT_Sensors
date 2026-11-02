@@ -1,5 +1,6 @@
 import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { MemoryRouter } from "react-router";
 import { NodeManagement } from "./NodeManagement";
 
 const mocks = vi.hoisted(() => ({
@@ -71,9 +72,11 @@ describe("NodeManagement", () => {
   });
 
   it("names each area with its ranch and explains the optional fields", async () => {
-    render(<NodeManagement />);
+    render(<MemoryRouter><NodeManagement /></MemoryRouter>);
 
-    expect(await screen.findByText("Área Norte · Rancho Dos")).toBeInTheDocument();
+    // La lista agrupa por predio: dos áreas con el mismo nombre se distinguen por su predio.
+    const group = await screen.findByRole("region", { name: "Rancho Dos" });
+    expect(within(group).getByText("Área Norte")).toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: /nuevo nodo/i }));
 
     const area = screen.getByLabelText("Área de Riego (Obligatorio)");
@@ -90,13 +93,14 @@ describe("NodeManagement", () => {
   });
 
   it("tells enabled apart from reporting and confirms creation in plain words", async () => {
-    render(<NodeManagement />);
+    render(<MemoryRouter><NodeManagement /></MemoryRouter>);
 
-    const row = await screen.findByRole("row", { name: /Nodo Norte/ });
-    expect(screen.getByRole("columnheader", { name: "Habilitado" })).toBeInTheDocument();
-    expect(within(row).getByText("Sí")).toBeInTheDocument();
-    expect(within(row).getByText("Sin datos aún")).toBeInTheDocument();
-    expect(screen.queryByText("Activo")).not.toBeInTheDocument();
+    // El nodo está habilitado pero nunca envió datos: la fila lo dice con su estado, sin tabla ni columna «Habilitado».
+    const row = (await screen.findByRole("link", { name: /Área Norte/ })).closest("li")!;
+    expect(within(row).getByText("Nodo Norte")).toBeInTheDocument();
+    expect(within(row).getByText("Sin datos")).toBeInTheDocument();
+    expect(within(row).getByText("sin lecturas")).toBeInTheDocument();
+    expect(screen.queryByRole("table")).not.toBeInTheDocument();
 
     fireEvent.click(screen.getByRole("button", { name: /nuevo nodo/i }));
     fireEvent.change(screen.getByLabelText("Área de Riego (Obligatorio)"), { target: { value: "1" } });

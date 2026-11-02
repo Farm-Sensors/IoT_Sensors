@@ -293,7 +293,7 @@ export function ThresholdManagement() {
       </div>
 
       {error && (
-        <div className="mb-4 rounded-2xl border border-[var(--status-danger)]/25 bg-[var(--status-danger-bg)] p-4 text-[var(--status-danger)]">{error}</div>
+        <div className="mb-4 rounded-2xl border border-[var(--status-danger)]/25 bg-[var(--status-danger-bg)] p-4 text-[var(--status-danger-text)]">{error}</div>
       )}
 
       <BentoCard variant="light" className="mb-4">
@@ -303,7 +303,7 @@ export function ThresholdManagement() {
             <select
               value={filterAreaId}
               onChange={(event) => setFilterAreaId(event.target.value)}
-              className="rounded-[20px] border border-[var(--border-strong)] bg-[var(--surface-panel)] px-3 py-2 text-[var(--text-main)] focus:outline-none focus:ring-2 focus:ring-[var(--focus-ring)]"
+              className="rounded-[var(--radius)] border border-[var(--border-strong)] bg-[var(--surface-panel)] px-3 py-2 text-[var(--text-main)] focus:outline-none focus:ring-2 focus:ring-[var(--focus-ring)]"
             >
               <option value="">Todas</option>
               {areas.map((area) => (
@@ -319,7 +319,7 @@ export function ThresholdManagement() {
             <select
               value={filterParameter}
               onChange={(event) => setFilterParameter(event.target.value)}
-              className="rounded-[20px] border border-[var(--border-strong)] bg-[var(--surface-panel)] px-3 py-2 text-[var(--text-main)] focus:outline-none focus:ring-2 focus:ring-[var(--focus-ring)]"
+              className="rounded-[var(--radius)] border border-[var(--border-strong)] bg-[var(--surface-panel)] px-3 py-2 text-[var(--text-main)] focus:outline-none focus:ring-2 focus:ring-[var(--focus-ring)]"
             >
               <option value="">Todos</option>
               {parameterOptions.map((option) => (
@@ -335,7 +335,7 @@ export function ThresholdManagement() {
             <select
               value={filterActive}
               onChange={(event) => setFilterActive(event.target.value)}
-              className="rounded-[20px] border border-[var(--border-strong)] bg-[var(--surface-panel)] px-3 py-2 text-[var(--text-main)] focus:outline-none focus:ring-2 focus:ring-[var(--focus-ring)]"
+              className="rounded-[var(--radius)] border border-[var(--border-strong)] bg-[var(--surface-panel)] px-3 py-2 text-[var(--text-main)] focus:outline-none focus:ring-2 focus:ring-[var(--focus-ring)]"
             >
               <option value="">Todos</option>
               <option value="true">Activos</option>
@@ -391,10 +391,10 @@ export function ThresholdManagement() {
                       <span
                         className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium border ${
                           threshold.severity === "critical"
-                            ? "bg-[var(--status-danger-bg)] text-[var(--status-danger)] border-[var(--status-danger)]/30"
+                            ? "bg-[var(--status-danger-bg)] text-[var(--status-danger-text)] border-[var(--status-danger)]/30"
                             : threshold.severity === "warning"
-                              ? "bg-[var(--status-warning-bg)] text-[var(--status-warning)] border-[var(--status-warning)]/30"
-                              : "bg-[var(--status-info-bg)] text-[var(--status-info)] border-[var(--status-info)]/30"
+                              ? "bg-[var(--status-warning-bg)] text-[var(--status-warning-text)] border-[var(--status-warning)]/30"
+                              : "bg-[var(--status-info-bg)] text-[var(--status-info-text)] border-[var(--status-info)]/30"
                         }`}
                       >
                         {threshold.severity}
@@ -405,7 +405,7 @@ export function ThresholdManagement() {
                         className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
                           threshold.active
                             ? "bg-[var(--accent-primary)]/10 text-[var(--accent-primary)] border border-[var(--accent-primary)]/20"
-                            : "bg-[var(--status-danger-bg)] text-[var(--status-danger)] border border-[var(--status-danger)]/30"
+                            : "bg-[var(--status-danger-bg)] text-[var(--status-danger-text)] border border-[var(--status-danger)]/30"
                         }`}
                       >
                         {threshold.active ? "Activo" : "Inactivo"}
@@ -427,7 +427,7 @@ export function ThresholdManagement() {
                           className="p-2 rounded-full hover:bg-[var(--status-danger-bg)] transition-colors"
                           title="Eliminar umbral"
                         >
-                          <Trash2 className="w-4 h-4 text-[var(--status-danger)]" />
+                          <Trash2 className="w-4 h-4 text-[var(--status-danger-text)]" />
                         </button>
                       </div>
                     </td>
@@ -455,7 +455,7 @@ export function ThresholdManagement() {
                   onChange={(event) =>
                     setForm((prev) => ({ ...prev, irrigation_area_id: event.target.value }))
                   }
-                  className="w-full px-4 py-2.5 rounded-[24px] bg-[var(--surface-panel)] border border-[var(--border-strong)] text-[var(--text-main)] focus:outline-none focus:ring-2 focus:ring-[var(--focus-ring)]"
+                  className="w-full px-4 py-2.5 rounded-[var(--radius)] bg-[var(--surface-panel)] border border-[var(--border-strong)] text-[var(--text-main)] focus:outline-none focus:ring-2 focus:ring-[var(--focus-ring)]"
                 >
                   <option value="">Selecciona un área</option>
                   {areas.map((area) => (
@@ -477,7 +477,7 @@ export function ThresholdManagement() {
                       parameter: event.target.value as ThresholdParameter,
                     }))
                   }
-                  className="w-full px-4 py-2.5 rounded-[24px] bg-[var(--surface-panel)] border border-[var(--border-strong)] text-[var(--text-main)] focus:outline-none focus:ring-2 focus:ring-[var(--focus-ring)]"
+                  className="w-full px-4 py-2.5 rounded-[var(--radius)] bg-[var(--surface-panel)] border border-[var(--border-strong)] text-[var(--text-main)] focus:outline-none focus:ring-2 focus:ring-[var(--focus-ring)]"
                 >
                   {parameterOptions.map((option) => (
                     <option key={option.value} value={option.value}>
@@ -497,7 +497,7 @@ export function ThresholdManagement() {
                     onChange={(event) =>
                       setForm((prev) => ({ ...prev, min_value: event.target.value }))
                     }
-                    className="w-full px-4 py-2.5 rounded-[24px] bg-[var(--surface-panel)] border border-[var(--border-strong)] text-[var(--text-main)] focus:outline-none focus:ring-2 focus:ring-[var(--focus-ring)]"
+                    className="w-full px-4 py-2.5 rounded-[var(--radius)] bg-[var(--surface-panel)] border border-[var(--border-strong)] text-[var(--text-main)] focus:outline-none focus:ring-2 focus:ring-[var(--focus-ring)]"
                   />
                 </div>
                 <div>
@@ -509,7 +509,7 @@ export function ThresholdManagement() {
                     onChange={(event) =>
                       setForm((prev) => ({ ...prev, max_value: event.target.value }))
                     }
-                    className="w-full px-4 py-2.5 rounded-[24px] bg-[var(--surface-panel)] border border-[var(--border-strong)] text-[var(--text-main)] focus:outline-none focus:ring-2 focus:ring-[var(--focus-ring)]"
+                    className="w-full px-4 py-2.5 rounded-[var(--radius)] bg-[var(--surface-panel)] border border-[var(--border-strong)] text-[var(--text-main)] focus:outline-none focus:ring-2 focus:ring-[var(--focus-ring)]"
                   />
                 </div>
               </div>
@@ -525,7 +525,7 @@ export function ThresholdManagement() {
                         severity: event.target.value as ThresholdSeverity,
                       }))
                     }
-                    className="w-full px-4 py-2.5 rounded-[24px] bg-[var(--surface-panel)] border border-[var(--border-strong)] text-[var(--text-main)] focus:outline-none focus:ring-2 focus:ring-[var(--focus-ring)]"
+                    className="w-full px-4 py-2.5 rounded-[var(--radius)] bg-[var(--surface-panel)] border border-[var(--border-strong)] text-[var(--text-main)] focus:outline-none focus:ring-2 focus:ring-[var(--focus-ring)]"
                   >
                     <option value="info">Info</option>
                     <option value="warning">Warning</option>
@@ -577,7 +577,7 @@ export function ThresholdManagement() {
       <div className="mt-6">
         <BentoCard variant="sand">
           <div className="flex items-center gap-3">
-            <div className="p-2 rounded-[16px] bg-[var(--surface-card-secondary)] border border-[var(--border-subtle)]">
+            <div className="p-2 rounded-[var(--radius)] bg-[var(--surface-card-secondary)] border border-[var(--border-subtle)]">
               <SlidersHorizontal className="w-5 h-5 text-[var(--accent-primary)]" />
             </div>
             <p className="text-sm text-[var(--text-subtle)]">

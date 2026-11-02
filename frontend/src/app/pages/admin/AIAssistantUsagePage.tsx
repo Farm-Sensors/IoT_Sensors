@@ -206,7 +206,7 @@ export function AIAssistantUsagePage() {
               Cargando consumo IA...
             </div>
           ) : errorMessage ? (
-            <div className="rounded-xl border border-[var(--status-danger)]/30 bg-[var(--status-danger-bg)] px-3 py-2 text-sm text-[var(--status-danger)]">
+            <div className="rounded-xl border border-[var(--status-danger)]/30 bg-[var(--status-danger-bg)] px-3 py-2 text-sm text-[var(--status-danger-text)]">
               {errorMessage}
             </div>
           ) : items.length === 0 ? (

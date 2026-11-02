@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 import { useParams } from "react-router";
 import { BentoCard } from "../../components/BentoCard";
-import { HierarchyTrail } from "../../components/HierarchyTrail";
+import { Breadcrumbs } from "../../components/Breadcrumbs";
+import { Users, Warehouse, LayoutDashboard } from "lucide-react";
 import { PageHeader } from "../../components/PageHeader";
 import { PageTransition } from "../../components/PageTransition";
 import { SkeletonCard } from "../../components/SkeletonCard";
@@ -112,16 +113,14 @@ export function DashboardPreferences() {
     <PageTransition>
       <div className="min-h-screen p-4 md:p-6 lg:p-8">
         <div className="mb-6">
-          <HierarchyTrail
-            items={[
-              { label: "Clientes", to: "/admin/clientes" },
-              { label: clientName },
-              { label: "Dashboard" },
-            ]}
-          />
+          <Breadcrumbs items={[
+            { label: "Clientes", to: "/admin/clientes", icon: Users },
+            { label: clientName, to: clientId ? `/admin/clientes/${clientId}/predios` : undefined, icon: Warehouse },
+            { label: "Dashboard", icon: LayoutDashboard },
+          ]} />
           <PageHeader
             title="Tarjetas del dashboard"
-            subtitle={`Elige qué tarjetas ve ${clientName} en su dashboard.`}
+            subtitle={`Qué tarjetas ve ${clientName} en su pantalla del área (Ahora).`}
           />
         </div>
 
@@ -143,7 +142,7 @@ export function DashboardPreferences() {
                 {DASHBOARD_CARD_KEYS.map((key) => (
                   <label
                     key={key}
-                    className="flex items-center gap-3 rounded-[20px] border border-[var(--border-subtle)] bg-[var(--surface-panel)] px-4 py-3 cursor-pointer hover:bg-[var(--hover-overlay)] transition-colors"
+                    className="flex items-center gap-3 rounded-[var(--radius)] border border-[var(--border-subtle)] bg-[var(--surface-panel)] px-4 py-3 cursor-pointer hover:bg-[var(--hover-overlay)] transition-colors"
                   >
                     <input
                       type="checkbox"

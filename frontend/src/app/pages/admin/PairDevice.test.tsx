@@ -129,9 +129,9 @@ describe("PairDevice", () => {
     const approve = await screen.findByRole("button", { name: /aprobar emparejamiento/i });
     expect(approve).toBeDisabled();
 
-    const ranch = screen.getByLabelText("Rancho");
+    const ranch = screen.getByLabelText("Predio");
     expect(
-      screen.getByRole("option", { name: "Rancho Norte · Agrícola Norte · falta vincular su equipo" }),
+      screen.getByRole("option", { name: "Agrícola Norte · Rancho Norte · falta vincular su equipo" }),
     ).toBeInTheDocument();
     expect(screen.queryByText(/Gateway #|Predio \d/)).not.toBeInTheDocument();
     fireEvent.change(ranch, { target: { value: "7" } });
@@ -178,7 +178,7 @@ describe("PairDevice", () => {
     });
 
     renderPage("/admin/gateways/pair?code=BCDF-GHJK");
-    fireEvent.change(await screen.findByLabelText("Rancho"), { target: { value: "9" } });
+    fireEvent.change(await screen.findByLabelText("Predio"), { target: { value: "9" } });
 
     expect(await screen.findByTestId("replace-credential-warning")).toBeInTheDocument();
     fireEvent.click(screen.getByLabelText(/confirmo que este código aparece/i));

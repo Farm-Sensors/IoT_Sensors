@@ -54,7 +54,7 @@ describe("DashboardPreferences (pantalla admin)", () => {
     renderPage();
 
     expect(await screen.findByLabelText("Humedad del Suelo")).toBeChecked();
-    expect(screen.getByLabelText("Gráfica de humedad (últimas 12 lecturas)")).toBeChecked();
+    expect(screen.getByLabelText("Gráfica de humedad (últimas 24 h)")).toBeChecked();
     expect(screen.getByLabelText("Flujo de Agua")).not.toBeChecked();
     expect(screen.getAllByText("Rancho Prueba").length).toBeGreaterThan(0);
     expect(screen.getByText(/Configurado: el dashboard muestra exactamente las tarjetas marcadas/)).toBeTruthy();
@@ -72,7 +72,7 @@ describe("DashboardPreferences (pantalla admin)", () => {
     });
     renderPage();
 
-    const environmental = await screen.findByLabelText("Ambiental");
+    const environmental = await screen.findByLabelText("Otras mediciones: ambiente");
     expect(environmental).not.toBeChecked();
     fireEvent.click(environmental);
     fireEvent.click(screen.getByText("Guardar preferencias"));
@@ -92,7 +92,7 @@ describe("DashboardPreferences (pantalla admin)", () => {
 
     expect(await screen.findByText(/Sin configurar: el dashboard muestra automáticamente solo las tarjetas que tengan datos/)).toBeTruthy();
     expect(screen.getByLabelText("Humedad del Suelo")).not.toBeChecked();
-    expect(screen.getByLabelText("Fuentes externas")).not.toBeChecked();
+    expect(screen.getByLabelText("Fuentes externas (clima de referencia y NDVI)")).not.toBeChecked();
     expect(screen.getByText("Volver a automático")).toBeDisabled();
   });
 

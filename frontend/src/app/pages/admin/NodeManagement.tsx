@@ -1,5 +1,11 @@
 import { Pencil, Plus, Radio, Trash2, CheckCircle2, XCircle } from "lucide-react";
 import { PageHeader } from "../../components/PageHeader";
+import { useEmbedded } from "../../components/EmbeddedPanel";
+import { Link } from "react-router";
+import { ChevronRight } from "lucide-react";
+import { StateBadge } from "../client/overview/OverviewCharts";
+import { areaState, formatAgo, minutesSince } from "../client/overview/areaStatus";
+import { listBox, rowLink } from "./directory/Health";
 import { ConfirmDialog } from "../../components/ConfirmDialog";
 import { FormDialog } from "../../components/FormDialog";
 import { StatusBadge } from "../../components/StatusBadge";
@@ -57,7 +63,9 @@ function parseCoordinateInput(
   return numericValue;
 }
 
-export function NodeManagement() {
+/** `areaId`: solo el nodo de esa área (Directorio › Área › Nodo); sin él, todos los nodos. */
+export function NodeManagement({ areaId }: { areaId?: number } = {}) {
+  const embedded = useEmbedded();
   const { showToast } = useToast();
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [showEditForm, setShowEditForm] = useState(false);
@@ -75,7 +83,7 @@ export function NodeManagement() {
   const [formSerialNumber, setFormSerialNumber] = useState("");
   const [formLat, setFormLat] = useState("");
   const [formLng, setFormLng] = useState("");
-  const [formAreaId, setFormAreaId] = useState("");
+  const [formAreaId, setFormAreaId] = useState(areaId ? String(areaId) : "");
   const [editName, setEditName] = useState("");
   const [editSerialNumber, setEditSerialNumber] = useState("");
   const [editLat, setEditLat] = useState("");
@@ -94,8 +102,10 @@ export function NodeManagement() {
         getGeoNodes({ include_without_coordinates: true, per_page: 200 }),
       ]);
 
-      setNodes(nodesRes.data.data || nodesRes.data);
-      setAreas(areasRes.data.data || areasRes.data);
+      const allNodes: NodeData[] = nodesRes.data.data || nodesRes.data;
+      const allAreas: IrrigationArea[] = areasRes.data.data || areasRes.data;
+      setNodes(areaId ? allNodes.filter((n) => n.irrigation_area_id === areaId) : allNodes);
+      setAreas(areaId ? allAreas.filter((a) => a.id === areaId) : allAreas);
       setPropertyNames(
         Object.fromEntries((propertiesRes.data.data || []).map((p) => [p.id, p.name])),
       );
@@ -111,7 +121,7 @@ export function NodeManagement() {
 
   useEffect(() => {
     fetchData();
-  }, []);
+  }, [areaId]);
 
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -138,7 +148,7 @@ export function NodeManagement() {
       setFormSerialNumber("");
       setFormLat("");
       setFormLng("");
-      setFormAreaId("");
+      setFormAreaId(areaId ? String(areaId) : "");
       await fetchData();
     } catch (err: any) {
       setError(getErrorMessage(err, "Error creating node"));
@@ -220,6 +230,19 @@ export function NodeManagement() {
     return propertyName ? `${area.name} · ${propertyName}` : area.name;
   };
 
+  // Lista de nodos por predio, con lo más grave primero (sin comunicación), no una tabla de 7 columnas.
+  const rowsByProperty = (() => {
+    const severity = { sin_comunicacion: 0, sin_datos: 1, sin_nodo: 2, al_dia: 3 } as const;
+    const items = nodes.map((node) => {
+      const area = areas.find((a) => a.id === node.irrigation_area_id);
+      const last = parseBackendTimestamp(lastReadings[node.id] ?? null);
+      return { node, area, last, state: areaState(true, last), property: area ? propertyNames[area.property_id] ?? "Sin predio" : "Sin predio" };
+    });
+    const names = Array.from(new Set(items.map((i) => i.property)));
+    const groupsList = names.map((name) => ({ name, items: items.filter((i) => i.property === name).sort((a, b) => severity[a.state] - severity[b.state] || (a.last?.getTime() ?? 0) - (b.last?.getTime() ?? 0)) }));
+    return groupsList.sort((a, b) => Math.min(...a.items.map((i) => severity[i.state])) - Math.min(...b.items.map((i) => severity[i.state])) || a.name.localeCompare(b.name));
+  })();
+
   if (loading && nodes.length === 0) {
     return (
       <PageTransition>
@@ -262,8 +285,7 @@ export function NodeManagement() {
     <div className="min-h-screen p-4 md:p-6 lg:p-8">
       <div className="mb-6">
         <PageHeader
-          title="Gestión de Nodos"
-          subtitle="Administra los sensores IoT del sistema"
+          title={embedded ? "" : "Nodos"}
           action={
             <PillButton variant="primary" onClick={() => setShowCreateForm(true)}>
               <Plus aria-hidden="true" className="w-4 h-4 mr-2" />
@@ -279,90 +301,73 @@ export function NodeManagement() {
         </div>
       )}
 
-      {/* Table */}
-      <BentoCard variant="light" className="overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse">
-            <thead>
-              <tr className="border-b border-[var(--border-strong)]">
-                <th scope="col" className="text-left py-3 px-4 text-sm font-semibold text-[var(--text-subtle)]">Nombre</th>
-                <th scope="col" className="text-left py-3 px-4 text-sm font-semibold text-[var(--text-subtle)]">Serie</th>
-                <th scope="col" className="text-left py-3 px-4 text-sm font-semibold text-[var(--text-subtle)]">Área Vinculada</th>
-                <th scope="col" className="text-left py-3 px-4 text-sm font-semibold text-[var(--text-subtle)]">GPS</th>
-                <th scope="col" className="text-left py-3 px-4 text-sm font-semibold text-[var(--text-subtle)]">Habilitado</th>
-                <th scope="col" className="text-left py-3 px-4 text-sm font-semibold text-[var(--text-subtle)]">Última lectura</th>
-                <th scope="col" className="text-left py-3 px-4 text-sm font-semibold text-[var(--text-subtle)]">Acciones</th>
-              </tr>
-            </thead>
-            <tbody>
-              {nodes.map((node, i) => (
-                <tr key={node.id} className={i % 2 === 0 ? "bg-[var(--bg-base)]/30" : ""}>
-                  <td className="py-4 px-4">
-                    <span className="font-medium text-[var(--text-main)]">
-                      {node.name || `Nodo #${node.id}`}
-                    </span>
-                  </td>
-                  <td className="py-4 px-4 text-sm text-[var(--text-muted)] font-mono">
-                    {node.serial_number || '-'}
-                  </td>
-                  <td className="py-4 px-4 text-sm text-[var(--text-main)]">
-                    {getAreaName(node.irrigation_area_id)}
-                  </td>
-                  <td className="py-4 px-4 text-sm text-[var(--text-subtle)]">
-                    {node.latitude !== null && node.longitude !== null
-                      ? `${node.latitude}, ${node.longitude}`
-                      : 'No configurado'
-                    }
-                  </td>
-                  <td className="py-4 px-4">
-                    <StatusBadge tone={node.is_active ? "active" : "danger"} icon={node.is_active ? CheckCircle2 : XCircle}>{node.is_active ? "Sí" : "No"}</StatusBadge>
-                  </td>
-                  <td className="py-4 px-4 text-sm text-[var(--text-subtle)]">
-                    {lastReadings[node.id]
-                      ? formatElapsed(parseBackendTimestamp(lastReadings[node.id]))
-                      : 'Sin datos aún'}
-                  </td>
-                  <td className="py-4 px-4">
-                    <div className="flex items-center gap-1">
-                      <button
-                        type="button"
-                        onClick={() => handleOpenEdit(node)}
-                        aria-label={`Editar el nodo ${node.name || node.serial_number || `#${node.id}`}`}
-                        className="inline-flex h-11 w-11 items-center justify-center rounded-full hover:bg-[var(--hover-overlay)] transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus-ring)]"
-                        title="Editar nodo"
-                      >
-                        <Pencil aria-hidden="true" className="w-4 h-4 text-[var(--text-main)]" />
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setPendingDelete({ id: node.id, name: node.name || node.serial_number || `#${node.id}` })}
-                        aria-label={`Eliminar el nodo ${node.name || node.serial_number || `#${node.id}`}`}
-                        className="inline-flex h-11 w-11 items-center justify-center rounded-full hover:bg-[var(--status-danger-bg)] transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus-ring)]"
-                        title="Eliminar nodo"
-                      >
-                        <Trash2 aria-hidden="true" className="w-4 h-4 text-[var(--status-danger)]" />
-                      </button>
+      {embedded ? (
+        nodes.length === 0 && !loading ? (
+          <EmptyState icon={Radio} title="Sin nodos registrados" description="Registra el nodo de esta área para empezar a recibir datos." action={{ label: "Registrar nodo", onClick: () => setShowCreateForm(true) }} />
+        ) : (
+          <ul className="space-y-3">
+            {nodes.map((node) => {
+              const label = node.name || node.serial_number || `Nodo #${node.id}`;
+              const last = lastReadings[node.id];
+              return (
+                <li key={node.id} className="rounded-[var(--radius)] border border-[var(--border)] bg-[var(--card)] p-4">
+                  <div className="flex flex-wrap items-start justify-between gap-3">
+                    <div className="min-w-0">
+                      <p className="truncate text-base font-semibold">{label}</p>
+                      <p className="text-sm text-[var(--text-muted)]">
+                        {last ? `Último dato ${formatElapsed(parseBackendTimestamp(last)).toLowerCase()}` : "Aún sin datos"}
+                      </p>
                     </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-          {nodes.length === 0 && !loading && (
-            <div className="py-8 px-4">
-              <EmptyState
-                icon={Radio}
-                title="Sin nodos IoT registrados"
-                description="Registra tu primer sensor para comenzar a recopilar datos de riego."
-                action={{
-                  label: "Crear primer nodo",
-                  onClick: () => setShowCreateForm(true),
-                }}
-              />
-            </div>
-          )}
+                    <div className="flex items-center gap-1">
+                      <StatusBadge tone={node.is_active ? "active" : "danger"} icon={node.is_active ? CheckCircle2 : XCircle}>{node.is_active ? "Habilitado" : "Deshabilitado"}</StatusBadge>
+                      <button type="button" onClick={() => handleOpenEdit(node)} aria-label={`Editar el nodo ${label}`} title="Editar nodo" className="inline-flex h-11 w-11 items-center justify-center rounded-[var(--radius)] hover:bg-[var(--hover-overlay)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus-ring)]"><Pencil aria-hidden="true" className="h-4 w-4" /></button>
+                      <button type="button" onClick={() => setPendingDelete({ id: node.id, name: label })} aria-label={`Eliminar el nodo ${label}`} title="Eliminar nodo" className="inline-flex h-11 w-11 items-center justify-center rounded-[var(--radius)] hover:bg-[var(--status-danger-bg)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus-ring)]"><Trash2 aria-hidden="true" className="h-4 w-4 text-[var(--status-danger-text)]" /></button>
+                    </div>
+                  </div>
+                  <dl className="mt-3 grid gap-x-8 gap-y-1 text-sm sm:grid-cols-2">
+                    {node.serial_number && <div><dt className="text-xs text-[var(--text-muted)]">Número de serie</dt><dd className="font-mono-data">{node.serial_number}</dd></div>}
+                    <div><dt className="text-xs text-[var(--text-muted)]">Coordenadas</dt><dd className="font-mono-data">{node.latitude !== null && node.longitude !== null ? `${Math.abs(node.latitude).toFixed(4)}° ${node.latitude >= 0 ? "N" : "S"}, ${Math.abs(node.longitude).toFixed(4)}° ${node.longitude >= 0 ? "E" : "O"}` : "No configuradas"}</dd></div>
+                  </dl>
+                </li>
+              );
+            })}
+          </ul>
+        )
+      ) : nodes.length === 0 && !loading ? (
+        <EmptyState icon={Radio} title="Sin nodos registrados" description="Registra tu primer sensor para comenzar a recopilar datos de riego." action={{ label: "Crear primer nodo", onClick: () => setShowCreateForm(true) }} />
+      ) : (
+        <div className="space-y-6">
+          {rowsByProperty.map((group) => (
+            <section key={group.name} aria-label={group.name}>
+              <h2 className="mb-1 flex items-center gap-2 text-sm font-semibold">{group.name}<span className="font-mono-data font-normal text-[var(--text-muted)]">{group.items.length}</span></h2>
+              <ul className={listBox}>
+                {group.items.map(({ node, area, last, state }) => {
+                  const label = node.name || node.serial_number || `Nodo #${node.id}`;
+                  return (
+                    <li key={node.id} className="flex items-stretch">
+                      <Link to={`/admin/nodos/${node.id}`} className={`${rowLink} min-w-0 flex-1`}>
+                        <span className="min-w-0 flex-1 max-sm:basis-full">
+                          <span className="block truncate font-semibold">{area?.name ?? "Área desconocida"}</span>
+                          <span className="block truncate text-sm text-[var(--text-muted)]">{label}{!node.is_active ? " · deshabilitado" : ""}</span>
+                        </span>
+                        <span className="flex w-[11rem] flex-shrink-0 flex-col items-start max-sm:w-auto">
+                          <StateBadge state={state} />
+                          <span className="text-xs text-[var(--text-muted)]">{last ? formatAgo(minutesSince(last)) : "sin lecturas"}</span>
+                        </span>
+                        <ChevronRight aria-hidden="true" className="h-4 w-4 flex-shrink-0 text-[var(--text-muted)]" />
+                      </Link>
+                      <div className="flex items-center gap-1 border-l border-[var(--border)] px-2">
+                        <button type="button" onClick={() => handleOpenEdit(node)} aria-label={`Editar el nodo ${label}`} title="Editar nodo" className="inline-flex h-11 w-11 items-center justify-center rounded-[var(--radius)] hover:bg-[var(--hover-overlay)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus-ring)]"><Pencil aria-hidden="true" className="h-4 w-4" /></button>
+                        <button type="button" onClick={() => setPendingDelete({ id: node.id, name: label })} aria-label={`Eliminar el nodo ${label}`} title="Eliminar nodo" className="inline-flex h-11 w-11 items-center justify-center rounded-[var(--radius)] hover:bg-[var(--status-danger-bg)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus-ring)]"><Trash2 aria-hidden="true" className="h-4 w-4 text-[var(--status-danger-text)]" /></button>
+                      </div>
+                    </li>
+                  );
+                })}
+              </ul>
+            </section>
+          ))}
         </div>
-      </BentoCard>
+      )}
 
       {/* Create form */}
       {showCreateForm && (<FormDialog open title="Nuevo Nodo IoT" onClose={() => setShowCreateForm(false)}>
@@ -374,7 +379,7 @@ export function NodeManagement() {
                   required
                   value={formAreaId}
                   onChange={(e) => setFormAreaId(e.target.value)}
-                  className="w-full px-4 py-2.5 rounded-[24px] bg-[var(--surface-panel)] border border-[var(--border-strong)] text-[var(--text-main)] focus:outline-none focus:ring-2 focus:ring-[var(--focus-ring)]"
+                  className="w-full px-4 py-2.5 rounded-[var(--radius)] bg-[var(--surface-panel)] border border-[var(--border-strong)] text-[var(--text-main)] focus:outline-none focus:ring-2 focus:ring-[var(--focus-ring)]"
                 >
                   <option value="">Seleccione un área</option>
                   {areas.map(a => (
@@ -391,7 +396,7 @@ export function NodeManagement() {
                   value={formName}
                   onChange={(e) => setFormName(e.target.value)}
                   placeholder="Ej: Sensor Nogal-01"
-                  className="w-full px-4 py-2.5 rounded-[24px] bg-[var(--surface-panel)] border border-[var(--border-strong)] text-[var(--text-main)] focus:outline-none focus:ring-2 focus:ring-[var(--focus-ring)]"
+                  className="w-full px-4 py-2.5 rounded-[var(--radius)] bg-[var(--surface-panel)] border border-[var(--border-strong)] text-[var(--text-main)] focus:outline-none focus:ring-2 focus:ring-[var(--focus-ring)]"
                 />
               </div>
 
@@ -404,7 +409,7 @@ export function NodeManagement() {
                   value={formSerialNumber}
                   onChange={(e) => setFormSerialNumber(e.target.value)}
                   placeholder="SN-2026-001"
-                  className="w-full px-4 py-2.5 rounded-[24px] bg-[var(--surface-panel)] border border-[var(--border-strong)] text-[var(--text-main)] focus:outline-none focus:ring-2 focus:ring-[var(--focus-ring)]"
+                  className="w-full px-4 py-2.5 rounded-[var(--radius)] bg-[var(--surface-panel)] border border-[var(--border-strong)] text-[var(--text-main)] focus:outline-none focus:ring-2 focus:ring-[var(--focus-ring)]"
                 />
                 <p id="node-create-serial-help" className="mt-1 text-xs text-[var(--text-subtle)]">
                   {SERIAL_HELP}
@@ -421,7 +426,7 @@ export function NodeManagement() {
                     value={formLat}
                     onChange={(e) => setFormLat(e.target.value)}
                     placeholder="28.6329"
-                    className="w-full px-4 py-2.5 rounded-[24px] bg-[var(--surface-panel)] border border-[var(--border-strong)] text-[var(--text-main)] focus:outline-none focus:ring-2 focus:ring-[var(--focus-ring)]"
+                    className="w-full px-4 py-2.5 rounded-[var(--radius)] bg-[var(--surface-panel)] border border-[var(--border-strong)] text-[var(--text-main)] focus:outline-none focus:ring-2 focus:ring-[var(--focus-ring)]"
                   />
                 </div>
                 <div>
@@ -433,7 +438,7 @@ export function NodeManagement() {
                     value={formLng}
                     onChange={(e) => setFormLng(e.target.value)}
                     placeholder="-106.0691"
-                    className="w-full px-4 py-2.5 rounded-[24px] bg-[var(--surface-panel)] border border-[var(--border-strong)] text-[var(--text-main)] focus:outline-none focus:ring-2 focus:ring-[var(--focus-ring)]"
+                    className="w-full px-4 py-2.5 rounded-[var(--radius)] bg-[var(--surface-panel)] border border-[var(--border-strong)] text-[var(--text-main)] focus:outline-none focus:ring-2 focus:ring-[var(--focus-ring)]"
                   />
                 </div>
               </div>
@@ -459,7 +464,7 @@ export function NodeManagement() {
                   type="text"
                   value={getAreaName(editingNode.irrigation_area_id)}
                   readOnly
-                  className="w-full px-4 py-2.5 rounded-[24px] bg-[var(--surface-card-primary)] border border-[var(--border-strong)] text-[var(--text-subtle)]"
+                  className="w-full px-4 py-2.5 rounded-[var(--radius)] bg-[var(--surface-card-primary)] border border-[var(--border-strong)] text-[var(--text-subtle)]"
                 />
               </div>
 
@@ -471,7 +476,7 @@ export function NodeManagement() {
                   value={editName}
                   onChange={(e) => setEditName(e.target.value)}
                   placeholder="Ej: Sensor Nogal-01"
-                  className="w-full px-4 py-2.5 rounded-[24px] bg-[var(--surface-panel)] border border-[var(--border-strong)] text-[var(--text-main)] focus:outline-none focus:ring-2 focus:ring-[var(--focus-ring)]"
+                  className="w-full px-4 py-2.5 rounded-[var(--radius)] bg-[var(--surface-panel)] border border-[var(--border-strong)] text-[var(--text-main)] focus:outline-none focus:ring-2 focus:ring-[var(--focus-ring)]"
                 />
               </div>
 
@@ -484,7 +489,7 @@ export function NodeManagement() {
                   value={editSerialNumber}
                   onChange={(e) => setEditSerialNumber(e.target.value)}
                   placeholder="SN-2026-001"
-                  className="w-full px-4 py-2.5 rounded-[24px] bg-[var(--surface-panel)] border border-[var(--border-strong)] text-[var(--text-main)] focus:outline-none focus:ring-2 focus:ring-[var(--focus-ring)]"
+                  className="w-full px-4 py-2.5 rounded-[var(--radius)] bg-[var(--surface-panel)] border border-[var(--border-strong)] text-[var(--text-main)] focus:outline-none focus:ring-2 focus:ring-[var(--focus-ring)]"
                 />
                 <p id="node-edit-serial-help" className="mt-1 text-xs text-[var(--text-subtle)]">
                   {SERIAL_HELP}
@@ -501,7 +506,7 @@ export function NodeManagement() {
                     value={editLat}
                     onChange={(e) => setEditLat(e.target.value)}
                     placeholder="28.6329"
-                    className="w-full px-4 py-2.5 rounded-[24px] bg-[var(--surface-panel)] border border-[var(--border-strong)] text-[var(--text-main)] focus:outline-none focus:ring-2 focus:ring-[var(--focus-ring)]"
+                    className="w-full px-4 py-2.5 rounded-[var(--radius)] bg-[var(--surface-panel)] border border-[var(--border-strong)] text-[var(--text-main)] focus:outline-none focus:ring-2 focus:ring-[var(--focus-ring)]"
                   />
                 </div>
                 <div>
@@ -513,7 +518,7 @@ export function NodeManagement() {
                     value={editLng}
                     onChange={(e) => setEditLng(e.target.value)}
                     placeholder="-106.0691"
-                    className="w-full px-4 py-2.5 rounded-[24px] bg-[var(--surface-panel)] border border-[var(--border-strong)] text-[var(--text-main)] focus:outline-none focus:ring-2 focus:ring-[var(--focus-ring)]"
+                    className="w-full px-4 py-2.5 rounded-[var(--radius)] bg-[var(--surface-panel)] border border-[var(--border-strong)] text-[var(--text-main)] focus:outline-none focus:ring-2 focus:ring-[var(--focus-ring)]"
                   />
                 </div>
               </div>
