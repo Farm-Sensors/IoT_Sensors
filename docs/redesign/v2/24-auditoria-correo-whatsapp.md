@@ -17,3 +17,5 @@ Fase 2 autorizada (ver `README.md`). Solo presentación: el modelo de datos (pre
 - **Barra de cambios** fija abajo solo cuando hay cambios: «Tienes cambios sin guardar» con **Descartar** y **Guardar cambios**. Se quita «Recargar».
 - Mensajes de éxito y error en español, vacío sin áreas útil y carga con `role="status"`.
 - Los valores internos (`threshold`, `inactivity`, `info`…) no cambian ni se envían distinto.
+
+**Aclaración de la gravedad (2026-11-01, a petición de JP):** la columna «Información» no se entendía. Ahora cada columna lleva el mismo icono y color que la alerta correspondiente (Crítica, Aviso, Información) y, sobre la tabla, una línea explica qué significa cada gravedad: «La gravedad la define cada umbral. Crítica: algo urgente. Aviso: conviene revisarlo. Información: solo para que lo sepas».

@@ -5,6 +5,7 @@ import { Disclosure } from "../../components/Disclosure";
 import { PageTransition } from "../../components/PageTransition";
 import { SkeletonCard } from "../../components/SkeletonCard";
 import { useSelection } from "../../context/SelectionContext";
+import { SEVERITY_META } from "../shared/alertFormat";
 import {
   NotificationAlertType,
   NotificationChannel,
@@ -331,6 +332,11 @@ export function NotificationPreferencesPage() {
                           Desactivar todos
                         </button>
                       </div>
+                      <p className="mb-2 text-sm text-[var(--text-muted)]">
+                        La gravedad la define cada umbral. <strong className="font-semibold text-[var(--text-main)]">Crítica:</strong> algo urgente.{" "}
+                        <strong className="font-semibold text-[var(--text-main)]">Aviso:</strong> conviene revisarlo.{" "}
+                        <strong className="font-semibold text-[var(--text-main)]">Información:</strong> solo para que lo sepas.
+                      </p>
                       <div className="overflow-x-auto">
                         <table className="w-full min-w-[420px] border-collapse text-left text-sm">
                           <caption className="sr-only">Avisos de {area.name} por situación, canal y gravedad</caption>
@@ -338,11 +344,18 @@ export function NotificationPreferencesPage() {
                             <tr className="border-b border-[var(--border)]">
                               <th scope="col" className="py-2 pr-2 text-xs font-semibold text-[var(--text-muted)]">Cuándo avisar</th>
                               <th scope="col" className="py-2 pr-2 text-xs font-semibold text-[var(--text-muted)]">Por</th>
-                              {SEVERITIES.map((severity) => (
-                                <th key={severity.value} scope="col" className="px-2 py-2 text-center text-xs font-semibold text-[var(--text-muted)]">
-                                  {severity.label}
-                                </th>
-                              ))}
+                              {SEVERITIES.map((severity) => {
+                                const meta = SEVERITY_META[severity.value];
+                                const Icon = meta.icon;
+                                return (
+                                  <th key={severity.value} scope="col" className="px-2 py-2 text-center text-xs font-semibold">
+                                    <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 ${meta.bg} ${meta.text}`}>
+                                      <Icon aria-hidden="true" className="h-3.5 w-3.5" />
+                                      {severity.label}
+                                    </span>
+                                  </th>
+                                );
+                              })}
                             </tr>
                           </thead>
                           <tbody>
