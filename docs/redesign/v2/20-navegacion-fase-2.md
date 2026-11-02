@@ -1,6 +1,6 @@
 # Navegación de las pantallas de Fase 2 (aplicada el 2026-11-01)
 
-> **Estado:** aprobada por JP («Asistente» sin «IA» y Consumo como pestaña) y aplicada. Menú de 5 destinos (productor) y 6 (admin), pestañas por módulo (`SectionTabs`), `?area=` en Alertas y Umbrales (`useAreaFromQuery`), línea «N alertas sin leer» en Área (`AreaAlertsLink`) y enlace a los umbrales del área en Detalles. En móvil, el administrador conserva sus 6 destinos con la barra desplazable (Ajustes sigue en la barra, no en el menú de cuenta). Textos y estética de cada pantalla: siguiente etapa.
+> **Estado:** aprobada por JP («Asistente» sin «IA» y Consumo como pestaña) y aplicada. Menú de 5 destinos (productor) y 6 (admin), pestañas por módulo (`SectionTabs`), `?area=` en Alertas y Umbrales (`useAreaFromQuery`), línea «N alertas sin leer» en Área (`AreaAlertsLink`) y enlace a los umbrales del área en Detalles. En móvil, el administrador conserva sus 6 destinos y la barra los reparte por igual sin desplazarse (hasta 6; se mide a 360, 390 y 430 px sin textos recortados). Ajustes sigue en la barra, no en el menú de cuenta. Textos y estética de cada pantalla: siguiente etapa.
 
 Autorizado el 2026-11-01 (ver `../README.md`). Alcance: **solo navegación y arquitectura de información**; la estética va después. Sin cambios de backend, API, base de datos, permisos, flags ni lógica. Las rutas actuales **no cambian de dirección**; solo cambia dónde se llega a ellas y cómo se agrupan. Cada módulo sigue ocultándose con su flag.
 

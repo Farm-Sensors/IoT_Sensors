@@ -9,15 +9,15 @@ interface MobileTabBarProps {
 }
 
 /**
- * Pestañas inferiores: todos los destinos visibles. Con 5 o menos ocupan el ancho por igual;
- * si hay más (módulos de Fase 2 encendidos) la barra se desplaza por dentro.
+ * Pestañas inferiores: todos los destinos visibles. Con 6 o menos ocupan el ancho por igual
+ * (el admin con Fase 2 encendida llega a 6); si hubiera más, la barra se desplaza por dentro.
  * Tema y «Cerrar sesión» viven en el encabezado móvil, no aquí.
  */
 export function MobileTabBar({ role }: MobileTabBarProps) {
   const location = useLocation();
   const tabs = navItemsFor(role, useModules());
   const activeRef = useRef<HTMLAnchorElement>(null);
-  const scrolls = tabs.length > 5;
+  const scrolls = tabs.length > 6;
 
   useEffect(() => {
     activeRef.current?.scrollIntoView?.({ inline: "center", block: "nearest" });
@@ -49,7 +49,7 @@ export function MobileTabBar({ role }: MobileTabBarProps) {
               onTouchStart={() => maybePreloadMaps(tab.path)}
               aria-current={isActive ? "page" : undefined}
               aria-label={tab.mobileLabel ?? tab.label}
-              className={`flex min-h-[60px] flex-col items-center justify-center gap-0.5 border-t-[3px] px-1 text-[11px] font-semibold transition-colors
+              className={`flex min-h-[60px] flex-col items-center justify-center gap-0.5 border-t-[3px] px-0.5 text-[11px] font-semibold transition-colors
                 focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-sidebar-ring
                 ${scrolls ? "min-w-[72px] flex-shrink-0" : ""}
                 ${isActive
