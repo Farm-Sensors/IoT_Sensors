@@ -1,12 +1,14 @@
-import { ChevronRight, Warehouse } from "lucide-react";
+import { ArrowDown, ArrowLeft, ArrowRight, ArrowUp, ChevronRight, GripVertical, Pencil, RotateCcw, Warehouse } from "lucide-react";
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { Link } from "react-router";
 import { EmptyState } from "../../components/EmptyState";
 import { ErrorState } from "../../components/ErrorState";
 import { SkeletonCard } from "../../components/SkeletonCard";
+import { useAuth } from "../../context/AuthContext";
 import { useSelection } from "../../context/SelectionContext";
 import { AREA_STATE_LABEL, AREA_STATE_ORDER, formatAgo, hourlyHumidity, hourlyLiters, minutesSince, summarize } from "./overview/areaStatus";
 import { HumidityChart, LitersChart, StateBadge } from "./overview/OverviewCharts";
+import { applyOrder, moveBy, moveTo, useSavedOrder } from "./overview/order";
 import { useAreaOverview, type AreaOverviewRow } from "./overview/useAreaOverview";
 
 const HATCH = "repeating-linear-gradient(135deg, transparent 0 7px, color-mix(in srgb, var(--text-muted) 22%, transparent) 7px 8px)";
@@ -16,7 +18,18 @@ const HATCH = "repeating-linear-gradient(135deg, transparent 0 7px, color-mix(in
  * es el nivel de agua que sube desde abajo (0–100 %). El nivel no juzga si es poco o mucho (no hay
  * umbrales); un área sin datos recientes no dibuja nivel ni cifra, solo trama y su estado.
  */
-function AreaTile({ row, weight, now }: { row: AreaOverviewRow; weight: number; now: number }) {
+interface TileEdit {
+  canBack: boolean;
+  canForward: boolean;
+  dragging: boolean;
+  onBack: () => void;
+  onForward: () => void;
+  onDragStart: () => void;
+  onDragEnd: () => void;
+  onDropHere: () => void;
+}
+
+function AreaTile({ row, weight, now, edit }: { row: AreaOverviewRow; weight: number; now: number; edit?: TileEdit }) {
   const ok = row.state === "al_dia" && row.humidity !== null;
   const minutes = row.lastUpdate ? minutesSince(row.lastUpdate, now) : null;
   const level = ok ? Math.min(100, Math.max(0, row.humidity!)) : 0;
@@ -27,14 +40,10 @@ function AreaTile({ row, weight, now }: { row: AreaOverviewRow; weight: number; 
     return () => cancelAnimationFrame(frame);
   }, [level]);
   const detail = [row.area.crop_type?.name, row.area.area_size ? `${row.area.area_size} ha` : null].filter(Boolean).join(" · ");
-  return (
-    <Link
-      to={`/cliente/area/${row.area.id}`}
-      aria-label={`Abrir ${row.area.name}: ${ok ? `${row.humidity!.toFixed(1)} % de humedad` : "sin datos recientes"}, ${AREA_STATE_LABEL[row.state].toLowerCase()}`}
-      style={{ flex: `${weight} 1 0`, backgroundImage: ok ? undefined : HATCH }}
-      className="group relative flex min-w-[158px] flex-col overflow-hidden rounded-[var(--radius)] border border-[var(--border-strong)] bg-[var(--card)] transition-colors hover:border-[var(--accent-primary)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus-ring)]"
-    >
-      <span aria-hidden="true" className="absolute right-2 top-2 z-10 inline-flex items-center text-xs font-semibold text-[var(--accent-primary)] opacity-80 group-hover:opacity-100">Abrir<ChevronRight className="h-3.5 w-3.5" /></span>
+  const rootClass = "group relative flex min-w-[158px] flex-col overflow-hidden rounded-[var(--radius)] border border-[var(--border-strong)] bg-[var(--card)]";
+  const rootStyle = { flex: `${weight} 1 0`, backgroundImage: ok ? undefined : HATCH };
+  const content = (
+    <>
       <div className="min-h-[60px] min-w-0 flex-1 p-3 pr-14">
         <div className="line-clamp-2 text-sm font-semibold leading-snug">{row.area.name}</div>
         <div className="truncate text-xs text-[var(--text-muted)]">{detail}</div>
@@ -67,6 +76,46 @@ function AreaTile({ row, weight, now }: { row: AreaOverviewRow; weight: number; 
           </div>
         )}
       </div>
+    </>
+  );
+
+  if (edit) {
+    return (
+      <div
+        draggable
+        onDragStart={(event) => {
+          event.dataTransfer.effectAllowed = "move";
+          event.dataTransfer.setData("text/plain", String(row.area.id));
+          edit.onDragStart();
+        }}
+        onDragEnd={edit.onDragEnd}
+        onDragOver={(event) => event.preventDefault()}
+        onDrop={(event) => {
+          event.preventDefault();
+          edit.onDropHere();
+        }}
+        style={rootStyle}
+        className={`${rootClass} cursor-grab border-dashed active:cursor-grabbing ${edit.dragging ? "opacity-40" : ""}`}
+      >
+        <div className="absolute right-1.5 top-1.5 z-10 flex items-center gap-0.5">
+          <button type="button" onClick={edit.onBack} disabled={!edit.canBack} aria-label={`Mover ${row.area.name} antes`} title="Mover antes" className="inline-flex h-9 w-9 items-center justify-center rounded-[var(--radius)] text-[var(--text-muted)] hover:bg-[var(--hover-overlay)] disabled:opacity-30 focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus-ring)]"><ArrowLeft aria-hidden="true" className="h-4 w-4" /></button>
+          <button type="button" onClick={edit.onForward} disabled={!edit.canForward} aria-label={`Mover ${row.area.name} después`} title="Mover después" className="inline-flex h-9 w-9 items-center justify-center rounded-[var(--radius)] text-[var(--text-muted)] hover:bg-[var(--hover-overlay)] disabled:opacity-30 focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus-ring)]"><ArrowRight aria-hidden="true" className="h-4 w-4" /></button>
+          <GripVertical aria-hidden="true" className="h-4 w-4 text-[var(--text-muted)]" />
+        </div>
+        {content}
+      </div>
+    );
+  }
+
+  return (
+    <Link
+      to={`/cliente/area/${row.area.id}`}
+      aria-label={`Abrir ${row.area.name}: ${ok ? `${row.humidity!.toFixed(1)} % de humedad` : "sin datos recientes"}, ${AREA_STATE_LABEL[row.state].toLowerCase()}`}
+      style={rootStyle}
+      className={`${rootClass} transition-colors hover:border-[var(--accent-primary)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus-ring)]`}
+    >
+      <span aria-hidden="true" className="absolute right-2 top-2 z-10 inline-flex items-center text-xs font-semibold text-[var(--accent-primary)] opacity-80 group-hover:opacity-100">Abrir<ChevronRight className="h-3.5 w-3.5" /></span>
+      {content}
     </Link>
   );
 }
@@ -79,7 +128,15 @@ const TILE_GAP = 8;
  * si no caben (muchas áreas o poco espacio), pasan a una cuadrícula de parcelas iguales en vez de partirse en
  * filas con anchos engañosos. Sin hectáreas registradas, la parcela pesa lo mismo que las demás.
  */
-function PlotRow({ list, share, now }: { list: AreaOverviewRow[]; share: number; now: number }) {
+interface RowEdit {
+  draggingId: number | null;
+  onMove: (areaId: number, delta: -1 | 1) => void;
+  onDragStart: (areaId: number) => void;
+  onDragEnd: () => void;
+  onDrop: (targetId: number) => void;
+}
+
+function PlotRow({ list, share, now, edit }: { list: AreaOverviewRow[]; share: number; now: number; edit?: RowEdit }) {
   const wrapperRef = useRef<HTMLDivElement>(null);
   const [available, setAvailable] = useState(0);
   useLayoutEffect(() => {
@@ -105,8 +162,27 @@ function PlotRow({ list, share, now }: { list: AreaOverviewRow[]; share: number;
         className={fits ? "flex gap-2" : "grid gap-2"}
         style={fits ? { width: planWidth ?? "100%" } : { gridTemplateColumns: `repeat(auto-fill, minmax(${TILE_MIN}px, 1fr))` }}
       >
-        {list.map((r) => (
-          <AreaTile key={r.area.id} row={r} weight={fits ? r.area.area_size ?? fallbackWeight : 1} now={now} />
+        {list.map((r, index) => (
+          <AreaTile
+            key={r.area.id}
+            row={r}
+            weight={fits ? r.area.area_size ?? fallbackWeight : 1}
+            now={now}
+            edit={
+              edit
+                ? {
+                    canBack: index > 0,
+                    canForward: index < list.length - 1,
+                    dragging: edit.draggingId === r.area.id,
+                    onBack: () => edit.onMove(r.area.id, -1),
+                    onForward: () => edit.onMove(r.area.id, 1),
+                    onDragStart: () => edit.onDragStart(r.area.id),
+                    onDragEnd: edit.onDragEnd,
+                    onDropHere: () => edit.onDrop(r.area.id),
+                  }
+                : undefined
+            }
+          />
         ))}
       </div>
     </div>
@@ -117,6 +193,10 @@ function PlotRow({ list, share, now }: { list: AreaOverviewRow[]; share: number;
 export function PropertiesOverview() {
   const { properties, areas, loading: selectionLoading, error: selectionError } = useSelection();
   const { rows, loading, error } = useAreaOverview(areas);
+  const { user } = useAuth();
+  const { order, save, reset, hasCustomOrder } = useSavedOrder(String(user?.sub ?? "anon"));
+  const [editing, setEditing] = useState(false);
+  const [drag, setDrag] = useState<{ kind: "predio"; id: number } | { kind: "area"; propertyId: number; id: number } | null>(null);
   const now = Date.now();
 
   if (selectionLoading || loading) {
@@ -138,7 +218,29 @@ export function PropertiesOverview() {
   }
 
   const summary = summarize(rows);
-  const withRows = properties.map((p) => ({ property: p, rows: rows.filter((r) => r.area.property_id === p.id) })).filter((g) => g.rows.length);
+  const baseGroups = properties.map((p) => ({ property: p, rows: rows.filter((r) => r.area.property_id === p.id) })).filter((g) => g.rows.length);
+  // Orden elegido por la persona (guardado en este navegador); lo nuevo va al final.
+  const withRows = applyOrder(baseGroups, order.properties, (g) => g.property.id).map((g) => ({
+    ...g,
+    rows: applyOrder(g.rows, order.areas[String(g.property.id)], (r) => r.area.id),
+  }));
+  const propertyIds = withRows.map((g) => g.property.id);
+  const movePropertyBy = (id: number, delta: -1 | 1) => save({ ...order, properties: moveBy(propertyIds, id, delta) });
+  const dropProperty = (targetId: number) => {
+    if (drag?.kind === "predio") save({ ...order, properties: moveTo(propertyIds, drag.id, targetId) });
+    setDrag(null);
+  };
+  const moveAreaBy = (propertyId: number, areaId: number, delta: -1 | 1) => {
+    const current = (withRows.find((g) => g.property.id === propertyId)?.rows ?? []).map((r) => r.area.id);
+    save({ ...order, properties: propertyIds, areas: { ...order.areas, [String(propertyId)]: moveBy(current, areaId, delta) } });
+  };
+  const dropArea = (propertyId: number, targetId: number) => {
+    if (drag?.kind === "area" && drag.propertyId === propertyId) {
+      const current = (withRows.find((g) => g.property.id === propertyId)?.rows ?? []).map((r) => r.area.id);
+      save({ ...order, properties: propertyIds, areas: { ...order.areas, [String(propertyId)]: moveTo(current, drag.id, targetId) } });
+    }
+    setDrag(null);
+  };
   const maxHectares = Math.max(1, ...withRows.map(({ rows: l }) => l.reduce((sum, r) => sum + (r.area.area_size ?? 0), 0)));
   const okRows = rows.filter((r) => r.state === "al_dia");
   const liters = hourlyLiters(okRows.map((r) => r.series), now);
@@ -147,11 +249,36 @@ export function PropertiesOverview() {
   return (
     <div className="mx-auto max-w-[1100px] space-y-9 p-4 md:p-8">
       <header>
-        <h1 className="text-[22px] font-semibold md:text-2xl">Mis predios</h1>
-        <p role="status" className="mt-1 text-base">
-          <b className="font-semibold">{summary.reporting} de {summary.total} áreas al día</b>
-          {problems.length > 0 && <span className="text-[var(--status-danger-text)]"> · {problems.join(" · ")}</span>}
-        </p>
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div>
+            <h1 className="text-[22px] font-semibold md:text-2xl">Mis predios</h1>
+            <p role="status" className="mt-1 text-base">
+              <b className="font-semibold">{summary.reporting} de {summary.total} áreas al día</b>
+              {problems.length > 0 && <span className="text-[var(--status-danger-text)]"> · {problems.join(" · ")}</span>}
+            </p>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            {editing && hasCustomOrder && (
+              <button type="button" onClick={reset} className="inline-flex min-h-[44px] items-center gap-2 rounded-[var(--radius)] border border-[var(--border-strong)] px-3 text-sm font-semibold hover:bg-[var(--hover-overlay)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus-ring)]">
+                <RotateCcw aria-hidden="true" className="h-4 w-4" />Restablecer orden
+              </button>
+            )}
+            <button
+              type="button"
+              aria-pressed={editing}
+              onClick={() => { setEditing((value) => !value); setDrag(null); }}
+              className={`inline-flex min-h-[44px] items-center gap-2 rounded-[var(--radius)] border px-4 text-sm font-semibold focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus-ring)] ${editing ? "border-[var(--accent-primary)] bg-[var(--accent-primary)] text-[var(--text-inverted)]" : "border-[var(--border-strong)] hover:bg-[var(--hover-overlay)]"}`}
+            >
+              {!editing && <Pencil aria-hidden="true" className="h-4 w-4" />}
+              {editing ? "Listo" : "Ordenar"}
+            </button>
+          </div>
+        </div>
+        {editing && (
+          <p role="status" className="mt-3 rounded-[var(--radius)] bg-[var(--accent-soft)] px-3 py-2 text-sm">
+            Arrastra los predios y las parcelas, o usa las flechas, para cambiar su orden. Se guarda en este navegador y solo lo ves tú.
+          </p>
+        )}
       </header>
 
       {withRows.map(({ property: p, rows: list }) => {
@@ -161,9 +288,30 @@ export function PropertiesOverview() {
         // El ancho del plano de cada predio es proporcional a sus hectáreas respecto del mayor.
         const width = Math.max(26, Math.round((hectares / maxHectares) * 100));
         return (
-          <section key={p.id} aria-labelledby={`predio-${p.id}`} className="min-w-0">
+          <section
+            key={p.id}
+            aria-labelledby={`predio-${p.id}`}
+            className={`min-w-0 ${editing && drag?.kind === "predio" && drag.id === p.id ? "opacity-40" : ""}`}
+            onDragOver={editing && drag?.kind === "predio" ? (event) => event.preventDefault() : undefined}
+            onDrop={editing && drag?.kind === "predio" ? (event) => { event.preventDefault(); dropProperty(p.id); } : undefined}
+          >
             <div className="mb-2 flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
               <div className="flex min-w-0 flex-wrap items-baseline gap-x-3">
+                {editing && (
+                  <span className="flex items-center gap-0.5 self-center">
+                    <span
+                      draggable
+                      onDragStart={(event) => { event.dataTransfer.effectAllowed = "move"; event.dataTransfer.setData("text/plain", String(p.id)); setDrag({ kind: "predio", id: p.id }); }}
+                      onDragEnd={() => setDrag(null)}
+                      title="Arrastra para mover el predio"
+                      className="inline-flex h-9 w-9 cursor-grab items-center justify-center rounded-[var(--radius)] text-[var(--text-muted)] hover:bg-[var(--hover-overlay)] active:cursor-grabbing"
+                    >
+                      <GripVertical aria-hidden="true" className="h-5 w-5" />
+                    </span>
+                    <button type="button" onClick={() => movePropertyBy(p.id, -1)} disabled={propertyIds.indexOf(p.id) === 0} aria-label={`Subir ${p.name}`} title="Subir" className="inline-flex h-9 w-9 items-center justify-center rounded-[var(--radius)] text-[var(--text-muted)] hover:bg-[var(--hover-overlay)] disabled:opacity-30 focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus-ring)]"><ArrowUp aria-hidden="true" className="h-4 w-4" /></button>
+                    <button type="button" onClick={() => movePropertyBy(p.id, 1)} disabled={propertyIds.indexOf(p.id) === propertyIds.length - 1} aria-label={`Bajar ${p.name}`} title="Bajar" className="inline-flex h-9 w-9 items-center justify-center rounded-[var(--radius)] text-[var(--text-muted)] hover:bg-[var(--hover-overlay)] disabled:opacity-30 focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus-ring)]"><ArrowDown aria-hidden="true" className="h-4 w-4" /></button>
+                  </span>
+                )}
                 <h2 id={`predio-${p.id}`} className="text-lg font-semibold">{p.name}</h2>
                 <p className={`text-sm ${bad ? "font-medium text-[var(--status-danger-text)]" : "text-[var(--text-muted)]"}`}>
                   {hectares > 0 ? `${hectares} ha · ` : ""}{list.length} {list.length === 1 ? "área" : "áreas"}{bad ? ` · ${ok} al día` : ""}
@@ -173,7 +321,18 @@ export function PropertiesOverview() {
                 Detalle del predio<ChevronRight aria-hidden="true" className="h-4 w-4" />
               </Link>
             </div>
-            <PlotRow list={list} share={width} now={now} />
+            <PlotRow
+              list={list}
+              share={width}
+              now={now}
+              edit={editing ? {
+                draggingId: drag?.kind === "area" && drag.propertyId === p.id ? drag.id : null,
+                onMove: (areaId, delta) => moveAreaBy(p.id, areaId, delta),
+                onDragStart: (areaId) => setDrag({ kind: "area", propertyId: p.id, id: areaId }),
+                onDragEnd: () => setDrag(null),
+                onDrop: (targetId) => dropArea(p.id, targetId),
+              } : undefined}
+            />
           </section>
         );
       })}
