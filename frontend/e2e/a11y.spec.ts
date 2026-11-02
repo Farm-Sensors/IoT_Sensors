@@ -8,7 +8,7 @@ type Baseline = { version: 1; units: Record<string, Record<string, number>> };
 const update = process.env.A11Y_UPDATE_BASELINE === "1";
 
 // Identificadores estables de pantalla: los IDs de BD nunca forman parte del baseline.
-const clientRoutes = ["/cliente", "/cliente/areas", "/cliente/predio/:predioId", "/cliente/mapa", "/cliente/historico", "/cliente/exportar", "/cliente/perfil"];
+const clientRoutes = ["/cliente", "/cliente/area/:areaId", "/cliente/area/:areaId/historial", "/cliente/area/:areaId/detalles", "/cliente/predio/:predioId", "/cliente/mapa", "/cliente/perfil"];
 const adminRoutes = ["/admin", "/admin/clientes", "/admin/clientes/:clientId/predios", "/admin/clientes/:clientId/dashboard", "/admin/predios/:predioId/areas", "/admin/cultivos", "/admin/ciclos", "/admin/nodos", "/admin/nodos/:nodeId", "/admin/gateways", "/admin/gateways/:gatewayId", "/admin/gateways/pair", "/admin/mapa"];
 const forms = [
   { route: "/admin/clientes", button: "Nuevo Cliente", heading: "Nuevo Cliente" },
@@ -29,7 +29,7 @@ function seedIds(api: Api) {
     const nodes = await api.get<{ data: { id: number; irrigation_area_id: number }[] }>("nodes?per_page=200");
     const node = nodes.data.find(n => n.irrigation_area_id === areas.data[0].id);
     expect(node, "nodo del área DEMO").toBeTruthy();
-    return { predioId: property!.id, clientId: property!.client_id, nodeId: node!.id, gatewayId: await api.gatewayIdOf(1) };
+    return { areaId: areas.data[0].id, predioId: property!.id, clientId: property!.client_id, nodeId: node!.id, gatewayId: await api.gatewayIdOf(1) };
   })();
 }
 
@@ -52,11 +52,6 @@ for (const screen of screens) {
     await target.goto(route);
     await expect(target.getByRole("heading", { level: 1 })).toBeVisible({ timeout: 15_000 });
     await target.waitForLoadState("networkidle");
-    if (screen.route === "/cliente") {
-      await target.getByRole("combobox").filter({ has: target.getByRole("option", { name: "DEMO - Rancho Norte", exact: true }) }).selectOption({ label: "DEMO - Rancho Norte" });
-      await target.getByRole("combobox").filter({ has: target.getByRole("option", { name: "DEMO - Nogal Norte", exact: true }) }).selectOption({ label: "DEMO - Nogal Norte" });
-      await expect(target.getByRole("heading", { name: "Humedad del Suelo", exact: true })).toBeVisible();
-    }
     await target.waitForLoadState("networkidle");
     await expect(target.getByRole("heading", { name: "¡Ups! Algo salió mal", exact: true })).toHaveCount(0);
     if (form) {

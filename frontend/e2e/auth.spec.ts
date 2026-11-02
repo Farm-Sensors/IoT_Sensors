@@ -16,7 +16,7 @@ test.describe("Autenticación", () => {
     await page.goto("/");
     await submitLogin(page, ADMIN.email, ADMIN.password);
     await page.waitForURL(ADMIN.landing);
-    await expect(page.getByRole("heading", { level: 1, name: "Panel de Administración" })).toBeVisible();
+    await expect(page.getByRole("heading", { level: 1, name: "Hoy" })).toBeVisible();
     await page.getByRole("button", { name: "Cerrar sesión" }).click();
     await expect(page).toHaveURL(LOGIN_URL);
     await expect(page.getByRole("heading", { name: "Bienvenido de vuelta" })).toBeVisible();

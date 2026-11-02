@@ -22,7 +22,7 @@ test.describe("Equipos", () => {
     // Paso 1: rancho y áreas
     await page.goto("/admin/gateways");
     await page.getByRole("button", { name: "Nuevo equipo" }).click();
-    await page.getByRole("combobox", { name: "Rancho" }).selectOption({ label: `${propertyName} · ${company}` });
+    await page.getByRole("combobox", { name: "Predio" }).selectOption({ label: `${company} · ${propertyName}` });
     await page.getByLabel(areaName).check();
     await page.getByRole("button", { name: "Crear y continuar" }).click();
 
