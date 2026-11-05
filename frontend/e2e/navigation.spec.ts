@@ -11,7 +11,7 @@ interface Entry {
 // Fuente: components/navigation/items.ts (ítems sin `module`) y el h1 de cada página.
 const CLIENT_ENTRIES: Entry[] = [
   { desktop: "Mis predios", mobile: "Mis predios", path: "/cliente", h1: "Mis predios" },
-  { desktop: "Mapa", mobile: "Mapa", path: "/cliente/mapa", h1: "Mapa de Nodos" },
+  { desktop: "Mapa", mobile: "Mapa", path: "/cliente/mapa", h1: "Mapa" },
   { desktop: "Cuenta", mobile: "Cuenta", path: "/cliente/perfil", h1: "Cuenta" },
 ];
 

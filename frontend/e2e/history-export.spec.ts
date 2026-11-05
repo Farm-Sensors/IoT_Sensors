@@ -10,7 +10,13 @@ async function openDemoHistory(page: Page) {
   await page.getByRole("link", { name: /DEMO - Nogal Norte/ }).first().click();
   await page.getByRole("link", { name: "Historial", exact: true }).click();
   await expect(page).toHaveURL(/\/cliente\/area\/\d+\/historial$/);
-  await expect(page.getByRole("heading", { name: "Gráfica de Métricas" })).toBeVisible();
+  await expect(page.getByRole("heading", { level: 2, name: "Gráfica", exact: true })).toBeVisible();
+}
+
+/** La tabla de lecturas vive plegada bajo «Ver registros»; se abre para comprobarla. */
+async function openRecords(page: Page) {
+  await page.getByText("Ver registros", { exact: false }).first().click();
+  await expect(page.getByRole("table")).toBeVisible();
 }
 
 async function pickDay(page: Page, trigger: string, day: Date, displayedMonth: Date) {
@@ -32,6 +38,8 @@ test("el histórico muestra datos recientes y un rango antiguo vacío", async ({
   test.setTimeout(90_000);
   await openDemoHistory(page);
   await page.getByRole("button", { name: "Últimos 7 días", exact: true }).click();
+  await expect(page.getByRole("button", { name: "Últimos 7 días", exact: true })).toHaveAttribute("aria-pressed", "true");
+  await openRecords(page);
   const table = page.getByRole("table");
   await expect(table.getByRole("row").nth(1).getByRole("cell")).toHaveCount(13);
   await expect(page.getByText("Cargando lecturas…", { exact: true })).toHaveCount(0);
