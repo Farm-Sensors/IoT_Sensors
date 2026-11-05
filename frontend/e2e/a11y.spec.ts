@@ -60,8 +60,10 @@ for (const screen of screens) {
     }
     // El puntero sobre un botón cambia su color (hover) y hace variar el contraste medido.
     await target.mouse.move(0, 0);
-    // Deja terminar las animaciones de entrada (opacidad) antes de medir contraste.
-    await target.waitForFunction(() => document.getAnimations().every(a => a.playState !== "running"));
+    // Deja terminar las animaciones de entrada (opacidad) antes de medir contraste. Las decorativas
+    // infinitas (ondas del acceso y del nivel de agua) nunca terminan y no cambian el contraste del texto.
+    await target.waitForFunction(() => document.getAnimations().every(a =>
+      a.playState !== "running" || a.effect?.getComputedTiming().iterations === Infinity));
     try {
       const results = await new AxeBuilder({ page: target }).withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"]).analyze();
       const violations = results.violations.filter(v => v.impact === "serious" || v.impact === "critical");
