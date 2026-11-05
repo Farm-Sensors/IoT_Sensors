@@ -277,7 +277,7 @@ function AreaHistory({ embedded }: { embedded: boolean }) {
           )}
           {loading && <p role="status" className="sr-only">Cargando lecturas…</p>}
           <p className="mb-2 text-sm text-[var(--text-subtle)] md:hidden">Desliza hacia los lados para ver todas las columnas.</p>
-          <div className={`overflow-x-auto transition-opacity ${loading && readings.length ? "opacity-50" : ""}`} aria-busy={loading}>
+          <div role="region" aria-label="Tabla de lecturas" tabIndex={0} className={`overflow-x-auto transition-opacity focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus-ring)] ${loading && readings.length ? "opacity-50" : ""}`} aria-busy={loading}>
             <table className="w-full min-w-[1400px]">
               <caption className="sr-only">Lecturas del rango y ciclo seleccionados</caption>
               <thead>

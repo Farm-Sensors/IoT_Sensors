@@ -68,7 +68,7 @@ function AreaTile({ row, weight, now, edit }: { row: AreaOverviewRow; weight: nu
           </>
         )}
         {ok ? (
-          <div className="relative z-10 font-mono-data text-[28px] font-medium leading-none">{row.humidity!.toFixed(1)}<small className="ml-1 text-xs text-[var(--text-muted)]">% humedad</small></div>
+          <div className="relative z-10 font-mono-data text-[28px] font-medium leading-none">{row.humidity!.toFixed(1)}<small className="ml-1 text-xs text-[var(--text-muted)]">% humedad</small><span className="sr-only">, {AREA_STATE_LABEL[row.state].toLowerCase()}</span></div>
         ) : (
           <div className="relative space-y-0.5">
             <StateBadge state={row.state} />
@@ -110,7 +110,6 @@ function AreaTile({ row, weight, now, edit }: { row: AreaOverviewRow; weight: nu
   return (
     <Link
       to={`/cliente/area/${row.area.id}`}
-      aria-label={`Abrir ${row.area.name}: ${ok ? `${row.humidity!.toFixed(1)} % de humedad` : "sin datos recientes"}, ${AREA_STATE_LABEL[row.state].toLowerCase()}`}
       style={rootStyle}
       className={`${rootClass} transition-colors hover:border-[var(--accent-primary)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus-ring)]`}
     >

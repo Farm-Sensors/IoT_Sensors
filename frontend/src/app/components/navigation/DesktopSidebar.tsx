@@ -64,7 +64,7 @@ export function DesktopSidebar({ role }: DesktopSidebarProps) {
         <div className="flex items-center gap-2">
           <div className="min-w-0 flex-1">
             <p className="truncate text-sm font-medium text-sidebar-foreground">{user?.nombre || "Usuario"}</p>
-            <p className="truncate text-xs text-sidebar-foreground/60">{role === "client" ? "Productor" : "Administración"}</p>
+            <p className="truncate text-xs text-sidebar-foreground/70">{role === "client" ? "Productor" : "Administración"}</p>
           </div>
           <button
             onClick={toggleTheme}

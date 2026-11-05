@@ -30,7 +30,6 @@ function AreaCard({ row, now }: { row: AreaOverviewRow; now: number }) {
   return (
     <Link
       to={`/cliente/area/${row.area.id}`}
-      aria-label={`Abrir ${row.area.name}`}
       className={`group flex flex-col gap-4 rounded-[var(--radius)] border bg-[var(--card)] p-4 transition-colors hover:border-[var(--accent-primary)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus-ring)] ${ok ? "border-[var(--border-strong)]" : "border-l-4 border-[var(--border-strong)] border-l-[var(--status-danger-text)]"}`}
     >
       <div className="flex items-start justify-between gap-3">
@@ -69,9 +68,9 @@ function AreaCard({ row, now }: { row: AreaOverviewRow; now: number }) {
 function Fact({ label, value, note }: { label: string; value: string; note?: string }) {
   return (
     <div className="px-5 py-4">
-      <div className="text-xs text-[var(--text-muted)]">{label}</div>
-      <div className="font-mono-data mt-1 text-[28px] font-medium leading-tight">{value}</div>
-      {note && <div className="mt-0.5 text-xs text-[var(--text-muted)]">{note}</div>}
+      <dt className="text-xs text-[var(--text-muted)]">{label}</dt>
+      <dd className="font-mono-data mt-1 text-[28px] font-medium leading-tight">{value}</dd>
+      {note && <dd className="mt-0.5 text-xs text-[var(--text-muted)]">{note}</dd>}
     </div>
   );
 }

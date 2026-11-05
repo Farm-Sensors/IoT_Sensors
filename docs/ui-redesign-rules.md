@@ -78,6 +78,9 @@ Not edited by any redesign change: `ProtectedRoute.tsx`, `ErrorBoundary.tsx` (lo
 - One `h1` per page and a logical heading order; form fields have visible labels.
 - Status is never conveyed by color alone (icon or text with it).
 - Touch targets at least 44×44 px at the 390 px width.
+- An `aria-label` must start with (or contain) the visible text (WCAG 2.5.3 «label in name»); if the
+  visible text already says it, drop the `aria-label`. MapLibre markers need an explicit one (it puts
+  «Map marker» otherwise) and a space between their text parts.
 - Run `cd frontend && npm run test:a11y`. A PR MUST NOT add new serious or critical violations
   or increase their node counts versus `e2e/a11y-baseline.json` for the pages it touches.
 

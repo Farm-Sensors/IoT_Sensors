@@ -22,8 +22,12 @@ const stateOf = (node: GeoNode): AreaState =>
 const chipCls = (on: boolean) =>
   `inline-flex min-h-[40px] items-center rounded-[var(--radius)] px-3 text-sm transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus-ring)] ${on ? "bg-[var(--accent-primary)] font-semibold text-[var(--text-inverted)]" : "font-medium text-[var(--text-muted)] hover:bg-[var(--accent-soft)] hover:text-[var(--text-main)]"}`;
 
-/** Pin de predio o de área: nombre y una línea de estado. Se arma con textContent, nunca con HTML. */
-function buildPin(title: string, sub: string, state: AreaState, selected: boolean, aria: string, onClick: () => void): HTMLButtonElement {
+/**
+ * Pin de predio o de área: nombre y una línea de estado. Se arma con textContent, nunca con HTML.
+ * El nombre accesible empieza con el texto visible (WCAG 2.5.3, «label in name»; MapLibre pondría «Map marker»)
+ * y le sigue `hint`, si lo hay.
+ */
+function buildPin(title: string, sub: string, state: AreaState, selected: boolean, hint: string | null, onClick: () => void): HTMLButtonElement {
   const el = document.createElement("button");
   el.type = "button";
   el.className = "map-pin";
@@ -33,8 +37,8 @@ function buildPin(title: string, sub: string, state: AreaState, selected: boolea
   name.textContent = title;
   const small = document.createElement("small");
   small.textContent = sub;
-  el.append(name, small);
-  el.setAttribute("aria-label", aria);
+  el.append(name, " ", small);
+  el.setAttribute("aria-label", `${title} ${sub}${hint ?? ""}`);
   el.addEventListener("click", (event) => { event.stopPropagation(); onClick(); });
   return el;
 }
@@ -117,13 +121,13 @@ export function AdminMapPage() {
     if (propertyId === null) {
       markersRef.current = propertyPins.map((pin) => {
         const sub = `${pin.total} ${pin.total === 1 ? "nodo" : "nodos"} · ${pin.stale > 0 ? `${pin.stale} sin comunicación` : pin.state === "sin_datos" ? "sin datos" : "al día"}`;
-        return make(buildPin(pin.name, sub, pin.state, false, `${pin.client}, ${pin.name}: ${sub}. Ver sus áreas`, () => { setSelectedAreaId(null); setPropertyId(pin.id); }), pin.lng, pin.lat);
+        return make(buildPin(pin.name, sub, pin.state, false, `. Cliente: ${pin.client}. Ver sus áreas`, () => { setSelectedAreaId(null); setPropertyId(pin.id); }), pin.lng, pin.lat);
       });
       return;
     }
     markersRef.current = areaPins.map(({ node, state }) => {
       const sub = state === "sin_comunicacion" && node.minutes_since_last_reading != null ? `sin comunicación · ${formatAgo(node.minutes_since_last_reading).replace("hace ", "")}` : AREA_STATE_LABEL[state];
-      return make(buildPin(node.irrigation_area_name, sub, state, node.irrigation_area_id === selectedAreaId, `${node.irrigation_area_name}: ${sub}`, () => setSelectedAreaId(node.irrigation_area_id)), node.longitude as number, node.latitude as number);
+      return make(buildPin(node.irrigation_area_name, sub, state, node.irrigation_area_id === selectedAreaId, null, () => setSelectedAreaId(node.irrigation_area_id)), node.longitude as number, node.latitude as number);
     });
   }, [map, propertyId, propertyPins, areaPins, selectedAreaId]);
 

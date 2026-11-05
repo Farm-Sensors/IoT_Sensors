@@ -30,8 +30,9 @@ function buildPinElement(pin: Pin, onClick: () => void): HTMLButtonElement {
   name.textContent = pin.node.irrigation_area_name;
   const sub = document.createElement("small");
   sub.textContent = pin.state === "al_dia" && pin.humidity !== null ? `${pin.humidity.toFixed(0)} % humedad` : AREA_STATE_LABEL[pin.state];
-  el.append(name, sub);
-  el.setAttribute("aria-label", `${pin.node.irrigation_area_name}: ${sub.textContent}`);
+  // MapLibre pone «Map marker» si falta aria-label: el nombre repite el texto visible (WCAG 2.5.3, «label in name»).
+  el.append(name, " ", sub);
+  el.setAttribute("aria-label", `${name.textContent} ${sub.textContent}`);
   el.addEventListener("click", (event) => { event.stopPropagation(); onClick(); });
   return el;
 }
@@ -48,8 +49,9 @@ function buildPropertyPinElement(pin: PropertyPin, onClick: () => void): HTMLBut
   name.textContent = pin.name;
   const sub = document.createElement("small");
   sub.textContent = `${pin.total} ${pin.total === 1 ? "área" : "áreas"} · ${pin.ok === pin.total ? "al día" : `${pin.ok} al día`}`;
-  el.append(name, sub);
-  el.setAttribute("aria-label", `${pin.name}: ${sub.textContent}. Ver sus áreas`);
+  // El nombre accesible empieza con el texto visible (WCAG 2.5.3, «label in name») y añade la acción.
+  el.append(name, " ", sub);
+  el.setAttribute("aria-label", `${name.textContent} ${sub.textContent}. Ver sus áreas`);
   el.addEventListener("click", (event) => { event.stopPropagation(); onClick(); });
   return el;
 }
