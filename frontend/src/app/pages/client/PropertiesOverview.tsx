@@ -311,7 +311,7 @@ export function PropertiesOverview() {
                     <button type="button" onClick={() => movePropertyBy(p.id, 1)} disabled={propertyIds.indexOf(p.id) === propertyIds.length - 1} aria-label={`Bajar ${p.name}`} title="Bajar" className="inline-flex h-9 w-9 items-center justify-center rounded-[var(--radius)] text-[var(--text-muted)] hover:bg-[var(--hover-overlay)] disabled:opacity-30 focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus-ring)]"><ArrowDown aria-hidden="true" className="h-4 w-4" /></button>
                   </span>
                 )}
-                <h2 id={`predio-${p.id}`} className="text-lg font-semibold">{p.name}</h2>
+                <h2 id={`predio-${p.id}`} className="group-title text-lg">{p.name}</h2>
                 <p className={`text-sm ${bad ? "font-medium text-[var(--status-danger-text)]" : "text-[var(--text-muted)]"}`}>
                   {hectares > 0 ? `${hectares} ha · ` : ""}{list.length} {list.length === 1 ? "área" : "áreas"}{bad ? ` · ${ok} al día` : ""}
                 </p>

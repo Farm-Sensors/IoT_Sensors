@@ -664,3 +664,35 @@
 .map-pin span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 100%; }
 .map-pin:focus-visible, .map-pin.is-selected { outline: 2px solid var(--focus-ring); outline-offset: 2px; z-index: 2; }
 .map-pin.is-selected { border-color: var(--accent-primary); }
+
+/* ============================================================
+   LISTAS Y TABLAS — el verde de marca da la jerarquía
+   Encabezados de tabla con fondo suave, filas que responden al cursor y
+   títulos de grupo con una marca a la izquierda. Funcionan igual en tema claro y oscuro.
+   ============================================================ */
+
+thead th {
+  background: var(--accent-soft);
+  color: var(--accent-green);
+}
+
+[class*="divide-y"] > li:hover,
+tbody tr:hover {
+  background: var(--accent-soft);
+}
+
+.group-title {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--accent-green);
+  font-weight: 600;
+}
+
+.group-title::before {
+  content: "";
+  width: 3px;
+  height: 1em;
+  border-radius: 2px;
+  background: var(--brand-lime);
+}
