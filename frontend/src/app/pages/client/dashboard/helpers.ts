@@ -46,7 +46,7 @@ export function getIrrigationStatusLabel(state: IrrigationDisplayState): string 
   if (state === "active") return "ACTIVO";
   if (state === "inactive") return "INACTIVO";
   if (state === "no_data") return "SIN DATOS";
-  return "SIN COMUNICACION";
+  return "SIN COMUNICACIÓN";
 }
 
 export function getIrrigationStatusClass(state: IrrigationDisplayState): string {

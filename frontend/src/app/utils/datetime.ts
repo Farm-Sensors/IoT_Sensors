@@ -68,5 +68,5 @@ export function formatElapsed(lastUpdate: Date | null): string {
   }
 
   const days = Math.floor(hours / 24);
-  return days === 1 ? "Hace 1 dia" : `Hace ${days} dias`;
+  return days === 1 ? "Hace 1 día" : `Hace ${days} días`;
 }
