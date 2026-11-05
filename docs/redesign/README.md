@@ -15,6 +15,7 @@ Reconstruir la experiencia de IoT_Sensors desde las tareas del usuario: navegaci
 | Inventario de flujos y de paridad funcional | **Completos y medidos** (`v2/03-flujos.md`, `v2/04-paridad.md`) |
 | Prototipo navegable | **Construido y probado** (`v2/prototype/`); enlace privado abajo |
 | Identidad visual | **Elegida: A (Levantamiento)**; prototipo final en `v2/prototype-a/` |
+| Identidad verde en el interior | **En PR** (rama `feat/identidad-verde-dashboard`, 2026-11-05): menú lateral en verde bosque, texto/bordes/fondos con tinte verde, jerarquía en tablas y listas; ver `docs/design-system.md` |
 | Implementación de v2 | **Integrada en `main`** (2026-11-05, PR #71) con la identidad provisional «Sensores Agrícolas», incluida la presentación de Fase 2 (autorizada por el dueño; flags apagados). Al integrar se ajustaron las pruebas E2E a la nueva interfaz, se corrigieron las infracciones de accesibilidad de las páginas nuevas (baseline en cero), «parcelas» → «áreas» y los acentos de «Hace N días» / «SIN COMUNICACIÓN» (decisión 5) |
 
 ## Propuestas visuales (pendientes de elegir)

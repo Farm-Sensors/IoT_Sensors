@@ -29,15 +29,15 @@ Estética terrosa, elegante y orgánica. Layout estilo **"Bento Box"** (cuadríc
 | Token | Light | Dark | Descripción |
 | :--- | :--- | :--- | :--- |
 | `--accent-primary` | `#00450D` | `#81C784` | Verde bosque (`--brand-forest`), **único acento**. Botones primarios, progreso, navegación actual. |
-| `--accent-gold` | `#5B6770` | `#9BA6AE` | Gris pizarra. Progreso secundario. |
-| `--accent-soft` | `#E8F5E9` | `#1A2E1C` | Relleno del destino actual en el riel y las pestañas. |
+| `--accent-gold` | `#4F6B55` | `#A3BBA8` | Verde grisáceo. Progreso secundario. |
+| `--accent-soft` | `#E8F5E9` | `#1F3D25` | Relleno suave de verde: destino actual en pestañas, encabezados de tabla y fila bajo el cursor. |
 | `--accent-glow` | `rgba(27,58,100,0.12)` | `rgba(169,193,238,0.16)` | Glow de prioridad (métricas en vivo). |
 
 ### Tipografía y Contraste
 | Token | Light | Dark | Descripción |
 | :--- | :--- | :--- | :--- |
-| `--text-primary` | `#13181D` | `#E8ECEE` | Texto principal. |
-| `--text-secondary` | `#47525B` | `#9BA6AE` | Subtítulos y etiquetas. |
+| `--text-primary` | `#12261A` | `#E6EDE6` | Texto principal (verde muy oscuro, no gris azulado). |
+| `--text-secondary` | `#3F5A45` | `#A3BBA8` | Subtítulos y etiquetas. |
 | `--text-inverted` | `#FFFFFF` | `#0B1A30` | Texto sobre acentos. |
 
 ### Estados (status)
@@ -204,3 +204,16 @@ Paquete de marca en `docs/brand/` (brief, guía visual, instrucciones y SVG). **
 - **Contrastes medidos:** texto blanco sobre verde bosque 11,3:1; acento sobre superficie en oscuro 8,8:1; texto sobre acento en oscuro 8,6:1; gris de apoyo 7,1–8,0:1.
 - **Ajuste tras revisión (2026-11-01):** símbolo más grande en la navegación (40 px en el riel, 36 px en el encabezado móvil; el nombre pasa a dos líneas como en el logo), ondas del login más tenues, y texto de estados con tokens propios `--status-active-text` (`#166534`), `--status-warning-text` (`#92400E`) e `--status-info-text` (`#1D4ED8`) en claro (≥4,5:1 también sobre su fondo tintado); los colores base de estado quedan solo para puntos y rellenos. Los textos verdes pequeños de la marca (`#00450D`) ya medían 10:1.
 - **Login (2026-11-01):** el panel verde profundo (`#00450D`, con las ondas decorativas muy tenues) lleva una ilustración a color donde el foco es el panel solar: panel azul oscuro con marco y cuadrícula finos en marfil (`#E8F5E9`) sobre un poste blanco con trípode y una caja del tamaño de una de fusibles; señales en arcos lima (`#8BC34A`, con menos brillo) inclinados a los lados, fuera del panel y de las plantas; un sol pequeño, disco relleno en dorado apagado (`#C9A24B`) con ocho rayos cortos; tres plantas de tamaños distintos de solo contorno; y tierra con las dos franjas curvas originales a opacidad reducida. Los sensores van enterrados y no se dibujan. Misma ilustración en escritorio y móvil (sobre el formulario). El saludo del título cambia en cada visita (`loginGreetings` en `LoginPage.tsx`; el primero depende de la hora). Al abrir la página la ilustración se dibuja por partes y la señal late despacio, cada 6 s (`auth-*` en `theme.css`; con `prefers-reduced-motion` se muestra el estado final). Logo del encabezado de 96 px en escritorio y 56 px en móvil.
+
+## Identidad verde en el interior (2026-11-05)
+
+El interior se sentía frío: texto gris azulado, fondos casi blancos y verde solo en botones. Ajuste de presentación, sin cambiar estructura:
+- **Tema claro tintado de verde:** texto `#12261A` y secundario `#3F5A45` (antes slate `#1F2937` / `#47525B`); bordes `#D3DCCF` y sombras con base `0,69,13`; fondo de página `#F3F6F1`, superficie y tarjetas blancas con borde `--border` definido (radio 4 px, sin sombras; antes la superficie `#F8FAF6` casi no se distinguía del fondo). Se probó teñir las superficies de menta y se descartó: era lo mismo con otro color; el contraste lo dan la jerarquía y el riel de estado, no el relleno.
+- **Menú lateral en verde bosque:** `--sidebar` `#00450D` con texto marfil (`#E8F5E9`), activo en blanco translúcido con realce lima a la izquierda (`--sidebar-primary` `#8BC34A`), borde `rgba(255,255,255,.14)`. Lo usan el riel de escritorio, la cabecera móvil y la barra inferior (logo en su versión clara). En el tema oscuro el menú es `#0A2A12`.
+- **Jerarquía en tablas y listas** (`theme.css`, final): `thead th` con `--accent-soft` y texto `--accent-green`; filas de `divide-y` y `tbody tr` al pasar el cursor con `--accent-soft`; clase `.group-title` (texto verde de marca y marca lima a la izquierda) para títulos de grupo (nodos por predio, predios en Mis predios).
+- **Bloque verde de dato principal** (`components/FocusBlock.tsx` + `.focus-block` en `theme.css`): un solo bloque verde bosque por pantalla con la cifra que resume la pantalla (Inicio: áreas al día; Equipos: equipos funcionando; Clientes: áreas sin comunicación; Alertas: sin leer; Detalles: día del ciclo; Cuenta; primer indicador de Consumo; Mis predios: áreas al día; Umbrales: activos). En el productor, la franja de tres cifras del predio, los datos prioritarios de «Ahora» y el interruptor de avisos son el propio bloque (`.focus-block` aplicado al contenedor existente), y las tarjetas de área del predio llevan riel de estado. `.focus-block` reasigna `--text-main`, `--text-muted`, `--border`, `--progress-track` y el acento para que el contenido existente se lea dentro; en oscuro es `#0B2814` con borde. El resto sigue en tarjetas blancas rectas.
+- **«Otras mediciones» en «Ahora»:** dos grupos (Suelo, Ambiental) con cabecera `--accent-soft` y marca lima (`.group-title`), y cada medición como celda (etiqueta pequeña y cifra en verde de marca) separada por líneas finas, en lugar de filas de texto con línea gris.
+- **Riel de estado en las listas** (`data-tone` + `theme.css`): barra de 4 px a la izquierda de cada fila — verde (al día / ciclo activo), rojo (sin comunicación / sin ciclo activo) o gris (por configurar). En Clientes, Predios, Áreas, Nodos, Equipos (funcionando / sin datos recientes / asignando nodos en azul / por vincular) y Ciclos de cultivo. Sin color de relleno: el estado se lee de un vistazo y las tarjetas siguen siendo rectas y blancas (variante «B · riel de estado» elegida el 2026-11-05).
+- **Cifras clave en verde:** valor de las tarjetas de Inicio (con borde izquierdo verde) y de los datos prioritarios de «Ahora» (franja superior verde). La gráfica de humedad del Historial usa el verde de marca (era azul).
+- **Tema oscuro casi neutro:** fondos `#0F1311`/`#151A16`/`#1C221D`, bordes `#2B332C`, texto secundario `#A3B0A6`, menú `#0B100D`; el verde aparece solo donde informa (bloque `#123B1C`, riel de estado, marca lima, acento `#81C784`). Se probó un fondo de verdes profundos y se descartó por «muy verdoso».
+- Los estados (rojo, ámbar, azul) no cambian. Texto principal ≈ 15:1 y secundario ≈ 7:1 sobre el fondo claro; texto marfil sobre `#00450D` ≈ 10:1.
