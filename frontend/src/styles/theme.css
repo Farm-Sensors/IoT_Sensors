@@ -143,13 +143,13 @@
 
   /* --- Dark Agricultural Colors (derived semantically from light system) --- */
   --accent-primary:   #81C784;
-  --accent-gold:      #9BA6AE;
+  --accent-gold:      #A3B0A6;
   --accent-glow:      rgba(129, 199, 132, 0.16);
   --accent-gold-glow: rgba(155, 166, 174, 0.16);
 
   /* --- Dark Text --- */
   --text-primary:     #E6EDE6;
-  --text-secondary:   #9BA6AE;
+  --text-secondary:   #A3B0A6;
   --text-inverted:    #07200C;
   --text-on-dark:     #E6EDE6;
 
@@ -197,9 +197,9 @@
   --card-dark:        #0E1F12;
   --card-brown:       #232B31;
   --accent-green:     #81C784;
-  --accent-brown:     #9BA6AE;
+  --accent-brown:     #A3B0A6;
   --text-main:        #E6EDE6;
-  --text-muted:       #9BA6AE;
+  --text-muted:       #A3B0A6;
   --progress-track:   rgba(230, 237, 230, 0.16);
 
   /* ── shadcn/ui standard vars (Dark) ── */
@@ -214,7 +214,7 @@
   --secondary:                    #1C221D;
   --secondary-foreground:         #E6EDE6;
   --muted:                        #1C221D;
-  --muted-foreground:             #9BA6AE;
+  --muted-foreground:             #A3B0A6;
   --accent:                       #1A2E1C;
   --accent-foreground:            #E6EDE6;
   --destructive:                  #F87171;
@@ -222,14 +222,14 @@
   --border:                       #2B332C;
   --input:                        #191F1A;
   --input-background:             #191F1A;
-  --switch-background:            #9BA6AE;
+  --switch-background:            #A3B0A6;
   --ring:                         #81C784;
   --chart-1:                      #81C784;
-  --chart-2:                      #9BA6AE;
+  --chart-2:                      #A3B0A6;
   --chart-3:                      #E6EDE6;
-  --chart-4:                      #9BA6AE;
+  --chart-4:                      #A3B0A6;
   --chart-5:                      #3D4852;
-  --sidebar:                      #151A16;
+  --sidebar:                      #0B100D;
   --sidebar-foreground:           #E6EDE6;
   --sidebar-primary:              #81C784;
   --sidebar-primary-foreground:   #07200C;
