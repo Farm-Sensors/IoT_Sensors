@@ -696,3 +696,20 @@ tbody tr:hover {
   border-radius: 2px;
   background: var(--brand-lime);
 }
+
+/* Riel de estado: una marca de 4 px a la izquierda de la fila (verde = bien, rojo = sin comunicación, gris = por configurar). */
+[data-tone] { position: relative; }
+[data-tone]::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 4px;
+  z-index: 1;
+  background: var(--tone-color, var(--brand-green));
+}
+[data-tone="bad"]  { --tone-color: var(--status-danger-text); }
+[data-tone="info"] { --tone-color: var(--status-info-text); }
+[data-tone="muted"] { --tone-color: var(--border-strong); }
+[data-tone="none"] { --tone-color: var(--border-strong); }

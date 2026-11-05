@@ -8,7 +8,7 @@ import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router";
 import type { ReactNode } from "react";
 import { useEmbedded } from "../../components/EmbeddedPanel";
-import { HealthBadge, PanelHeader, listBox, panelButton, panelButtonDanger, panelButtonPrimary, rowLink, type Health } from "./directory/Health";
+import { EMPTY_HEALTH, HealthBadge, healthLabel, PanelHeader, listBox, panelButton, panelButtonDanger, panelButtonPrimary, rowLink, type Health } from "./directory/Health";
 import { StatusBadge } from "../../components/StatusBadge";
 import { BentoCard } from "../../components/BentoCard";
 import { PageTransition } from "../../components/PageTransition";
@@ -239,7 +239,7 @@ export function ClientManagement({ clientId, meta, health }: { clientId?: string
         ) : (
           <ul className={listBox}>
             {filteredClients.map((client) => (
-              <li key={client.id}>
+              <li key={client.id} data-tone={healthLabel(health?.[client.id] ?? EMPTY_HEALTH).tone}>
                 <Link to={`/admin/clientes/${client.id}/predios`} className={rowLink}>
                   <span className="min-w-0">
                     <span className="block truncate font-semibold">{client.company_name}</span>

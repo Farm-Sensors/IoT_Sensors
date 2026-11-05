@@ -323,7 +323,7 @@ export function IrrigationAreaManagement({ predioId: predioIdProp, areaId: focus
             {areas.map((area) => {
               const info = states?.[area.id];
               return (
-                <li key={area.id}>
+                <li key={area.id} data-tone={info?.state === "sin_comunicacion" ? "bad" : info?.state === "al_dia" ? "ok" : "muted"}>
                   <Link to={`/admin/areas/${area.id}`} className={rowLink}>
                     <span className="min-w-0">
                       <span className="block truncate font-semibold">{area.name}</span>

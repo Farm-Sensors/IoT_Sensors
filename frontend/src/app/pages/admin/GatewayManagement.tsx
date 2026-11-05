@@ -422,7 +422,7 @@ export function GatewayManagement() {
     const heartbeat = parseBackendTimestamp(status?.last_heartbeat_at ?? null);
     const lastTalk = state === "unlinked" ? null : heartbeat ? `Última comunicación ${formatAgo(minutesSince(heartbeat))}` : "Sin comunicación todavía";
     return (
-      <li key={gateway.id} className="flex flex-wrap items-center justify-between gap-x-6 gap-y-3 px-4 py-3">
+      <li key={gateway.id} data-tone={state === "working" ? "ok" : state === "stale" ? "bad" : state === "assigning" ? "info" : "muted"} className="flex flex-wrap items-center justify-between gap-x-6 gap-y-3 px-4 py-3">
         <div className="min-w-0">
           <h2 className="truncate text-base font-semibold text-[var(--text-main)]">{label}</h2>
           <p className="mt-0.5 text-sm text-[var(--text-muted)]">

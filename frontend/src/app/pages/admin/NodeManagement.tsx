@@ -344,7 +344,7 @@ export function NodeManagement({ areaId }: { areaId?: number } = {}) {
                 {group.items.map(({ node, area, last, state }) => {
                   const label = node.name || node.serial_number || `Nodo #${node.id}`;
                   return (
-                    <li key={node.id} className="flex items-stretch">
+                    <li key={node.id} data-tone={state === "sin_comunicacion" ? "bad" : state === "al_dia" ? "ok" : "muted"} className="flex items-stretch">
                       <Link to={`/admin/nodos/${node.id}`} className={`${rowLink} min-w-0 flex-1`}>
                         <span className="min-w-0 flex-1 max-sm:basis-full">
                           <span className="block truncate font-semibold">{area?.name ?? "Área desconocida"}</span>
