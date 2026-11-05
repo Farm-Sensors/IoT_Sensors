@@ -195,10 +195,10 @@ export function AdminDashboard() {
                     const body = (
                       <>
                         <span className="block text-xs text-[var(--text-muted)]">{tile.label}</span>
-                        <span className="block font-mono-data text-2xl font-medium">{tile.value}</span>
+                        <span className="block font-mono-data text-2xl font-medium text-[var(--accent-green)]">{tile.value}</span>
                       </>
                     );
-                    const box = "block rounded-[var(--radius)] border border-[var(--border)] bg-[var(--card)] px-4 py-3";
+                    const box = "block rounded-[var(--radius)] border border-[var(--border)] border-l-[3px] border-l-[var(--brand-green)] bg-[var(--card)] px-4 py-3";
                     return (
                       <li key={tile.label}>
                         {tile.to ? (

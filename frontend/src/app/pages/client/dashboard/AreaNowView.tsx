@@ -10,7 +10,7 @@ const panel = "rounded-[var(--radius)] border border-[var(--border)] bg-[var(--c
 /** Un valor con su unidad; «Sin datos» (nunca un 0 inventado) cuando el nodo no lo envía. */
 function Value({ value, unit, big = false }: { value: string | number; unit: string; big?: boolean }) {
   return (
-    <p className={`font-mono-data font-medium ${big ? "text-[34px] leading-tight" : "text-xl"}`}>
+    <p className={`font-mono-data font-medium ${big ? "text-[34px] leading-tight text-[var(--accent-green)]" : "text-xl"}`}>
       {value} <small className="font-sans text-sm text-[var(--text-muted)]">{unit}</small>
     </p>
   );
@@ -67,7 +67,7 @@ export function AreaNowView({
   return (
     <div className="space-y-6">
       {shown.length > 0 && (
-        <section aria-label="Datos prioritarios" className={panel}>
+        <section aria-label="Datos prioritarios" className={`${panel} border-t-[3px] border-t-[var(--brand-green)]`}>
           <div className={`grid divide-y divide-[var(--border)] md:divide-x md:divide-y-0 ${shown.length === 1 ? "md:grid-cols-1" : shown.length === 2 ? "md:grid-cols-2" : "md:grid-cols-3"}`}>
             {shown.map((p) => (
               <div key={p.key} className="min-w-0 p-4 md:p-5">
