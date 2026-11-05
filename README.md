@@ -68,6 +68,8 @@ npm run test:e2e:ui               # modo interactivo
 
 La suite maneja la app real: no la arranca ni la detiene, y si el backend o el frontend no responden se detiene con «Levanta el stack local con make dev». Crea sus datos con prefijo `E2E ` y los limpia al terminar; los datos del seed no se tocan.
 
+Contra otro stack local (p. ej. uno aislado en otros puertos): `E2E_BASE_URL` (frontend, por defecto `http://localhost:5173`) y `E2E_BACKEND_URL` (backend, por defecto `http://localhost:5050`) en las pruebas, y `VITE_API_PROXY_TARGET` para que `vite` envíe `/api` a ese backend.
+
 ### Paso a paso
 
 ```bash

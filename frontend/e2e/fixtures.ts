@@ -1,7 +1,7 @@
 import { request, test as base, expect, type APIRequestContext, type Page } from "@playwright/test";
 import { ADMIN, ADMIN_STATE, CLIENT_STATE } from "./users";
 
-const API = "http://localhost:5050/api/v1/";
+const API = `${process.env.E2E_BACKEND_URL || "http://localhost:5050"}/api/v1/`;
 
 /** Prefijo de todo dato que crea una prueba: `E2E <timestamp>`. */
 export function e2eName(label: string): string {
