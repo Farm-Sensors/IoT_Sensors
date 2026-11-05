@@ -276,7 +276,7 @@ export function PropertiesOverview() {
         </div>
         {editing && (
           <p role="status" className="mt-3 rounded-[var(--radius)] bg-[var(--accent-soft)] px-3 py-2 text-sm">
-            Arrastra los predios y las parcelas, o usa las flechas, para cambiar su orden. Se guarda en este navegador y solo lo ves tú.
+            Arrastra los predios y las áreas, o usa las flechas, para cambiar su orden. Se guarda en este navegador y solo lo ves tú.
           </p>
         )}
       </header>
