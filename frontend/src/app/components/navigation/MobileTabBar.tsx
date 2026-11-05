@@ -53,7 +53,7 @@ export function MobileTabBar({ role }: MobileTabBarProps) {
                 focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-sidebar-ring
                 ${scrolls ? "min-w-[72px] flex-shrink-0" : ""}
                 ${isActive
-                  ? "border-[var(--accent-primary)] bg-sidebar-accent text-sidebar-accent-foreground"
+                  ? "border-[var(--sidebar-primary)] bg-sidebar-accent text-sidebar-accent-foreground"
                   : "border-transparent text-sidebar-foreground/70"
                 }`}
             >
