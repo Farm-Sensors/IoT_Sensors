@@ -13,20 +13,20 @@
   --brand-lime:   #8BC34A;
   --brand-mist:   #E8F5E9;
 
-  --bg-base:          #F1F4F1;   /* crema suave */
-  --bg-surface:       #F8FAF8;   /* hueso claro */
+  --bg-base:          #F3F6F1;   /* crema suave */
+  --bg-surface:       #F8FAF6;   /* hueso claro */
   --bg-elevated:      #FFFFFF;
   --bg-input:         transparent;
 
   /* --- Light Agricultural Colors --- */
   --accent-primary:   #00450D;   /* verde bosque (marca) */
-  --accent-gold:      #5B6770;   /* marrón dorado */
+  --accent-gold:      #4F6B55;   /* marrón dorado */
   --accent-glow:      rgba(0, 69, 13, 0.12);
-  --accent-gold-glow: rgba(91, 103, 112, 0.12);
+  --accent-gold-glow: rgba(79, 107, 85, 0.12);
 
   /* --- Light Text --- */
-  --text-primary:     #1F2937;   /* marrón casi negro */
-  --text-secondary:   #47525B;   /* marrón grisáceo */
+  --text-primary:     #12261A;   /* marrón casi negro */
+  --text-secondary:   #3F5A45;   /* marrón grisáceo */
   --text-inverted:    #FFFFFF;   /* crema, sobre fondos oscuros */
   --text-on-dark:     #FFFFFF;   /* Siempre claro, para tarjetas oscuras */
 
@@ -48,10 +48,10 @@
 
   /* --- Light Borders & Shadows --- */
   --accent-soft:      #E8F5E9;
-  --border-glass:     rgba(31, 41, 55, 0.10);
-  --border-subtle:    rgba(31, 41, 55, 0.06);
-  --border-strong:    rgba(31, 41, 55, 0.18);
-  --shadow-soft:      0 1px 2px rgba(31, 41, 55, 0.06);
+  --border-glass:     rgba(0, 69, 13, 0.10);
+  --border-subtle:    rgba(0, 69, 13, 0.06);
+  --border-strong:    rgba(0, 69, 13, 0.18);
+  --shadow-soft:      0 1px 2px rgba(0, 69, 13, 0.06);
 
   /* --- Typography --- */
   --font-serif:   'Plus Jakarta Sans', system-ui, sans-serif;
@@ -67,63 +67,63 @@
   --text-body:                var(--text-main);
   --text-subtle:              var(--text-muted);
   --focus-ring:               var(--accent-primary);
-  --hover-overlay:            rgba(31, 41, 55, 0.05);
-  --pressed-overlay:          rgba(31, 41, 55, 0.10);
+  --hover-overlay:            rgba(0, 69, 13, 0.05);
+  --pressed-overlay:          rgba(0, 69, 13, 0.10);
   --disabled-opacity:         0.5;
-  --outline-contrast:         rgba(31, 41, 55, 0.25);
+  --outline-contrast:         rgba(0, 69, 13, 0.25);
   --chart-priority-1:         var(--accent-primary);
   --chart-priority-2:         var(--accent-brown);
   --chart-priority-3:         var(--card-brown);
 
   /* --- Legacy vars (backward compat) --- */
   --card-light:       #FFFFFF;
-  --card-sand:        #E6EBE6;
-  --card-dark:        #0F2A14;
-  --card-brown:       #3D4852;
+  --card-sand:        #DCE8DB;
+  --card-dark:        #0B2A12;
+  --card-brown:       #2F4A36;
   --accent-green:     #00450D;
-  --accent-brown:     #5B6770;
-  --text-main:        #1F2937;
-  --text-muted:       #47525B;
-  --progress-track:   #D3DAD3;
+  --accent-brown:     #4F6B55;
+  --text-main:        #12261A;
+  --text-muted:       #3F5A45;
+  --progress-track:   #D3DCCF;
 
   /* ── shadcn/ui standard vars (Light) ── */
   --font-size:                    16px;
-  --background:                   #F1F4F1;
-  --foreground:                   #1F2937;
+  --background:                   #F3F6F1;
+  --foreground:                   #12261A;
   --card:                         #FFFFFF;
-  --card-foreground:              #1F2937;
+  --card-foreground:              #12261A;
   --popover:                      #FFFFFF;
-  --popover-foreground:           #1F2937;
+  --popover-foreground:           #12261A;
   --primary:                      #00450D;
   --primary-foreground:           #FFFFFF;
-  --secondary:                    #E6EBE6;
-  --secondary-foreground:         #1F2937;
-  --muted:                        #E6EBE6;
-  --muted-foreground:             #47525B;
+  --secondary:                    #DCE8DB;
+  --secondary-foreground:         #12261A;
+  --muted:                        #DCE8DB;
+  --muted-foreground:             #3F5A45;
   --accent:                       #E8F5E9;
-  --accent-foreground:            #1F2937;
+  --accent-foreground:            #12261A;
   --destructive:                  #d4183d;
   --destructive-foreground:       #ffffff;
-  --border:                       #D3DAD3;
+  --border:                       #D3DCCF;
   --input:                        transparent;
   --input-background:             #FFFFFF;
-  --switch-background:            #47525B;
+  --switch-background:            #3F5A45;
   --font-weight-medium:           500;
   --font-weight-normal:           400;
   --ring:                         #00450D;
   --chart-1:                      #00450D;
-  --chart-2:                      #5B6770;
-  --chart-3:                      #1F2937; /* text-main */
-  --chart-4:                      #47525B; /* text-muted */
-  --chart-5:                      #3D4852; /* card-brown */
+  --chart-2:                      #4F6B55;
+  --chart-3:                      #12261A; /* text-main */
+  --chart-4:                      #3F5A45; /* text-muted */
+  --chart-5:                      #2F4A36; /* card-brown */
   --radius:                       4px;
   --sidebar:                      #FFFFFF;
-  --sidebar-foreground:           #1F2937;
+  --sidebar-foreground:           #12261A;
   --sidebar-primary:              #00450D;
   --sidebar-primary-foreground:   #FFFFFF;
   --sidebar-accent:               #E8F5E9;
-  --sidebar-accent-foreground:    #1F2937;
-  --sidebar-border:               #D3DAD3;
+  --sidebar-accent-foreground:    #12261A;
+  --sidebar-border:               #C3D5C4;
   --sidebar-ring:                 #00450D;
 }
 
