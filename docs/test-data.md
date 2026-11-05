@@ -13,7 +13,7 @@ El sistema parte de una base limpia (2026-10-10). Hoy hay un rancho de prueba, �
 - **Login:** `alan2203mx@gmail.com` · **Password:** `123` — cliente de prueba (empresa "Agricola del Norte"), **sin predios**.
 - **Login:** `test@gmail.com` · **Password:** `123` — cliente de prueba (empresa "Test"), con el predio **«nuevo»** (área «nuevaarea», enlace 24, alimentado por la Raspberry con el radio virtual).
 
-`alan2203mx@gmail.com` entra a un dashboard vacío.
+`alan2203mx@gmail.com` entra a *Mis predios* vacío.
 
 ## 🗄️ Qué conserva la base del cloud
 
@@ -52,12 +52,12 @@ El sistema parte de una base limpia (2026-10-10). Hoy hay un rancho de prueba, �
 
 ## 🧷 Guion corto para probar desde cero
 
-1. Entra como admin → *Clientes → Nuevo Cliente* → *Predios → Nuevo Predio* → *Áreas de Riego*. No hace falta registrar nodos: el enlace los crea.
-2. *Equipos* → **Nuevo equipo** → paso *Rancho y áreas*: elige el rancho y marca sus áreas de riego → **Crear y continuar** (crea el nodo de cada área que no lo tenga, restaura el que se haya eliminado y deja lista la configuración).
+1. Entra como admin → *Clientes* → **Nuevo Cliente** → sus predios → **Nuevo Predio** → sus áreas → **Nueva Área**. No hace falta registrar nodos: el enlace los crea.
+2. *Red → Equipos* → **Nuevo equipo** → paso *Rancho y áreas*: elige el rancho y marca sus áreas de riego → **Crear y continuar** (crea el nodo de cada área que no lo tenga, restaura el que se haya eliminado y deja lista la configuración).
 3. En la pantalla del equipo: *Instalación → Paso 1 · Vincular el equipo con la nube* → **Vincular equipo** → copia el código (`XXXX-XXXX`) → en el panel, paso *Vincular equipo*: escribe el código → **Buscar código** → confirma → **Aprobar código**. El asistente muestra «Equipo vinculado» y pasa solo a *Asignar nodos*.
 4. En la pantalla: *Paso 2 · Nodos que están transmitiendo* → *Paso 3 · Elegir el área de cada nodo* → *Paso 4 · Enviar y confirmar* → **Enviar asignaciones**.
-5. Verifica: paso *Asignar nodos* (cada área pasa de «Esperando nodo» a «Recibiendo datos», se actualiza solo y termina en «Listo»); en la lista, la tarjeta dice «Funcionando»; como el cliente, el dashboard con humedad, frescura y "Equipo conectado".
-6. Para repetir la prueba o mover el equipo a otro rancho: en *Equipos* abre la tarjeta (*Ver detalle*) → *Más acciones* → **Revocar enlace** y confirma; en la pantalla del equipo toca **Desvincular equipo**; luego **Nuevo equipo** (el mismo rancho ya se puede elegir otra vez). Las lecturas recibidas se conservan.
+5. Verifica: paso *Asignar nodos* (cada área pasa de «Esperando nodo» a «Recibiendo datos», se actualiza solo y termina en «Listo»); en la lista, la tarjeta dice «Funcionando»; como el cliente, *Mis predios* → el área → pestaña *Ahora* con humedad, flujo, ETO, frescura y "Equipo conectado".
+6. Para repetir la prueba o mover el equipo a otro rancho: en *Red → Equipos* abre la tarjeta (*Ver detalle*) → *Más acciones* → **Revocar enlace** y confirma; en la pantalla del equipo toca **Desvincular equipo**; luego **Nuevo equipo** (el mismo rancho ya se puede elegir otra vez). Las lecturas recibidas se conservan.
 
 ## 🧾 Respaldos de la limpieza (2026-10-10 21:44 UTC)
 

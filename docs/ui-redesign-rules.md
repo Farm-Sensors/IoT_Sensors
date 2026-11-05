@@ -1,5 +1,9 @@
 # UI redesign rules (IoT_Sensors web)
 
+> **Current base (2026-11-05):** the redesign v2 (`docs/redesign/`) is integrated in `main`. Its
+> navigation and routes (`docs/redesign/v2/02-arquitectura.md`) replace the ones these rules froze
+> during round 1; from now on they are the routes and names that must not change without a spec.
+
 Binding rules for every `openspec/changes/ui-redesign-*` change. The goal is a clearer, more
 accessible and more intuitive web app. **Visual freedom is real**: layout, grouping, hierarchy,
 components, spacing, color within tokens and microcopy may change. Behavior, data and names may
