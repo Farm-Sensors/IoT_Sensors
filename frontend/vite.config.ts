@@ -59,7 +59,8 @@ export default defineConfig({
     allowedHosts: ['.trycloudflare.com'],
     proxy: {
       '/api': {
-        target: 'http://localhost:5050',
+        // VITE_API_PROXY_TARGET permite apuntar a otro backend local (p. ej. un stack aislado).
+        target: process.env.VITE_API_PROXY_TARGET || 'http://localhost:5050',
         changeOrigin: true,
       },
     },

@@ -4,15 +4,19 @@ import { es } from "date-fns/locale";
 import type { Page } from "@playwright/test";
 import { test, expect } from "./fixtures";
 
-async function selectDemoArea(page: Page) {
-  // SelectionScopeBar: los labels envolventes no tienen texto accesible.
-  await page.getByRole("combobox").filter({
-    has: page.getByRole("option", { name: "DEMO - Rancho Norte", exact: true }),
-  }).selectOption({ label: "DEMO - Rancho Norte" });
-  await page.getByRole("combobox").filter({
-    has: page.getByRole("option", { name: "DEMO - Nogal Norte", exact: true }),
-  }).selectOption({ label: "DEMO - Nogal Norte" });
-  await expect(page.getByText("Área: DEMO - Nogal Norte", { exact: true })).toBeVisible();
+async function openDemoHistory(page: Page) {
+  // Mis predios → fila del área → pestaña Historial (ahí también está la descarga).
+  await page.goto("/cliente");
+  await page.getByRole("link", { name: /DEMO - Nogal Norte/ }).first().click();
+  await page.getByRole("link", { name: "Historial", exact: true }).click();
+  await expect(page).toHaveURL(/\/cliente\/area\/\d+\/historial$/);
+  await expect(page.getByRole("heading", { level: 2, name: "Gráfica", exact: true })).toBeVisible();
+}
+
+/** La tabla de lecturas vive plegada bajo «Ver registros»; se abre para comprobarla. */
+async function openRecords(page: Page) {
+  await page.getByText("Ver registros", { exact: false }).first().click();
+  await expect(page.getByRole("table")).toBeVisible();
 }
 
 async function pickDay(page: Page, trigger: string, day: Date, displayedMonth: Date) {
@@ -32,10 +36,10 @@ async function pickDay(page: Page, trigger: string, day: Date, displayedMonth: D
 
 test("el histórico muestra datos recientes y un rango antiguo vacío", async ({ clientPage: page }) => {
   test.setTimeout(90_000);
-  await page.goto("/cliente/historico");
-  await expect(page.getByRole("heading", { level: 1, name: "Datos Históricos" })).toBeVisible();
-  await selectDemoArea(page);
+  await openDemoHistory(page);
   await page.getByRole("button", { name: "Últimos 7 días", exact: true }).click();
+  await expect(page.getByRole("button", { name: "Últimos 7 días", exact: true })).toHaveAttribute("aria-pressed", "true");
+  await openRecords(page);
   const table = page.getByRole("table");
   await expect(table.getByRole("row").nth(1).getByRole("cell")).toHaveCount(13);
   await expect(page.getByText("Cargando lecturas…", { exact: true })).toHaveCount(0);
@@ -52,14 +56,12 @@ test("el histórico muestra datos recientes y un rango antiguo vacío", async ({
 });
 
 for (const { label, extension } of [
-  { label: "Descargar CSV Ligero y rápido", extension: "csv" },
-  { label: "Descargar Excel Análisis detallado", extension: "xlsx" },
-  { label: "Descargar PDF Imprimible", extension: "pdf" },
+  { label: "CSV", extension: "csv" },
+  { label: "Excel", extension: "xlsx" },
+  { label: "PDF", extension: "pdf" },
 ]) {
   test(`exporta ${extension} con datos de los últimos siete días`, async ({ clientPage: page }, testInfo) => {
-    await page.goto("/cliente/exportar");
-    await expect(page.getByRole("heading", { level: 1, name: "Exportar Datos" })).toBeVisible();
-    await selectDemoArea(page);
+    await openDemoHistory(page);
     await page.getByRole("button", { name: "Últimos 7 días", exact: true }).click();
     const pendingDownload = page.waitForEvent("download");
     await page.getByRole("button", { name: label, exact: true }).click();

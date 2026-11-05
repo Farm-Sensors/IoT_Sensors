@@ -1,5 +1,9 @@
 # UI redesign rules (IoT_Sensors web)
 
+> **Current base (2026-11-05):** the redesign v2 (`docs/redesign/`) is integrated in `main`. Its
+> navigation and routes (`docs/redesign/v2/02-arquitectura.md`) replace the ones these rules froze
+> during round 1; from now on they are the routes and names that must not change without a spec.
+
 Binding rules for every `openspec/changes/ui-redesign-*` change. The goal is a clearer, more
 accessible and more intuitive web app. **Visual freedom is real**: layout, grouping, hierarchy,
 components, spacing, color within tokens and microcopy may change. Behavior, data and names may
@@ -22,7 +26,7 @@ its own scope; anything else not written down is out of scope.
 
 - **API and data:** no edits to `frontend/src/app/services/`, `frontend/src/app/types/`,
   `frontend/src/app/utils/` (date presets, filters, chart grouping, export), any backend file.
-  Pages that call the API inline (for example `ExportData.tsx`, `ReadingDateRangeSelector.tsx`)
+  Pages that call the API inline (for example `ReadingDateRangeSelector.tsx`)
   keep every `api.*` call, URL and parameter byte-identical. No new endpoints, no change to
   polling intervals or response handling.
 - **Business rules:** freshness threshold (`FRESH_MINUTES_THRESHOLD`), `null` versus measured `0`
@@ -55,7 +59,7 @@ effect and must not edit it):
 
 | Component(s) in `frontend/src/app/components/` | Owner change |
 |---|---|
-| `ui/` (Radix-based primitives), `PillButton`, `BentoCard`, `EmptyState`, `ConfirmDialog`, `Toast`, `SkeletonCard`, `MetricSkeleton`, `AnimatedBackground`, `PageTransition`, `icons/`, `auth/`, `navigation/` | `ui-redesign-1-shell-and-patterns` |
+| `ui/` (Radix-based primitives), `PillButton`, `BentoCard`, `EmptyState`, `ConfirmDialog`, `Toast`, `SkeletonCard`, `MetricSkeleton`, `PageTransition`, `icons/`, `auth/`, `navigation/` | `ui-redesign-1-shell-and-patterns` |
 | `MetricCard`, `FreshnessIndicator` (look only; its freshness math is logic), `GatewayStatusBadge`, `selection/SelectionScopeBar` | `ui-redesign-2-client-dashboard` |
 | `ReadingDateRangeSelector`, `ChartSkeleton` | `ui-redesign-3-history-export-map` |
 | `PairingApprovalPanel`, `EquipoStateBadge`, `RevokeLinkButton` | `ui-redesign-4-admin-pages` |
@@ -78,6 +82,9 @@ Not edited by any redesign change: `ProtectedRoute.tsx`, `ErrorBoundary.tsx` (lo
 - One `h1` per page and a logical heading order; form fields have visible labels.
 - Status is never conveyed by color alone (icon or text with it).
 - Touch targets at least 44×44 px at the 390 px width.
+- An `aria-label` must start with (or contain) the visible text (WCAG 2.5.3 «label in name»); if the
+  visible text already says it, drop the `aria-label`. MapLibre markers need an explicit one (it puts
+  «Map marker» otherwise) and a space between their text parts.
 - Run `cd frontend && npm run test:a11y`. A PR MUST NOT add new serious or critical violations
   or increase their node counts versus `e2e/a11y-baseline.json` for the pages it touches.
 

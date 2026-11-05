@@ -346,7 +346,7 @@ export function NodeDetail() {
                   value={editName}
                   onChange={(e) => setEditName(e.target.value)}
                   placeholder="Ej: Sensor Nogal-01"
-                  className="w-full px-4 py-2.5 rounded-[24px] bg-[var(--surface-panel)] border border-[var(--border-strong)] text-[var(--text-main)] focus:outline-none focus:ring-2 focus:ring-[var(--focus-ring)]"
+                  className="w-full px-4 py-2.5 rounded-[var(--radius)] bg-[var(--surface-panel)] border border-[var(--border-strong)] text-[var(--text-main)] focus:outline-none focus:ring-2 focus:ring-[var(--focus-ring)]"
                 /></Field>
 
               <Field label="Número de Serie"><input
@@ -354,7 +354,7 @@ export function NodeDetail() {
                   value={editSerialNumber}
                   onChange={(e) => setEditSerialNumber(e.target.value)}
                   placeholder="SN-2026-001"
-                  className="w-full px-4 py-2.5 rounded-[24px] bg-[var(--surface-panel)] border border-[var(--border-strong)] text-[var(--text-main)] focus:outline-none focus:ring-2 focus:ring-[var(--focus-ring)]"
+                  className="w-full px-4 py-2.5 rounded-[var(--radius)] bg-[var(--surface-panel)] border border-[var(--border-strong)] text-[var(--text-main)] focus:outline-none focus:ring-2 focus:ring-[var(--focus-ring)]"
                 /></Field>
 
               <div className="grid grid-cols-2 gap-3">
@@ -364,7 +364,7 @@ export function NodeDetail() {
                     value={editLat}
                     onChange={(e) => setEditLat(e.target.value)}
                     placeholder="28.6329"
-                    className="w-full px-4 py-2.5 rounded-[24px] bg-[var(--surface-panel)] border border-[var(--border-strong)] text-[var(--text-main)] focus:outline-none focus:ring-2 focus:ring-[var(--focus-ring)]"
+                    className="w-full px-4 py-2.5 rounded-[var(--radius)] bg-[var(--surface-panel)] border border-[var(--border-strong)] text-[var(--text-main)] focus:outline-none focus:ring-2 focus:ring-[var(--focus-ring)]"
                   /></Field>
                 <Field label="Longitud GPS"><input
                     type="number"
@@ -372,7 +372,7 @@ export function NodeDetail() {
                     value={editLng}
                     onChange={(e) => setEditLng(e.target.value)}
                     placeholder="-106.0691"
-                    className="w-full px-4 py-2.5 rounded-[24px] bg-[var(--surface-panel)] border border-[var(--border-strong)] text-[var(--text-main)] focus:outline-none focus:ring-2 focus:ring-[var(--focus-ring)]"
+                    className="w-full px-4 py-2.5 rounded-[var(--radius)] bg-[var(--surface-panel)] border border-[var(--border-strong)] text-[var(--text-main)] focus:outline-none focus:ring-2 focus:ring-[var(--focus-ring)]"
                   /></Field>
               </div>
 

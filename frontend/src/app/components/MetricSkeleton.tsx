@@ -22,7 +22,7 @@ export function MetricSkeleton({
           <div className="h-6 w-32 rounded-full animate-pulse bg-black/10 mb-2" />
           <div className="h-4 w-24 rounded-full animate-pulse bg-black/10 opacity-60" />
         </div>
-        <div className="w-12 h-12 rounded-[24px] animate-pulse bg-black/10" />
+        <div className="w-12 h-12 rounded-[var(--radius)] animate-pulse bg-black/10" />
       </div>
 
       {/* Value and Unit */}

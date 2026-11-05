@@ -39,7 +39,7 @@ export function MetricCard({
           )}
         </div>
         {icon && (
-          <div className="bg-[var(--card-sand)] text-[var(--text-main)] p-3 rounded-[24px]">
+          <div className="bg-[var(--card-sand)] text-[var(--text-main)] p-3 rounded-[var(--radius)]">
             {icon}
           </div>
         )}

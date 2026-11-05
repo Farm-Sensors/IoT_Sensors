@@ -34,7 +34,7 @@ export function ChartSkeleton({
       )}
 
       {/* Chart placeholder */}
-      <div className={`${heightClass} rounded-[24px] animate-shimmer`} />
+      <div className={`${heightClass} rounded-[var(--radius)] animate-shimmer`} />
 
       {/* Legend/Controls */}
       <div className="flex gap-3 mt-2">

@@ -9,7 +9,7 @@ export function PairDevice() {
 
   return (
     <PageTransition>
-      <div className="space-y-6">
+      <div className="space-y-6 p-4 md:p-8">
         <PageHeader
           title="Verificar emparejamiento"
           subtitle="Escribe el código que muestra la pantalla del equipo que estás instalando. Aprueba la solicitud solo si el código coincide."

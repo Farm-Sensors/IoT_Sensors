@@ -1,0 +1,13 @@
+import { chromium } from './lib-axe.mjs';
+const B = 'http://localhost:5173'; const OUT = new URL('./results/audit-admin-red/', import.meta.url).pathname;
+const b = await chromium.launch(); const p = await (await b.newContext({ viewport: { width: 1366, height: 900 } })).newPage();
+await p.goto(B + '/'); await p.getByLabel('Correo Electrónico').fill('admin@sensores.com'); await p.getByLabel('Contraseña', { exact: true }).fill('admin123'); await p.getByRole('button', { name: 'Iniciar Sesión' }).click(); await p.waitForURL('**/admin'); await p.waitForTimeout(1200);
+await p.goto(B + '/admin/gateways'); await p.waitForTimeout(2500);
+await p.getByRole('button', { name: 'Ver avance' }).click().catch(async () => { await p.getByText('Ver avance').click(); }); await p.waitForTimeout(2500);
+const m = async () => p.evaluate(() => { const x = document.querySelector('main'); const t = x.innerText; return { url: location.pathname, alto: x.scrollHeight, palabras: t.split(/\s+/).filter(Boolean).length, headings: [...x.querySelectorAll('h1,h2,h3')].map(e => e.tagName + ' ' + e.textContent.trim().slice(0, 40)), texto: t.replace(/\n+/g, ' | ').slice(0, 900) }; });
+console.log('equipo-wizard', JSON.stringify(await m())); await p.screenshot({ path: `${OUT}d-equipo.jpg`, type: 'jpeg', quality: 55 });
+await p.goto(B + '/admin/gateways'); await p.waitForTimeout(2000); await p.getByText('Revocados (15)').click(); await p.waitForTimeout(500);
+await p.screenshot({ path: `${OUT}d-revocados.jpg`, type: 'jpeg', quality: 55 });
+await p.getByRole('button', { name: 'Nuevo equipo' }).click(); await p.waitForTimeout(1500);
+console.log('nuevo-equipo', JSON.stringify(await m())); await p.screenshot({ path: `${OUT}d-nuevo-equipo.jpg`, type: 'jpeg', quality: 55 });
+await b.close();

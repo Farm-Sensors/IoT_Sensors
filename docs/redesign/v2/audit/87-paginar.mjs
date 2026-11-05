@@ -1,0 +1,15 @@
+import { chromium } from './lib-axe.mjs';
+const B = 'http://localhost:5173'; const b = await chromium.launch();
+const p = await (await b.newContext({ viewport: { width: 1366, height: 800 } })).newPage();
+await p.goto(B + '/'); await p.getByLabel('Correo Electrónico').fill('alan2203mx@gmail.com'); await p.getByLabel('Contraseña', { exact: true }).fill('123'); await p.getByRole('button', { name: 'Iniciar Sesión' }).click(); await p.waitForURL('**/cliente'); await p.waitForTimeout(1500);
+await p.goto(B + '/cliente/area/1/historial'); await p.waitForTimeout(3000);
+await p.getByText('Ver registros').first().click(); await p.waitForTimeout(800);
+const next = p.getByRole('button', { name: 'Siguiente' }); await next.scrollIntoViewIfNeeded(); await p.waitForTimeout(300);
+const y = () => p.evaluate(() => document.querySelector('main').scrollTop);
+const before = await y(); const top0 = (await next.boundingBox()).y;
+await next.click(); await p.waitForTimeout(1500);
+const after = await y(); const top1 = (await next.boundingBox()).y;
+console.log('scroll antes', before, 'después', after, '| botón Siguiente y:', Math.round(top0), '->', Math.round(top1));
+await next.click(); await p.waitForTimeout(1200);
+console.log('tras 2.º clic scroll', await y(), 'pág:', await p.getByText(/Página \d+ de/).innerText());
+await b.close();

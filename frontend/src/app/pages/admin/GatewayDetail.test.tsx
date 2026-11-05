@@ -102,7 +102,7 @@ describe("GatewayDetail", () => {
     renderPage();
 
     expect(
-      await screen.findByRole("heading", { level: 1, name: "Rancho Prueba · Rancho Prueba SA" }),
+      await screen.findByRole("heading", { level: 1, name: "Rancho Prueba SA · Rancho Prueba" }),
     ).toBeInTheDocument();
     expect(screen.getByTestId("equipo-state")).toHaveTextContent("Asignando nodos");
     expect(screen.getByText("0 de 2 áreas con datos")).toBeInTheDocument();

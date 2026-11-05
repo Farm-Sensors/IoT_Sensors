@@ -1,0 +1,352 @@
+{
+ "cliente/cliente": {
+  "buttons": [],
+  "links": [],
+  "inputs": [
+   "select-one:Seleccione predio... DEMO - Rancho Norte Granja Ho",
+   "select-one:Seleccione área... Area Granja Hogar"
+  ]
+ },
+ "cliente/cliente/areas": {
+  "buttons": [
+   "button:DEMO - Nogal Norte 12.5 ha Nogal Humedad actual 40",
+   "button:DEMO - Alfalfa Este 8 ha Alfalfa Humedad actual 38",
+   "button:DEMO - Chile Principal 5.5 ha Chile Humedad actual",
+   "button:DEMO - Área 2 6 ha Maíz Humedad actual 35.9% Datos",
+   "button:Area Granja Hogar 1 ha Nogal Humedad actual 62.9% ",
+   "button:Area Campus Reforestado 1 ha Nogal Humedad actual "
+  ],
+  "links": [],
+  "inputs": []
+ },
+ "cliente/cliente/historico": {
+  "buttons": [
+   "button:Hoy",
+   "button:Últimos 7 días",
+   "button:Últimos 30 días",
+   "button:Este mes",
+   "button:Este año",
+   "button:Personalizado",
+   "button:25/10/2026",
+   "button:31/10/2026",
+   "button:Humedad suelo",
+   "button:H. Relativa",
+   "button:Temp. suelo",
+   "button:Temp. aire",
+   "button:Flujo de agua",
+   "button:E.T.O.",
+   "button:CSV",
+   "button:Excel",
+   "button:PDF",
+   "button:Inicio (disabled)",
+   "button:Anterior (disabled)",
+   "button:Siguiente"
+  ],
+  "links": [],
+  "inputs": [
+   "select-one:Selecciona predio DEMO - Rancho Norte Granja Hogar",
+   "select-one:Selecciona área Area Granja Hogar",
+   "select-one:Todos los ciclos 2026-10-01 — Sin fecha de fin"
+  ]
+ },
+ "cliente/cliente/exportar": {
+  "buttons": [
+   "button:Hoy",
+   "button:Últimos 7 días",
+   "button:Últimos 30 días",
+   "button:Este mes",
+   "button:Este año",
+   "button:Personalizado",
+   "button:25/10/2026",
+   "button:31/10/2026",
+   "button:Descargar CSV Ligero y rápido",
+   "button:Descargar Excel Análisis detallado",
+   "button:Descargar PDF Imprimible"
+  ],
+  "links": [],
+  "inputs": [
+   "select-one:Selecciona predio DEMO - Rancho Norte Granja Hogar",
+   "select-one:Selecciona área Area Granja Hogar",
+   "select-one:Todos los ciclos 2026-10-01 — Sin fecha de fin"
+  ]
+ },
+ "cliente/cliente/perfil": {
+  "buttons": [
+   "button:Editar Perfil",
+   "button:Ver Planes",
+   "button:Cambiar Contraseña"
+  ],
+  "links": [],
+  "inputs": [
+   "text:",
+   "email:"
+  ]
+ },
+ "cliente/cliente/predio/2": {
+  "buttons": [],
+  "links": [],
+  "inputs": []
+ },
+ "cliente/cliente/mapa": {
+  "buttons": [
+   "button:Actualizar capa",
+   "button:Map marker",
+   "button:Zoom in",
+   "button:Zoom out",
+   "button:Drag to rotate map, click to reset north",
+   "button:Nodo Granja Hogar Sin reporte reciente"
+  ],
+  "links": [
+   "MapLibre → https://maplibre.org/",
+   "OpenFreeMap → https://openfreemap.org",
+   "© OpenMapTiles → https://www.openmaptiles.org/",
+   "OpenStreetMap → https://www.openstreetmap.org/copyright"
+  ],
+  "inputs": [
+   "select-one:DEMO - Rancho Norte Granja Hogar Campus Reforestad",
+   "select-one:Area Granja Hogar"
+  ]
+ },
+ "admin/admin": {
+  "buttons": [
+   "button:Nuevo Cliente",
+   "button:Nuevo Nodo",
+   "button:Configurar Umbrales",
+   "button:Ver Auditoría"
+  ],
+  "links": [
+   "Nuevo Cliente → /admin/clientes",
+   "Nuevo Nodo → /admin/nodos",
+   "Configurar Umbrales → /admin/umbrales",
+   "Ver Auditoría → /admin/auditoria"
+  ],
+  "inputs": []
+ },
+ "admin/admin/clientes": {
+  "buttons": [
+   "button:Nuevo Cliente",
+   "button:Editar",
+   "button:Predios",
+   "button:Dashboard",
+   "button:Borrar",
+   "button:Editar",
+   "button:Predios",
+   "button:Dashboard",
+   "button:Borrar"
+  ],
+  "links": [
+   "Predios → /admin/clientes/1/predios",
+   "Dashboard → /admin/clientes/1/dashboard",
+   "Predios → /admin/clientes/2/predios",
+   "Dashboard → /admin/clientes/2/dashboard"
+  ],
+  "inputs": [
+   "text:Buscar clientes"
+  ]
+ },
+ "admin/admin/nodos": {
+  "buttons": [
+   "button:Nuevo Nodo",
+   "button:Editar el nodo Nodo DEMO - Nogal Norte",
+   "button:Eliminar el nodo Nodo DEMO - Nogal Norte",
+   "button:Editar el nodo Nodo DEMO - Alfalfa Este",
+   "button:Eliminar el nodo Nodo DEMO - Alfalfa Este",
+   "button:Editar el nodo Nodo DEMO - Chile Principal",
+   "button:Eliminar el nodo Nodo DEMO - Chile Principal",
+   "button:Editar el nodo Nodo DEMO - Prueba E2E",
+   "button:Eliminar el nodo Nodo DEMO - Prueba E2E",
+   "button:Editar el nodo Nodo Granja Hogar",
+   "button:Eliminar el nodo Nodo Granja Hogar",
+   "button:Editar el nodo Nodo Campus Reforestado",
+   "button:Eliminar el nodo Nodo Campus Reforestado"
+  ],
+  "links": [],
+  "inputs": []
+ },
+ "admin/admin/gateways": {
+  "buttons": [
+   "button:Nuevo equipo",
+   "button:Ver avance"
+  ],
+  "links": [
+   "Ver detalle: E2E 1793330179488 Predio · E2E 179333 → /admin/gateways/2",
+   "Ver detalle: E2E 1793331305552 Predio · E2E 179333 → /admin/gateways/3",
+   "Ver detalle: E2E 1793334368163 Predio · E2E 179333 → /admin/gateways/4",
+   "Ver detalle: E2E 1793334750971 Predio · E2E 179333 → /admin/gateways/5",
+   "Ver detalle: E2E 1793338004306 Predio · E2E 179333 → /admin/gateways/6",
+   "Ver detalle: E2E 1793338532050 Predio · E2E 179333 → /admin/gateways/7",
+   "Ver detalle: E2E 1793339174665 Predio · E2E 179333 → /admin/gateways/8",
+   "Ver detalle: E2E 1793494166982 Predio · E2E 179349 → /admin/gateways/9",
+   "Ver detalle: E2E 1793496438249 Predio · E2E 179349 → /admin/gateways/10",
+   "Ver detalle: E2E 1793497343977 Predio · E2E 179349 → /admin/gateways/11",
+   "Ver detalle: E2E 1793497908484 Predio · E2E 179349 → /admin/gateways/12",
+   "Ver detalle: E2E 1793498723523 Predio · E2E 179349 → /admin/gateways/13",
+   "Ver detalle: E2E 1793499482537 Predio · E2E 179349 → /admin/gateways/14",
+   "Ver detalle: E2E 1793500549893 Predio · E2E 179350 → /admin/gateways/15",
+   "Ver detalle: E2E 1793503473185 Predio · E2E 179350 → /admin/gateways/16"
+  ],
+  "inputs": []
+ },
+ "admin/admin/cultivos": {
+  "buttons": [
+   "button:Nuevo Cultivo",
+   "button:Editar el cultivo Nogal",
+   "button:Eliminar el cultivo Nogal",
+   "button:Editar el cultivo Alfalfa",
+   "button:Eliminar el cultivo Alfalfa",
+   "button:Editar el cultivo Manzana",
+   "button:Eliminar el cultivo Manzana",
+   "button:Editar el cultivo Maíz",
+   "button:Eliminar el cultivo Maíz",
+   "button:Editar el cultivo Chile",
+   "button:Eliminar el cultivo Chile",
+   "button:Editar el cultivo Algodón",
+   "button:Eliminar el cultivo Algodón"
+  ],
+  "links": [],
+  "inputs": []
+ },
+ "admin/admin/ciclos": {
+  "buttons": [
+   "button:Nuevo Ciclo",
+   "button:Eliminar el ciclo 30 de septiembre de 2026 - Actua"
+  ],
+  "links": [],
+  "inputs": []
+ },
+ "admin/admin/auditoria": {
+  "buttons": [
+   "button:Actualizar",
+   "button: (disabled)",
+   "button: (disabled)"
+  ],
+  "links": [],
+  "inputs": [
+   "text:create, update, delete, execute",
+   "text:threshold, alert, inactivity_scan",
+   "date:",
+   "date:"
+  ]
+ },
+ "admin/admin/mapa": {
+  "buttons": [
+   "button:Actualizar capa",
+   "button:Map marker",
+   "button:Map marker",
+   "button:Map marker",
+   "button:Map marker",
+   "button:Map marker",
+   "button:Zoom in",
+   "button:Zoom out",
+   "button:Drag to rotate map, click to reset north",
+   "button:Nodo DEMO - Nogal Norte Reportando",
+   "button:Nodo DEMO - Alfalfa Este Reportando",
+   "button:Nodo DEMO - Chile Principal Reportando",
+   "button:Nodo Granja Hogar Sin reporte reciente",
+   "button:Nodo Campus Reforestado Sin reporte reciente"
+  ],
+  "links": [
+   "MapLibre → https://maplibre.org/",
+   "OpenFreeMap → https://openfreemap.org",
+   "© OpenMapTiles → https://www.openmaptiles.org/",
+   "OpenStreetMap → https://www.openstreetmap.org/copyright"
+  ],
+  "inputs": [
+   "select-one:Todos los clientes Agricola del Norte Sin Empresa",
+   "select-one:Todos los predios DEMO - Rancho Norte Granja Hogar",
+   "select-one:Todas las áreas",
+   "select-one:Marcadores individuales Clusters automáticos",
+   "checkbox:",
+   "checkbox:",
+   "checkbox:"
+  ]
+ },
+ "admin/admin/gateways/pair": {
+  "buttons": [
+   "button:Buscar código"
+  ],
+  "links": [],
+  "inputs": [
+   "text:BCDF-GHJK"
+  ]
+ },
+ "admin/admin/nodos/1": {
+  "buttons": [
+   "button:Editar nodo",
+   "button:Datos para soporte"
+  ],
+  "links": [
+   "Nodos → /admin/nodos"
+  ],
+  "inputs": []
+ },
+ "admin/admin/gateways/1": {
+  "buttons": [
+   "button:Revocar enlace"
+  ],
+  "links": [
+   "Volver a la lista → /admin/gateways",
+   "Ver avance → /admin/gateways?gateway=1",
+   "Cambiar el equipo de este rancho → /admin/gateways/pair"
+  ],
+  "inputs": []
+ },
+ "admin/admin/clientes/1/predios": {
+  "buttons": [
+   "button:Nuevo Predio",
+   "button:Editar",
+   "button:Áreas de Riego",
+   "button:Borrar",
+   "button:Editar",
+   "button:Áreas de Riego",
+   "button:Borrar",
+   "button:Editar",
+   "button:Áreas de Riego",
+   "button:Borrar"
+  ],
+  "links": [
+   "Clientes → /admin/clientes",
+   "Áreas de Riego → /admin/predios/1/areas",
+   "Áreas de Riego → /admin/predios/2/areas",
+   "Áreas de Riego → /admin/predios/3/areas"
+  ],
+  "inputs": []
+ },
+ "admin/admin/clientes/1/dashboard": {
+  "buttons": [
+   "button:Volver a automático (disabled)",
+   "button:Guardar preferencias"
+  ],
+  "links": [
+   "Clientes → /admin/clientes"
+  ],
+  "inputs": [
+   "checkbox:",
+   "checkbox:",
+   "checkbox:",
+   "checkbox:",
+   "checkbox:",
+   "checkbox:",
+   "checkbox:",
+   "checkbox:"
+  ]
+ },
+ "admin/admin/predios/1/areas": {
+  "buttons": [
+   "button:Nueva Área",
+   "button:Editar",
+   "button:Borrar",
+   "button:Editar",
+   "button:Borrar",
+   "button:Editar",
+   "button:Borrar",
+   "button:Editar",
+   "button:Borrar"
+  ],
+  "links": [
+   "Clientes → /admin/clientes",
+   "Agricola del Norte → /admin/clientes/1/predios"
+  ],
+  "inputs": []
+ }
+}

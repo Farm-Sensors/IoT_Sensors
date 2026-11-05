@@ -11,8 +11,8 @@ interface ErrorStateProps {
 export function ErrorState({ title = "No se pudo cargar", message, onRetry }: ErrorStateProps) {
   return (
     <div role="alert" className="flex flex-col items-center justify-center px-6 py-14 text-center">
-      <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-[24px] bg-[var(--status-danger-bg)]">
-        <AlertTriangle aria-hidden="true" className="h-8 w-8 text-[var(--status-danger)]" />
+      <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-[var(--radius)] bg-[var(--status-danger-bg)]">
+        <AlertTriangle aria-hidden="true" className="h-8 w-8 text-[var(--status-danger-text)]" />
       </div>
       <h2 className="mb-2 text-lg font-medium text-[var(--text-main)]">{title}</h2>
       <p className="max-w-xs text-sm text-[var(--text-muted)]">{message}</p>

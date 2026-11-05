@@ -30,13 +30,12 @@ test.describe("Jerarquía de administración", () => {
     await form.getByRole("button", { name: "Guardar" }).click();
     await expect(page.getByText("Cliente creado de forma exitosa")).toBeVisible();
 
-    await page.getByPlaceholder("Buscar por nombre, email o teléfono...").fill(company);
-    const clientRow = page.getByRole("row").filter({ hasText: company });
+    // La lista es de filas: toda la fila del cliente abre su panel (el h1 es «Clientes» y el título del panel es h2).
+    const clientRow = page.getByRole("main").getByRole("link").filter({ hasText: company });
     await expect(clientRow).toBeVisible();
-
-    // Predio (PropertyManagement.tsx)
-    await clientRow.getByRole("link", { name: "Predios" }).click();
-    await expect(page.getByRole("heading", { level: 1, name: "Predios" })).toBeVisible();
+    await clientRow.click();
+    await expect(page.getByRole("heading", { level: 2, name: company })).toBeVisible();
+    await expect(page.getByRole("heading", { level: 2, name: /^Predios/ })).toBeVisible();
     await page.getByRole("button", { name: "Nuevo Predio" }).click();
     await page.getByLabel("Nombre del Predio").fill(property);
     await page.getByRole("button", { name: "Guardar", exact: true }).click();
@@ -44,8 +43,8 @@ test.describe("Jerarquía de administración", () => {
     await expect(page.getByText(property).first()).toBeVisible();
 
     // Área de riego (IrrigationAreaManagement.tsx)
-    await page.getByRole("link", { name: "Áreas de Riego" }).first().click();
-    await expect(page.getByRole("heading", { level: 1, name: "Áreas de Riego" })).toBeVisible();
+    await page.getByRole("main").getByRole("link").filter({ hasText: property }).first().click();
+    await expect(page.getByRole("heading", { level: 2, name: /^Áreas de riego/ })).toBeVisible();
     await page.getByRole("button", { name: "Nueva Área" }).click();
     await page.getByLabel("Nombre del Área").fill(area);
     await page.getByLabel("Tipo de Cultivo").selectOption({ label: "Nogal" });

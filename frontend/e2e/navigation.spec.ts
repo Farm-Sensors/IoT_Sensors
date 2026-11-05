@@ -10,22 +10,16 @@ interface Entry {
 
 // Fuente: components/navigation/items.ts (ítems sin `module`) y el h1 de cada página.
 const CLIENT_ENTRIES: Entry[] = [
-  { desktop: "Dashboard", mobile: "Inicio", path: "/cliente", h1: /^Hola, / },
-  { desktop: "Predios", mobile: "Predios", path: "/cliente/areas", h1: "Predios y Áreas de Riego" },
-  { desktop: "Mapa", mobile: "Mapa", path: "/cliente/mapa", h1: "Mapa de Nodos" },
-  { desktop: "Histórico", mobile: "Histórico", path: "/cliente/historico", h1: "Datos Históricos" },
-  { desktop: "Exportar", mobile: "Exportar", path: "/cliente/exportar", h1: "Exportar Datos" },
-  { desktop: "Perfil", mobile: "Perfil", path: "/cliente/perfil", h1: "Mi Perfil" },
+  { desktop: "Mis predios", mobile: "Mis predios", path: "/cliente", h1: "Mis predios" },
+  { desktop: "Mapa", mobile: "Mapa", path: "/cliente/mapa", h1: "Mapa" },
+  { desktop: "Cuenta", mobile: "Cuenta", path: "/cliente/perfil", h1: "Cuenta" },
 ];
 
 const ADMIN_ENTRIES: Entry[] = [
-  { desktop: "Dashboard", mobile: "Inicio", path: "/admin", h1: "Panel de Administración" },
-  { desktop: "Clientes", mobile: "Clientes", path: "/admin/clientes", h1: "Gestión de Clientes" },
-  { desktop: "Mapa", mobile: "Mapa", path: "/admin/mapa", h1: "Mapa Global de Nodos" },
-  { desktop: "Nodos", mobile: "Nodos", path: "/admin/nodos", h1: "Gestión de Nodos" },
-  { desktop: "Equipos", mobile: "Equipos", path: "/admin/gateways", h1: "Equipos" },
-  { desktop: "Catálogo", mobile: "Catálogo", path: "/admin/cultivos", h1: "Catálogo de Cultivos" },
-  { desktop: "Auditoría", mobile: "Auditoría", path: "/admin/auditoria", h1: "Bitácora de Auditoría" },
+  { desktop: "Inicio", mobile: "Inicio", path: "/admin", h1: "Inicio" },
+  { desktop: "Clientes", mobile: "Clientes", path: "/admin/clientes", h1: "Clientes" },
+  { desktop: "Red", mobile: "Red", path: "/admin/gateways", h1: "Equipos" },
+  { desktop: "Ajustes", mobile: "Ajustes", path: "/admin/cultivos", h1: "Catálogo de Cultivos" },
 ];
 
 // Ítems con `module` (Fase 2): con los flags apagados en local no deben aparecer.
@@ -33,11 +27,11 @@ const CLIENT_HIDDEN = ["Alertas", "Asistente IA", "Chat IA", "Reportes IA", "IA"
 const ADMIN_HIDDEN = ["Umbrales", "Alertas", "Asistente IA", "Chat IA", "Consumo IA", "Uso IA", "Reportes IA", "IA"];
 
 const ROLES = [
-  { role: "admin", home: "/admin", entries: ADMIN_ENTRIES, hidden: ADMIN_HIDDEN },
-  { role: "cliente", home: "/cliente", entries: CLIENT_ENTRIES, hidden: CLIENT_HIDDEN },
+  { role: "admin", home: "/admin", homeLabel: "Inicio", entries: ADMIN_ENTRIES, hidden: ADMIN_HIDDEN },
+  { role: "cliente", home: "/cliente", homeLabel: "Mis predios", entries: CLIENT_ENTRIES, hidden: CLIENT_HIDDEN },
 ] as const;
 
-for (const { role, home, entries, hidden } of ROLES) {
+for (const { role, home, homeLabel, entries, hidden } of ROLES) {
   test.describe(`Navegación del ${role}`, () => {
     test("cada entrada del menú abre su página", async ({ adminPage, clientPage }, testInfo) => {
       const page = role === "admin" ? adminPage : clientPage;
@@ -58,7 +52,7 @@ for (const { role, home, entries, hidden } of ROLES) {
       const mobile = testInfo.project.name === "mobile";
       const menu = mobile ? page : page.getByRole("navigation");
       await page.goto(home);
-      await expect(menu.getByRole("link", { name: mobile ? "Inicio" : "Dashboard", exact: true })).toBeVisible();
+      await expect(menu.getByRole("link", { name: homeLabel, exact: true })).toBeVisible();
 
       for (const name of hidden) {
         await expect(menu.getByRole("link", { name, exact: true })).toHaveCount(0);
@@ -66,3 +60,20 @@ for (const { role, home, entries, hidden } of ROLES) {
     });
   });
 }
+
+test.describe("Pestañas de sección del admin", () => {
+  test("llevan a las pantallas hermanas, incluido Ciclos que antes no tenía enlace", async ({ adminPage: page }) => {
+    await page.goto("/admin/clientes");
+    const tabs = page.getByRole("navigation", { name: "Secciones" });
+    await tabs.getByRole("link", { name: "Ciclos de cultivo" }).click();
+    await expect(page.getByRole("heading", { level: 1, name: "Ciclos de cultivo" })).toBeVisible();
+    await page.goto("/admin/gateways");
+    await tabs.getByRole("link", { name: "Nodos" }).click();
+    await expect(page.getByRole("heading", { level: 1, name: "Nodos" })).toBeVisible();
+    await tabs.getByRole("link", { name: "Mapa" }).click();
+    await expect(page.getByRole("heading", { level: 1, name: "Mapa" })).toBeVisible();
+    await page.goto("/admin/cultivos");
+    await tabs.getByRole("link", { name: "Registro de eventos" }).click();
+    await expect(page.getByRole("heading", { level: 1, name: "Registro de eventos" })).toBeVisible();
+  });
+});

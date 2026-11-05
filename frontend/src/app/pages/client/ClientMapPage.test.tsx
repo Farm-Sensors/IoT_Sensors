@@ -1,78 +1,100 @@
-import { cleanup, fireEvent, render, screen } from "@testing-library/react";
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { cleanup, fireEvent, render, screen, within } from "@testing-library/react";
+import { MemoryRouter } from "react-router";
+import { afterEach, beforeAll, describe, expect, it, vi } from "vitest";
 import { ClientMapPage } from "./ClientMapPage";
 
 const mocks = vi.hoisted(() => ({
   refresh: vi.fn(),
   nodes: [
-    { id: 1, name: "Nodo A", latitude: 28.6, longitude: -106.1, freshness_status: "fresh", property_name: "Predio", irrigation_area_name: "Área 1", crop_type_name: "Nogal", is_active: true, last_reading_timestamp: null },
-    { id: 2, name: "Nodo B", latitude: 28.7, longitude: -106.2, freshness_status: "stale", property_name: "Predio", irrigation_area_name: "Área 2", crop_type_name: "Chile", is_active: true, last_reading_timestamp: null },
-    { id: 3, name: "Nodo C", latitude: null, longitude: null, freshness_status: "no_data", property_name: "Predio", irrigation_area_name: "Área 3", crop_type_name: "Maíz", is_active: false, last_reading_timestamp: null },
+    { id: 1, irrigation_area_id: 5, irrigation_area_name: "Nogal Norte", property_id: 1, property_name: "Rancho", crop_type_name: "Nogal", latitude: 28.6, longitude: -106.1, freshness_status: "fresh" },
+    { id: 2, irrigation_area_id: 6, irrigation_area_name: "Chile", property_id: 1, property_name: "Rancho", crop_type_name: "Chile", latitude: 28.7, longitude: -106.2, freshness_status: "stale" },
+    { id: 3, irrigation_area_id: 7, irrigation_area_name: "Maíz", property_id: 1, property_name: "Rancho", crop_type_name: "Maíz", latitude: null, longitude: null, freshness_status: "no_data" },
   ],
   geo: { error: null as string | null, loading: false },
+  markers: [] as { el: HTMLElement }[],
 }));
 
-vi.mock("maplibre-gl", () => ({
-  default: {
-    Map: class { on() {} off() {} once() {} remove() {} resize() {} flyTo() {} setStyle() {} addControl() {} isStyleLoaded() { return true; } },
-    NavigationControl: class {},
-  },
-}));
+vi.mock("maplibre-gl", () => {
+  class Map { addControl() {} flyTo() {} fitBounds() {} resize() {} remove() {} getZoom() { return 10; } }
+  class Marker {
+    el: HTMLElement;
+    constructor(opts: { element: HTMLElement }) { this.el = opts.element; mocks.markers.push(this); }
+    setLngLat() { return this; } addTo() { return this; } remove() { const i = mocks.markers.indexOf(this); if (i >= 0) mocks.markers.splice(i, 1); }
+  }
+  class LngLatBounds { extend() { return this; } }
+  class NavigationControl {}
+  return { default: { Map, Marker, LngLatBounds, NavigationControl } };
+});
 vi.mock("maplibre-gl/dist/maplibre-gl.css", () => ({}));
-vi.mock("../../components/maps/mapHelpers", () => ({
-  communicationStatusLabel: (status: string) => ({ fresh: "Al día", stale: "Tardío", no_data: "Sin lectura" })[status] ?? status,
-  fitMapToNodes: vi.fn(),
-  freshnessText: () => "hace 5 min",
-  renderNodeLayer: vi.fn(() => () => {}),
-}));
 vi.mock("../../components/maps/useGeoNodesData", () => ({
   useGeoNodesData: () => ({ nodes: mocks.nodes, loading: mocks.geo.loading, error: mocks.geo.error, refresh: mocks.refresh }),
-  useMapSelectedNodeSync: () => {},
 }));
+// Referencias estables, como las del hook real: un arreglo nuevo en cada render haría un ciclo infinito.
+const overview = vi.hoisted(() => ({
+  rows: [
+    { area: { id: 5, name: "Nogal Norte", property_id: 1 }, state: "al_dia", humidity: 61.2, lastUpdate: new Date(), series: [] },
+    { area: { id: 6, name: "Chile", property_id: 1 }, state: "sin_comunicacion", humidity: 40, lastUpdate: new Date(Date.now() - 3 * 3600_000), series: [] },
+  ],
+  loading: false, error: null, reload: () => {},
+}));
+vi.mock("./overview/useAreaOverview", () => ({ useAreaOverview: () => overview }));
 vi.mock("../../context/ThemeContext", () => ({ useTheme: () => ({ theme: "light" }) }));
-vi.mock("../../context/SelectionContext", () => ({
-  useSelection: () => ({
-    properties: [{ id: 1, name: "Predio" }],
-    areas: [{ id: 5, name: "Área 1", property_id: 1 }],
-    selectedProperty: { id: 1, name: "Predio" },
-    selectedArea: { id: 5, name: "Área 1", property_id: 1 },
-    setSelectedProperty: vi.fn(),
-    setSelectedArea: vi.fn(),
-  }),
+const selection = vi.hoisted(() => ({
+  properties: [{ id: 1, name: "Rancho" }, { id: 2, name: "Otro" }],
+  areas: [{ id: 5, name: "Nogal Norte", property_id: 1 }, { id: 6, name: "Chile", property_id: 1 }, { id: 7, name: "Maíz", property_id: 1 }],
 }));
+vi.mock("../../context/SelectionContext", () => ({ useSelection: () => selection }));
 
-afterEach(() => { cleanup(); mocks.refresh.mockReset(); mocks.geo.error = null; mocks.geo.loading = false; });
+beforeAll(() => { (globalThis as unknown as { ResizeObserver: unknown }).ResizeObserver = class { observe() {} disconnect() {} unobserve() {} }; });
+afterEach(() => { cleanup(); mocks.markers.length = 0; mocks.geo.error = null; mocks.refresh.mockReset(); });
+
+const renderPage = () => render(<MemoryRouter><ClientMapPage /></MemoryRouter>);
+
+const pinTexts = () => mocks.markers.map((m) => m.el.textContent);
 
 describe("ClientMapPage", () => {
-  it("states every node status in text with the count, not only by marker color", () => {
-    render(<ClientMapPage />);
-    expect(screen.getByRole("heading", { level: 1, name: "Mapa de Nodos" })).toBeTruthy();
-    const legend = screen.getByRole("list", { name: "Leyenda de estados" });
-    expect(legend).toHaveTextContent("Fresco: 1");
-    expect(legend).toHaveTextContent("Tardío: 1");
-    expect(legend).toHaveTextContent("Sin lectura: 1");
-    expect(legend).toHaveTextContent("Sin GPS: 1");
-    expect(screen.getByRole("region", { name: "Mapa de nodos" })).toBeTruthy();
+  it("starts with one pin per predio and no area pins", () => {
+    renderPage();
+    expect(screen.getByRole("heading", { level: 1, name: "Mapa" })).toBeTruthy();
+    expect(screen.getByRole("status")).toHaveTextContent("1 predio · 1 de 2 áreas al día · 1 sin comunicación");
+    expect(pinTexts()).toHaveLength(1);
+    expect(pinTexts()[0]).toContain("Rancho");
+    expect(pinTexts()[0]).toContain("3 áreas");
+    expect(screen.getByText("Toca un predio para ver sus áreas.")).toBeTruthy();
+    const legend = screen.getByRole("list", { name: "Leyenda" });
+    for (const label of ["Al día", "Sin comunicación", "Sin datos"]) expect(legend).toHaveTextContent(label);
+    expect(screen.queryByText(/Actualizar capa|MapLibre/)).toBeNull();
   });
 
-  it("lists the nodes on the map as buttons that open their detail", () => {
-    render(<ClientMapPage />);
-    const nodeA = screen.getByRole("button", { name: /Nodo A/ });
-    expect(nodeA).toHaveAttribute("aria-pressed", "false");
-    fireEvent.click(nodeA);
-    expect(screen.getByRole("button", { name: /Nodo A/ })).toHaveAttribute("aria-pressed", "true");
-    expect(screen.getByText("hace 5 min")).toBeTruthy();
-    expect(screen.queryByRole("button", { name: /Nodo C/ })).toBeNull();
-    expect(screen.getByText("Nodo C")).toBeTruthy();
+  it("shows the area pins only after a predio is chosen, and says what is missing", () => {
+    renderPage();
+    fireEvent.click(mocks.markers[0].el);
+    expect(screen.getByRole("button", { name: "Rancho" })).toHaveAttribute("aria-pressed", "true");
+    expect(pinTexts()).toHaveLength(2);
+    expect(pinTexts().join(" ")).toContain("Nogal Norte");
+    expect(pinTexts().join(" ")).toContain("61 % humedad");
+    expect(screen.getByText(/1 área no aparece porque no tiene ubicación: Maíz/)).toBeTruthy();
+    expect(screen.getByRole("link", { name: /Detalle de Rancho/ })).toHaveAttribute("href", "/cliente/predio/1");
+    fireEvent.click(screen.getByRole("button", { name: "Todos los predios" }));
+    expect(pinTexts()).toHaveLength(1);
   });
 
-  it("refreshes the layer from the primary action and offers retry on error", () => {
-    mocks.geo.error = "No se pudo cargar la capa geoespacial. Intenta nuevamente.";
-    render(<ClientMapPage />);
-    fireEvent.click(screen.getByRole("button", { name: "Actualizar capa" }));
-    expect(mocks.refresh).toHaveBeenCalledTimes(1);
-    expect(screen.getByRole("alert")).toHaveTextContent("No se pudo cargar la capa geoespacial.");
+  it("opens a card with a way into the area when an area pin is tapped", () => {
+    renderPage();
+    fireEvent.click(mocks.markers[0].el);
+    expect(screen.queryByRole("region", { name: "Detalle de Nogal Norte" })).toBeNull();
+    fireEvent.click(mocks.markers[0].el);
+    const card = screen.getByRole("region", { name: "Detalle de Nogal Norte" });
+    expect(card).toHaveTextContent("61.2");
+    expect(within(card).getByRole("link", { name: /Abrir área/ })).toHaveAttribute("href", "/cliente/area/5");
+    fireEvent.click(within(card).getByRole("button", { name: "Cerrar" }));
+    expect(screen.queryByRole("region", { name: "Detalle de Nogal Norte" })).toBeNull();
+  });
+
+  it("retries on error", () => {
+    mocks.geo.error = "No se pudo cargar el mapa. Intenta nuevamente.";
+    renderPage();
     fireEvent.click(screen.getByRole("button", { name: "Reintentar" }));
-    expect(mocks.refresh).toHaveBeenCalledTimes(2);
+    expect(mocks.refresh).toHaveBeenCalledTimes(1);
   });
 });

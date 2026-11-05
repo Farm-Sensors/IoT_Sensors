@@ -4865,6 +4865,22 @@ components:
       description: Minimal crop type info for embedding in other responses.
     CropTypeCreate:
       properties:
+        photo_url:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Photo Url
+        photo_credit:
+          anyOf:
+          - type: string
+            maxLength: 255
+          - type: 'null'
+          title: Photo Credit
+        photo_page:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Photo Page
         name:
           type: string
           title: Name
@@ -4890,6 +4906,21 @@ components:
           - type: string
           - type: 'null'
           title: Description
+        photo_url:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Photo Url
+        photo_credit:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Photo Credit
+        photo_page:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Photo Page
         created_at:
           type: string
           format: date-time
@@ -4907,6 +4938,22 @@ components:
       title: CropTypeResponse
     CropTypeUpdate:
       properties:
+        photo_url:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Photo Url
+        photo_credit:
+          anyOf:
+          - type: string
+            maxLength: 255
+          - type: 'null'
+          title: Photo Credit
+        photo_page:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Photo Page
         name:
           anyOf:
           - type: string

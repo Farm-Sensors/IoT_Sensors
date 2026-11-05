@@ -172,9 +172,9 @@ Contrato detallado (payloads, schemas, errores, ejemplos): **`openapi.yaml`** (a
 | Properties | PUT | `/api/v1/properties/{property_id}` | Actualizar — Admin |
 | Properties | DELETE | `/api/v1/properties/{property_id}` | Eliminar — Admin |
 | Crop Types | GET | `/api/v1/crop-types` | Listar (paginado) |
-| Crop Types | POST | `/api/v1/crop-types` | Crear tipo de cultivo — Admin |
+| Crop Types | POST | `/api/v1/crop-types` | Crear tipo de cultivo — Admin (campos opcionales `photo_url`, `photo_credit`, `photo_page`: foto de Wikimedia Commons; otro origen devuelve 422) |
 | Crop Types | GET | `/api/v1/crop-types/{crop_type_id}` | Detalle |
-| Crop Types | PUT | `/api/v1/crop-types/{crop_type_id}` | Actualizar — Admin |
+| Crop Types | PUT | `/api/v1/crop-types/{crop_type_id}` | Actualizar — Admin (`photo_url: null` quita la foto y su atribución; si no se envía, no cambia) |
 | Crop Types | DELETE | `/api/v1/crop-types/{crop_type_id}` | Eliminar — Admin |
 | Irrigation Areas | GET | `/api/v1/irrigation-areas` | Listar (paginado, filtro `property_id`) |
 | Irrigation Areas | POST | `/api/v1/irrigation-areas` | Crear área de riego — Admin |

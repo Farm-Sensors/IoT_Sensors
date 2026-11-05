@@ -5,7 +5,10 @@ import { HierarchyTrail } from "../../components/HierarchyTrail";
 import { ConfirmDialog } from "../../components/ConfirmDialog";
 import { FormDialog } from "../../components/FormDialog";
 import { useEffect, useState } from "react";
-import { Link, useParams } from "react-router";
+import { Link, useNavigate, useParams } from "react-router";
+import type { ReactNode } from "react";
+import { useEmbedded } from "../../components/EmbeddedPanel";
+import { HealthBadge, PanelHeader, listBox, panelButton, panelButtonDanger, panelButtonPrimary, placeLabel, rowLink, type Health } from "./directory/Health";
 import { BentoCard } from "../../components/BentoCard";
 import { EmptyState } from "../../components/EmptyState";
 import { PageTransition } from "../../components/PageTransition";
@@ -20,8 +23,11 @@ type Property = {
   location: string | null;
 };
 
-export function PropertyManagement() {
-  const { clientId } = useParams<{ clientId: string }>();
+export function PropertyManagement({ clientId: clientIdProp, propertyId, meta, health }: { clientId?: string; propertyId?: string; meta?: ReactNode; health?: Record<number, Health> } = {}) {
+  const embedded = useEmbedded();
+  const navigate = useNavigate();
+  const params = useParams<{ clientId: string }>();
+  const clientId = clientIdProp ?? params.clientId;
   const { showToast } = useToast();
   const [properties, setProperties] = useState<Property[]>([]);
   const [clientName, setClientName] = useState("Cargando...");
@@ -111,10 +117,140 @@ export function PropertyManagement() {
       await api.delete(`/properties/${propertyId}`);
       fetchData();
       showToast("Predio eliminado", "success");
+      if (propertyId) navigate(`/admin/clientes/${clientId}/predios`);
     } catch (err: any) {
       showToast("Error al eliminar el predio: " + (err.response?.data?.detail || err.message), "error");
     }
   };
+
+  const dialogs = (
+    <>
+      {showCreateForm && (<FormDialog open title="Nuevo Predio" onClose={() => setShowCreateForm(false)}>
+            <form className="space-y-4" onSubmit={handleCreate}>
+              <div>
+                <label htmlFor="property-create-name" className="block text-sm text-[var(--text-subtle)] mb-1">Nombre del Predio</label>
+                <input id="property-create-name" required type="text" value={formData.name} onChange={e => setFormData({ ...formData, name: e.target.value })} className="w-full px-4 py-2.5 rounded-[var(--radius)] bg-[var(--surface-panel)] border border-[var(--border-strong)] text-[var(--text-body)] focus:outline-none focus:ring-2 focus:ring-[var(--focus-ring)]" />
+              </div>
+              <div>
+                <label htmlFor="property-create-location" className="block text-sm text-[var(--text-subtle)] mb-1">Ubicación (Opcional)</label>
+                <input id="property-create-location" type="text" value={formData.location} onChange={e => setFormData({ ...formData, location: e.target.value })} className="w-full px-4 py-2.5 rounded-[var(--radius)] bg-[var(--surface-panel)] border border-[var(--border-strong)] text-[var(--text-body)] focus:outline-none focus:ring-2 focus:ring-[var(--focus-ring)]" />
+              </div>
+              <div className="flex gap-3 pt-4">
+                <PillButton variant="outline" className="flex-1 justify-center" onClick={() => setShowCreateForm(false)} type="button">Cancelar</PillButton>
+                <PillButton variant="primary" className="flex-1 justify-center" type="submit">Guardar</PillButton>
+              </div>
+            </form>
+          </FormDialog>)}
+
+      {showEditForm && editingProperty && (<FormDialog open title="Editar Predio" onClose={() => {
+                  setShowEditForm(false);
+                  setEditingProperty(null);
+                }}>
+            <form className="space-y-4" onSubmit={handleUpdate}>
+              <div>
+                <label htmlFor="property-edit-name" className="block text-sm text-[var(--text-subtle)] mb-1">Nombre del Predio</label>
+                <input
+                  id="property-edit-name"
+                  required
+                  type="text"
+                  value={editFormData.name}
+                  onChange={(e) => setEditFormData({ ...editFormData, name: e.target.value })}
+                  className="w-full px-4 py-2.5 rounded-[var(--radius)] bg-[var(--surface-panel)] border border-[var(--border-strong)] text-[var(--text-body)] focus:outline-none focus:ring-2 focus:ring-[var(--focus-ring)]"
+                />
+              </div>
+              <div>
+                <label htmlFor="property-edit-location" className="block text-sm text-[var(--text-subtle)] mb-1">Ubicación (Opcional)</label>
+                <input
+                  id="property-edit-location"
+                  type="text"
+                  value={editFormData.location}
+                  onChange={(e) => setEditFormData({ ...editFormData, location: e.target.value })}
+                  className="w-full px-4 py-2.5 rounded-[var(--radius)] bg-[var(--surface-panel)] border border-[var(--border-strong)] text-[var(--text-body)] focus:outline-none focus:ring-2 focus:ring-[var(--focus-ring)]"
+                />
+              </div>
+              <div className="flex gap-3 pt-4">
+                <PillButton
+                  variant="outline"
+                  className="flex-1 justify-center"
+                  onClick={() => {
+                    setShowEditForm(false);
+                    setEditingProperty(null);
+                  }}
+                  type="button"
+                >
+                  Cancelar
+                </PillButton>
+                <PillButton variant="primary" className="flex-1 justify-center" type="submit">
+                  Guardar Cambios
+                </PillButton>
+              </div>
+            </form>
+          </FormDialog>)}
+      <ConfirmDialog
+        open={pendingDelete !== null}
+        variant="danger"
+        title={`¿Eliminar el predio ${pendingDelete?.name ?? ""}?`}
+        description="Esta acción no se puede deshacer."
+        confirmLabel="Eliminar"
+        onConfirm={() => {
+          const target = pendingDelete;
+          setPendingDelete(null);
+          if (target) void handleDelete(target.id);
+        }}
+        onCancel={() => setPendingDelete(null)}
+      />
+
+    </>
+  );
+
+  if (embedded) {
+    if (propertyId) {
+      const current = properties.find((p) => String(p.id) === String(propertyId));
+      return (
+        <div>
+          {current ? (
+            <PanelHeader
+              title={current.name}
+              meta={<>{placeLabel(current.location)}{meta ? <> · {meta}</> : null}</>}
+              actions={
+                <>
+                  <button type="button" className={panelButton} onClick={() => openEditForm(current)}><Pencil aria-hidden="true" className="h-4 w-4" />Editar</button>
+                  <button type="button" className={panelButtonDanger} onClick={() => setPendingDelete({ id: current.id, name: current.name })}><Trash2 aria-hidden="true" className="h-4 w-4" />Borrar</button>
+                </>
+              }
+            />
+          ) : loading ? <SkeletonCard lines={2} /> : null}
+          {dialogs}
+        </div>
+      );
+    }
+    return (
+      <div>
+        <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+          <h2 className="text-xl font-semibold">Predios <span className="font-mono-data text-sm font-normal text-[var(--text-muted)]">{properties.length}</span></h2>
+          <button type="button" className={panelButtonPrimary} onClick={() => setShowCreateForm(true)}><Plus aria-hidden="true" className="h-4 w-4" />Nuevo Predio</button>
+        </div>
+        {loading ? <SkeletonCard lines={2} /> : properties.length === 0 ? (
+          <EmptyState icon={Warehouse} title="Sin predios registrados" description="Crea el primer predio para organizar áreas de riego por cliente." action={{ label: "Crear primer predio", onClick: () => setShowCreateForm(true) }} />
+        ) : (
+          <ul className={listBox}>
+            {properties.map((prop) => (
+              <li key={prop.id}>
+                <Link to={`/admin/predios/${prop.id}/areas`} className={rowLink}>
+                  <span className="min-w-0">
+                    <span className="block truncate font-semibold">{prop.name}</span>
+                    <span className="block truncate text-sm text-[var(--text-muted)]">{placeLabel(prop.location)}</span>
+                  </span>
+                  <span className="flex flex-shrink-0 items-center gap-2 max-sm:w-full max-sm:justify-between"><HealthBadge health={health?.[prop.id]} /><ChevronRight aria-hidden="true" className="h-4 w-4 text-[var(--text-muted)]" /></span>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        )}
+        {dialogs}
+      </div>
+    );
+  }
 
   return (
     <PageTransition>
@@ -165,7 +301,7 @@ export function PropertyManagement() {
                     </Link>
                     <PillButton
                       variant="outline"
-                      className="px-3 py-1 text-xs border-[var(--status-danger)]/40 text-[var(--status-danger)] hover:bg-[var(--status-danger-bg)]"
+                      className="px-3 py-1 text-xs border-[var(--status-danger)]/40 text-[var(--status-danger-text)] hover:bg-[var(--status-danger-bg)]"
                       onClick={() => setPendingDelete({ id: prop.id, name: prop.name })}
                     >
                       Borrar <Trash2 aria-hidden="true" className="w-3 h-3 ml-1" />
@@ -208,7 +344,7 @@ export function PropertyManagement() {
               </Link>
               <PillButton
                 variant="outline"
-                className="w-full justify-center border-[var(--status-danger)]/40 text-[var(--status-danger)] hover:bg-[var(--status-danger-bg)]"
+                className="w-full justify-center border-[var(--status-danger)]/40 text-[var(--status-danger-text)] hover:bg-[var(--status-danger-bg)]"
                 onClick={() => setPendingDelete({ id: prop.id, name: prop.name })}
               >
                 Borrar Predio <Trash2 aria-hidden="true" className="w-4 h-4 ml-1" />
@@ -229,81 +365,7 @@ export function PropertyManagement() {
         )}
       </div>
 
-      {showCreateForm && (<FormDialog open title="Nuevo Predio" onClose={() => setShowCreateForm(false)}>
-            <form className="space-y-4" onSubmit={handleCreate}>
-              <div>
-                <label htmlFor="property-create-name" className="block text-sm text-[var(--text-subtle)] mb-1">Nombre del Predio</label>
-                <input id="property-create-name" required type="text" value={formData.name} onChange={e => setFormData({ ...formData, name: e.target.value })} className="w-full px-4 py-2.5 rounded-[24px] bg-[var(--surface-panel)] border border-[var(--border-strong)] text-[var(--text-body)] focus:outline-none focus:ring-2 focus:ring-[var(--focus-ring)]" />
-              </div>
-              <div>
-                <label htmlFor="property-create-location" className="block text-sm text-[var(--text-subtle)] mb-1">Ubicación (Opcional)</label>
-                <input id="property-create-location" type="text" value={formData.location} onChange={e => setFormData({ ...formData, location: e.target.value })} className="w-full px-4 py-2.5 rounded-[24px] bg-[var(--surface-panel)] border border-[var(--border-strong)] text-[var(--text-body)] focus:outline-none focus:ring-2 focus:ring-[var(--focus-ring)]" />
-              </div>
-              <div className="flex gap-3 pt-4">
-                <PillButton variant="outline" className="flex-1 justify-center" onClick={() => setShowCreateForm(false)} type="button">Cancelar</PillButton>
-                <PillButton variant="primary" className="flex-1 justify-center" type="submit">Guardar</PillButton>
-              </div>
-            </form>
-          </FormDialog>)}
-
-      {showEditForm && editingProperty && (<FormDialog open title="Editar Predio" onClose={() => {
-                  setShowEditForm(false);
-                  setEditingProperty(null);
-                }}>
-            <form className="space-y-4" onSubmit={handleUpdate}>
-              <div>
-                <label htmlFor="property-edit-name" className="block text-sm text-[var(--text-subtle)] mb-1">Nombre del Predio</label>
-                <input
-                  id="property-edit-name"
-                  required
-                  type="text"
-                  value={editFormData.name}
-                  onChange={(e) => setEditFormData({ ...editFormData, name: e.target.value })}
-                  className="w-full px-4 py-2.5 rounded-[24px] bg-[var(--surface-panel)] border border-[var(--border-strong)] text-[var(--text-body)] focus:outline-none focus:ring-2 focus:ring-[var(--focus-ring)]"
-                />
-              </div>
-              <div>
-                <label htmlFor="property-edit-location" className="block text-sm text-[var(--text-subtle)] mb-1">Ubicación (Opcional)</label>
-                <input
-                  id="property-edit-location"
-                  type="text"
-                  value={editFormData.location}
-                  onChange={(e) => setEditFormData({ ...editFormData, location: e.target.value })}
-                  className="w-full px-4 py-2.5 rounded-[24px] bg-[var(--surface-panel)] border border-[var(--border-strong)] text-[var(--text-body)] focus:outline-none focus:ring-2 focus:ring-[var(--focus-ring)]"
-                />
-              </div>
-              <div className="flex gap-3 pt-4">
-                <PillButton
-                  variant="outline"
-                  className="flex-1 justify-center"
-                  onClick={() => {
-                    setShowEditForm(false);
-                    setEditingProperty(null);
-                  }}
-                  type="button"
-                >
-                  Cancelar
-                </PillButton>
-                <PillButton variant="primary" className="flex-1 justify-center" type="submit">
-                  Guardar Cambios
-                </PillButton>
-              </div>
-            </form>
-          </FormDialog>)}
-      <ConfirmDialog
-        open={pendingDelete !== null}
-        variant="danger"
-        title={`¿Eliminar el predio ${pendingDelete?.name ?? ""}?`}
-        description="Esta acción no se puede deshacer."
-        confirmLabel="Eliminar"
-        onConfirm={() => {
-          const target = pendingDelete;
-          setPendingDelete(null);
-          if (target) void handleDelete(target.id);
-        }}
-        onCancel={() => setPendingDelete(null)}
-      />
-
+      {dialogs}
     </div>
     </PageTransition>
   );

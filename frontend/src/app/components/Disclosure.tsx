@@ -14,7 +14,7 @@ export function Disclosure({ summary, children, defaultOpen = false, className =
   return (
     <Collapsible defaultOpen={defaultOpen} className={className}>
       <CollapsibleTrigger
-        className="group inline-flex min-h-[44px] items-center gap-2 rounded-full px-3 text-sm font-medium text-[var(--text-muted)]
+        className="group inline-flex min-h-[44px] items-center gap-2 rounded-[var(--radius)] px-3 text-sm font-medium text-[var(--text-muted)]
           hover:bg-[var(--hover-overlay)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus-ring)]"
       >
         <ChevronDown

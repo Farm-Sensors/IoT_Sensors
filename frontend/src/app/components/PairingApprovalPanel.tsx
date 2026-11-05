@@ -82,7 +82,7 @@ interface PairingApprovalPanelProps {
   preselectGatewayId?: number | null;
   onApproved?: (approval: PairingApproval) => void;
   /**
-   * Dentro del asistente de Equipos: el rancho ya está elegido, los datos del
+   * Dentro del asistente de Equipos: el predio ya está elegido, los datos del
    * equipo van plegados y el aviso de éxito lo muestra el asistente.
    */
   embedded?: boolean;
@@ -144,7 +144,7 @@ export function PairingApprovalPanel({
         setGatewayId(String(preselectGatewayId));
       }
     } catch (error) {
-      setFormError(getErrorMessage(error, "No se pudieron cargar los ranchos enlazados."));
+      setFormError(getErrorMessage(error, "No se pudieron cargar los predios enlazados."));
     }
   }
 
@@ -390,9 +390,9 @@ export function PairingApprovalPanel({
 
           {!embedded && (
             <div className="mt-6 flex flex-col gap-1">
-              <h2 className="text-lg font-semibold">Rancho a vincular</h2>
+              <h2 className="text-lg font-semibold">Predio a vincular</h2>
               <label htmlFor="pairing-gateway" className="mt-2 text-sm font-medium">
-                Rancho
+                Predio
               </label>
               <select
                 id="pairing-gateway"
@@ -400,7 +400,7 @@ export function PairingApprovalPanel({
                 value={gatewayId}
                 onChange={(event) => setGatewayId(event.target.value)}
               >
-                <option value="">Selecciona un rancho</option>
+                <option value="">Selecciona un predio</option>
                 {selectableGateways.map((gateway) => (
                   <option key={gateway.id} value={gateway.id}>
                     {gatewayRanchLabel(gateway)} ·{" "}
@@ -416,7 +416,7 @@ export function PairingApprovalPanel({
               data-testid="replace-credential-warning"
               className="mt-3 rounded-xl border border-[var(--status-warning,#B45309)] p-3 text-sm text-[var(--text-body)]"
             >
-              Este rancho ya tiene un equipo vinculado. Al aprobar, este equipo lo reemplaza
+              Este predio ya tiene un equipo vinculado. Al aprobar, este equipo lo reemplaza
               y el anterior deja de enviar datos; las áreas de riego y sus nodos se
               conservan.
               {selectedStatus?.last_heartbeat_at && (

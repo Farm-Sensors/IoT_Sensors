@@ -1,10 +1,10 @@
 import { differenceInCalendarDays, format, parseISO } from "date-fns";
 import { es } from "date-fns/locale";
-import { AlertTriangle, Check, ChartLine, Download, Loader2 } from "lucide-react";
+import { AlertTriangle, ChartLine, ChevronRight, Download } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
-import { CartesianGrid, Legend, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
-import { BentoCard } from "../../components/BentoCard";
+import { CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { ChartSkeleton } from "../../components/ChartSkeleton";
+import { DownloadReadyDialog } from "../../components/DownloadReadyDialog";
 import { EmptyState } from "../../components/EmptyState";
 import { PageHeader } from "../../components/PageHeader";
 import { PageTransition } from "../../components/PageTransition";
@@ -12,6 +12,7 @@ import { PillButton } from "../../components/PillButton";
 import { ReadingDateRangeSelector } from "../../components/ReadingDateRangeSelector";
 import { SelectionScopeBar } from "../../components/selection/SelectionScopeBar";
 import { useSelection } from "../../context/SelectionContext";
+import { useTheme } from "../../context/ThemeContext";
 import { useIsMobile } from "../../hooks/useIsMobile";
 import { fetchReadingPage, fetchChartReadings } from "../../services/readings";
 import { useReadingFilters } from "../../services/useReadingFilters";
@@ -41,32 +42,40 @@ function displayValue(value: ReturnType<typeof columns[number]["value"]>) {
   return value.toFixed(1);
 }
 
-function SeriesToggle({ active, color, onToggle, children }: { active: boolean; color: string; onToggle: () => void; children: string }) {
+type MetricId = "soilHumidity" | "waterFlow" | "eto" | "soilTemp" | "airTemp" | "relativeHumidity";
+interface Metric { id: MetricId; label: string; unit: string; decimals: number; zero: boolean; slot: number }
+/** Los tres datos prioritarios primero; cada variable conserva siempre su color (orden fijo de la paleta validada). */
+const METRICS: Metric[] = [
+  { id: "soilHumidity", label: "Humedad del suelo", unit: "%", decimals: 1, zero: false, slot: 0 },
+  { id: "waterFlow", label: "Flujo de agua", unit: "L/min", decimals: 1, zero: true, slot: 2 },
+  { id: "eto", label: "E.T.O.", unit: "mm/día", decimals: 2, zero: true, slot: 1 },
+  { id: "soilTemp", label: "Temp. suelo", unit: "°C", decimals: 1, zero: false, slot: 3 },
+  { id: "airTemp", label: "Temp. aire", unit: "°C", decimals: 1, zero: false, slot: 4 },
+  { id: "relativeHumidity", label: "H. relativa", unit: "%", decimals: 0, zero: false, slot: 6 },
+];
+const COLORS_LIGHT = ["#2a78d6", "#eb6834", "#1baf7a", "#eda100", "#e87ba4", "#008300", "#6250d6", "#e34948"];
+const COLORS_DARK = ["#3987e5", "#d95926", "#199e70", "#c98500", "#d55181", "#008300", "#9085e9", "#e66767"];
+
+function MetricPicker({ label, value, onChange }: { label: string; value: MetricId; onChange: (id: MetricId) => void }) {
   return (
-    <button
-      type="button"
-      aria-pressed={active}
-      onClick={onToggle}
-      className={`inline-flex min-h-[44px] items-center gap-2 rounded-full px-4 py-2 text-sm font-medium transition-colors
-        focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus-ring)] focus-visible:ring-offset-2
-        ${active
-          ? "border-2 bg-[var(--surface-card-primary)] text-[var(--text-main)]"
-          : "border border-[var(--border-strong)] text-[var(--text-subtle)] hover:bg-[var(--hover-overlay)]"}`}
-      style={active ? { borderColor: color } : undefined}
-    >
-      <span aria-hidden="true" className="h-3 w-3 flex-shrink-0 rounded-full" style={{ backgroundColor: active ? color : "transparent", border: `2px solid ${color}` }} />
-      {children}
-      {active && <Check aria-hidden="true" className="h-4 w-4" />}
-    </button>
+    <div role="group" aria-label={label} className="inline-flex max-w-full flex-wrap gap-0.5 rounded-[var(--radius)] border border-[var(--border)] bg-[var(--card)] p-1">
+      {METRICS.map((m) => (
+        <button key={m.id} type="button" aria-pressed={value === m.id} onClick={() => onChange(m.id)}
+          className={`inline-flex min-h-[40px] items-center rounded-[var(--radius)] px-3 text-sm transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus-ring)] ${value === m.id ? "bg-[var(--accent-primary)] font-semibold text-[var(--text-inverted)]" : "font-medium text-[var(--text-muted)] hover:bg-[var(--accent-soft)] hover:text-[var(--text-main)]"}`}>
+          {m.label}
+        </button>
+      ))}
+    </div>
   );
 }
 
-export function HistoricalData() {
+/** `embedded`: dentro de Área › Historial, donde el encabezado y el área ya los da el Área. */
+export function HistoricalData({ embedded = false }: { embedded?: boolean } = {}) {
   const { selectedArea } = useSelection();
-  return <AreaHistory key={selectedArea?.id ?? "none"} />;
+  return <AreaHistory key={selectedArea?.id ?? "none"} embedded={embedded} />;
 }
 
-function AreaHistory() {
+function AreaHistory({ embedded }: { embedded: boolean }) {
   const { selectedArea } = useSelection();
   const isMobile = useIsMobile();
 
@@ -82,24 +91,21 @@ function AreaHistory() {
   const currentChart = chart?.key === chartKey ? chart : undefined;
   const loading = Boolean(query && !currentTable);
   const chartLoading = Boolean(query && !currentChart);
-  const readings = currentTable?.data?.data ?? [];
+  // Mientras llega la página nueva se siguen mostrando las filas anteriores (atenuadas): si la tabla se vaciara,
+  // la página se encogería y el navegador subiría el desplazamiento.
+  const shownTable = currentTable?.data ? currentTable : table;
+  const readings = shownTable?.data?.data ?? [];
   const chartReadings = currentChart?.data?.readings;
-  const totalItems = currentTable?.data?.total ?? 0;
-  const totalPages = Math.max(1, Math.ceil(totalItems / (currentTable?.data?.per_page ?? 20)));
+  const totalItems = shownTable?.data?.total ?? 0;
+  const totalPages = Math.max(1, Math.ceil(totalItems / (shownTable?.data?.per_page ?? 20)));
   const [exporting, setExporting] = useState(false);
   const [exportError, setExportError] = useState<string>();
+  const [readyFile, setReadyFile] = useState<string | null>(null);
 
-  const [soilEnvSeries, setSoilEnvSeries] = useState({
-    soilHumidity: true,
-    relativeHumidity: true,
-    soilTemp: true,
-    airTemp: true,
-  });
-
-  const [irrigationSeries, setIrrigationSeries] = useState({
-    waterFlow: true,
-    eto: true,
-  });
+  const { theme } = useTheme();
+  const palette = theme === "dark" ? COLORS_DARK : COLORS_LIGHT;
+  const [metric, setMetric] = useState<MetricId>("soilHumidity");
+  const [recordsOpen, setRecordsOpen] = useState(false);
 
   useEffect(() => {
     if (!query) return;
@@ -137,46 +143,44 @@ function AreaHistory() {
     return format(date, "dd MMM yy", { locale: es });
   };
 
-  const getLineValueFormatter = (value: number, lineName: string) => {
-    if (lineName.includes("(%)")) return [`${value.toFixed(1)} %`, lineName] as const;
-    if (lineName.includes("(°C)")) return [`${value.toFixed(1)} °C`, lineName] as const;
-    if (lineName.includes("(L/min)")) return [`${value.toFixed(1)} L/min`, lineName] as const;
-    if (lineName.includes("(mm/día)")) return [`${value.toFixed(2)} mm/día`, lineName] as const;
-    return [value.toFixed(1), lineName] as const;
+  const bucketLabel = bucketMs < 60 * 60_000 ? `${Math.round(bucketMs / 60_000)} min` : bucketMs < MS_IN_DAY ? `${Math.round(bucketMs / 3_600_000)} h` : `${Math.round(bucketMs / MS_IN_DAY)} d`;
+
+  /** Un gráfico de una sola variable y un solo eje; el título dice qué es y su unidad. */
+  const renderChart = (id: MetricId) => {
+    const m = METRICS.find((x) => x.id === id)!;
+    const color = palette[m.slot % palette.length];
+    const values = chartData.map((point) => point[id]).filter((v): v is number => v != null && Number.isFinite(v));
+    const lo = values.length ? Math.min(...values) : 0;
+    const hi = values.length ? Math.max(...values) : 1;
+    const pad = Math.max((hi - lo) * 0.1, m.unit === "%" ? 1 : 0.5);
+    const domain: [number, number] = m.zero ? [0, Math.ceil((hi + pad) * 10) / 10] : [Math.floor(lo - pad), Math.ceil(hi + pad)];
+    const fmt = (v: number) => v.toFixed(m.decimals);
+    return (
+      <section key={id} aria-label={`Gráfica de ${m.label}`}>
+        <h3 className="mb-2 flex items-center gap-2 text-sm font-semibold">
+          <span aria-hidden="true" className="inline-block h-[3px] w-5 rounded-full" style={{ background: color }} />
+          {m.label} <span className="font-normal text-[var(--text-muted)]">({m.unit})</span>
+        </h3>
+        <div className="h-[260px] min-h-[260px]">
+          <ResponsiveContainer width="100%" height="100%">
+            <LineChart data={chartData} margin={{ top: 4, right: 8, bottom: 0, left: 0 }}>
+              <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
+              <XAxis dataKey="timestampMs" type="number" scale="time" domain={["dataMin", "dataMax"]} tickFormatter={getXAxisTickLabel}
+                minTickGap={isMobile ? 40 : 56} stroke="var(--text-muted)" tick={{ fill: "var(--text-muted)", fontSize: 12 }} />
+              <YAxis domain={domain} tickFormatter={m.zero ? fmt : (v: number) => String(Math.round(v))} width={44} allowDecimals={m.zero && m.decimals > 0} stroke="var(--text-muted)" tick={{ fill: "var(--text-muted)", fontSize: 12 }} />
+              <Tooltip
+                contentStyle={{ backgroundColor: "var(--bg-elevated)", border: "1px solid var(--border-strong)", borderRadius: "var(--radius)", padding: "8px 12px", fontSize: 12 }}
+                labelFormatter={(value) => format(new Date(Number(value)), "dd MMM yyyy, HH:mm", { locale: es })}
+                formatter={(value: number) => [`${fmt(value)} ${m.unit}`, m.label] as const}
+                labelStyle={{ color: "var(--text-body)", marginBottom: "4px" }}
+              />
+              <Line type="monotone" dataKey={id} name={`${m.label} (${m.unit})`} stroke={color} strokeWidth={2} dot={false} connectNulls={false} />
+            </LineChart>
+          </ResponsiveContainer>
+        </div>
+      </section>
+    );
   };
-
-  const toggleSoilEnvSeries = (key: keyof typeof soilEnvSeries) => {
-    setSoilEnvSeries((prev) => ({ ...prev, [key]: !prev[key] }));
-  };
-
-  const toggleIrrigationSeries = (key: keyof typeof irrigationSeries) => {
-    setIrrigationSeries((prev) => ({ ...prev, [key]: !prev[key] }));
-  };
-
-  const soilEnvTempDomain = useMemo<[number, number]>(() => {
-    const values = chartData
-      .flatMap((point) => [point.soilTemp, point.airTemp])
-      .filter((value): value is number => value != null && Number.isFinite(value));
-
-    if (values.length === 0) {
-      return [0, 40];
-    }
-
-    const minValue = Math.min(...values);
-    const maxValue = Math.max(...values);
-    const span = maxValue - minValue;
-    const padding = span === 0 ? Math.max(1, Math.abs(maxValue) * 0.05) : Math.max(0.5, span * 0.1);
-
-    const domainMin = Number((minValue - padding).toFixed(1));
-    const domainMax = Number((maxValue + padding).toFixed(1));
-
-    return [domainMin, domainMax];
-  }, [chartData]);
-
-  const showSoilEnvPercentAxis = soilEnvSeries.soilHumidity || soilEnvSeries.relativeHumidity;
-  const showSoilEnvTempAxis = soilEnvSeries.soilTemp || soilEnvSeries.airTemp;
-  const showIrrigationFlowAxis = irrigationSeries.waterFlow;
-  const showIrrigationEtoAxis = irrigationSeries.eto;
 
   const handleExport = async (formatType: ExportFormat) => {
     if (!selectedArea || exporting) return;
@@ -185,36 +189,56 @@ function AreaHistory() {
     try {
       const params = new URLSearchParams(query);
       params.set("format", formatType);
-      await downloadBlobExport(`/readings/export?${params}`, `export_${selectedArea.name}_${format(new Date(), "yyyy-MM-dd")}.${formatType}`);
+      const fileName = `export_${selectedArea.name}_${format(new Date(), "yyyy-MM-dd")}.${formatType}`;
+      await downloadBlobExport(`/readings/export?${params}`, fileName);
+      setReadyFile(fileName);
     } catch {
       setExportError("No se pudo exportar. Intenta nuevamente.");
     } finally { setExporting(false); }
   };
 
+  const downloads = (
+    <div role="group" aria-label="Descargar resultados" className="flex flex-wrap items-center gap-2">
+      <span className="text-xs text-[var(--text-muted)]">Descargar</span>
+      {([["csv", "CSV"], ["xlsx", "Excel"], ["pdf", "PDF"]] as const).map(([fmt, name]) => (
+        <button key={fmt} type="button" disabled={exporting || !selectedArea} onClick={() => handleExport(fmt)}
+          className="inline-flex min-h-[40px] items-center gap-1.5 rounded-[var(--radius)] border border-[var(--border-strong)] bg-[var(--card)] px-3 text-sm font-medium hover:bg-[var(--accent-soft)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus-ring)] disabled:cursor-not-allowed disabled:opacity-50">
+          <Download aria-hidden="true" className="h-4 w-4" />{name}
+        </button>
+      ))}
+    </div>
+  );
+
   return (
     <PageTransition>
-    <div className="min-h-screen p-4 md:p-6 lg:p-8 overflow-x-hidden">
-      <div className="mb-6 animate-fade-in-up">
-        <PageHeader
-          title="Datos Históricos"
-          subtitle={`Consulta el histórico de lecturas de ${selectedArea ? selectedArea.name : "tus sensores"}`}
-        />
-      </div>
-      <SelectionScopeBar className="mb-6" />
+    <div className={embedded ? "overflow-x-hidden" : "min-h-screen p-4 md:p-6 lg:p-8 overflow-x-hidden"}>
+      {!embedded && (
+        <>
+          <div className="mb-6 animate-fade-in-up">
+            <PageHeader
+              title="Datos Históricos"
+              subtitle={`Consulta el histórico de lecturas de ${selectedArea ? selectedArea.name : "tus sensores"}`}
+            />
+          </div>
+          <SelectionScopeBar className="mb-6" />
+        </>
+      )}
 
       {!selectedArea && <p role="status" className="mb-4 text-[var(--text-body)]">Selecciona un área de riego para consultar sus lecturas.</p>}
-      <BentoCard variant="light" className="mb-6">
-        <ReadingDateRangeSelector irrigationAreaId={selectedArea?.id} {...filters} />
-      </BentoCard>
+      <ReadingDateRangeSelector irrigationAreaId={selectedArea?.id} {...filters} trailing={downloads} />
+      {exporting && <p role="status" className="mt-2 text-sm text-[var(--text-muted)]">Preparando la descarga…</p>}
+      <DownloadReadyDialog fileName={readyFile} onClose={() => setReadyFile(null)} />
+      {exportError && <p role="alert" className="mt-2 text-sm text-[var(--status-danger-text)]">{exportError}</p>}
 
-      {/* Multi-line Chart */}
-      <BentoCard variant="light" className="mb-6">
-        <h2 className="text-lg text-[var(--text-title)] mb-2">Gráfica de Métricas</h2>
-        <p className="mb-4 text-sm text-[var(--text-subtle)]">Las horas de la gráfica y la tabla se muestran en tu zona horaria local.</p>
+      <section aria-labelledby="hist-grafica" className="mt-6 rounded-[var(--radius)] border border-[var(--border)] bg-[var(--card)] p-4 md:p-5">
+        <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+          <h2 id="hist-grafica" className="text-lg font-semibold">Gráfica</h2>
+          <MetricPicker label="Variable de la gráfica" value={metric} onChange={setMetric} />
+        </div>
 
         {currentChart?.data && currentChart.data.readings.length < currentChart.data.total && (
-          <p role="status" className="mb-4 flex items-start gap-2 rounded-2xl bg-[var(--status-warning-bg)] px-4 py-3 text-sm text-[var(--text-main)]">
-            <AlertTriangle aria-hidden="true" className="mt-0.5 h-4 w-4 flex-shrink-0 text-[var(--status-warning)]" />
+          <p role="status" className="mb-4 flex items-start gap-2 rounded-[var(--radius)] bg-[var(--status-warning-bg)] px-4 py-3 text-sm text-[var(--text-main)]">
+            <AlertTriangle aria-hidden="true" className="mt-0.5 h-4 w-4 flex-shrink-0 text-[var(--status-warning-text)]" />
             Gráfica parcial: {currentChart.data.readings.length} de {currentChart.data.total} lecturas del rango.
             Reduce el rango para ver más detalle. La tabla y la exportación incluyen todos los resultados.
           </p>
@@ -227,241 +251,69 @@ function AreaHistory() {
         ) : chartLoading ? (
           <ChartSkeleton title={false} height="sm" />
         ) : chartData.length > 0 ? (
-          <div className="space-y-10 lg:space-y-12">
-            <section className="rounded-2xl border border-[var(--border-subtle)] bg-[var(--surface-card-primary)] p-4 md:p-5">
-              <div className="space-y-3">
-                <h3 className="text-base font-medium text-[var(--text-body)]">Suelo + Ambiental (Temperaturas y Humedades)</h3>
-                <div className="flex flex-wrap items-center gap-2">
-                  <SeriesToggle active={soilEnvSeries.soilHumidity} color="var(--accent-primary)" onToggle={() => toggleSoilEnvSeries("soilHumidity")}>Humedad suelo</SeriesToggle>
-                  <SeriesToggle active={soilEnvSeries.relativeHumidity} color="var(--accent-gold)" onToggle={() => toggleSoilEnvSeries("relativeHumidity")}>H. Relativa</SeriesToggle>
-                  <SeriesToggle active={soilEnvSeries.soilTemp} color="var(--chart-4)" onToggle={() => toggleSoilEnvSeries("soilTemp")}>Temp. suelo</SeriesToggle>
-                  <SeriesToggle active={soilEnvSeries.airTemp} color="var(--chart-3)" onToggle={() => toggleSoilEnvSeries("airTemp")}>Temp. aire</SeriesToggle>
-                </div>
-
-                <div className="relative h-[320px] min-h-[320px]">
-                  {chartLoading && (
-                    <div className="absolute inset-0 z-10 bg-[var(--surface-page)]/60 flex items-center justify-center backdrop-blur-[1px]">
-                      <Loader2 className="w-8 h-8 text-[var(--accent-primary)] animate-spin" />
-                    </div>
-                  )}
-
-                  <ResponsiveContainer width="100%" height="100%" className="animate-chart-entrance">
-                    <LineChart data={chartData}>
-                      <CartesianGrid strokeDasharray="3 3" stroke="var(--border-strong)" />
-                      <XAxis
-                        dataKey="timestampMs"
-                        type="number"
-                        scale="time"
-                        domain={["dataMin", "dataMax"]}
-                        tickFormatter={getXAxisTickLabel}
-                        minTickGap={isMobile ? 36 : 24}
-                        stroke="var(--text-subtle)"
-                        style={{ fontSize: '12px' }}
-                      />
-                      {showSoilEnvPercentAxis && (
-                        <YAxis
-                          key="soil-env-axis-percent"
-                          yAxisId="percent"
-                          domain={[0, 100]}
-                          tickFormatter={(v) => `${v}%`}
-                          stroke="var(--text-subtle)"
-                          style={{ fontSize: '12px' }}
-                        />
-                      )}
-                      {showSoilEnvTempAxis && (
-                        <YAxis
-                          key="soil-env-axis-temp"
-                          yAxisId="temp"
-                          orientation="right"
-                          domain={soilEnvTempDomain}
-                          tickFormatter={(v) => `${v}°C`}
-                          stroke="var(--chart-4)"
-                          style={{ fontSize: '12px' }}
-                        />
-                      )}
-                      <Tooltip
-                        contentStyle={{
-                          backgroundColor: "var(--bg-elevated)",
-                          border: "1px solid var(--border-strong)",
-                          borderRadius: '16px',
-                          padding: '12px'
-                        }}
-                        labelFormatter={(value) =>
-                          format(new Date(Number(value)), "dd MMM yyyy, HH:mm", { locale: es })
-                        }
-                        formatter={(value: number, name: string) => getLineValueFormatter(value, name)}
-                        labelStyle={{ color: "var(--text-body)", marginBottom: "4px" }}
-                      />
-                      <Legend formatter={(value) => <span style={{ color: "var(--text-body)" }}>{value}</span>} />
-                      {soilEnvSeries.soilHumidity && (
-                        <Line key="soil-env-line-soil-humidity" animationId={1101} yAxisId="percent" type="monotone" dataKey="soilHumidity" name="Humedad suelo (%)" stroke="var(--accent-primary)" strokeWidth={2.5} dot={false} />
-                      )}
-                      {soilEnvSeries.relativeHumidity && (
-                        <Line key="soil-env-line-relative-humidity" animationId={1102} yAxisId="percent" type="monotone" dataKey="relativeHumidity" name="H. Relativa (%)" stroke="var(--accent-gold)" strokeWidth={2} strokeDasharray="5 5" dot={false} />
-                      )}
-                      {soilEnvSeries.soilTemp && (
-                        <Line key="soil-env-line-soil-temp" animationId={1103} yAxisId="temp" type="monotone" dataKey="soilTemp" name="Temp. suelo (°C)" stroke="var(--chart-4)" strokeWidth={2.2} dot={false} />
-                      )}
-                      {soilEnvSeries.airTemp && (
-                        <Line key="soil-env-line-air-temp" animationId={1104} yAxisId="temp" type="monotone" dataKey="airTemp" name="Temp. aire (°C)" stroke="var(--chart-3)" strokeWidth={2} dot={false} />
-                      )}
-                    </LineChart>
-                  </ResponsiveContainer>
-                </div>
-              </div>
-            </section>
-
-            <section className="rounded-2xl border border-[var(--border-subtle)] bg-[var(--surface-card-primary)] p-4 md:p-5">
-              <div className="space-y-3">
-                <h3 className="text-base font-medium text-[var(--text-body)]">Riego + E.T.O.</h3>
-                <div className="flex flex-wrap items-center gap-2">
-                  <SeriesToggle active={irrigationSeries.waterFlow} color="var(--accent-gold)" onToggle={() => toggleIrrigationSeries("waterFlow")}>Flujo de agua</SeriesToggle>
-                  <SeriesToggle active={irrigationSeries.eto} color="var(--accent-primary)" onToggle={() => toggleIrrigationSeries("eto")}>E.T.O.</SeriesToggle>
-                </div>
-
-                <div className="relative h-[320px] min-h-[320px]">
-                  {chartLoading && (
-                    <div className="absolute inset-0 z-10 bg-[var(--surface-page)]/60 flex items-center justify-center backdrop-blur-[1px]">
-                      <Loader2 className="w-8 h-8 text-[var(--accent-primary)] animate-spin" />
-                    </div>
-                  )}
-
-                  <ResponsiveContainer width="100%" height="100%" className="animate-chart-entrance">
-                    <LineChart data={chartData}>
-                      <CartesianGrid strokeDasharray="3 3" stroke="var(--border-strong)" />
-                      <XAxis
-                        dataKey="timestampMs"
-                        type="number"
-                        scale="time"
-                        domain={["dataMin", "dataMax"]}
-                        tickFormatter={getXAxisTickLabel}
-                        minTickGap={isMobile ? 36 : 24}
-                        stroke="var(--text-subtle)"
-                        style={{ fontSize: '12px' }}
-                      />
-                      {showIrrigationFlowAxis && (
-                        <YAxis
-                          key="irrigation-axis-flow"
-                          yAxisId="flow"
-                          domain={[0, "dataMax + 2"]}
-                          tickFormatter={(v) => `${v} L/min`}
-                          stroke="var(--accent-gold)"
-                          style={{ fontSize: '12px' }}
-                        />
-                      )}
-                      {showIrrigationEtoAxis && (
-                        <YAxis
-                          key="irrigation-axis-eto"
-                          yAxisId="eto"
-                          orientation="right"
-                          domain={[0, "dataMax + 1"]}
-                          tickFormatter={(v) => `${v} mm/día`}
-                          stroke="var(--accent-primary)"
-                          style={{ fontSize: '12px' }}
-                        />
-                      )}
-                      <Tooltip
-                        contentStyle={{
-                          backgroundColor: "var(--bg-elevated)",
-                          border: "1px solid var(--border-strong)",
-                          borderRadius: '16px',
-                          padding: '12px'
-                        }}
-                        labelFormatter={(value) =>
-                          format(new Date(Number(value)), "dd MMM yyyy, HH:mm", { locale: es })
-                        }
-                        formatter={(value: number, name: string) => getLineValueFormatter(value, name)}
-                        labelStyle={{ color: "var(--text-body)", marginBottom: "4px" }}
-                      />
-                      <Legend formatter={(value) => <span style={{ color: "var(--text-body)" }}>{value}</span>} />
-                      {irrigationSeries.waterFlow && (
-                        <Line key="irrigation-line-water-flow" animationId={2101} yAxisId="flow" type="monotone" dataKey="waterFlow" name="Flujo agua (L/min)" stroke="var(--accent-gold)" strokeWidth={2.5} dot={false} />
-                      )}
-                      {irrigationSeries.eto && (
-                        <Line key="irrigation-line-eto" animationId={2102} yAxisId="eto" type="monotone" dataKey="eto" name="E.T.O. (mm/día)" stroke="var(--accent-primary)" strokeWidth={2.2} dot={false} />
-                      )}
-                    </LineChart>
-                  </ResponsiveContainer>
-                </div>
-              </div>
-            </section>
+          <div className="space-y-6">
+            {renderChart(metric)}
+            <p className="border-t border-[var(--border)] pt-3 text-xs text-[var(--text-muted)]">Cada punto es el promedio de {bucketLabel}; los registros exactos están más abajo.</p>
           </div>
         ) : (
           selectedArea ? <EmptyState icon={ChartLine} title="No hay datos para el rango seleccionado" description="Prueba con otro rango o ciclo de cultivo." /> : null
         )}
-      </BentoCard>
+      </section>
 
-      {/* Data Table */}
-      <BentoCard variant="light">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
-          <h2 className="text-lg text-[var(--text-title)]">
-            Tabla de Datos{" "}
-            <span className="text-sm text-[var(--text-subtle)] font-normal">
-              {totalItems > 0 && `${totalItems} registros — pág. ${page} de ${totalPages}`}
-            </span>
+      <details open={recordsOpen} onToggle={(e) => setRecordsOpen(e.currentTarget.open)} className="group mt-6 rounded-[var(--radius)] border border-[var(--border)] bg-[var(--card)]">
+        <summary className="flex min-h-[52px] cursor-pointer items-center justify-between gap-3 px-4 focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus-ring)] md:px-5">
+          <h2 className="text-lg font-semibold">
+            Ver registros{" "}
+            <span className="text-sm font-normal text-[var(--text-muted)]">{totalItems > 0 && `${totalItems} registros — pág. ${page} de ${totalPages}`}</span>
           </h2>
-          <div role="group" aria-label="Descargar resultados" className="flex flex-wrap gap-2">
-            <PillButton variant="secondary" className="text-sm flex items-center gap-2" disabled={exporting || !selectedArea} onClick={() => handleExport('csv')}>
-              <Download className="w-4 h-4" /> CSV
-            </PillButton>
-            <PillButton variant="secondary" className="text-sm flex items-center gap-2" disabled={exporting || !selectedArea} onClick={() => handleExport('xlsx')}>
-              <Download className="w-4 h-4" /> Excel
-            </PillButton>
-            <PillButton variant="secondary" className="text-sm flex items-center gap-2" disabled={exporting || !selectedArea} onClick={() => handleExport('pdf')}>
-              <Download className="w-4 h-4" /> PDF
-            </PillButton>
-          </div>
-        </div>
-
-        {exporting && <p role="status" className="mb-2 text-sm text-[var(--text-muted)]">Descargando archivo…</p>}
-        {exportError && <p role="alert" className="mb-2 text-sm text-[var(--status-danger-text)]">{exportError}</p>}
-        {currentTable?.error && (
-          <div role="alert" className="mb-4 flex flex-wrap items-center gap-3 text-[var(--text-body)]">
-            <span>{currentTable.error}</span>
-            <PillButton variant="outline" aria-label="Reintentar histórico" onClick={() => setRetry((n) => n + 1)}>Reintentar</PillButton>
-          </div>
-        )}
-        {loading && <p role="status" className="mb-2 text-sm text-[var(--text-muted)]">Cargando lecturas…</p>}
-        <p className="mb-2 text-sm text-[var(--text-subtle)] md:hidden">Desliza hacia los lados para ver todas las columnas.</p>
-        <div className="overflow-x-auto -mx-4 px-4 md:mx-0 md:px-0">
-          <table className="w-full min-w-[1500px]">
-            <caption className="sr-only">Lecturas del rango y ciclo seleccionados</caption>
-            <thead>
-              <tr className="border-b border-[var(--border-strong)]">
-                <th scope="col" className="sticky left-0 z-10 bg-[var(--surface-panel)] text-left py-3 px-4 text-sm font-semibold text-[var(--text-subtle)]">Fecha/Hora (local)</th>
-                {columns.map(({ label }) => <th key={label} scope="col" className="text-left py-3 px-4 text-sm font-semibold text-[var(--text-subtle)]">{label}</th>)}
-              </tr>
-            </thead>
-            <tbody className="relative">
-              {selectedArea && !loading && !currentTable?.error && readings.length === 0 && (
-                <tr>
-                  <td colSpan={13} className="py-8 text-center text-[var(--text-subtle)]">No hay registros.</td>
-                </tr>
-              )}
-              {readings.map((r, i) => (
-                <tr key={r.id} className={i % 2 === 0 ? "bg-[var(--surface-card-primary)]/60 hover:bg-[var(--hover-overlay)]" : "hover:bg-[var(--hover-overlay)] transition-colors"}>
-                  <td className="sticky left-0 bg-[var(--surface-panel)] py-3 px-4 text-sm text-[var(--text-body)]">
-                    {format(parseISO(normalizeTimestamp(r.timestamp)), "dd MMM yyyy, HH:mm", { locale: es })}
-                  </td>
-                  {columns.map(({ label, value }) => <td key={label} className="py-3 px-4 text-sm text-[var(--text-body)] font-mono-data font-medium">{displayValue(value(r))}</td>)}
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-
-        {/* Pagination */}
-        {totalPages > 1 && (
-          <nav aria-label="Paginación de la tabla" className="mt-6 flex flex-wrap items-center justify-center gap-2">
-            <PillButton variant="outline" disabled={page === 1} onClick={() => setPage(1)}>Inicio</PillButton>
-            <PillButton variant="outline" disabled={page === 1} onClick={() => setPage(p => p - 1)}>Anterior</PillButton>
-            <div className="px-4 text-sm font-medium text-[var(--text-subtle)]">
-              Página {page} de {totalPages}
+          <ChevronRight aria-hidden="true" className="h-4 w-4 transition-transform group-open:rotate-90" />
+        </summary>
+        <div className="border-t border-[var(--border)] p-4 md:p-5">
+          {currentTable?.error && (
+            <div role="alert" className="mb-4 flex flex-wrap items-center gap-3 text-[var(--text-body)]">
+              <span>{currentTable.error}</span>
+              <PillButton variant="outline" aria-label="Reintentar histórico" onClick={() => setRetry((n) => n + 1)}>Reintentar</PillButton>
             </div>
-            <PillButton variant="outline" disabled={page === totalPages} onClick={() => setPage(p => p + 1)}>Siguiente</PillButton>
-          </nav>
-        )}
-      </BentoCard>
+          )}
+          {loading && <p role="status" className="sr-only">Cargando lecturas…</p>}
+          <p className="mb-2 text-sm text-[var(--text-subtle)] md:hidden">Desliza hacia los lados para ver todas las columnas.</p>
+          <div role="region" aria-label="Tabla de lecturas" tabIndex={0} className={`overflow-x-auto transition-opacity focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus-ring)] ${loading && readings.length ? "opacity-50" : ""}`} aria-busy={loading}>
+            <table className="w-full min-w-[1400px]">
+              <caption className="sr-only">Lecturas del rango y ciclo seleccionados</caption>
+              <thead>
+                <tr className="border-b border-[var(--border-strong)]">
+                  <th scope="col" className="sticky left-0 z-10 whitespace-nowrap bg-[var(--card)] px-3 py-2 text-left text-xs font-semibold text-[var(--text-muted)]">Fecha/Hora (local)</th>
+                  {columns.map(({ label }) => <th key={label} scope="col" className="px-3 py-2 text-left text-xs font-semibold text-[var(--text-muted)]">{label}</th>)}
+                </tr>
+              </thead>
+              <tbody className="relative">
+                {selectedArea && !loading && !currentTable?.error && readings.length === 0 && (
+                  <tr>
+                    <td colSpan={13} className="py-8 text-center text-[var(--text-subtle)]">No hay registros.</td>
+                  </tr>
+                )}
+                {readings.map((r, i) => (
+                  <tr key={r.id} className={i % 2 === 0 ? "bg-[var(--bg-base)]/60 hover:bg-[var(--accent-soft)]" : "transition-colors hover:bg-[var(--accent-soft)]"}>
+                    <td className="sticky left-0 whitespace-nowrap bg-[var(--card)] px-3 py-2 text-sm text-[var(--text-body)]">
+                      {format(parseISO(normalizeTimestamp(r.timestamp)), "dd MMM yyyy, HH:mm", { locale: es })}
+                    </td>
+                    {columns.map(({ label, value }) => <td key={label} className="whitespace-nowrap px-3 py-2 font-mono-data text-sm font-medium text-[var(--text-body)]">{displayValue(value(r))}</td>)}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          {totalPages > 1 && (
+            <nav aria-label="Paginación de la tabla" className="mt-4 flex flex-wrap items-center justify-center gap-2">
+              <PillButton variant="outline" disabled={page === 1} onClick={() => setPage(1)}>Inicio</PillButton>
+              <PillButton variant="outline" disabled={page === 1} onClick={() => setPage(p => p - 1)}>Anterior</PillButton>
+              <div className="px-4 text-sm font-medium text-[var(--text-subtle)]">Página {page} de {totalPages}</div>
+              <PillButton variant="outline" disabled={page === totalPages} onClick={() => setPage(p => p + 1)}>Siguiente</PillButton>
+            </nav>
+          )}
+        </div>
+      </details>
     </div>
     </PageTransition>
   );

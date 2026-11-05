@@ -58,12 +58,19 @@ function SourceCard<T>({ areaId, path, title, hideWhenUnavailable = false, empty
     return null;
   }
 
+  // Sin dato todavía: una línea, no una tarjeta vacía.
+  if (state?.empty) {
+    return (
+      <p className="text-sm text-[var(--text-muted)] md:col-span-2">
+        <span className="font-medium text-[var(--text-body)]">{title}</span>{" "}<span>{emptyMessage}</span>
+      </p>
+    );
+  }
+
   return (
     <BentoCard>
-      <h3 className="mb-3 text-lg text-[var(--text-title)]">{title}</h3>
-      {!state ? <p role="status" className="text-[var(--text-muted)]">Cargando…</p> : state.empty ? (
-        <p className="text-[var(--text-muted)]">{emptyMessage}</p>
-      ) : state.error ? (
+      <h3 className="mb-3 text-base font-semibold text-[var(--text-title)]">{title}</h3>
+      {!state ? <p role="status" className="text-[var(--text-muted)]">Cargando…</p> : state.error ? (
         <div role="alert" className="flex flex-col items-start gap-3 text-[var(--text-body)]">
           <p>No se pudo cargar {title.toLowerCase()}.</p>
           <PillButton variant="outline" onClick={() => setRetry((value) => value + 1)}>Reintentar</PillButton>
@@ -76,8 +83,7 @@ function SourceCard<T>({ areaId, path, title, hideWhenUnavailable = false, empty
 export function ExternalDataCards({ areaId }: { areaId: number }) {
   return (
     <section aria-label="Fuentes externas" className="mt-6">
-      <h2 className="mb-1 text-xl text-[var(--text-title)]">Fuentes externas</h2>
-      <p className="mb-4 text-sm text-[var(--text-muted)]">Datos de otras fuentes; no son lecturas de tus sensores.</p>
+      <h2 className="mb-3 text-sm font-semibold">Fuentes externas<span className="ml-2 font-normal text-[var(--text-muted)]">no son lecturas de tus sensores</span></h2>
       <div className="grid gap-4 md:grid-cols-2">
         <SourceCard<WeatherCurrent> key={`weather-${areaId}`} areaId={areaId} path="/weather/current" title="Clima de referencia" hideWhenUnavailable emptyMessage="Sin clima de referencia: el predio todavía no tiene ubicación (la reporta el equipo al vincularse)." emptyStatuses={[409]}>
           {(weather) => (

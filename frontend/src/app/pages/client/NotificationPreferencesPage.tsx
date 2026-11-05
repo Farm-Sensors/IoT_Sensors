@@ -1,10 +1,11 @@
-import { Check, Loader2, RefreshCw, Save } from "lucide-react";
+import { Loader2, Save } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
-import { BentoCard } from "../../components/BentoCard";
+import { Disclosure } from "../../components/Disclosure";
 import { PageTransition } from "../../components/PageTransition";
 import { SkeletonCard } from "../../components/SkeletonCard";
 import { useSelection } from "../../context/SelectionContext";
+import { SEVERITY_META } from "../shared/alertFormat";
 import {
   NotificationAlertType,
   NotificationChannel,
@@ -15,27 +16,22 @@ import {
   updateMyNotificationSettings,
 } from "../../services/notificationPreferences";
 
+/** Cuándo se avisa: lo que pasó, en palabras (los valores internos son `threshold` e `inactivity`). */
 const ALERT_TYPES: Array<{ value: NotificationAlertType; label: string }> = [
-  { value: "threshold", label: "Umbral" },
-  { value: "inactivity", label: "Inactividad" },
+  { value: "threshold", label: "Una medición sale de su umbral" },
+  { value: "inactivity", label: "Un nodo deja de enviar datos" },
 ];
 
 const SEVERITIES: Array<{ value: NotificationSeverity; label: string }> = [
-  { value: "info", label: "Info" },
-  { value: "warning", label: "Warning" },
-  { value: "critical", label: "Critical" },
+  { value: "critical", label: "Crítica" },
+  { value: "warning", label: "Aviso" },
+  { value: "info", label: "Información" },
 ];
 
 const CHANNELS: Array<{ value: NotificationChannel; label: string }> = [
-  { value: "email", label: "Email" },
+  { value: "email", label: "Correo" },
   { value: "whatsapp", label: "WhatsApp" },
 ];
-
-type AlertTypeBulkAction =
-  | "enable_all"
-  | "disable_all"
-  | "enable_email"
-  | "enable_whatsapp";
 
 function prefKey(
   irrigationAreaId: number,
@@ -105,7 +101,7 @@ export function NotificationPreferencesPage() {
       setBaselineMap(mapped);
     } catch (error) {
       console.error("Failed to load notification preferences", error);
-      setErrorMessage("No fue posible cargar la configuración de notificaciones");
+      setErrorMessage("No fue posible cargar tus avisos. Inténtalo de nuevo.");
     } finally {
       setLoading(false);
     }
@@ -158,72 +154,35 @@ export function NotificationPreferencesPage() {
     }));
   };
 
-  const applyAlertTypeBulkAction = (
-    irrigationAreaId: number,
-    alertType: NotificationAlertType,
-    action: AlertTypeBulkAction,
-  ) => {
-    setPreferenceMap((previous) => {
-      const next = { ...previous };
-
+  /** Cuántos de los 6 avisos (2 situaciones × 3 gravedades) de un área llegan por este canal. */
+  const countFor = (irrigationAreaId: number, channel: NotificationChannel) => {
+    let count = 0;
+    for (const alertType of ALERT_TYPES) {
       for (const severity of SEVERITIES) {
-        if (action === "enable_all" || action === "disable_all") {
-          const enabled = action === "enable_all";
-          for (const channel of CHANNELS) {
-            next[
-              prefKey(irrigationAreaId, alertType, severity.value, channel.value)
-            ] = enabled;
-          }
-          continue;
-        }
-
-        const channelToEnable: NotificationChannel =
-          action === "enable_email" ? "email" : "whatsapp";
-        next[prefKey(irrigationAreaId, alertType, severity.value, channelToEnable)] =
-          true;
-      }
-
-      return next;
-    });
-  };
-
-  const isChannelFullyEnabled = (
-    irrigationAreaId: number,
-    alertType: NotificationAlertType,
-    channel: NotificationChannel,
-  ) =>
-    SEVERITIES.every((severity) =>
-      getCurrentValue(irrigationAreaId, alertType, severity.value, channel),
-    );
-
-  const setChannelEnabled = (
-    irrigationAreaId: number,
-    alertType: NotificationAlertType,
-    channel: NotificationChannel,
-    enabled: boolean,
-  ) => {
-    setPreferenceMap((previous) => {
-      const next = { ...previous };
-      for (const severity of SEVERITIES) {
-        next[prefKey(irrigationAreaId, alertType, severity.value, channel)] = enabled;
-      }
-      return next;
-    });
-  };
-
-  const getEnabledCountByAlertType = (
-    irrigationAreaId: number,
-    alertType: NotificationAlertType,
-  ) => {
-    let enabledCount = 0;
-    for (const channel of CHANNELS) {
-      for (const severity of SEVERITIES) {
-        if (getCurrentValue(irrigationAreaId, alertType, severity.value, channel.value)) {
-          enabledCount += 1;
-        }
+        if (getCurrentValue(irrigationAreaId, alertType.value, severity.value, channel)) count += 1;
       }
     }
-    return enabledCount;
+    return count;
+  };
+
+  const setAreaAll = (irrigationAreaId: number, enabled: boolean) => {
+    setPreferenceMap((previous) => {
+      const next = { ...previous };
+      for (const alertType of ALERT_TYPES) {
+        for (const severity of SEVERITIES) {
+          for (const channel of CHANNELS) {
+            next[prefKey(irrigationAreaId, alertType.value, severity.value, channel.value)] = enabled;
+          }
+        }
+      }
+      return next;
+    });
+  };
+
+  const discardChanges = () => {
+    setPreferenceMap(baselineMap);
+    setGlobalEnabled(baselineGlobalEnabled);
+    setSuccessMessage(null);
   };
 
   const saveChanges = async () => {
@@ -259,15 +218,15 @@ export function NotificationPreferencesPage() {
       }
 
       if (globalEnabled === baselineGlobalEnabled && changedItems.length === 0) {
-        setSuccessMessage("No hay cambios para guardar");
+        setSuccessMessage("No hay cambios que guardar.");
       } else {
-        setSuccessMessage("Preferencias guardadas correctamente");
+        setSuccessMessage("Cambios guardados.");
       }
 
       await loadData();
     } catch (error) {
       console.error("Failed to save notification preferences", error);
-      setErrorMessage("No fue posible guardar la configuración");
+      setErrorMessage("No fue posible guardar los cambios. Inténtalo de nuevo.");
     } finally {
       setSaving(false);
     }
@@ -275,8 +234,8 @@ export function NotificationPreferencesPage() {
 
   if (selectionLoading || loading) {
     return (
-      <div className="min-h-screen p-4 md:p-6 lg:p-8 space-y-4">
-        <div className="h-8 w-64 rounded-full animate-shimmer mb-2" />
+      <div className="mx-auto max-w-[900px] space-y-4 p-4 md:p-8" role="status" aria-label="Cargando tus avisos">
+        <div className="mb-2 h-8 w-64 animate-shimmer rounded-full" />
         <SkeletonCard lines={4} />
         <SkeletonCard lines={6} />
       </div>
@@ -285,263 +244,189 @@ export function NotificationPreferencesPage() {
 
   if (selectionError) {
     return (
-      <div className="min-h-screen p-6 flex items-center justify-center text-red-600">
+      <div role="alert" className="flex min-h-[40vh] items-center justify-center p-6 text-[var(--status-danger-text)]">
         {selectionError}
       </div>
     );
   }
 
+  const groups = properties
+    .map((property) => ({ property, areas: areas.filter((area) => area.property_id === property.id) }))
+    .filter((group) => group.areas.length > 0);
+
   return (
     <PageTransition>
-    <div className="min-h-screen p-4 md:p-6 lg:p-8">
-      <div className="mb-6 flex flex-wrap items-start justify-between gap-3">
-        <div>
-          <h1 className="text-2xl md:text-3xl text-[var(--text-title)]">
-            Notificaciones
-          </h1>
-          <p className="text-[var(--text-subtle)]">
-            Configura qué alertas recibir por área, severidad y canal.
+      <div className="mx-auto max-w-[900px] p-4 pb-28 md:p-8 md:pb-28">
+        <div className="mb-5">
+          <h1 className="text-2xl font-semibold text-[var(--text-title)] md:text-3xl">Avisos por correo y WhatsApp</h1>
+          <p className="mt-1 max-w-xl text-sm text-[var(--text-subtle)]">
+            Elige por dónde quieres recibir cada alerta, según el área y la gravedad. Siempre las verás también en la plataforma.
           </p>
         </div>
 
-        <div className="grid w-full grid-cols-2 gap-2 sm:flex sm:w-auto">
-          <button
-            type="button"
-            onClick={() => void loadData()}
-            className="inline-flex items-center justify-center gap-2 rounded-full border border-[var(--border-subtle)] bg-[var(--surface-card-primary)] px-4 py-2 text-sm font-medium text-[var(--text-body)] hover:bg-[var(--hover-overlay)]"
-          >
-            <RefreshCw className="h-4 w-4" />
-            Recargar
-          </button>
-          <button
-            type="button"
-            onClick={saveChanges}
-            disabled={saving}
-            className="inline-flex items-center justify-center gap-2 rounded-full bg-[var(--accent-primary)] px-4 py-2 text-sm font-medium text-[var(--text-inverted)] hover:opacity-90 disabled:opacity-60"
-          >
-            {saving ? (
-              <Loader2 className="h-4 w-4 animate-spin" />
-            ) : (
-              <Save className="h-4 w-4" />
-            )}
-            Guardar cambios
-          </button>
-        </div>
-      </div>
+        {errorMessage && (
+          <p role="alert" className="mb-4 rounded-[var(--radius)] border border-[var(--status-danger-text)]/30 bg-[var(--status-danger-bg)] px-3 py-2 text-sm text-[var(--status-danger-text)]">
+            {errorMessage}
+          </p>
+        )}
+        {successMessage && (
+          <p role="status" className="mb-4 rounded-[var(--radius)] bg-[var(--status-active-bg)] px-3 py-2 text-sm text-[var(--status-active-text)]">
+            {successMessage}
+          </p>
+        )}
 
-      {errorMessage && (
-        <BentoCard variant="light" className="mb-4 border border-[var(--status-danger)]/30 bg-[var(--status-danger-bg)]">
-          <p className="text-[var(--status-danger)]">{errorMessage}</p>
-        </BentoCard>
-      )}
-      {successMessage && (
-        <BentoCard variant="light" className="mb-4 border border-[var(--status-active)]/30 bg-[var(--status-active-bg)]">
-          <p className="text-[var(--status-active)]">{successMessage}</p>
-        </BentoCard>
-      )}
-
-      <BentoCard variant="light" className="mb-6">
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="mb-6 flex items-center justify-between gap-4 rounded-[var(--radius)] border border-[var(--border)] bg-[var(--card)] p-4">
           <div>
-            <h2 className="text-lg text-[var(--text-title)]">Interruptor global</h2>
+            <h2 className="text-base font-semibold text-[var(--text-title)]">Recibir avisos fuera de la plataforma</h2>
             <p className="text-sm text-[var(--text-subtle)]">
-              Si está apagado, no se envía ninguna notificación externa.
+              {globalEnabled ? "Te llegan por correo y WhatsApp según lo que elijas abajo." : "Apagado: no te llega ningún correo ni mensaje de WhatsApp."}
             </p>
           </div>
-          <label className="inline-flex items-center gap-2 text-sm text-[var(--text-body)]">
-            <input
-              type="checkbox"
-              checked={globalEnabled}
-              onChange={(event) => setGlobalEnabled(event.target.checked)}
-              className="h-5 w-5 rounded border-[var(--border-subtle)] text-[var(--accent-primary)]"
+          <button
+            type="button"
+            role="switch"
+            aria-checked={globalEnabled}
+            aria-label="Recibir avisos fuera de la plataforma"
+            onClick={() => setGlobalEnabled((value) => !value)}
+            className={`relative h-8 w-14 flex-shrink-0 rounded-full border transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus-ring)] focus-visible:ring-offset-2 ${
+              globalEnabled ? "border-[var(--accent-primary)] bg-[var(--accent-primary)]" : "border-[var(--border-strong)] bg-[var(--surface-panel)]"
+            }`}
+          >
+            <span
+              aria-hidden="true"
+              className={`absolute top-0.5 h-6 w-6 rounded-full bg-[var(--card)] shadow transition-all ${globalEnabled ? "left-[1.75rem]" : "left-0.5 border border-[var(--border-strong)]"}`}
             />
-            {globalEnabled ? "Activado" : "Desactivado"}
-          </label>
+          </button>
         </div>
-      </BentoCard>
 
-      <div className="space-y-5">
-        {properties.map((property) => {
-          const propertyAreas = areas.filter((area) => area.property_id === property.id);
-          if (propertyAreas.length === 0) {
-            return null;
-          }
-
-          return (
-            <BentoCard key={property.id} variant="light" className="space-y-4">
-              <div>
-                <h2 className="text-xl text-[var(--text-title)]">{property.name}</h2>
-                <p className="text-sm text-[var(--text-subtle)]">
-                  {property.location || "Ubicación no definida"}
-                </p>
-              </div>
-
-              <div className="space-y-4">
+        <div className={`space-y-6 ${globalEnabled ? "" : "opacity-60"}`}>
+          {groups.map(({ property, areas: propertyAreas }) => (
+            <section key={property.id} aria-labelledby={`avisos-predio-${property.id}`}>
+              <h2 id={`avisos-predio-${property.id}`} className="mb-2 text-sm font-semibold text-[var(--text-main)]">
+                {property.name}
+                {property.location ? <span className="font-normal text-[var(--text-muted)]"> · {property.location}</span> : null}
+              </h2>
+              <ul className="space-y-2">
                 {propertyAreas.map((area) => (
-                  <div
-                    key={area.id}
-                    className="rounded-2xl border border-[var(--border-subtle)] bg-[var(--surface-card-primary)] p-4"
-                  >
-                    <h3 className="text-base text-[var(--text-body)] mb-3">{area.name}</h3>
-
-                    <div className="grid gap-3 md:grid-cols-2">
-                      {ALERT_TYPES.map((alertType) => (
-                        <div
-                          key={alertType.value}
-                          className="rounded-xl border border-[var(--border-subtle)] bg-[var(--surface-card-secondary)] p-3"
-                        >
-                          <div className="mb-3 flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
-                            <div>
-                              <h4 className="text-sm font-semibold text-[var(--text-title)]">
-                                {alertType.label}
-                              </h4>
-                              <p className="text-xs text-[var(--text-subtle)]">
-                                {getEnabledCountByAlertType(area.id, alertType.value)} de 6 activas
-                              </p>
-                            </div>
-                            <div className="grid w-full grid-cols-2 gap-1.5 sm:flex sm:w-auto sm:flex-wrap sm:justify-end">
-                              <button
-                                type="button"
-                                onClick={() =>
-                                  applyAlertTypeBulkAction(area.id, alertType.value, "enable_all")
-                                }
-                                className="w-full rounded-full border border-[var(--border-subtle)] px-2.5 py-1 text-[11px] font-medium text-[var(--text-body)] hover:bg-[var(--hover-overlay)] sm:w-auto"
-                              >
-                                Todo ON
-                              </button>
-                              <button
-                                type="button"
-                                onClick={() =>
-                                  applyAlertTypeBulkAction(area.id, alertType.value, "disable_all")
-                                }
-                                className="w-full rounded-full border border-[var(--border-subtle)] px-2.5 py-1 text-[11px] font-medium text-[var(--text-body)] hover:bg-[var(--hover-overlay)] sm:w-auto"
-                              >
-                                Todo OFF
-                              </button>
-                              <button
-                                type="button"
-                                onClick={() =>
-                                  applyAlertTypeBulkAction(area.id, alertType.value, "enable_email")
-                                }
-                                className="w-full rounded-full border border-[var(--border-subtle)] px-2.5 py-1 text-[11px] font-medium text-[var(--text-body)] hover:bg-[var(--hover-overlay)] sm:w-auto"
-                              >
-                                Email ON
-                              </button>
-                              <button
-                                type="button"
-                                onClick={() =>
-                                  applyAlertTypeBulkAction(
-                                    area.id,
-                                    alertType.value,
-                                    "enable_whatsapp",
-                                  )
-                                }
-                                className="w-full rounded-full border border-[var(--border-subtle)] px-2.5 py-1 text-[11px] font-medium text-[var(--text-body)] hover:bg-[var(--hover-overlay)] sm:w-auto"
-                              >
-                                WhatsApp ON
-                              </button>
-                            </div>
-                          </div>
-
-                          <div className="space-y-2">
-                            <div className="grid grid-cols-[118px_repeat(3,minmax(0,1fr))] items-center gap-2 sm:grid-cols-[130px_repeat(3,minmax(0,1fr))]">
-                                <span className="text-[11px] font-semibold uppercase tracking-[0.08em] text-[var(--text-subtle)]">
-                                  Canal
-                                </span>
-                                {SEVERITIES.map((severity) => (
-                                  <span
-                                    key={severity.value}
-                                    className="text-center text-[11px] font-semibold uppercase tracking-[0.08em] text-[var(--text-subtle)]"
-                                  >
-                                    {severity.label}
-                                  </span>
-                                ))}
-                              </div>
-
-                            {CHANNELS.map((channel) => {
-                              const channelEnabled = isChannelFullyEnabled(
-                                area.id,
-                                alertType.value,
-                                channel.value,
-                              );
-
-                              return (
-                                <div
-                                  key={channel.value}
-                                  className="grid grid-cols-[118px_repeat(3,minmax(0,1fr))] items-center gap-2 sm:grid-cols-[130px_repeat(3,minmax(0,1fr))]"
-                                >
-                                  <button
-                                    type="button"
-                                    onClick={() =>
-                                      setChannelEnabled(
-                                        area.id,
-                                        alertType.value,
-                                        channel.value,
-                                        !channelEnabled,
-                                      )
-                                    }
-                                    className={`inline-flex items-center justify-between rounded-lg border px-2.5 py-2 text-xs font-medium transition-colors ${
-                                      channelEnabled
-                                        ? "border-[var(--accent-primary)] bg-[var(--accent-primary)]/10 text-[var(--accent-primary)]"
-                                        : "border-[var(--border-subtle)] text-[var(--text-body)] hover:bg-[var(--hover-overlay)]"
-                                    }`}
-                                  >
-                                    <span>{channel.label}</span>
-                                    <span>{channelEnabled ? "On" : "Off"}</span>
-                                  </button>
-
-                                  {SEVERITIES.map((severity) => {
-                                    const checked = getCurrentValue(
-                                      area.id,
-                                      alertType.value,
-                                      severity.value,
-                                      channel.value,
-                                    );
-
-                                    return (
-                                      <button
-                                        key={severity.value}
-                                        type="button"
-                                        aria-pressed={checked}
-                                        onClick={() =>
-                                          togglePreference(
-                                            area.id,
-                                            alertType.value,
-                                            severity.value,
-                                            channel.value,
-                                          )
-                                        }
-                                        className={`inline-flex h-9 items-center justify-center rounded-lg border text-xs font-semibold transition-colors ${
-                                          checked
-                                            ? "border-[var(--accent-primary)] bg-[var(--accent-primary)] text-[var(--text-inverted)]"
-                                            : "border-[var(--border-subtle)] bg-[var(--surface-card-primary)] text-[var(--text-subtle)] hover:bg-[var(--hover-overlay)]"
-                                        }`}
-                                      >
-                                        {checked ? <Check className="h-3.5 w-3.5" /> : "--"}
-                                      </button>
-                                    );
-                                  })}
-                                </div>
-                              );
-                            })}
-                          </div>
-                        </div>
-                      ))}
+                  <li key={area.id} className="rounded-[var(--radius)] border border-[var(--border)] bg-[var(--card)] px-3 py-2 md:px-4">
+                    <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-1">
+                      <p className="text-[15px] font-semibold text-[var(--text-main)]">{area.name}</p>
+                      <p className="font-mono-data text-xs text-[var(--text-muted)]">
+                        {CHANNELS.map((channel) => `${channel.label} ${countFor(area.id, channel.value)}/6`).join(" · ")}
+                      </p>
                     </div>
-                  </div>
+                    <Disclosure summary="Elegir avisos" className="-ml-3">
+                      <div className="mb-2 flex flex-wrap gap-2">
+                        <button
+                          type="button"
+                          onClick={() => setAreaAll(area.id, true)}
+                          className="min-h-[44px] rounded-[var(--radius)] border border-[var(--border-strong)] px-3 text-sm font-semibold text-[var(--text-body)] hover:bg-[var(--hover-overlay)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus-ring)]"
+                        >
+                          Activar todos
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setAreaAll(area.id, false)}
+                          className="min-h-[44px] rounded-[var(--radius)] border border-[var(--border-strong)] px-3 text-sm font-semibold text-[var(--text-body)] hover:bg-[var(--hover-overlay)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus-ring)]"
+                        >
+                          Desactivar todos
+                        </button>
+                      </div>
+                      <p className="mb-2 text-sm text-[var(--text-muted)]">
+                        La gravedad la define cada umbral. <strong className="font-semibold text-[var(--text-main)]">Crítica:</strong> algo urgente.{" "}
+                        <strong className="font-semibold text-[var(--text-main)]">Aviso:</strong> conviene revisarlo.{" "}
+                        <strong className="font-semibold text-[var(--text-main)]">Información:</strong> solo para que lo sepas.
+                      </p>
+                      <div className="overflow-x-auto">
+                        <table className="w-full border-collapse text-left text-sm">
+                          <caption className="sr-only">Avisos de {area.name} por situación, canal y gravedad</caption>
+                          <thead>
+                            <tr className="border-b border-[var(--border)]">
+                              <th scope="col" className="py-2 pr-2 text-xs font-semibold text-[var(--text-muted)]">Por</th>
+                              {SEVERITIES.map((severity) => {
+                                const meta = SEVERITY_META[severity.value];
+                                const Icon = meta.icon;
+                                return (
+                                  <th key={severity.value} scope="col" className="px-1 py-2 text-center text-[11px] font-semibold sm:text-xs">
+                                    <span className={`inline-flex items-center gap-1 rounded-full px-1.5 py-0.5 sm:px-2 ${meta.bg} ${meta.text}`}>
+                                      <Icon aria-hidden="true" className="hidden h-3.5 w-3.5 sm:block" />
+                                      {severity.label}
+                                    </span>
+                                  </th>
+                                );
+                              })}
+                            </tr>
+                          </thead>
+                          {ALERT_TYPES.map((alertType) => (
+                            <tbody key={alertType.value}>
+                              <tr>
+                                <th scope="colgroup" colSpan={SEVERITIES.length + 1} className="pb-1 pt-3 text-left text-sm font-semibold text-[var(--text-main)]">
+                                  {alertType.label}
+                                </th>
+                              </tr>
+                              {CHANNELS.map((channel) => (
+                                <tr key={channel.value} className="border-b border-[var(--border)] last:border-b-0">
+                                  <th scope="row" className="py-1 pr-2 text-left text-sm font-normal text-[var(--text-body)]">{channel.label}</th>
+                                  {SEVERITIES.map((severity) => (
+                                    <td key={severity.value} className="px-1 py-0.5 text-center">
+                                      <label className="inline-flex h-11 w-11 cursor-pointer items-center justify-center">
+                                        <input
+                                          type="checkbox"
+                                          checked={getCurrentValue(area.id, alertType.value, severity.value, channel.value)}
+                                          onChange={() => togglePreference(area.id, alertType.value, severity.value, channel.value)}
+                                          aria-label={`${channel.label}, gravedad ${severity.label.toLowerCase()}: ${alertType.label.toLowerCase()}`}
+                                          className="h-5 w-5 accent-[var(--accent-primary)]"
+                                        />
+                                      </label>
+                                    </td>
+                                  ))}
+                                </tr>
+                              ))}
+                            </tbody>
+                          ))}
+                        </table>
+                      </div>
+                    </Disclosure>
+                  </li>
                 ))}
-              </div>
-            </BentoCard>
-          );
-        })}
-      </div>
+              </ul>
+            </section>
+          ))}
+        </div>
 
-      {!hasChanges && (
-        <p className="mt-4 text-sm text-[var(--text-subtle)]">
-          No hay cambios pendientes por guardar.
-        </p>
-      )}
-    </div>
+        {groups.length === 0 && (
+          <p className="rounded-[var(--radius)] border border-[var(--border)] bg-[var(--card)] px-4 py-8 text-center text-sm text-[var(--text-muted)]">
+            Aún no tienes áreas de riego. Cuando tengas una, podrás elegir cómo recibir sus avisos.
+          </p>
+        )}
+
+        {hasChanges && (
+          <div className="fixed inset-x-0 bottom-[calc(4.5rem+env(safe-area-inset-bottom))] z-40 border-t border-[var(--border-strong)] bg-[var(--bg-elevated)] px-4 py-3 md:bottom-0 md:left-[208px]">
+            <div className="mx-auto flex max-w-[900px] flex-wrap items-center justify-between gap-2">
+              <p className="text-sm font-semibold text-[var(--text-main)]">Tienes cambios sin guardar</p>
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  onClick={discardChanges}
+                  disabled={saving}
+                  className="min-h-[44px] rounded-[var(--radius)] border border-[var(--border-strong)] px-4 text-sm font-semibold text-[var(--text-body)] hover:bg-[var(--hover-overlay)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus-ring)] disabled:opacity-50"
+                >
+                  Descartar
+                </button>
+                <button
+                  type="button"
+                  onClick={saveChanges}
+                  disabled={saving}
+                  className="inline-flex min-h-[44px] items-center gap-2 rounded-[var(--radius)] bg-[var(--accent-primary)] px-4 text-sm font-semibold text-[var(--text-inverted)] hover:opacity-90 focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus-ring)] focus-visible:ring-offset-2 disabled:opacity-60"
+                >
+                  {saving ? <Loader2 aria-hidden="true" className="h-4 w-4 animate-spin" /> : <Save aria-hidden="true" className="h-4 w-4" />}
+                  Guardar cambios
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
     </PageTransition>
   );
 }

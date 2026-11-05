@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 190" role="img" aria-labelledby="title desc"><title id="title">Sensores Agrícolas</title><desc id="desc">Identidad provisional. Tecnología que impulsa el campo.</desc><rect width="760" height="190" rx="22" fill="#00450D"/><svg x="8" y="7" width="176" height="176" viewBox="0 0 256 256">
+<title id="title">Símbolo Sensores Agrícolas</title><desc id="desc">Brote agrícola conectado mediante nodos IoT, sobre surcos de cultivo.</desc>
+<g fill="none" stroke-linecap="round" stroke-linejoin="round">
+ <path d="M128 179V93" stroke="#E8F5E9" stroke-width="12"/>
+ <path d="M127 127C91 125 70 106 68 75c31 1 55 14 65 39" fill="#2E7D32" stroke="#E8F5E9" stroke-width="8"/>
+ <path d="M130 108c4-32 27-53 59-55 0 32-15 55-42 63" fill="#8BC34A" stroke="#E8F5E9" stroke-width="8"/>
+ <path d="M88 184c24-12 56-12 80 0M70 207c35-17 81-17 116 0" stroke="#2E7D32" stroke-width="10"/>
+ <path d="M127 101 105 85M145 92l25-24M128 156l-28 7" stroke="#E8F5E9" stroke-width="6"/>
+</g>
+<g fill="#8BC34A" stroke="#E8F5E9" stroke-width="5"><circle cx="101" cy="82" r="10"/><circle cx="174" cy="63" r="10"/><circle cx="95" cy="164" r="10"/></g>
+</svg><text x="202" y="87" fill="#E8F5E9" font-family="'Plus Jakarta Sans', 'Avenir Next', Arial, sans-serif" font-size="42" font-weight="700" letter-spacing="-1.2">Sensores</text><text x="202" y="132" fill="#E8F5E9" font-family="'Plus Jakarta Sans', 'Avenir Next', Arial, sans-serif" font-size="42" font-weight="700" letter-spacing="-1.2">Agrícolas</text><text x="204" y="163" fill="#B9DAB9" font-family="'Plus Jakarta Sans', 'Avenir Next', Arial, sans-serif" font-size="16" font-weight="600" letter-spacing=".3">Tecnología que impulsa el campo.</text></svg>

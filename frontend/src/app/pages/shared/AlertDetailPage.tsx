@@ -1,50 +1,38 @@
 import { format, formatDistanceToNowStrict } from "date-fns";
 import { es } from "date-fns/locale";
-import {
-  ArrowLeft,
-  Bell,
-  Bot,
-  CheckCircle2,
-  Loader2,
-  RefreshCw,
-  Sparkles,
-} from "lucide-react";
+import { ArrowLeft, CheckCircle2, Loader2, RefreshCw, Sparkles } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { Link, useLocation, useParams } from "react-router";
 
-import { BentoCard } from "../../components/BentoCard";
 import { PageTransition } from "../../components/PageTransition";
+import { useAlertPlaces } from "../../hooks/useAlertPlaces";
 import {
   AlertItem,
   generateAlertRecommendation,
   getAlert,
   markAlertRead,
 } from "../../services/alerts";
+import { parseBackendTimestamp } from "../../utils/datetime";
+import { formatValue, parameterLabel, SEVERITY_META, TYPE_LABEL } from "./alertFormat";
 
-const severityStyles: Record<AlertItem["severity"], string> = {
-  info: "bg-[var(--status-info-bg)] text-[var(--status-info)]",
-  warning: "bg-[var(--status-warning-bg)] text-[var(--status-warning)]",
-  critical: "bg-[var(--status-danger-bg)] text-[var(--status-danger)]",
-};
-
-const typeLabels: Record<AlertItem["type"], string> = {
-  threshold: "Umbral",
-  inactivity: "Inactividad",
-};
+const card = "rounded-[var(--radius)] border border-[var(--border)] bg-[var(--card)] p-4 md:p-5";
+const quietButton =
+  "inline-flex min-h-[44px] items-center gap-2 rounded-[var(--radius)] border border-[var(--border-strong)] px-4 text-sm font-semibold text-[var(--text-body)] hover:bg-[var(--hover-overlay)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus-ring)] disabled:cursor-not-allowed disabled:opacity-60";
 
 function formatTimestamp(iso: string): string {
-  const parsed = new Date(iso);
-  if (Number.isNaN(parsed.getTime())) return iso;
+  const parsed = parseBackendTimestamp(iso);
+  if (!parsed) return iso;
   return `${format(parsed, "dd/MM/yyyy HH:mm")} (${formatDistanceToNowStrict(parsed, {
     addSuffix: true,
     locale: es,
   })})`;
 }
 
-function recommendationSourceLabel(source: string | null): string {
-  if (source === "ai" || source === "cached_ai") return "IA";
-  if (source === "fallback" || source === "cached_fallback") return "Reglas";
-  return "N/D";
+/** Título honesto según de dónde sale la sugerencia. */
+function recommendationTitle(source: string | null): string {
+  if (source === "ai" || source === "cached_ai") return "Sugerencia automática";
+  if (source === "fallback" || source === "cached_fallback") return "Sugerencia basada en reglas";
+  return "Sugerencia";
 }
 
 export function AlertDetailPage() {
@@ -52,6 +40,8 @@ export function AlertDetailPage() {
   const location = useLocation();
   const isAdmin = location.pathname.startsWith("/admin");
   const alertsPath = isAdmin ? "/admin/alertas" : "/cliente/alertas";
+  const thresholdsPath = isAdmin ? "/admin/umbrales" : "/cliente/umbrales";
+  const { placeOf } = useAlertPlaces(isAdmin);
   const parsedAlertId = Number(alertId);
 
   const [alert, setAlert] = useState<AlertItem | null>(null);
@@ -156,195 +146,131 @@ export function AlertDetailPage() {
     }
   };
 
+  const meta = alert ? SEVERITY_META[alert.severity] : null;
+  const place = alert ? placeOf(alert.irrigation_area_id) : null;
+  const measurement = alert ? parameterLabel(alert.parameter) : null;
+  const value = alert ? formatValue(alert) : null;
+  const areaPath = alert ? (isAdmin ? `/admin/areas/${alert.irrigation_area_id}` : `/cliente/area/${alert.irrigation_area_id}`) : "";
+  const notified = alert ? [alert.notified_email && "correo", alert.notified_whatsapp && "WhatsApp"].filter(Boolean) : [];
+
   return (
     <PageTransition>
-      <div className="min-h-screen p-4 md:p-6 lg:p-8">
-        <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
-          <div>
-            <Link
-              to={alertsPath}
-              className="mb-3 inline-flex items-center gap-2 text-sm font-medium text-[var(--accent-primary)] hover:opacity-80"
-            >
-              <ArrowLeft className="h-4 w-4" />
-              Volver a alertas
-            </Link>
-            <h1 className="text-2xl md:text-3xl font-serif text-[var(--text-title)]">
-              Recomendación de alerta
-            </h1>
-            <p className="text-[var(--text-subtle)]">
-              Detalle operativo con recomendación generada por IA.
-            </p>
-          </div>
-
-          <button
-            type="button"
-            onClick={fetchAlert}
-            className="inline-flex items-center gap-2 rounded-full border border-[var(--border-subtle)] bg-[var(--surface-card-primary)] px-4 py-2 text-sm font-medium text-[var(--text-body)] hover:bg-[var(--hover-overlay)]"
-          >
-            <RefreshCw className="h-4 w-4" />
-            Actualizar
-          </button>
-        </div>
+      <div className="mx-auto max-w-[1100px] p-4 md:p-8">
+        <Link
+          to={alertsPath}
+          className="mb-3 inline-flex min-h-[44px] items-center gap-2 text-sm font-medium text-[var(--accent-primary)] hover:opacity-80 focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus-ring)]"
+        >
+          <ArrowLeft aria-hidden="true" className="h-4 w-4" />
+          {isAdmin ? "Volver a todas las alertas" : "Volver a mis alertas"}
+        </Link>
 
         {loading ? (
-          <BentoCard variant="light">
-            <div className="flex items-center justify-center gap-2 py-12 text-[var(--text-subtle)]">
-              <Loader2 className="h-5 w-5 animate-spin" />
-              Cargando alerta...
-            </div>
-          </BentoCard>
+          <div className="flex items-center justify-center gap-2 py-12 text-[var(--text-subtle)]" role="status">
+            <Loader2 aria-hidden="true" className="h-5 w-5 animate-spin" />
+            Cargando alerta…
+          </div>
         ) : errorMessage && !alert ? (
-          <BentoCard variant="light">
-            <div className="rounded-xl border border-[var(--status-danger)]/30 bg-[var(--status-danger-bg)] px-3 py-2 text-sm text-[var(--status-danger)]">
-              {errorMessage}
-            </div>
-          </BentoCard>
-        ) : alert ? (
-          <div className="grid grid-cols-1 gap-4 xl:grid-cols-[minmax(0,0.95fr)_minmax(0,1.05fr)]">
-            <BentoCard variant="light">
-              <div className="mb-4 flex flex-wrap items-center gap-2">
-                <span
-                  className={`rounded-full px-2.5 py-1 text-xs font-semibold ${severityStyles[alert.severity]}`}
-                >
-                  {alert.severity.toUpperCase()}
-                </span>
-                <span className="rounded-full bg-[var(--surface-card-secondary)] px-2.5 py-1 text-xs font-medium text-[var(--text-body)]">
-                  {typeLabels[alert.type]}
-                </span>
-                {!alert.read && (
-                  <span className="rounded-full bg-[var(--status-warning-bg)] px-2.5 py-1 text-xs font-medium text-[var(--status-warning)]">
-                    No leída
+          <div role="alert" className="rounded-[var(--radius)] border border-[var(--status-danger-text)]/30 bg-[var(--status-danger-bg)] px-3 py-2 text-sm text-[var(--status-danger-text)]">
+            {errorMessage}
+          </div>
+        ) : alert && meta && place ? (
+          <>
+            <div className="mb-5 flex flex-wrap items-start justify-between gap-3">
+              <div className="min-w-0">
+                <div className="mb-2 flex flex-wrap items-center gap-2 text-xs">
+                  <span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 font-semibold ${meta.bg} ${meta.text}`}>
+                    <meta.icon aria-hidden="true" className="h-3.5 w-3.5" />
+                    {meta.label}
                   </span>
-                )}
+                  <span className="text-[var(--text-muted)]">{TYPE_LABEL[alert.type]}</span>
+                  <span className={`font-semibold ${alert.read ? "text-[var(--text-muted)]" : "text-[var(--text-main)]"}`}>{alert.read ? "Leída" : "Sin leer"}</span>
+                </div>
+                <h1 className="text-2xl font-semibold text-[var(--text-title)] md:text-3xl">{alert.message}</h1>
+                <p className="mt-1 text-sm text-[var(--text-subtle)]">{place.where}</p>
               </div>
-
-              <div className="space-y-4">
-                <div>
-                  <p className="text-xs uppercase tracking-[0.14em] text-[var(--text-subtle)]">
-                    Mensaje
-                  </p>
-                  <p className="mt-1 text-base font-medium text-[var(--text-body)]">
-                    {alert.message}
-                  </p>
-                </div>
-
-                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                  <div className="rounded-xl border border-[var(--border-subtle)] bg-[var(--surface-card-primary)] p-3">
-                    <p className="text-xs text-[var(--text-subtle)]">Nodo</p>
-                    <p className="text-sm font-semibold text-[var(--text-body)]">
-                      {alert.node_id}
-                    </p>
-                  </div>
-                  <div className="rounded-xl border border-[var(--border-subtle)] bg-[var(--surface-card-primary)] p-3">
-                    <p className="text-xs text-[var(--text-subtle)]">Área</p>
-                    <p className="text-sm font-semibold text-[var(--text-body)]">
-                      {alert.irrigation_area_id}
-                    </p>
-                  </div>
-                  <div className="rounded-xl border border-[var(--border-subtle)] bg-[var(--surface-card-primary)] p-3">
-                    <p className="text-xs text-[var(--text-subtle)]">Parámetro</p>
-                    <p className="text-sm font-semibold text-[var(--text-body)]">
-                      {alert.parameter ?? "N/D"}
-                    </p>
-                  </div>
-                  <div className="rounded-xl border border-[var(--border-subtle)] bg-[var(--surface-card-primary)] p-3">
-                    <p className="text-xs text-[var(--text-subtle)]">Valor detectado</p>
-                    <p className="text-sm font-semibold text-[var(--text-body)]">
-                      {alert.detected_value ?? "N/D"}
-                    </p>
-                  </div>
-                </div>
-
-                <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-[var(--text-subtle)]">
-                  <span className="inline-flex items-center gap-1">
-                    <Bell className="h-4 w-4" />
-                    {formatTimestamp(alert.timestamp)}
-                  </span>
-                  {alert.notified_email && <span>Correo enviado</span>}
-                  {alert.notified_whatsapp && <span>WhatsApp enviado</span>}
-                </div>
-
+              <div className="flex flex-wrap gap-2">
                 {!alert.read && (
-                  <button
-                    type="button"
-                    onClick={markAsRead}
-                    disabled={updating}
-                    className="inline-flex items-center gap-2 rounded-full border border-[var(--border-subtle)] bg-[var(--surface-card-primary)] px-4 py-2 text-sm font-medium text-[var(--text-body)] hover:bg-[var(--hover-overlay)] disabled:cursor-not-allowed disabled:opacity-60"
-                  >
-                    {updating ? (
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                    ) : (
-                      <CheckCircle2 className="h-4 w-4" />
-                    )}
+                  <button type="button" onClick={markAsRead} disabled={updating} className={quietButton}>
+                    {updating ? <Loader2 aria-hidden="true" className="h-4 w-4 animate-spin" /> : <CheckCircle2 aria-hidden="true" className="h-4 w-4" />}
                     Marcar como leída
                   </button>
                 )}
-              </div>
-            </BentoCard>
-
-            <BentoCard variant="light">
-              <div className="mb-4 flex items-center justify-between gap-3">
-                <div className="flex items-center gap-3">
-                  <div className="grid h-10 w-10 place-items-center rounded-full bg-[var(--accent-gold-glow)] text-[var(--accent-primary)]">
-                    <Bot className="h-5 w-5" />
-                  </div>
-                  <div>
-                    <h2 className="text-lg font-semibold text-[var(--text-title)]">
-                      Recomendación IA
-                    </h2>
-                    <p className="text-sm text-[var(--text-subtle)]">
-                      Fuente: {recommendationSourceLabel(recommendationSource)}
-                    </p>
-                  </div>
-                </div>
-
-                <button
-                  type="button"
-                  onClick={() => {
-                    void fetchRecommendation(true);
-                  }}
-                  disabled={recommendationLoading}
-                  className="inline-flex items-center gap-2 rounded-full border border-[var(--border-subtle)] bg-[var(--surface-card-primary)] px-3 py-1.5 text-xs font-medium text-[var(--text-body)] hover:bg-[var(--hover-overlay)] disabled:cursor-not-allowed disabled:opacity-60"
-                >
-                  {recommendationLoading ? (
-                    <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                  ) : (
-                    <Sparkles className="h-3.5 w-3.5" />
-                  )}
-                  Regenerar
+                <button type="button" onClick={fetchAlert} className={quietButton}>
+                  <RefreshCw aria-hidden="true" className="h-4 w-4" />
+                  Actualizar
                 </button>
               </div>
+            </div>
+            {errorMessage && (
+              <p role="alert" className="mb-4 rounded-[var(--radius)] border border-[var(--status-danger-text)]/30 bg-[var(--status-danger-bg)] px-3 py-2 text-sm text-[var(--status-danger-text)]">{errorMessage}</p>
+            )}
 
-              {recommendationLoading ? (
-                <div className="flex items-center gap-2 rounded-xl border border-[var(--border-subtle)] bg-[var(--surface-card-primary)] p-3 text-sm text-[var(--text-subtle)]">
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                  Generando recomendación...
+            <div className="grid grid-cols-1 gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
+              <section aria-labelledby="alerta-datos" className={card}>
+                <h2 id="alerta-datos" className="mb-2 text-base font-semibold">Qué pasó</h2>
+                <dl>
+                  {[
+                    measurement ? ["Medición", measurement] : null,
+                    value ? ["Valor detectado", value] : null,
+                    ["Cuándo", formatTimestamp(alert.timestamp)],
+                    ["Nodo", `Nodo ${alert.node_id}`],
+                    ["Aviso enviado", notified.length > 0 ? `Por ${notified.join(" y ")}` : "No se envió por correo ni WhatsApp"],
+                  ].filter((row): row is string[] => row !== null).map(([label, text]) => (
+                    <div key={label} className="border-b border-[var(--border)] py-2.5 last:border-b-0">
+                      <dt className="text-xs text-[var(--text-muted)]">{label}</dt>
+                      <dd className={`mt-0.5 text-base font-semibold ${label === "Valor detectado" ? "font-mono-data" : ""}`}>{text}</dd>
+                    </div>
+                  ))}
+                </dl>
+                <div className="mt-4 flex flex-wrap gap-2">
+                  <Link to={areaPath} className={quietButton}>Ver el área</Link>
+                  {alert.type === "threshold" && (
+                    <Link to={`${thresholdsPath}?area=${alert.irrigation_area_id}`} className={quietButton}>Ver los umbrales del área</Link>
+                  )}
                 </div>
-              ) : recommendationText ? (
-                <div className="space-y-3">
-                  <div className="rounded-xl border border-[var(--border-subtle)] bg-[var(--surface-card-primary)] p-3">
-                    <p className="text-sm text-[var(--text-body)] whitespace-pre-wrap">
-                      {recommendationText}
+              </section>
+
+              <section aria-labelledby="alerta-sugerencia" className={card}>
+                <div className="mb-3 flex items-start justify-between gap-3">
+                  <div>
+                    <h2 id="alerta-sugerencia" className="text-base font-semibold">{recommendationTitle(recommendationSource)}</h2>
+                    <p className="text-sm text-[var(--text-muted)]">Una idea de qué revisar; no sustituye tu criterio.</p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      void fetchRecommendation(true);
+                    }}
+                    disabled={recommendationLoading}
+                    className={quietButton}
+                  >
+                    {recommendationLoading ? <Loader2 aria-hidden="true" className="h-4 w-4 animate-spin" /> : <Sparkles aria-hidden="true" className="h-4 w-4" />}
+                    Regenerar
+                  </button>
+                </div>
+
+                {recommendationLoading ? (
+                  <div role="status" className="flex items-center gap-2 rounded-[var(--radius)] bg-[var(--surface-panel)] p-3 text-sm text-[var(--text-subtle)]">
+                    <Loader2 aria-hidden="true" className="h-4 w-4 animate-spin" />
+                    Generando sugerencia…
+                  </div>
+                ) : recommendationText ? (
+                  <div className="space-y-2">
+                    <p className="whitespace-pre-wrap rounded-[var(--radius)] bg-[var(--surface-panel)] p-3 text-sm text-[var(--text-body)]">{recommendationText}</p>
+                    <p className="text-xs text-[var(--text-muted)]">
+                      Generada: {recommendationGeneratedAt ? formatTimestamp(recommendationGeneratedAt) : "sin fecha"}
                     </p>
                   </div>
+                ) : (
+                  <p className="rounded-[var(--radius)] bg-[var(--surface-panel)] p-3 text-sm text-[var(--text-subtle)]">Aún no hay sugerencia para esta alerta.</p>
+                )}
 
-                  <div className="text-xs text-[var(--text-subtle)]">
-                    Generada: {recommendationGeneratedAt ? formatTimestamp(recommendationGeneratedAt) : "N/D"}
-                  </div>
-                </div>
-              ) : (
-                <div className="rounded-xl border border-[var(--border-subtle)] bg-[var(--surface-card-primary)] p-3 text-sm text-[var(--text-subtle)]">
-                  Sin recomendación generada aún.
-                </div>
-              )}
-
-              {recommendationError && (
-                <p className="mt-4 rounded-xl border border-[var(--status-warning)]/30 bg-[var(--status-warning-bg)] px-3 py-2 text-xs text-[var(--status-warning)]">
-                  {recommendationError}
-                </p>
-              )}
-            </BentoCard>
-          </div>
+                {recommendationError && (
+                  <p className="mt-3 rounded-[var(--radius)] bg-[var(--status-warning-bg)] px-3 py-2 text-xs text-[var(--status-warning-text)]">{recommendationError}</p>
+                )}
+              </section>
+            </div>
+          </>
         ) : null}
       </div>
     </PageTransition>

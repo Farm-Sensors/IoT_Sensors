@@ -2,7 +2,6 @@ import { act, cleanup, fireEvent, render, screen, waitFor, within } from "@testi
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { ReactNode } from "react";
 import { HistoricalData } from "./HistoricalData";
-import { ExportData } from "./ExportData";
 import { dateParam, quickRangeDates } from "../../utils/readingFilters";
 
 const mocks = vi.hoisted(() => ({ get: vi.fn(), download: vi.fn(), toast: vi.fn(), selection: { selectedArea: { id: 12, name: "Nogal" } as { id: number; name: string } | null } }));
@@ -13,6 +12,7 @@ vi.mock("../../components/selection/SelectionScopeBar", () => ({ SelectionScopeB
 vi.mock("../../components/Toast", () => ({ useToast: () => ({ showToast: mocks.toast }) }));
 vi.mock("../../components/PageTransition", () => ({ PageTransition: ({ children }: { children: ReactNode }) => <>{children}</> }));
 vi.mock("../../hooks/useIsMobile", () => ({ useIsMobile: () => false }));
+vi.mock("../../context/ThemeContext", () => ({ useTheme: () => ({ theme: "light" }) }));
 vi.mock("../../components/ui/calendar", () => ({ Calendar: ({ onSelect }: { onSelect: (day: Date) => void }) => <input aria-label="Día del calendario" type="date" onChange={(event) => onSelect(new Date(`${event.target.value}T00:00:00`))} /> }));
 vi.mock("recharts", () => {
   const Container = ({ children }: { children?: ReactNode }) => <div>{children}</div>;
@@ -88,7 +88,8 @@ it("discards late page responses after a range change", async () => {
   render(<HistoricalData />);
   await screen.findByText("Apagado");
   fireEvent.click(screen.getByRole("button", { name: "Siguiente" }));
-  expect(screen.queryByText("Apagado")).toBeNull();
+  // Las filas anteriores se quedan (atenuadas) mientras llega la página nueva, para que la tabla no se encoja.
+  expect(screen.getByRole("table").parentElement).toHaveAttribute("aria-busy", "true");
   fireEvent.click(screen.getByRole("button", { name: "Este mes" }));
   await screen.findByText("Apagado");
   await act(async () => resolvePage({ data: { data: [{ ...reading, soil: { ...reading.soil, conductivity: 999 } }], total: 21, per_page: 20 } }));
@@ -118,13 +119,12 @@ it("labels a partial chart and keeps the table visible on chart failure", async 
   expect(await screen.findByText("Apagado")).toBeTruthy();
 });
 
-describe.each([HistoricalData, ExportData])("export screen", (Screen) => {
+describe.each([HistoricalData])("export screen", (Screen) => {
   it.each([["CSV", "csv"], ["Excel", "xlsx"], ["PDF", "pdf"]])("downloads %s with dates and area via existing endpoint", async (label, extension) => {
     render(<Screen />);
     await screen.findByRole("option", { name: /2026-01-01/ });
     fireEvent.change(screen.getByLabelText("Ciclo de cultivo"), { target: { value: "7" } });
-    const isExportPage = Screen === ExportData;
-    fireEvent.click(screen.getByRole("button", { name: isExportPage ? new RegExp(`Descargar ${label}`) : label }));
+    fireEvent.click(screen.getByRole("button", { name: label }));
     await waitFor(() => expect(mocks.download).toHaveBeenCalledTimes(1));
     const [endpoint, name] = mocks.download.mock.calls[0];
     const params = new URL(endpoint, "http://local").searchParams;
@@ -139,20 +139,26 @@ describe.each([HistoricalData, ExportData])("export screen", (Screen) => {
   it("surfaces download errors", async () => {
     mocks.download.mockRejectedValue(new Error("failed"));
     render(<Screen />);
-    fireEvent.click(screen.getByRole("button", { name: Screen === ExportData ? /Descargar CSV/ : "CSV" }));
+    fireEvent.click(screen.getByRole("button", { name: "CSV" }));
     expect(await screen.findByText("No se pudo exportar. Intenta nuevamente.")).toBeTruthy();
   });
   it("supports an exact custom range without availability clamping", async () => {
     render(<Screen />);
     await screen.findByRole("option", { name: /2026-01-01/ });
+    fireEvent.click(screen.getByRole("button", { name: "Personalizado" }));
     fireEvent.click(screen.getByRole("button", { name: "Fecha inicio" }));
     fireEvent.change(screen.getByLabelText("Día del calendario"), { target: { value: "2025-12-15" } });
     fireEvent.click(screen.getByRole("button", { name: "Fecha fin" }));
     fireEvent.change(screen.getByLabelText("Día del calendario"), { target: { value: "2026-01-02" } });
-    fireEvent.click(screen.getByRole("button", { name: Screen === ExportData ? /Descargar CSV/ : "CSV" }));
+    expect(screen.getByRole("button", { name: "Personalizado" })).toHaveAttribute("aria-pressed", "true");
+    fireEvent.click(screen.getByRole("button", { name: "CSV" }));
     await waitFor(() => expect(mocks.download).toHaveBeenCalledTimes(1));
     expect(mocks.download.mock.calls[0][0]).toContain("start_date=2025-12-15&end_date=2026-01-02");
-    expect(screen.getByRole("button", { name: "Personalizado" })).toHaveAttribute("aria-pressed", "true");
+    // Al terminar, una ventana centrada confirma que la descarga quedó lista.
+    const dialog = await screen.findByRole("dialog");
+    expect(within(dialog).getByText("Descarga lista")).toBeTruthy();
+    fireEvent.click(within(dialog).getByRole("button", { name: "Listo" }));
+    await waitFor(() => expect(screen.queryByRole("dialog")).toBeNull());
   });
 });
 
@@ -167,12 +173,12 @@ describe("filters and export summary", () => {
   it("shows the active filters next to the results and keeps presets pressed state", async () => {
     render(<HistoricalData />);
     const summary = await screen.findByTestId("active-filters");
-    expect(summary).toHaveTextContent("Rango: Últimos 7 días");
-    expect(summary).toHaveTextContent(/Fechas: \d{2}\/\d{2}\/\d{4} – \d{2}\/\d{2}\/\d{4}/);
-    expect(summary).toHaveTextContent("Ciclo de cultivo: Todos los ciclos");
+    expect(summary).toHaveTextContent("Últimos 7 días");
+    expect(summary).toHaveTextContent(/\d{2}\/\d{2}\/\d{4} – \d{2}\/\d{2}\/\d{4}/);
+    expect(summary).toHaveTextContent("Todos los ciclos");
     expect(screen.getByRole("button", { name: "Últimos 7 días" })).toHaveAttribute("aria-pressed", "true");
     fireEvent.click(screen.getByRole("button", { name: "Este mes" }));
-    expect(screen.getByTestId("active-filters")).toHaveTextContent("Rango: Este mes");
+    expect(screen.getByTestId("active-filters")).toHaveTextContent("Este mes");
     expect(screen.getByRole("button", { name: "Últimos 7 días" })).toHaveAttribute("aria-pressed", "false");
   });
 
@@ -180,47 +186,20 @@ describe("filters and export summary", () => {
     render(<HistoricalData />);
     await screen.findByRole("option", { name: /2026-01-01/ });
     fireEvent.change(screen.getByLabelText("Ciclo de cultivo"), { target: { value: "7" } });
-    expect(await screen.findByText(/Ciclo de cultivo: 2026-01-01 — Sin fecha de fin/)).toBeTruthy();
+    expect(await screen.findByText(/Ciclo 2026-01-01 — sin fecha de fin/)).toBeTruthy();
   });
 
-  it("summarizes the export before downloading and offers three separate actions", async () => {
-    render(<ExportData />);
-    expect(screen.getByTestId("export-summary")).toHaveTextContent(/Se exportará Nogal, del \d{2}\/\d{2}\/\d{4} al \d{2}\/\d{2}\/\d{4}, todos los ciclos\./);
-    for (const label of ["CSV", "Excel", "PDF"]) expect(screen.getByRole("button", { name: new RegExp(`Descargar ${label}`) })).toBeEnabled();
-    await screen.findByRole("option", { name: /2026-01-01/ });
-    fireEvent.change(screen.getByLabelText("Ciclo de cultivo"), { target: { value: "7" } });
-    expect(screen.getByTestId("export-summary")).toHaveTextContent("solo el ciclo de cultivo elegido");
-    expect(screen.queryByRole("button", { name: "Exportar Datos" })).toBeNull();
-  });
-
-  it("downloads only the format that was pressed and disables the others meanwhile", async () => {
-    let finish!: () => void;
-    mocks.download.mockImplementation(() => new Promise<void>((resolve) => { finish = resolve; }));
-    render(<ExportData />);
-    fireEvent.click(screen.getByRole("button", { name: /Descargar Excel/ }));
-    await waitFor(() => expect(screen.getByRole("button", { name: /Generando Excel/ })).toBeDisabled());
-    expect(screen.getByRole("button", { name: /Descargar CSV/ })).toBeDisabled();
-    expect(mocks.download).toHaveBeenCalledTimes(1);
-    expect(new URL(mocks.download.mock.calls[0][0], "http://local").searchParams.get("format")).toBe("xlsx");
-    await act(async () => finish());
-    await waitFor(() => expect(screen.getByRole("button", { name: /Descargar CSV/ })).toBeEnabled());
-  });
-
-  it("disables every export action without an area", () => {
-    mocks.selection.selectedArea = null;
-    render(<ExportData />);
-    for (const label of ["CSV", "Excel", "PDF"]) expect(screen.getByRole("button", { name: new RegExp(`Descargar ${label}`) })).toBeDisabled();
-    expect(screen.getByTestId("export-summary")).toHaveTextContent("Selecciona un área de riego para exportar.");
-  });
-
-  it("toggles chart series with aria-pressed", async () => {
+  it("shows one variable at a time and switches it from the picker", async () => {
     const yesterday = new Date(Date.now() - 86_400_000).toISOString();
     mocks.get.mockImplementation((path: string) => path.startsWith("/readings?") && path.includes("per_page=200")
       ? Promise.resolve({ data: { data: [{ ...reading, timestamp: yesterday }], total: 1, page: 1, per_page: 200 } }) : respond(path));
     render(<HistoricalData />);
-    const toggle = await screen.findByRole("button", { name: "Humedad suelo" });
-    expect(toggle).toHaveAttribute("aria-pressed", "true");
-    fireEvent.click(toggle);
-    expect(toggle).toHaveAttribute("aria-pressed", "false");
+    const main = await screen.findByRole("group", { name: "Variable de la gráfica" });
+    expect(within(main).getByRole("button", { name: "Humedad del suelo" })).toHaveAttribute("aria-pressed", "true");
+    expect(screen.getByRole("region", { name: "Gráfica de Humedad del suelo" })).toBeTruthy();
+    expect(screen.queryByRole("region", { name: "Gráfica de Flujo de agua" })).toBeNull();
+    fireEvent.click(within(main).getByRole("button", { name: "Flujo de agua" }));
+    expect(screen.getByRole("region", { name: "Gráfica de Flujo de agua" })).toBeTruthy();
+    expect(screen.queryByRole("region", { name: "Gráfica de Humedad del suelo" })).toBeNull();
   });
 });

@@ -1,7 +1,9 @@
 import { useEffect, useRef, useState } from "react";
 import QRCode from "qrcode";
 import { Link, useSearchParams } from "react-router";
-import { AlertTriangle, ArrowLeft, Check, CheckCircle2, Hourglass, Plus, Router } from "lucide-react";
+import { AlertTriangle, ArrowLeft, Check, CheckCircle2, ChevronRight, Hourglass, Plus, Router } from "lucide-react";
+import { formatAgo, minutesSince } from "../client/overview/areaStatus";
+import { listBox, panelButton } from "./directory/Health";
 import { BentoCard } from "../../components/BentoCard";
 import { EmptyState } from "../../components/EmptyState";
 import {
@@ -63,23 +65,21 @@ type ActivationReference = {
   image: string;
 };
 
-const STEP_TITLES = ["Rancho y áreas", "Vincular equipo", "Asignar nodos"];
+const STEP_TITLES = ["Predio y áreas", "Vincular equipo", "Asignar nodos"];
 // Mientras el asistente está abierto, el avance se actualiza solo.
 const REFRESH_MS = 15_000;
-const OUTLINE_LINK =
-  "inline-flex min-h-[44px] items-center justify-center rounded-full border border-[var(--outline-contrast)] px-5 py-2 text-sm font-medium text-[var(--text-main)] hover:bg-[var(--hover-overlay)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus-ring)] focus-visible:ring-offset-2";
 
 // Mensajes llanos para los rechazos al crear el enlace (el API responde en inglés).
 function createLinkErrorMessage(err: unknown): string {
   const text = getErrorMessage(err, "");
   if (text.includes("already exists")) {
-    return "Este rancho ya tiene un equipo.";
+    return "Este predio ya tiene un equipo.";
   }
   if (text.includes("disabled node")) {
     return "Una de las áreas tiene su nodo deshabilitado. Actívalo en Nodos o quita esa área.";
   }
   if (text.includes("binding history")) {
-    return "Un área que quitaste ya tuvo un nodo en este rancho. Vuelve a marcarla.";
+    return "Un área que quitaste ya tuvo un nodo en este predio. Vuelve a marcarla.";
   }
   return "No se pudo guardar. Revisa las áreas e inténtalo de nuevo.";
 }
@@ -172,7 +172,7 @@ export function GatewayManagement() {
       setProperties(propertiesRes.data.data || []);
       setClients(clientsRes.data.data || []);
     } catch (err) {
-      showToast(getErrorMessage(err, "No se pudieron cargar los ranchos"), "error");
+      showToast(getErrorMessage(err, "No se pudieron cargar los predios"), "error");
     }
   };
 
@@ -273,7 +273,7 @@ export function GatewayManagement() {
         setSelectedAreaIds([]);
       } catch (err) {
         if (!cancelled) {
-          showToast(getErrorMessage(err, "No se pudieron cargar las áreas del rancho"), "error");
+          showToast(getErrorMessage(err, "No se pudieron cargar las áreas del predio"), "error");
         }
       } finally {
         if (!cancelled) setLoadingAreas(false);
@@ -317,13 +317,13 @@ export function GatewayManagement() {
   const handleCreateLink = async (event: React.FormEvent) => {
     event.preventDefault();
     if (!selectedPropertyId || selectedAreaIds.length === 0) {
-      setFormError("Elige un rancho y al menos un área.");
+      setFormError("Elige un predio y al menos un área.");
       return;
     }
     try {
       setBusy(true);
       const created = await provisionGateway(Number(selectedPropertyId), selectedAreaIds);
-      showToast("Rancho y áreas guardados", "success");
+      showToast("Predio y áreas guardados", "success");
       setSelectedPropertyId("");
       setSelectedAreaIds([]);
       setFormError(null);
@@ -408,7 +408,7 @@ export function GatewayManagement() {
   const clientNames = new Map(clients.map((client) => [client.id, client.company_name]));
   const ranchOptionLabel = (property: PropertyOption) => {
     const company = clientNames.get(property.client_id);
-    return company ? `${property.name} · ${company}` : property.name;
+    return company ? `${company} · ${property.name}` : property.name;
   };
 
   const currentLinks = gateways.filter((gateway) => gateway.status !== "revoked");
@@ -419,77 +419,70 @@ export function GatewayManagement() {
     const state = equipoState(gateway, status);
     const label = gatewayRanchLabel(gateway);
     const open = () => setSearchParams({ gateway: String(gateway.id) });
+    const heartbeat = parseBackendTimestamp(status?.last_heartbeat_at ?? null);
+    const lastTalk = state === "unlinked" ? null : heartbeat ? `Última comunicación ${formatAgo(minutesSince(heartbeat))}` : "Sin comunicación todavía";
     return (
-      <li key={gateway.id}>
-        <BentoCard padding="sm" className="h-full">
-          <div className="flex h-full flex-col gap-3">
-            <div className="flex flex-wrap items-start justify-between gap-2">
-              <h2 className="text-base font-semibold text-[var(--text-main)]">{label}</h2>
-              <EquipoStateBadge state={state} />
-            </div>
-            <p className="text-sm text-[var(--text-muted)]">
-              {areasWithData(status)} de {gateway.slots.length} áreas con datos
-            </p>
-            <div className="mt-auto">
-              {state === "unlinked" || state === "assigning" ? (
-                <PillButton
-                  variant="outline"
-                  aria-label={`${state === "unlinked" ? "Vincular equipo" : "Ver avance"}: ${label}`}
-                  onClick={open}
-                >
-                  {state === "unlinked" ? "Vincular equipo" : "Ver avance"}
-                </PillButton>
-              ) : (
-                <Link
-                  className={OUTLINE_LINK}
-                  aria-label={`Ver detalle: ${label}`}
-                  to={`/admin/gateways/${gateway.id}`}
-                >
-                  Ver detalle
-                </Link>
-              )}
-            </div>
-          </div>
-        </BentoCard>
+      <li key={gateway.id} className="flex flex-wrap items-center justify-between gap-x-6 gap-y-3 px-4 py-3">
+        <div className="min-w-0">
+          <h2 className="truncate text-base font-semibold text-[var(--text-main)]">{label}</h2>
+          <p className="mt-0.5 text-sm text-[var(--text-muted)]">
+            {areasWithData(status)} de {gateway.slots.length} áreas con datos{lastTalk ? ` · ${lastTalk}` : ""}
+          </p>
+        </div>
+        <div className="flex flex-wrap items-center gap-3">
+          <EquipoStateBadge state={state} />
+          {state === "unlinked" || state === "assigning" ? (
+            <button type="button" className={panelButton} aria-label={`${state === "unlinked" ? "Vincular equipo" : "Ver avance"}: ${label}`} onClick={open}>
+              {state === "unlinked" ? "Vincular equipo" : "Ver avance"}
+            </button>
+          ) : (
+            <Link className={panelButton} aria-label={`Ver detalle: ${label}`} to={`/admin/gateways/${gateway.id}`}>
+              Ver detalle
+            </Link>
+          )}
+        </div>
       </li>
     );
   };
 
   const renderList = () => (
-    <div className="space-y-6">
+    <div className="space-y-8">
       {currentLinks.length === 0 ? (
         <BentoCard>
           <EmptyState
             icon={Router}
             title="Todavía no hay equipos"
-            description="Vincula el primero a un rancho."
+            description="Vincula el primero a un predio."
             action={{ label: "Nuevo equipo", onClick: startNew }}
           />
         </BentoCard>
       ) : (
-        <ul aria-label="Equipos" className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+        <ul aria-label="Equipos" className={listBox}>
           {currentLinks.map(renderCard)}
         </ul>
       )}
       {revokedLinks.length > 0 && (
-        <details className="text-sm text-[var(--text-muted)]">
-          <summary className="inline-flex min-h-[44px] cursor-pointer items-center rounded font-medium focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus-ring)]">
-            Revocados ({revokedLinks.length})
+        <details className="group rounded-[var(--radius)] border border-[var(--border)] bg-[var(--card)]">
+          <summary className="flex min-h-[48px] cursor-pointer items-center justify-between gap-3 px-4 text-sm font-semibold focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus-ring)]">
+            <span>Enlaces revocados ({revokedLinks.length})</span>
+            <ChevronRight aria-hidden="true" className="h-4 w-4 transition-transform group-open:rotate-90" />
           </summary>
-          <ul className="mt-2 divide-y divide-[var(--border-subtle)]">
-            {revokedLinks.map((gateway) => (
-              <li key={gateway.id} className="flex flex-wrap items-center justify-between gap-2 py-2">
-                <span>{gatewayRanchLabel(gateway)}</span>
-                <Link
-                  className="inline-flex min-h-[44px] items-center underline underline-offset-4"
-                  aria-label={`Ver detalle: ${gatewayRanchLabel(gateway)}`}
-                  to={`/admin/gateways/${gateway.id}`}
-                >
-                  Ver detalle
-                </Link>
-              </li>
-            ))}
-          </ul>
+          <div className="border-t border-[var(--border)]">
+            <p className="px-4 py-3 text-sm text-[var(--text-muted)]">Equipos que ya no envían datos a ningún predio. Un predio con el enlace revocado se puede vincular de nuevo desde «Nuevo equipo».</p>
+            <ul className="divide-y divide-[var(--border)] border-t border-[var(--border)]">
+              {revokedLinks.map((gateway) => (
+                <li key={gateway.id} className="flex flex-wrap items-center justify-between gap-2 px-4 py-2.5">
+                  <span className="min-w-0">
+                    <span className="block truncate text-sm font-medium">{gatewayRanchLabel(gateway)}</span>
+                    {gateway.revoked_at && <span className="block text-xs text-[var(--text-muted)]">Revocado el {new Date(gateway.revoked_at).toLocaleDateString("es-MX")}</span>}
+                  </span>
+                  <Link className="inline-flex min-h-[44px] items-center text-sm font-semibold text-[var(--accent-primary)] underline-offset-4 hover:underline" aria-label={`Ver detalle: ${gatewayRanchLabel(gateway)}`} to={`/admin/gateways/${gateway.id}`}>
+                    Ver detalle
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
         </details>
       )}
     </div>
@@ -510,11 +503,11 @@ export function GatewayManagement() {
     return (
       <form className="mt-3 space-y-4" onSubmit={handleCreateLink} noValidate>
         <p className="text-sm text-[var(--text-muted)]">
-          Elige el rancho y marca las áreas que atenderá el equipo.
+          Elige el predio y marca las áreas que atenderá el equipo.
         </p>
         <div className="flex max-w-xl flex-col gap-1">
           <label className="text-sm font-medium" htmlFor="ranch-select">
-            Rancho
+            Predio
           </label>
           <select
             id="ranch-select"
@@ -522,7 +515,7 @@ export function GatewayManagement() {
             value={selectedPropertyId}
             onChange={(event) => setSelectedPropertyId(event.target.value)}
           >
-            <option value="">Selecciona un rancho…</option>
+            <option value="">Selecciona un predio…</option>
             {properties.map((property) => {
               const occupied = currentLinks.some((gateway) => gateway.property_id === property.id);
               return (
@@ -541,7 +534,7 @@ export function GatewayManagement() {
               <p className="mt-2 text-sm text-[var(--text-muted)]">Cargando áreas…</p>
             ) : areas.length === 0 ? (
               <p className="mt-2 text-sm text-[var(--text-muted)]">
-                Este rancho no tiene áreas. Créalas en Predios → Áreas.
+                Este predio no tiene áreas. Créalas en Predios → Áreas.
               </p>
             ) : (
               <div className="mt-2 grid gap-2 sm:grid-cols-2">
@@ -658,7 +651,7 @@ export function GatewayManagement() {
           role="status"
           className="flex items-center gap-2 rounded-xl bg-[var(--status-active-bg)] px-3 py-2 text-sm font-medium text-[var(--text-main)]"
         >
-          <CheckCircle2 aria-hidden="true" className="h-5 w-5 text-[var(--status-active)]" />
+          <CheckCircle2 aria-hidden="true" className="h-5 w-5 text-[var(--status-active-text)]" />
           Equipo vinculado
         </p>
       )}
@@ -684,11 +677,11 @@ export function GatewayManagement() {
                   <span className="inline-flex items-center gap-1.5">
                     <Icon
                       aria-hidden="true"
-                      className={`h-4 w-4 ${receiving ? "text-[var(--status-active)]" : assigned ? "text-[var(--status-warning)]" : "text-[var(--text-muted)]"}`}
+                      className={`h-4 w-4 ${receiving ? "text-[var(--status-active-text)]" : assigned ? "text-[var(--status-warning-text)]" : "text-[var(--text-muted)]"}`}
                     />
-                    {receiving ? "Recibiendo datos" : assigned ? "Sin datos recientes" : "Esperando nodo"}
+                    {receiving ? "Recibiendo datos" : assigned ? "Sin datos recientes" : last ? "Llegan datos, sin nodo asignado" : "Esperando nodo"}
                   </span>
-                  {last && <span className="text-[var(--text-muted)]">· {formatElapsed(last)}</span>}
+                  {last && <span className="text-[var(--text-muted)]">· último dato {formatElapsed(last).toLowerCase()}</span>}
                 </span>
               </li>
             );
@@ -772,7 +765,7 @@ export function GatewayManagement() {
       {currentStep === -1 && setup && (
         <BentoCard>
           <div role="status" className="flex items-center gap-3">
-            <CheckCircle2 aria-hidden="true" className="h-8 w-8 flex-shrink-0 text-[var(--status-active)]" />
+            <CheckCircle2 aria-hidden="true" className="h-8 w-8 flex-shrink-0 text-[var(--status-active-text)]" />
             <div>
               <h3
                 ref={stepHeadingRef}
@@ -785,7 +778,7 @@ export function GatewayManagement() {
             </div>
           </div>
           <Link
-            className="mt-4 inline-flex min-h-[44px] items-center justify-center rounded-full bg-[var(--accent-primary)] px-6 py-2.5 font-medium text-[var(--text-inverted)] hover:opacity-90 focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus-ring)] focus-visible:ring-offset-2"
+            className="mt-4 inline-flex min-h-[44px] items-center justify-center rounded-[var(--radius)] bg-[var(--accent-primary)] px-6 py-2.5 font-medium text-[var(--text-inverted)] hover:opacity-90 focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus-ring)] focus-visible:ring-offset-2"
             to={`/admin/gateways/${setup.id}`}
           >
             Ver detalle
@@ -802,7 +795,7 @@ export function GatewayManagement() {
 
   return (
     <PageTransition>
-      <div className="space-y-6">
+      <div className="space-y-6 p-4 md:p-8">
         <PageHeader
           title="Equipos"
           headingRef={pageHeadingRef}

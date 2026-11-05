@@ -45,7 +45,7 @@ function Toast({
 
   return (
     <div
-      className={`flex items-center gap-3 px-4 py-3 rounded-[20px] shadow-lg max-w-sm pointer-events-auto
+      className={`flex items-center gap-3 px-4 py-3 rounded-[var(--radius)] shadow-lg max-w-sm pointer-events-auto
         ${item.exiting ? "toast-exit" : "toast-enter"}
         ${STYLES[item.type]}`}
       role="status"

@@ -7,22 +7,28 @@
 
 :root {
   /* --- Light Base Surfaces (Default) --- */
-  --bg-base:          #F4F1EB;   /* crema suave */
-  --bg-surface:       #F9F8F4;   /* hueso claro */
+  /* --- Marca (identidad provisional «Sensores Agrícolas») --- */
+  --brand-forest: #00450D;
+  --brand-green:  #2E7D32;
+  --brand-lime:   #8BC34A;
+  --brand-mist:   #E8F5E9;
+
+  --bg-base:          #F1F4F1;   /* crema suave */
+  --bg-surface:       #F8FAF8;   /* hueso claro */
   --bg-elevated:      #FFFFFF;
   --bg-input:         transparent;
 
   /* --- Light Agricultural Colors --- */
-  --accent-primary:   #5A6B4C;   /* verde olivo */
-  --accent-gold:      #A68A61;   /* marrón dorado */
-  --accent-glow:      rgba(109, 126, 94, 0.15);
-  --accent-gold-glow: rgba(166, 138, 97, 0.15);
+  --accent-primary:   #00450D;   /* verde bosque (marca) */
+  --accent-gold:      #5B6770;   /* marrón dorado */
+  --accent-glow:      rgba(0, 69, 13, 0.12);
+  --accent-gold-glow: rgba(91, 103, 112, 0.12);
 
   /* --- Light Text --- */
-  --text-primary:     #2C2621;   /* marrón casi negro */
-  --text-secondary:   #5C5249;   /* marrón grisáceo */
-  --text-inverted:    #F4F1EB;   /* crema, sobre fondos oscuros */
-  --text-on-dark:     #F4F1EB;   /* Siempre claro, para tarjetas oscuras */
+  --text-primary:     #1F2937;   /* marrón casi negro */
+  --text-secondary:   #47525B;   /* marrón grisáceo */
+  --text-inverted:    #FFFFFF;   /* crema, sobre fondos oscuros */
+  --text-on-dark:     #FFFFFF;   /* Siempre claro, para tarjetas oscuras */
 
   /* --- Status Colors --- */
   --status-active:    #22C55E;   /* verde online */
@@ -34,19 +40,23 @@
   --status-danger-bg: rgba(239, 68, 68, 0.14);
   --status-info-bg: rgba(59, 130, 246, 0.14);
   --status-danger-text: #B91C1C; /* texto rojo legible (≥4.5:1) sobre superficies claras */
+  --status-active-text:  #166534; /* texto/iconos de estados: ≥4.5:1 sobre claro (los colores base solo para puntos y rellenos) */
+  --status-warning-text: #92400E;
+  --status-info-text:    #1D4ED8;
   --status-danger-solid:  #B91C1C; /* relleno de botón destructivo; texto blanco ≥4.5:1 (igual en ambos temas) */
   --status-success-solid: #15803D; /* relleno de aviso de éxito; texto blanco ≥4.5:1 (igual en ambos temas) */
 
   /* --- Light Borders & Shadows --- */
-  --border-glass:     rgba(44, 38, 33, 0.06);
-  --border-subtle:    rgba(44, 38, 33, 0.04);
-  --border-strong:    rgba(44, 38, 33, 0.12);
-  --shadow-soft:      0 4px 20px rgba(44, 38, 33, 0.02);
+  --accent-soft:      #E8F5E9;
+  --border-glass:     rgba(31, 41, 55, 0.10);
+  --border-subtle:    rgba(31, 41, 55, 0.06);
+  --border-strong:    rgba(31, 41, 55, 0.18);
+  --shadow-soft:      0 1px 2px rgba(31, 41, 55, 0.06);
 
   /* --- Typography --- */
-  --font-serif:   'Playfair Display', serif;
-  --font-sans:    'Inter', sans-serif;
-  --font-mono:    'JetBrains Mono', monospace;
+  --font-serif:   'Plus Jakarta Sans', system-ui, sans-serif;
+  --font-sans:    'Plus Jakarta Sans', system-ui, sans-serif;
+  --font-mono:    'Geist Mono', ui-monospace, monospace;
 
   /* --- Semantic Layer (Light Source of Truth) --- */
   --surface-page:             var(--bg-base);
@@ -57,64 +67,64 @@
   --text-body:                var(--text-main);
   --text-subtle:              var(--text-muted);
   --focus-ring:               var(--accent-primary);
-  --hover-overlay:            rgba(44, 38, 33, 0.05);
-  --pressed-overlay:          rgba(44, 38, 33, 0.1);
+  --hover-overlay:            rgba(31, 41, 55, 0.05);
+  --pressed-overlay:          rgba(31, 41, 55, 0.10);
   --disabled-opacity:         0.5;
-  --outline-contrast:         rgba(44, 38, 33, 0.18);
+  --outline-contrast:         rgba(31, 41, 55, 0.25);
   --chart-priority-1:         var(--accent-primary);
   --chart-priority-2:         var(--accent-brown);
   --chart-priority-3:         var(--card-brown);
 
   /* --- Legacy vars (backward compat) --- */
-  --card-light:       #F9F8F4;
-  --card-sand:        #E2D4B7;
-  --card-dark:        #3B312B;
-  --card-brown:       #705541;
-  --accent-green:     #5A6B4C;
-  --accent-brown:     #A68A61;
-  --text-main:        #2C2621;
-  --text-muted:       #5C5249;
-  --progress-track:   #E6E1D8;
+  --card-light:       #FFFFFF;
+  --card-sand:        #E6EBE6;
+  --card-dark:        #0F2A14;
+  --card-brown:       #3D4852;
+  --accent-green:     #00450D;
+  --accent-brown:     #5B6770;
+  --text-main:        #1F2937;
+  --text-muted:       #47525B;
+  --progress-track:   #D3DAD3;
 
   /* ── shadcn/ui standard vars (Light) ── */
   --font-size:                    16px;
-  --background:                   #F4F1EB;
-  --foreground:                   #2C2621;
-  --card:                         #F9F8F4;
-  --card-foreground:              #2C2621;
-  --popover:                      #F9F8F4;
-  --popover-foreground:           #2C2621;
-  --primary:                      #5A6B4C;
-  --primary-foreground:           #F4F1EB;
-  --secondary:                    #E2D4B7;
-  --secondary-foreground:         #2C2621;
-  --muted:                        #E2D4B7;
-  --muted-foreground:             #5C5249;
-  --accent:                       #5A6B4C;
-  --accent-foreground:            #F4F1EB;
+  --background:                   #F1F4F1;
+  --foreground:                   #1F2937;
+  --card:                         #FFFFFF;
+  --card-foreground:              #1F2937;
+  --popover:                      #FFFFFF;
+  --popover-foreground:           #1F2937;
+  --primary:                      #00450D;
+  --primary-foreground:           #FFFFFF;
+  --secondary:                    #E6EBE6;
+  --secondary-foreground:         #1F2937;
+  --muted:                        #E6EBE6;
+  --muted-foreground:             #47525B;
+  --accent:                       #E8F5E9;
+  --accent-foreground:            #1F2937;
   --destructive:                  #d4183d;
   --destructive-foreground:       #ffffff;
-  --border:                       rgba(44, 38, 33, 0.1);
+  --border:                       #D3DAD3;
   --input:                        transparent;
-  --input-background:             #F9F8F4;
-  --switch-background:            #A68A61;
+  --input-background:             #FFFFFF;
+  --switch-background:            #47525B;
   --font-weight-medium:           500;
   --font-weight-normal:           400;
-  --ring:                         #5A6B4C;
-  --chart-1:                      #6D7E5E;
-  --chart-2:                      #A68A61;
-  --chart-3:                      #2C2621; /* text-main */
-  --chart-4:                      #5C5249; /* text-muted */
-  --chart-5:                      #705541; /* card-brown */
-  --radius:                       32px;
-  --sidebar:                      #F9F8F4;
-  --sidebar-foreground:           #2C2621;
-  --sidebar-primary:              #5A6B4C;
-  --sidebar-primary-foreground:   #F4F1EB;
-  --sidebar-accent:               #E2D4B7;
-  --sidebar-accent-foreground:    #2C2621;
-  --sidebar-border:               rgba(44, 38, 33, 0.1);
-  --sidebar-ring:                 #5A6B4C;
+  --ring:                         #00450D;
+  --chart-1:                      #00450D;
+  --chart-2:                      #5B6770;
+  --chart-3:                      #1F2937; /* text-main */
+  --chart-4:                      #47525B; /* text-muted */
+  --chart-5:                      #3D4852; /* card-brown */
+  --radius:                       4px;
+  --sidebar:                      #FFFFFF;
+  --sidebar-foreground:           #1F2937;
+  --sidebar-primary:              #00450D;
+  --sidebar-primary-foreground:   #FFFFFF;
+  --sidebar-accent:               #E8F5E9;
+  --sidebar-accent-foreground:    #1F2937;
+  --sidebar-border:               #D3DAD3;
+  --sidebar-ring:                 #00450D;
 }
 
 /* ============================================================
@@ -126,22 +136,22 @@
 
 .dark {
   /* --- Dark Base Surfaces (Direction B: Espresso Glass) --- */
-  --bg-base:          #12100E;
-  --bg-surface:       #1A1714;
-  --bg-elevated:      #221D18;
-  --bg-input:         #1E1A16;
+  --bg-base:          #0F1311;
+  --bg-surface:       #151A16;
+  --bg-elevated:      #1C221D;
+  --bg-input:         #191F1A;
 
   /* --- Dark Agricultural Colors (derived semantically from light system) --- */
-  --accent-primary:   #8CA478;
-  --accent-gold:      #BDA077;
-  --accent-glow:      rgba(140, 164, 120, 0.16);
-  --accent-gold-glow: rgba(189, 160, 119, 0.16);
+  --accent-primary:   #81C784;
+  --accent-gold:      #9BA6AE;
+  --accent-glow:      rgba(129, 199, 132, 0.16);
+  --accent-gold-glow: rgba(155, 166, 174, 0.16);
 
   /* --- Dark Text --- */
-  --text-primary:     #ECE6DE;
-  --text-secondary:   #A79B8D;
-  --text-inverted:    #12100E;
-  --text-on-dark:     #ECE6DE;
+  --text-primary:     #E6EDE6;
+  --text-secondary:   #9BA6AE;
+  --text-inverted:    #07200C;
+  --text-on-dark:     #E6EDE6;
 
   /* --- Status Colors --- */
   --status-active:    #4ADE80;
@@ -153,12 +163,16 @@
   --status-danger-bg: rgba(248, 113, 113, 0.2);
   --status-info-bg: rgba(96, 165, 250, 0.2);
   --status-danger-text: #FCA5A5;
+  --status-active-text:  #4ADE80;
+  --status-warning-text: #FBBF24;
+  --status-info-text:    #60A5FA;
 
   /* --- Dark Borders & Shadows --- */
-  --border-glass:     rgba(236, 230, 222, 0.08);
-  --border-subtle:    rgba(236, 230, 222, 0.05);
-  --border-strong:    rgba(236, 230, 222, 0.14);
-  --shadow-soft:      0 4px 20px rgba(0, 0, 0, 0.22);
+  --accent-soft:      #1A2E1C;
+  --border-glass:     rgba(230, 237, 230, 0.10);
+  --border-subtle:    rgba(230, 237, 230, 0.06);
+  --border-strong:    rgba(230, 237, 230, 0.18);
+  --shadow-soft:      0 1px 2px rgba(0, 0, 0, 0.4);
 
   /* --- Semantic Layer (Dark mapped from light semantics) --- */
   --surface-page:             var(--bg-base);
@@ -169,60 +183,60 @@
   --text-body:                var(--text-main);
   --text-subtle:              var(--text-muted);
   --focus-ring:               var(--accent-primary);
-  --hover-overlay:            rgba(236, 230, 222, 0.06);
-  --pressed-overlay:          rgba(236, 230, 222, 0.1);
+  --hover-overlay:            rgba(230, 237, 230, 0.06);
+  --pressed-overlay:          rgba(230, 237, 230, 0.10);
   --disabled-opacity:         0.5;
-  --outline-contrast:         rgba(236, 230, 222, 0.2);
+  --outline-contrast:         rgba(230, 237, 230, 0.28);
   --chart-priority-1:         var(--accent-primary);
   --chart-priority-2:         var(--accent-brown);
   --chart-priority-3:         var(--card-brown);
 
   /* --- Legacy vars (backward compat for dark mode) --- */
-  --card-light:       #1A1714;
-  --card-sand:        #2C241D;
-  --card-dark:        #241D17;
-  --card-brown:       #31261E;
-  --accent-green:     #8FAF7A;
-  --accent-brown:     #BDA077;
-  --text-main:        #ECE6DE;
-  --text-muted:       #A79B8D;
-  --progress-track:   rgba(236, 230, 222, 0.16);
+  --card-light:       #151A16;
+  --card-sand:        #1C221D;
+  --card-dark:        #0E1F12;
+  --card-brown:       #232B31;
+  --accent-green:     #81C784;
+  --accent-brown:     #9BA6AE;
+  --text-main:        #E6EDE6;
+  --text-muted:       #9BA6AE;
+  --progress-track:   rgba(230, 237, 230, 0.16);
 
   /* ── shadcn/ui standard vars (Dark) ── */
-  --background:                   #12100E;
-  --foreground:                   #ECE6DE;
-  --card:                         #1A1714;
-  --card-foreground:              #ECE6DE;
-  --popover:                      #1A1714;
-  --popover-foreground:           #ECE6DE;
-  --primary:                      #8CA478;
-  --primary-foreground:           #12100E;
-  --secondary:                    #241F1A;
-  --secondary-foreground:         #ECE6DE;
-  --muted:                        #241F1A;
-  --muted-foreground:             #A79B8D;
-  --accent:                       #8CA478;
-  --accent-foreground:            #12100E;
+  --background:                   #0F1311;
+  --foreground:                   #E6EDE6;
+  --card:                         #151A16;
+  --card-foreground:              #E6EDE6;
+  --popover:                      #151A16;
+  --popover-foreground:           #E6EDE6;
+  --primary:                      #81C784;
+  --primary-foreground:           #07200C;
+  --secondary:                    #1C221D;
+  --secondary-foreground:         #E6EDE6;
+  --muted:                        #1C221D;
+  --muted-foreground:             #9BA6AE;
+  --accent:                       #1A2E1C;
+  --accent-foreground:            #E6EDE6;
   --destructive:                  #F87171;
   --destructive-foreground:       #12100E;
-  --border:                       rgba(236, 230, 222, 0.08);
-  --input:                        #1E1A16;
-  --input-background:             #1E1A16;
-  --switch-background:            #BDA077;
-  --ring:                         #8CA478;
-  --chart-1:                      #8CA478;
-  --chart-2:                      #BDA077;
-  --chart-3:                      #ECE6DE;
-  --chart-4:                      #A79B8D;
-  --chart-5:                      #31261E;
-  --sidebar:                      #151210;
-  --sidebar-foreground:           #ECE6DE;
-  --sidebar-primary:              #8CA478;
-  --sidebar-primary-foreground:   #12100E;
-  --sidebar-accent:               #221D18;
-  --sidebar-accent-foreground:    #ECE6DE;
-  --sidebar-border:               rgba(236, 230, 222, 0.07);
-  --sidebar-ring:                 #8CA478;
+  --border:                       #2B332C;
+  --input:                        #191F1A;
+  --input-background:             #191F1A;
+  --switch-background:            #9BA6AE;
+  --ring:                         #81C784;
+  --chart-1:                      #81C784;
+  --chart-2:                      #9BA6AE;
+  --chart-3:                      #E6EDE6;
+  --chart-4:                      #9BA6AE;
+  --chart-5:                      #3D4852;
+  --sidebar:                      #151A16;
+  --sidebar-foreground:           #E6EDE6;
+  --sidebar-primary:              #81C784;
+  --sidebar-primary-foreground:   #07200C;
+  --sidebar-accent:               #1A2E1C;
+  --sidebar-accent-foreground:    #E6EDE6;
+  --sidebar-border:               #2B332C;
+  --sidebar-ring:                 #81C784;
 }
 
 @theme inline {
@@ -283,7 +297,7 @@
     -moz-osx-font-smoothing: grayscale;
   }
 
-  /* ── Headings: Space Grotesk ── */
+  /* ── Encabezados: Plus Jakarta Sans ── */
   h1, h2, h3, h4 {
     font-family: var(--font-serif);
     font-weight: 500;
@@ -579,3 +593,74 @@
 :root[data-theme="dark"] .iot-map-popup.maplibregl-popup-anchor-bottom-right .maplibregl-popup-tip {
   border-top-color: #1e1e1e;
 }
+
+
+/* Movimiento reducido: sin animaciones ni transiciones largas (también las infinitas) */
+
+/* ── Nivel de humedad de una parcela: el agua sube al cargar y su superficie ondula despacio ── */
+@keyframes tile-wave { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+.tile-wave { animation: tile-wave 9s linear infinite; }
+
+/* ── Alerta marcada como leída: barrido a la derecha y la fila se pliega ── */
+@keyframes alert-sweep-out {
+  0% { opacity: 1; transform: none; max-height: 180px; }
+  55% { opacity: 0; transform: translateX(56px); max-height: 180px; }
+  100% { opacity: 0; transform: translateX(56px); max-height: 0; margin-top: 0; margin-bottom: 0; border-width: 0; }
+}
+.alert-sweep-out { overflow: hidden; pointer-events: none; animation: alert-sweep-out 0.42s ease-in forwards; }
+
+/* ── Entrada del acceso (login): se reproduce al abrir la página; reduced-motion la apaga ── */
+@keyframes auth-rise { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
+@keyframes auth-grow { from { opacity: 0; transform: scaleY(0.05); } to { opacity: 1; transform: scaleY(1); } }
+@keyframes auth-draw { from { stroke-dashoffset: 1; } to { stroke-dashoffset: 0; } }
+@keyframes auth-ping { 0%, 100% { opacity: 0.35; } 50% { opacity: 0.85; } }
+.auth-rise { opacity: 0; animation: auth-rise 0.7s cubic-bezier(.2,.7,.2,1) forwards; animation-delay: var(--d, 0s); }
+.auth-grow { transform-box: fill-box; transform-origin: 50% 100%; opacity: 0; animation: auth-grow 0.7s cubic-bezier(.2,.8,.3,1.15) forwards; animation-delay: var(--d, 0s); }
+.auth-draw { stroke-dasharray: 1; stroke-dashoffset: 1; animation: auth-draw 1.4s ease-out forwards; animation-delay: var(--d, 0s); }
+@keyframes auth-fade { from { opacity: 0; } to { opacity: 1; } }
+/* Aparece (desde invisible) al llegar su turno y después late despacio. */
+.auth-ping { animation: auth-fade 0.8s ease-out var(--d, 0s) both, auth-ping 6s ease-in-out calc(var(--d, 0s) + 0.8s) infinite; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+  .auth-rise, .auth-grow, .auth-ping { opacity: 1; }
+  .auth-draw { stroke-dashoffset: 0; }
+}
+
+/* Pantallas de gestión dentro del Directorio: sin altura ni relleno de página completa */
+.embedded-panel .min-h-screen { min-height: 0 !important; padding: 0 !important; }
+
+/* Palomita de «Descarga lista»: el círculo se dibuja, luego la marca; sin animación queda dibujada. */
+.download-check-circle,
+.download-check-mark {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 0;
+}
+.download-check { animation: download-check-pop 0.5s ease-out both; }
+.download-check-circle { animation: download-check-draw 0.55s ease-out both; }
+.download-check-mark { animation: download-check-draw 0.35s ease-out 0.5s both; }
+/* Opacidad 0 al inicio: con trazo de extremos redondos, un trazo de largo 0 dejaría un puntito visible. */
+@keyframes download-check-draw { 0% { stroke-dashoffset: 1; opacity: 0; } 5% { stroke-dashoffset: 0.95; opacity: 1; } 100% { stroke-dashoffset: 0; opacity: 1; } }
+@keyframes download-check-pop { 0% { transform: scale(0.7); } 60% { transform: scale(1.08); } 100% { transform: scale(1); } }
+
+/* Mapa del productor: un pin por área con su nombre y su humedad (o su estado). */
+.map-pin {
+  display: flex; flex-direction: column; align-items: flex-start; gap: 1px;
+  max-width: 168px; padding: 5px 9px 5px 11px; cursor: pointer; position: relative;
+  border: 1px solid var(--border-strong); border-left-width: 4px; border-radius: var(--radius);
+  background: var(--card); color: var(--text-main); font: 600 12px/1.25 var(--font-sans, inherit); text-align: left;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.18);
+}
+.map-pin::after { content: ""; position: absolute; left: 50%; bottom: -6px; width: 10px; height: 10px; background: inherit; border: inherit; border-width: 0 1px 1px 0; transform: translateX(-50%) rotate(45deg); }
+.map-pin[data-state="al_dia"] { border-left-color: var(--status-success-solid); }
+.map-pin[data-state="sin_comunicacion"] { border-left-color: var(--status-danger-text); }
+.map-pin[data-state="sin_datos"], .map-pin[data-state="sin_nodo"] { border-left-color: var(--text-muted); }
+.map-pin small { font: 500 11px/1.2 var(--font-mono, monospace); color: var(--text-muted); }
+.map-pin span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 100%; }
+.map-pin:focus-visible, .map-pin.is-selected { outline: 2px solid var(--focus-ring); outline-offset: 2px; z-index: 2; }
+.map-pin.is-selected { border-color: var(--accent-primary); }

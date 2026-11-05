@@ -5,7 +5,13 @@ import { HierarchyTrail } from "../../components/HierarchyTrail";
 import { ConfirmDialog } from "../../components/ConfirmDialog";
 import { FormDialog } from "../../components/FormDialog";
 import { useEffect, useState } from "react";
-import { useParams } from "react-router";
+import { Link, useNavigate, useParams } from "react-router";
+import type { ReactNode } from "react";
+import { ChevronRight, Sprout } from "lucide-react";
+import { useEmbedded } from "../../components/EmbeddedPanel";
+import { StateBadge } from "../client/overview/OverviewCharts";
+import type { AreaState } from "../client/overview/areaStatus";
+import { PanelHeader, listBox, panelButton, panelButtonDanger, panelButtonPrimary, rowLink } from "./directory/Health";
 import { BentoCard } from "../../components/BentoCard";
 import { EmptyState } from "../../components/EmptyState";
 import { PageTransition } from "../../components/PageTransition";
@@ -39,8 +45,11 @@ function nodeLabel(node: GeoNode | undefined): string {
   return node.is_active ? name : `${name} (deshabilitado)`;
 }
 
-export function IrrigationAreaManagement() {
-  const { predioId } = useParams<{ predioId: string }>();
+export function IrrigationAreaManagement({ predioId: predioIdProp, areaId: focusAreaId, meta, states }: { predioId?: string; areaId?: string; meta?: ReactNode; states?: Record<number, { state: AreaState; hasCycle: boolean }> } = {}) {
+  const embedded = useEmbedded();
+  const navigate = useNavigate();
+  const params = useParams<{ predioId: string }>();
+  const predioId = predioIdProp ?? params.predioId;
   const { showToast } = useToast();
 
   const [areas, setAreas] = useState<IrrigationArea[]>([]);
@@ -169,135 +178,14 @@ export function IrrigationAreaManagement() {
       await api.delete(`/irrigation-areas/${areaId}`);
       fetchData();
       showToast("Área eliminada", "success");
+      if (focusAreaId) navigate(`/admin/predios/${predioId}/areas`);
     } catch (err: any) {
       showToast("Error al eliminar área: " + (err.response?.data?.detail || err.message), "error");
     }
   };
 
-  return (
-    <PageTransition>
-    <div className="min-h-screen p-4 md:p-6 lg:p-8">
-      <div className="mb-6">
-        <HierarchyTrail
-          items={[
-            { label: "Clientes", to: "/admin/clientes" },
-            { label: clientName, to: clientId ? `/admin/clientes/${clientId}/predios` : undefined },
-            { label: propertyName },
-            { label: "Áreas de Riego" },
-          ]}
-        />
-        <PageHeader
-          title="Áreas de Riego"
-          subtitle={`Áreas de riego de ${propertyName}`}
-          action={
-            <PillButton variant="primary" onClick={() => setShowCreateForm(true)}>
-              <Plus aria-hidden="true" className="w-4 h-4 mr-2" />
-              Nueva Área
-            </PillButton>
-          }
-        />
-      </div>
-
-      <div className="hidden md:block">
-        <BentoCard variant="light">
-          <table className="w-full">
-            <thead>
-              <tr className="border-b border-[var(--border-strong)]">
-                <th scope="col" className="text-left py-3 px-4 text-sm font-semibold text-[var(--text-subtle)]">Nombre</th>
-                <th scope="col" className="text-left py-3 px-4 text-sm font-semibold text-[var(--text-subtle)]">Cultivo</th>
-                <th scope="col" className="text-left py-3 px-4 text-sm font-semibold text-[var(--text-subtle)]">Tamaño (Ha)</th>
-                <th scope="col" className="text-left py-3 px-4 text-sm font-semibold text-[var(--text-subtle)]">Nodo</th>
-                <th scope="col" className="text-right py-3 px-4 text-sm font-semibold text-[var(--text-subtle)]">Acciones</th>
-              </tr>
-            </thead>
-            <tbody>
-              {loading ? (
-                <tr><td colSpan={5} className="py-6"><SkeletonCard lines={2} showHeader={false} /></td></tr>
-              ) : areas.map((area) => (
-                <tr key={area.id} className="border-b border-[var(--border-subtle)] last:border-0 hover:bg-[var(--hover-overlay)] transition-colors">
-                  <td className="py-3 px-4 text-[var(--text-main)]">{area.name}</td>
-                  <td className="py-3 px-4 text-[var(--text-subtle)]">
-                    <span className="inline-flex items-center px-2 py-1 rounded-full bg-[var(--surface-card-secondary)] text-[var(--text-main)] text-xs border border-[var(--border-subtle)]">
-                       {area.crop_type?.name || "No asignado"}
-                    </span>
-                  </td>
-                  <td className="py-3 px-4 text-[var(--text-subtle)]">{area.area_size ? `${area.area_size} Ha` : "-"}</td>
-                  <td className="py-3 px-4 text-[var(--text-subtle)]">{nodeLabel(nodesByArea[area.id])}</td>
-                  <td className="py-3 px-4 flex justify-end gap-2">
-                    <PillButton variant="secondary" className="px-3 py-1 text-xs" onClick={() => openEditForm(area)}>
-                      Editar <Pencil aria-hidden="true" className="w-3 h-3 ml-1" />
-                    </PillButton>
-                    <PillButton
-                      variant="outline"
-                      className="px-3 py-1 text-xs border-[var(--status-danger)]/40 text-[var(--status-danger)] hover:bg-[var(--status-danger-bg)]"
-                      onClick={() => setPendingDelete({ id: area.id, name: area.name })}
-                    >
-                      Borrar <Trash2 aria-hidden="true" className="w-3 h-3 ml-1" />
-                    </PillButton>
-                  </td>
-                </tr>
-              ))}
-              {!loading && areas.length === 0 && (
-                <tr>
-                  <td colSpan={5} className="py-4 px-4">
-                    <EmptyState
-                      icon={Pencil}
-                      title="Sin áreas de riego"
-                      description="Crea la primera área y asígnale un cultivo para comenzar a recibir lecturas."
-                      action={{
-                        label: "Crear primera área",
-                        onClick: () => setShowCreateForm(true),
-                      }}
-                    />
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </BentoCard>
-      </div>
-
-      <div className="grid grid-cols-1 gap-4 md:hidden">
-        {loading && <SkeletonCard lines={2} />}
-        {!loading && areas.map((area) => (
-          <BentoCard key={area.id} variant="light" className="p-4">
-            <div className="flex justify-between items-start mb-2">
-              <h2 className="text-[var(--text-main)] font-medium">{area.name}</h2>
-            </div>
-            <div className="flex items-center gap-2 mt-2">
-               <span className="px-2 py-1 bg-[var(--surface-card-secondary)] border border-[var(--border-subtle)] text-[var(--text-main)] text-xs rounded-full">{area.crop_type?.name || "Sin Cultivo"}</span>
-               {area.area_size && <span className="text-sm text-[var(--text-subtle)]">{area.area_size} Ha</span>}
-            </div>
-            <p className="mt-2 text-sm text-[var(--text-subtle)]">
-              Nodo: {nodeLabel(nodesByArea[area.id])}
-            </p>
-            <div className="mt-3 flex flex-col gap-2">
-              <PillButton variant="secondary" className="w-full justify-center" onClick={() => openEditForm(area)}>
-                Editar <Pencil aria-hidden="true" className="w-4 h-4 ml-1" />
-              </PillButton>
-              <PillButton
-                variant="outline"
-                className="w-full justify-center border-[var(--status-danger)]/40 text-[var(--status-danger)] hover:bg-[var(--status-danger-bg)]"
-                onClick={() => setPendingDelete({ id: area.id, name: area.name })}
-              >
-                Borrar Área <Trash2 aria-hidden="true" className="w-4 h-4 ml-1" />
-              </PillButton>
-            </div>
-          </BentoCard>
-        ))}
-        {!loading && areas.length === 0 && (
-          <EmptyState
-            icon={Pencil}
-            title="Sin áreas de riego"
-            description="Crea la primera área y asígnale un cultivo para comenzar a recibir lecturas."
-            action={{
-              label: "Crear primera área",
-              onClick: () => setShowCreateForm(true),
-            }}
-          />
-        )}
-      </div>
-
+  const dialogs = (
+    <>
       {showCreateForm && (<FormDialog open title="Nueva Área de Riego" onClose={() => setShowCreateForm(false)}>
             <form className="space-y-4" onSubmit={handleCreate}>
               <div>
@@ -398,6 +286,194 @@ export function IrrigationAreaManagement() {
         onCancel={() => setPendingDelete(null)}
       />
 
+    </>
+  );
+
+  if (embedded) {
+    if (focusAreaId) {
+      const current = areas.find((a) => String(a.id) === String(focusAreaId));
+      return (
+        <div>
+          {current ? (
+            <PanelHeader
+              title={current.name}
+              meta={<>{[current.crop_type?.name, current.area_size ? `${current.area_size} ha` : null].filter(Boolean).join(" · ")}{meta ? <> · {meta}</> : null}</>}
+              actions={
+                <>
+                  <button type="button" className={panelButton} onClick={() => openEditForm(current)}><Pencil aria-hidden="true" className="h-4 w-4" />Editar</button>
+                  <button type="button" className={panelButtonDanger} onClick={() => setPendingDelete({ id: current.id, name: current.name })}><Trash2 aria-hidden="true" className="h-4 w-4" />Borrar</button>
+                </>
+              }
+            />
+          ) : loading ? <SkeletonCard lines={2} /> : null}
+          {dialogs}
+        </div>
+      );
+    }
+    return (
+      <div>
+        <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+          <h2 className="text-xl font-semibold">Áreas de riego <span className="font-mono-data text-sm font-normal text-[var(--text-muted)]">{areas.length}</span></h2>
+          <button type="button" className={panelButtonPrimary} onClick={() => setShowCreateForm(true)}><Plus aria-hidden="true" className="h-4 w-4" />Nueva Área</button>
+        </div>
+        {loading ? <SkeletonCard lines={2} /> : areas.length === 0 ? (
+          <EmptyState icon={Sprout} title="Sin áreas de riego" description="Crea la primera área de este predio para asignarle un cultivo y un nodo." action={{ label: "Crear primera área", onClick: () => setShowCreateForm(true) }} />
+        ) : (
+          <ul className={listBox}>
+            {areas.map((area) => {
+              const info = states?.[area.id];
+              return (
+                <li key={area.id}>
+                  <Link to={`/admin/areas/${area.id}`} className={rowLink}>
+                    <span className="min-w-0">
+                      <span className="block truncate font-semibold">{area.name}</span>
+                      <span className="block truncate text-sm text-[var(--text-muted)]">{[area.crop_type?.name, area.area_size ? `${area.area_size} ha` : null].filter(Boolean).join(" · ")}</span>
+                    </span>
+                    <span className="flex flex-shrink-0 items-center gap-3 max-sm:w-full max-sm:justify-between">
+                      {info && (
+                        <span className="flex flex-col items-end">
+                          <StateBadge state={info.state} />
+                          {!info.hasCycle && <span className="text-xs text-[var(--text-muted)]">Sin ciclo</span>}
+                        </span>
+                      )}
+                      <ChevronRight aria-hidden="true" className="h-4 w-4 text-[var(--text-muted)]" />
+                    </span>
+                  </Link>
+                </li>
+              );
+            })}
+          </ul>
+        )}
+        {dialogs}
+      </div>
+    );
+  }
+
+  return (
+    <PageTransition>
+    <div className="min-h-screen p-4 md:p-6 lg:p-8">
+      <div className="mb-6">
+        <HierarchyTrail
+          items={[
+            { label: "Clientes", to: "/admin/clientes" },
+            { label: clientName, to: clientId ? `/admin/clientes/${clientId}/predios` : undefined },
+            { label: propertyName },
+            { label: "Áreas de Riego" },
+          ]}
+        />
+        <PageHeader
+          title="Áreas de Riego"
+          subtitle={`Áreas de riego de ${propertyName}`}
+          action={
+            <PillButton variant="primary" onClick={() => setShowCreateForm(true)}>
+              <Plus aria-hidden="true" className="w-4 h-4 mr-2" />
+              Nueva Área
+            </PillButton>
+          }
+        />
+      </div>
+
+      <div className="hidden md:block">
+        <BentoCard variant="light">
+          <table className="w-full">
+            <thead>
+              <tr className="border-b border-[var(--border-strong)]">
+                <th scope="col" className="text-left py-3 px-4 text-sm font-semibold text-[var(--text-subtle)]">Nombre</th>
+                <th scope="col" className="text-left py-3 px-4 text-sm font-semibold text-[var(--text-subtle)]">Cultivo</th>
+                <th scope="col" className="text-left py-3 px-4 text-sm font-semibold text-[var(--text-subtle)]">Tamaño (Ha)</th>
+                <th scope="col" className="text-left py-3 px-4 text-sm font-semibold text-[var(--text-subtle)]">Nodo</th>
+                <th scope="col" className="text-right py-3 px-4 text-sm font-semibold text-[var(--text-subtle)]">Acciones</th>
+              </tr>
+            </thead>
+            <tbody>
+              {loading ? (
+                <tr><td colSpan={5} className="py-6"><SkeletonCard lines={2} showHeader={false} /></td></tr>
+              ) : areas.map((area) => (
+                <tr key={area.id} className="border-b border-[var(--border-subtle)] last:border-0 hover:bg-[var(--hover-overlay)] transition-colors">
+                  <td className="py-3 px-4 text-[var(--text-main)]">{area.name}</td>
+                  <td className="py-3 px-4 text-[var(--text-subtle)]">
+                    <span className="inline-flex items-center px-2 py-1 rounded-full bg-[var(--surface-card-secondary)] text-[var(--text-main)] text-xs border border-[var(--border-subtle)]">
+                       {area.crop_type?.name || "No asignado"}
+                    </span>
+                  </td>
+                  <td className="py-3 px-4 text-[var(--text-subtle)]">{area.area_size ? `${area.area_size} Ha` : "-"}</td>
+                  <td className="py-3 px-4 text-[var(--text-subtle)]">{nodeLabel(nodesByArea[area.id])}</td>
+                  <td className="py-3 px-4 flex justify-end gap-2">
+                    <PillButton variant="secondary" className="px-3 py-1 text-xs" onClick={() => openEditForm(area)}>
+                      Editar <Pencil aria-hidden="true" className="w-3 h-3 ml-1" />
+                    </PillButton>
+                    <PillButton
+                      variant="outline"
+                      className="px-3 py-1 text-xs border-[var(--status-danger)]/40 text-[var(--status-danger-text)] hover:bg-[var(--status-danger-bg)]"
+                      onClick={() => setPendingDelete({ id: area.id, name: area.name })}
+                    >
+                      Borrar <Trash2 aria-hidden="true" className="w-3 h-3 ml-1" />
+                    </PillButton>
+                  </td>
+                </tr>
+              ))}
+              {!loading && areas.length === 0 && (
+                <tr>
+                  <td colSpan={5} className="py-4 px-4">
+                    <EmptyState
+                      icon={Pencil}
+                      title="Sin áreas de riego"
+                      description="Crea la primera área y asígnale un cultivo para comenzar a recibir lecturas."
+                      action={{
+                        label: "Crear primera área",
+                        onClick: () => setShowCreateForm(true),
+                      }}
+                    />
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </BentoCard>
+      </div>
+
+      <div className="grid grid-cols-1 gap-4 md:hidden">
+        {loading && <SkeletonCard lines={2} />}
+        {!loading && areas.map((area) => (
+          <BentoCard key={area.id} variant="light" className="p-4">
+            <div className="flex justify-between items-start mb-2">
+              <h2 className="text-[var(--text-main)] font-medium">{area.name}</h2>
+            </div>
+            <div className="flex items-center gap-2 mt-2">
+               <span className="px-2 py-1 bg-[var(--surface-card-secondary)] border border-[var(--border-subtle)] text-[var(--text-main)] text-xs rounded-full">{area.crop_type?.name || "Sin Cultivo"}</span>
+               {area.area_size && <span className="text-sm text-[var(--text-subtle)]">{area.area_size} Ha</span>}
+            </div>
+            <p className="mt-2 text-sm text-[var(--text-subtle)]">
+              Nodo: {nodeLabel(nodesByArea[area.id])}
+            </p>
+            <div className="mt-3 flex flex-col gap-2">
+              <PillButton variant="secondary" className="w-full justify-center" onClick={() => openEditForm(area)}>
+                Editar <Pencil aria-hidden="true" className="w-4 h-4 ml-1" />
+              </PillButton>
+              <PillButton
+                variant="outline"
+                className="w-full justify-center border-[var(--status-danger)]/40 text-[var(--status-danger-text)] hover:bg-[var(--status-danger-bg)]"
+                onClick={() => setPendingDelete({ id: area.id, name: area.name })}
+              >
+                Borrar Área <Trash2 aria-hidden="true" className="w-4 h-4 ml-1" />
+              </PillButton>
+            </div>
+          </BentoCard>
+        ))}
+        {!loading && areas.length === 0 && (
+          <EmptyState
+            icon={Pencil}
+            title="Sin áreas de riego"
+            description="Crea la primera área y asígnale un cultivo para comenzar a recibir lecturas."
+            action={{
+              label: "Crear primera área",
+              onClick: () => setShowCreateForm(true),
+            }}
+          />
+        )}
+      </div>
+
+      {dialogs}
     </div>
     </PageTransition>
   );

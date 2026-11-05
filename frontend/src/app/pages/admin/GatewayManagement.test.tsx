@@ -197,18 +197,18 @@ describe("GatewayManagement (lista de equipos y asistente)", () => {
     expect(screen.getByRole("heading", { level: 1, name: "Equipos" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /Nuevo equipo/ })).toBeInTheDocument();
     const card = (name: string) =>
-      within(list).getByRole("heading", { name: `${name} · Cliente` }).closest("li")!;
+      within(list).getByRole("heading", { name: `Cliente · ${name}` }).closest("li")!;
 
     expect(within(card("Rancho Uno")).getByTestId("equipo-state")).toHaveTextContent("Falta vincular");
-    expect(within(card("Rancho Uno")).getByText("0 de 2 áreas con datos")).toBeInTheDocument();
+    expect(within(card("Rancho Uno")).getByText(/^0 de 2 áreas con datos/)).toBeInTheDocument();
     expect(within(card("Rancho Uno")).getByRole("button", { name: /^Vincular equipo/ })).toBeInTheDocument();
 
     expect(within(card("Rancho Dos")).getByTestId("equipo-state")).toHaveTextContent("Asignando nodos");
-    expect(within(card("Rancho Dos")).getByText("1 de 2 áreas con datos")).toBeInTheDocument();
+    expect(within(card("Rancho Dos")).getByText(/^1 de 2 áreas con datos/)).toBeInTheDocument();
     expect(within(card("Rancho Dos")).getByRole("button", { name: /^Ver avance/ })).toBeInTheDocument();
 
     expect(within(card("Rancho Tres")).getByTestId("equipo-state")).toHaveTextContent("Funcionando");
-    expect(within(card("Rancho Tres")).getByText("2 de 2 áreas con datos")).toBeInTheDocument();
+    expect(within(card("Rancho Tres")).getByText(/^2 de 2 áreas con datos/)).toBeInTheDocument();
     expect(within(card("Rancho Tres")).getByRole("link", { name: /^Ver detalle/ })).toHaveAttribute(
       "href",
       "/admin/gateways/3",
@@ -223,9 +223,9 @@ describe("GatewayManagement (lista de equipos y asistente)", () => {
     }
 
     // Revocados al final, plegados y sin conteo de áreas.
-    const revoked = screen.getByText("Revocados (1)").closest("details")!;
+    const revoked = screen.getByText("Enlaces revocados (1)").closest("details")!;
     expect(revoked).not.toHaveAttribute("open");
-    expect(within(revoked).getByText("Rancho Viejo · Cliente (predio eliminado)")).toBeInTheDocument();
+    expect(within(revoked).getByText("Cliente · Rancho Viejo (predio eliminado)")).toBeInTheDocument();
     expect(within(revoked).queryByText(/áreas con datos/)).not.toBeInTheDocument();
 
     // Nada técnico a la vista.
@@ -248,10 +248,10 @@ describe("GatewayManagement (lista de equipos y asistente)", () => {
     fireEvent.click(await screen.findByRole("button", { name: /Nuevo equipo/ }));
 
     expect(screen.getByRole("heading", { level: 2, name: "Nuevo equipo" })).toBeInTheDocument();
-    expect(within(currentStep()).getByRole("heading", { name: "Rancho y áreas" })).toHaveFocus();
+    expect(within(currentStep()).getByRole("heading", { name: "Predio y áreas" })).toHaveFocus();
     expect(screen.getByTestId("search")).toHaveTextContent("?nuevo=1");
 
-    fireEvent.change(screen.getByLabelText("Rancho"), { target: { value: "3" } });
+    fireEvent.change(screen.getByLabelText("Predio"), { target: { value: "3" } });
     fireEvent.click(await screen.findByLabelText("Área Norte"));
     // Un área sin nodo se puede elegir: el nodo se crea al guardar.
     expect(screen.getByLabelText("Área Oeste")).toBeEnabled();
@@ -269,7 +269,7 @@ describe("GatewayManagement (lista de equipos y asistente)", () => {
     ).toBeInTheDocument();
     expect(within(step).getByLabelText("Código del equipo")).toBeInTheDocument();
     // El paso 1 queda en una línea con su resumen.
-    expect(screen.getByText("Rancho Prueba · Rancho Prueba SA · 2 áreas")).toBeInTheDocument();
+    expect(screen.getByText("Rancho Prueba SA · Rancho Prueba · 2 áreas")).toBeInTheDocument();
     expect(screen.queryByText(/versión|Enlace #/)).not.toBeInTheDocument();
     expect(mocks.publishConfiguration).not.toHaveBeenCalled();
   });
@@ -280,7 +280,7 @@ describe("GatewayManagement (lista de equipos y asistente)", () => {
     });
 
     renderPage("/admin/gateways?nuevo=1");
-    fireEvent.change(await screen.findByLabelText("Rancho"), { target: { value: "3" } });
+    fireEvent.change(await screen.findByLabelText("Predio"), { target: { value: "3" } });
     fireEvent.click(await screen.findByLabelText("Área Norte"));
     fireEvent.click(screen.getByRole("button", { name: "Crear y continuar" }));
 
@@ -316,7 +316,7 @@ describe("GatewayManagement (lista de equipos y asistente)", () => {
     fireEvent.click(within(step).getByRole("button", { name: "Buscar código" }));
     fireEvent.click(await within(step).findByLabelText(/confirmo que este código aparece/i));
     // El rancho ya está elegido: no se vuelve a preguntar.
-    expect(within(step).queryByLabelText("Rancho")).not.toBeInTheDocument();
+    expect(within(step).queryByLabelText("Predio")).not.toBeInTheDocument();
 
     mocks.getGateway.mockResolvedValue({ data: { ...createdGateway, status: "active" } });
     fireEvent.click(within(step).getByRole("button", { name: "Aprobar código" }));
@@ -333,7 +333,7 @@ describe("GatewayManagement (lista de equipos y asistente)", () => {
     await waitFor(() => expect(next).toHaveFocus());
     const third = currentStep();
     expect(within(third).getByRole("status")).toHaveTextContent("Equipo vinculado");
-    expect(within(third).getByText("0 de 2 áreas con datos")).toBeInTheDocument();
+    expect(within(third).getByText(/^0 de 2 áreas con datos/)).toBeInTheDocument();
     expect(await within(third).findAllByText("Esperando nodo")).toHaveLength(2);
     expect(screen.queryByLabelText("Código del equipo")).not.toBeInTheDocument();
   });
@@ -352,7 +352,7 @@ describe("GatewayManagement (lista de equipos y asistente)", () => {
     const areas = await screen.findByRole("list", { name: "Áreas" });
     expect(within(areas).getByText("Área Norte").closest("li")).toHaveTextContent("Recibiendo datos");
     expect(within(areas).getByText("Área Sur").closest("li")).toHaveTextContent("Esperando nodo");
-    expect(screen.getByText("1 de 2 áreas con datos")).toBeInTheDocument();
+    expect(screen.getByText(/^1 de 2 áreas con datos/)).toBeInTheDocument();
     view.unmount();
 
     mocks.getGatewayStatus.mockResolvedValue({
@@ -409,12 +409,12 @@ describe("GatewayManagement (lista de equipos y asistente)", () => {
     fireEvent.click(within(dialog).getByRole("button", { name: "Revocar enlace" }));
 
     await waitFor(() => expect(mocks.revokeGateway).toHaveBeenCalledWith(13));
-    expect(await screen.findByText("Revocados (1)")).toBeInTheDocument();
+    expect(await screen.findByText("Enlaces revocados (1)")).toBeInTheDocument();
     expect(screen.getByText("Todavía no hay equipos")).toBeInTheDocument();
 
     // El rancho ya no aparece ocupado.
     fireEvent.click(screen.getByRole("button", { name: /Nuevo equipo/ }));
-    expect(await screen.findByRole("option", { name: "Rancho Prueba · Rancho Prueba SA" })).toBeEnabled();
+    expect(await screen.findByRole("option", { name: "Rancho Prueba SA · Rancho Prueba" })).toBeEnabled();
   });
 
   it("shows the list for a revoked equipo in the URL, without offering to revoke it", async () => {
@@ -424,7 +424,7 @@ describe("GatewayManagement (lista de equipos y asistente)", () => {
 
     renderPage("/admin/gateways?gateway=20");
 
-    expect(await screen.findByText("Revocados (1)")).toBeInTheDocument();
+    expect(await screen.findByText("Enlaces revocados (1)")).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Revocar enlace" })).not.toBeInTheDocument();
     await waitFor(() => expect(screen.getByTestId("search")).toBeEmptyDOMElement());
   });

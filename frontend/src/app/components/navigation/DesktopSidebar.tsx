@@ -1,37 +1,26 @@
-import {
-  ChevronLeft,
-  ChevronRight,
-  LogOut,
-  Moon,
-  Sun,
-} from "lucide-react";
-import { useState } from "react";
+import { LogOut, Moon, Sun } from "lucide-react";
+import { BrandSymbol } from "../BrandSymbol";
 import { Link, useLocation, useNavigate } from "react-router";
 import { useAuth } from "../../context/AuthContext";
 import { useTheme } from "../../context/ThemeContext";
-import { preloadMapRoutes } from "../../services/routePreload";
 import { useModules } from "../../hooks/useModules";
-import { navItemsFor } from "./items";
+import { preloadMapRoutes } from "../../services/routePreload";
+import { isNavItemActive, navItemsFor } from "./items";
 
 interface DesktopSidebarProps {
   role: "client" | "admin";
 }
 
+/** Riel lateral fijo de la identidad A: etiquetas siempre visibles, un solo acento, sin colapsar. */
 export function DesktopSidebar({ role }: DesktopSidebarProps) {
-  const [expanded, setExpanded] = useState(true);
   const { user, logout } = useAuth();
   const { theme, toggleTheme } = useTheme();
   const location = useLocation();
   const navigate = useNavigate();
+  const navItems = navItemsFor(role, useModules());
 
-  const handleSidebarToggle = () => {
-    setExpanded((previous) => {
-      const next = !previous;
-      if (next) {
-        void preloadMapRoutes();
-      }
-      return next;
-    });
+  const maybePreloadMaps = (path: string) => {
+    if (path.includes("/mapa") || path.includes("/gateways")) void preloadMapRoutes();
   };
 
   const handleLogout = () => {
@@ -39,53 +28,17 @@ export function DesktopSidebar({ role }: DesktopSidebarProps) {
     navigate("/");
   };
 
-  const maybePreloadMaps = (path: string) => {
-    if (path.includes("/mapa")) {
-      void preloadMapRoutes();
-    }
-  };
-
-  const navItems = navItemsFor(role, useModules());
-  const homePath = role === "client" ? "/cliente" : "/admin";
-
   return (
-    <div
-      className={`glass-sidebar ${expanded ? "w-[272px]" : "w-[76px]"} h-screen sticky top-0 self-start shrink-0 overflow-hidden border-r border-[var(--sidebar-border)] transition-all duration-300 flex flex-col`}
-    >
-      {/* Logo */}
-      <div className="px-4 py-6 flex items-center justify-between min-h-[88px] gap-2 border-b border-[var(--sidebar-border)]">
-        <div
-          className={`overflow-hidden transition-all duration-300 ${expanded ? "flex-1 opacity-100" : "w-0 opacity-0 hidden"}`}
-        >
-          <h2 className="font-serif text-xl leading-tight text-sidebar-foreground whitespace-nowrap">
-            Sensores Agrícolas
-          </h2>
-          <p className="mt-1 text-xs text-sidebar-foreground/60 whitespace-nowrap">Monitoreo de riego IoT</p>
-        </div>
-        <button
-          onClick={handleSidebarToggle}
-          className="inline-flex h-11 w-11 items-center justify-center rounded-full hover:bg-sidebar-accent transition-colors flex-shrink-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-sidebar-ring"
-          aria-label={expanded ? "Colapsar menú" : "Expandir menú"}
-        >
-          {expanded ? (
-            <ChevronLeft className="w-5 h-5 text-sidebar-foreground/70" />
-          ) : (
-            <ChevronRight className="w-5 h-5 text-sidebar-foreground/70" />
-          )}
-        </button>
+    <div className="glass-sidebar sticky top-0 flex h-screen w-[208px] shrink-0 flex-col self-start overflow-hidden">
+      <div className="flex items-center gap-2.5 px-4 pb-4 pt-5">
+        <BrandSymbol className="h-10 w-10" />
+        <span className="text-[15px] font-semibold tracking-tight text-sidebar-foreground">Sensores Agrícolas</span>
       </div>
 
-      {/* Navigation */}
-      <nav aria-label="Navegación principal" className="flex-1 overflow-y-auto space-y-2 pb-4 pt-3">
+      <nav aria-label="Navegación principal" className="flex-1 space-y-0.5 overflow-y-auto px-2.5 pb-4">
         {navItems.map((item) => {
           const Icon = item.icon;
-          const currentPath = location.pathname.replace(/\/+$/, "") || "/";
-          const itemPath = item.path.replace(/\/+$/, "") || "/";
-          const isHomeItem = itemPath === homePath;
-          const isActive =
-            currentPath === itemPath ||
-            (!isHomeItem && currentPath.startsWith(`${itemPath}/`));
-
+          const isActive = isNavItemActive(item, location.pathname);
           return (
             <Link
               key={item.path}
@@ -93,70 +46,42 @@ export function DesktopSidebar({ role }: DesktopSidebarProps) {
               onMouseEnter={() => maybePreloadMaps(item.path)}
               onFocus={() => maybePreloadMaps(item.path)}
               aria-current={isActive ? "page" : undefined}
-              title={!expanded ? item.label : undefined}
-              className={`relative flex min-h-[48px] items-center gap-3 px-3 py-3 rounded-full transition-all
-                focus:outline-none focus-visible:ring-2 focus-visible:ring-sidebar-ring focus-visible:ring-offset-1
-                ${expanded ? "mx-2" : "justify-center mx-auto"}
+              className={`flex min-h-[44px] items-center gap-3 rounded-[var(--radius)] px-3 text-sm transition-colors
+                focus:outline-none focus-visible:ring-2 focus-visible:ring-sidebar-ring
                 ${isActive
-                  ? "bg-sidebar-primary font-semibold text-sidebar-primary-foreground shadow-soft"
-                  : "text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-foreground"
+                  ? "bg-sidebar-accent font-semibold text-sidebar-accent-foreground"
+                  : "text-sidebar-foreground/75 hover:bg-[var(--hover-overlay)] hover:text-sidebar-foreground"
                 }`}
             >
-              {isActive && (
-                <span
-                  aria-hidden="true"
-                  className="absolute left-1.5 top-1/2 h-5 w-1 -translate-y-1/2 rounded-full bg-sidebar-primary-foreground"
-                />
-              )}
-              <Icon aria-hidden="true" className="w-5 h-5 flex-shrink-0" />
-              <span
-                className={`overflow-hidden transition-all duration-300 whitespace-nowrap ${
-                  expanded ? "max-w-[200px] opacity-100" : "max-w-0 opacity-0"
-                }`}
-              >
-                {item.label}
-              </span>
+              <Icon aria-hidden="true" className="h-[18px] w-[18px] flex-shrink-0" />
+              <span className="truncate">{item.label}</span>
             </Link>
           );
         })}
       </nav>
 
-      {/* User section */}
-      <div className="py-4 border-t border-sidebar-border relative bg-[var(--sidebar)]/70">
-        <div className={`flex items-center ${expanded ? "justify-between px-4" : "justify-center flex-col gap-4"}`}>
-          <div className="w-10 h-10 rounded-full bg-sidebar-primary flex items-center justify-center text-sidebar-primary-foreground font-medium text-base flex-shrink-0">
-            {user?.nombre ? user.nombre.charAt(0).toUpperCase() : (role === "client" ? "C" : "A")}
+      <div className="border-t border-sidebar-border p-3">
+        <div className="flex items-center gap-2">
+          <div className="min-w-0 flex-1">
+            <p className="truncate text-sm font-medium text-sidebar-foreground">{user?.nombre || "Usuario"}</p>
+            <p className="truncate text-xs text-sidebar-foreground/70">{role === "client" ? "Productor" : "Administración"}</p>
           </div>
-
-          <div
-            className={`transition-all duration-300 overflow-hidden ${
-              expanded ? "flex-1 min-w-0 px-3 opacity-100" : "w-0 h-0 opacity-0 hidden"
-            }`}
+          <button
+            onClick={toggleTheme}
+            className="inline-flex h-11 w-11 items-center justify-center rounded-[var(--radius)] text-sidebar-foreground/75 transition-colors hover:bg-[var(--hover-overlay)] focus:outline-none focus-visible:ring-2 focus-visible:ring-sidebar-ring"
+            aria-label={theme === "light" ? "Cambiar a tema oscuro" : "Cambiar a tema claro"}
+            title="Cambiar tema"
           >
-            <p className="font-medium text-sidebar-foreground text-sm truncate">{user?.nombre || "Usuario"}</p>
-            <p className="text-xs text-sidebar-foreground/60 truncate">{role === "client" ? "Cliente" : "Admin"}</p>
-          </div>
-
-          <div className={`flex items-center ${expanded ? "gap-1" : "flex-col gap-3"}`}>
-            <button
-              onClick={toggleTheme}
-              className="inline-flex h-11 w-11 items-center justify-center rounded-full hover:bg-sidebar-accent hover:text-sidebar-foreground text-sidebar-foreground/70 transition-colors flex-shrink-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-sidebar-ring"
-              aria-label={theme === "light" ? "Cambiar a tema oscuro" : "Cambiar a tema claro"}
-              title="Cambiar tema"
-            >
-              {theme === "light" ? <Moon className="w-5 h-5" /> : <Sun className="w-5 h-5" />}
-            </button>
-
-            <button
-              onClick={handleLogout}
-              className="inline-flex h-11 w-11 items-center justify-center rounded-full hover:bg-destructive/10 hover:text-destructive text-sidebar-foreground/70 transition-colors flex-shrink-0
-                focus:outline-none focus-visible:ring-2 focus-visible:ring-sidebar-ring"
-              aria-label="Cerrar sesión"
-              title="Cerrar sesión"
-            >
-              <LogOut className="w-5 h-5" />
-            </button>
-          </div>
+            {theme === "light" ? <Moon aria-hidden="true" className="h-5 w-5" /> : <Sun aria-hidden="true" className="h-5 w-5" />}
+          </button>
+          <button
+            onClick={handleLogout}
+            className="inline-flex h-11 w-11 items-center justify-center rounded-[var(--radius)] text-sidebar-foreground/75 transition-colors hover:bg-destructive/10 hover:text-destructive focus:outline-none focus-visible:ring-2 focus-visible:ring-sidebar-ring"
+            aria-label="Cerrar sesión"
+            title="Cerrar sesión"
+          >
+            <LogOut aria-hidden="true" className="h-5 w-5" />
+          </button>
         </div>
       </div>
     </div>

@@ -51,7 +51,13 @@ def create_crop_type(db: Session, data: CropTypeCreate) -> CropType:
             detail=f"Crop type '{data.name}' already exists",
         )
 
-    ct = CropType(nombre=data.name, descripcion=data.description)
+    ct = CropType(
+        nombre=data.name,
+        descripcion=data.description,
+        foto_url=data.photo_url,
+        foto_credito=data.photo_credit if data.photo_url else None,
+        foto_pagina=data.photo_page if data.photo_url else None,
+    )
     db.add(ct)
     db.commit()
     db.refresh(ct)
@@ -79,6 +85,16 @@ def update_crop_type(db: Session, crop_type_id: int, data: CropTypeUpdate) -> Cr
 
     if "description" in update_data:
         ct.descripcion = update_data["description"]
+
+    # Quitar la foto (photo_url null o vacío) borra también su atribución.
+    if "photo_url" in update_data:
+        ct.foto_url = update_data["photo_url"]
+        if ct.foto_url is None:
+            ct.foto_credito = None
+            ct.foto_pagina = None
+        else:
+            ct.foto_credito = update_data.get("photo_credit")
+            ct.foto_pagina = update_data.get("photo_page")
 
     db.commit()
     db.refresh(ct)

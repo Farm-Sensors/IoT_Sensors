@@ -27,7 +27,7 @@ export function BentoCard({
   };
 
   return (
-    <div className={`${backgrounds[variant]} ${paddings[padding]} rounded-[32px] transition-colors duration-300 ${className}`}>
+    <div className={`${backgrounds[variant]} ${paddings[padding]} rounded-[var(--radius)] transition-colors duration-300 ${className}`}>
       {children}
     </div>
   );

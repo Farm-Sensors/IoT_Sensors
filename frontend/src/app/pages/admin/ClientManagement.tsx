@@ -5,7 +5,10 @@ import { ConfirmDialog } from "../../components/ConfirmDialog";
 import { FormDialog } from "../../components/FormDialog";
 import { Field } from "../../components/Field";
 import { useEffect, useState } from "react";
-import { Link } from "react-router";
+import { Link, useNavigate } from "react-router";
+import type { ReactNode } from "react";
+import { useEmbedded } from "../../components/EmbeddedPanel";
+import { HealthBadge, PanelHeader, listBox, panelButton, panelButtonDanger, panelButtonPrimary, rowLink, type Health } from "./directory/Health";
 import { StatusBadge } from "../../components/StatusBadge";
 import { BentoCard } from "../../components/BentoCard";
 import { PageTransition } from "../../components/PageTransition";
@@ -27,8 +30,10 @@ interface Client {
   };
 }
 
-export function ClientManagement() {
+export function ClientManagement({ clientId, meta, health }: { clientId?: string; meta?: ReactNode; health?: Record<number, Health> } = {}) {
   const { showToast } = useToast();
+  const embedded = useEmbedded();
+  const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState("");
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [showEditForm, setShowEditForm] = useState(false);
@@ -128,6 +133,7 @@ export function ClientManagement() {
       await api.delete(`/clients/${clientId}`);
       fetchClients();
       showToast("Cliente eliminado", "success");
+      if (clientId) navigate("/admin/clientes");
     } catch (err: any) {
       showToast(err.response?.data?.detail || "Error deleting client", "error");
     }
@@ -141,6 +147,114 @@ export function ClientManagement() {
       (c.phone || "").toLowerCase().includes(term)
     );
   });
+
+  const dialogs = (
+    <>
+      {showEditForm && (<FormDialog open title="Editar Cliente" onClose={() => {
+                    setShowEditForm(false);
+                    setEditingClientId(null);
+                  }}>
+            <form className="space-y-4" onSubmit={handleUpdate}>
+              <Field label="Nombre de la Empresa"><input required type="text" value={editFormData.company_name} onChange={e => setEditFormData({...editFormData, company_name: e.target.value})} className="w-full px-4 py-2.5 rounded-[var(--radius)] bg-[var(--surface-panel)] border border-[var(--border-strong)] text-[var(--text-body)] placeholder:text-[var(--text-subtle)] focus:outline-none focus:ring-2 focus:ring-[var(--focus-ring)]" /></Field>
+              <Field label="Nombre de Contacto"><input required type="text" value={editFormData.full_name} onChange={e => setEditFormData({...editFormData, full_name: e.target.value})} className="w-full px-4 py-2.5 rounded-[var(--radius)] bg-[var(--surface-panel)] border border-[var(--border-strong)] text-[var(--text-body)] placeholder:text-[var(--text-subtle)] focus:outline-none focus:ring-2 focus:ring-[var(--focus-ring)]" /></Field>
+              <Field label="Email"><input required type="email" value={editFormData.email} onChange={e => setEditFormData({...editFormData, email: e.target.value})} className="w-full px-4 py-2.5 rounded-[var(--radius)] bg-[var(--surface-panel)] border border-[var(--border-strong)] text-[var(--text-body)] placeholder:text-[var(--text-subtle)] focus:outline-none focus:ring-2 focus:ring-[var(--focus-ring)]" /></Field>
+              <Field label="Teléfono / WhatsApp"><input type="tel" value={editFormData.phone} onChange={e => setEditFormData({...editFormData, phone: e.target.value})} className="w-full px-4 py-2.5 rounded-[var(--radius)] bg-[var(--surface-panel)] border border-[var(--border-strong)] text-[var(--text-body)] placeholder:text-[var(--text-subtle)] focus:outline-none focus:ring-2 focus:ring-[var(--focus-ring)]" /></Field>
+              <Field label="Dirección"><input type="text" value={editFormData.address} onChange={e => setEditFormData({...editFormData, address: e.target.value})} className="w-full px-4 py-2.5 rounded-[var(--radius)] bg-[var(--surface-panel)] border border-[var(--border-strong)] text-[var(--text-body)] placeholder:text-[var(--text-subtle)] focus:outline-none focus:ring-2 focus:ring-[var(--focus-ring)]" /></Field>
+              <div className="flex gap-3 pt-4">
+                <PillButton variant="outline" className="flex-1 justify-center" onClick={() => {
+                  setShowEditForm(false);
+                  setEditingClientId(null);
+                }} type="button">Cancelar</PillButton>
+                <PillButton variant="primary" className="flex-1 justify-center" type="submit">Guardar Cambios</PillButton>
+              </div>
+            </form>
+          </FormDialog>)}
+
+      {showCreateForm && (<FormDialog open title="Nuevo Cliente" onClose={() => setShowCreateForm(false)}>
+            <form className="space-y-4" onSubmit={handleCreate}>
+              <Field label="Nombre de la Empresa"><input required type="text" value={formData.company_name} onChange={e => setFormData({...formData, company_name: e.target.value})} className="w-full px-4 py-2.5 rounded-[var(--radius)] bg-[var(--surface-panel)] border border-[var(--border-strong)] text-[var(--text-body)] placeholder:text-[var(--text-subtle)] focus:outline-none focus:ring-2 focus:ring-[var(--focus-ring)]" /></Field>
+              <Field label="Nombre de Contacto"><input required type="text" value={formData.full_name} onChange={e => setFormData({...formData, full_name: e.target.value})} className="w-full px-4 py-2.5 rounded-[var(--radius)] bg-[var(--surface-panel)] border border-[var(--border-strong)] text-[var(--text-body)] placeholder:text-[var(--text-subtle)] focus:outline-none focus:ring-2 focus:ring-[var(--focus-ring)]" /></Field>
+              <Field label="Email"><input required type="email" value={formData.email} onChange={e => setFormData({...formData, email: e.target.value})} className="w-full px-4 py-2.5 rounded-[var(--radius)] bg-[var(--surface-panel)] border border-[var(--border-strong)] text-[var(--text-body)] placeholder:text-[var(--text-subtle)] focus:outline-none focus:ring-2 focus:ring-[var(--focus-ring)]" /></Field>
+              <Field label="Contraseña (Temporal)"><input required type="password" minLength={6} value={formData.password} onChange={e => setFormData({...formData, password: e.target.value})} className="w-full px-4 py-2.5 rounded-[var(--radius)] bg-[var(--surface-panel)] border border-[var(--border-strong)] text-[var(--text-body)] placeholder:text-[var(--text-subtle)] focus:outline-none focus:ring-2 focus:ring-[var(--focus-ring)]" /></Field>
+              <Field label="Teléfono"><input type="tel" value={formData.phone} onChange={e => setFormData({...formData, phone: e.target.value})} className="w-full px-4 py-2.5 rounded-[var(--radius)] bg-[var(--surface-panel)] border border-[var(--border-strong)] text-[var(--text-body)] placeholder:text-[var(--text-subtle)] focus:outline-none focus:ring-2 focus:ring-[var(--focus-ring)]" /></Field>
+              <Field label="Dirección (Opcional)"><input type="text" value={formData.address} onChange={e => setFormData({...formData, address: e.target.value})} className="w-full px-4 py-2.5 rounded-[var(--radius)] bg-[var(--surface-panel)] border border-[var(--border-strong)] text-[var(--text-body)] placeholder:text-[var(--text-subtle)] focus:outline-none focus:ring-2 focus:ring-[var(--focus-ring)]" /></Field>
+              <div className="flex gap-3 pt-4">
+                <PillButton variant="outline" className="flex-1 justify-center" onClick={() => setShowCreateForm(false)} type="button">Cancelar</PillButton>
+                <PillButton variant="primary" className="flex-1 justify-center" type="submit">Guardar</PillButton>
+              </div>
+            </form>
+          </FormDialog>)}
+      <ConfirmDialog
+        open={pendingDelete !== null}
+        variant="danger"
+        title={`¿Eliminar el cliente ${pendingDelete?.name ?? ""}?`}
+        description="Esta acción no se puede deshacer."
+        confirmLabel="Eliminar"
+        onConfirm={() => {
+          const target = pendingDelete;
+          setPendingDelete(null);
+          if (target) void handleDelete(target.id);
+        }}
+        onCancel={() => setPendingDelete(null)}
+      />
+
+    </>
+  );
+
+  if (embedded) {
+    if (clientId) {
+      const current = clients.find((c) => String(c.id) === String(clientId));
+      return (
+        <div>
+          {current ? (
+            <PanelHeader
+              title={current.company_name}
+              meta={<>{[current.user?.full_name, current.user?.email, current.phone].filter(Boolean).join(" · ")}{meta ? <> · {meta}</> : null}</>}
+              actions={
+                <>
+                  <button type="button" className={panelButton} onClick={() => openEditForm(current)}><Pencil aria-hidden="true" className="h-4 w-4" />Editar</button>
+                  <Link to={`/admin/clientes/${current.id}/dashboard`} className={panelButton}><LayoutDashboard aria-hidden="true" className="h-4 w-4" />Preferencias del dashboard</Link>
+                  <button type="button" className={panelButtonDanger} onClick={() => setPendingDelete({ id: current.id, name: current.company_name })}><Trash2 aria-hidden="true" className="h-4 w-4" />Borrar</button>
+                </>
+              }
+            />
+          ) : loading ? <SkeletonCard lines={2} /> : null}
+          {dialogs}
+        </div>
+      );
+    }
+    return (
+      <div>
+        <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+          <h2 className="text-xl font-semibold">Clientes <span className="font-mono-data text-sm font-normal text-[var(--text-muted)]">{clients.length}</span></h2>
+          <button type="button" className={panelButtonPrimary} onClick={() => setShowCreateForm(true)}><Plus aria-hidden="true" className="h-4 w-4" />Nuevo Cliente</button>
+        </div>
+        <label className="mb-3 block lg:hidden">
+          <span className="sr-only">Buscar clientes</span>
+          <input type="text" placeholder="Buscar por nombre, email o teléfono…" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="min-h-[44px] w-full rounded-[var(--radius)] border border-[var(--border)] bg-[var(--input-background)] px-3 text-sm" />
+        </label>
+        {error && <div role="alert" className="mb-4 rounded-[var(--radius)] border border-[var(--status-danger)]/25 bg-[var(--status-danger-bg)] px-4 py-3 text-sm text-[var(--status-danger-text)]">{typeof error === "string" ? error : JSON.stringify(error)}</div>}
+        {loading ? <SkeletonCard lines={2} /> : filteredClients.length === 0 ? (
+          <EmptyState icon={Users} title="Sin clientes registrados" description="Comienza creando un nuevo cliente para acceder a predios y sensores." action={{ label: "Crear primer cliente", onClick: () => setShowCreateForm(true) }} />
+        ) : (
+          <ul className={listBox}>
+            {filteredClients.map((client) => (
+              <li key={client.id}>
+                <Link to={`/admin/clientes/${client.id}/predios`} className={rowLink}>
+                  <span className="min-w-0">
+                    <span className="block truncate font-semibold">{client.company_name}</span>
+                    <span className="block truncate text-sm text-[var(--text-muted)]">{[client.user?.full_name, client.user?.email].filter(Boolean).join(" · ")}</span>
+                  </span>
+                  <span className="flex flex-shrink-0 items-center gap-2 max-sm:w-full max-sm:justify-between"><HealthBadge health={health?.[client.id]} /><ChevronRight aria-hidden="true" className="h-4 w-4 text-[var(--text-muted)]" /></span>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        )}
+        {dialogs}
+      </div>
+    );
+  }
 
   return (
     <PageTransition>
@@ -166,7 +280,7 @@ export function ClientManagement() {
             placeholder="Buscar por nombre, email o teléfono..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            aria-label="Buscar clientes" className="min-h-[44px] flex-1 bg-transparent text-[var(--text-body)] placeholder:text-[var(--text-subtle)]/70 focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus-ring)] rounded-full px-2"
+            aria-label="Buscar clientes" className="min-h-[44px] flex-1 bg-transparent text-[var(--text-body)] placeholder:text-[var(--text-subtle)]/70 focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus-ring)] rounded-[var(--radius)] px-2"
           />
         </div>
       </BentoCard>
@@ -221,7 +335,7 @@ export function ClientManagement() {
                        </Link>
                        <PillButton
                          variant="outline"
-                         className="px-3 py-1 text-xs border-[var(--status-danger)]/40 text-[var(--status-danger)] hover:bg-[var(--status-danger-bg)]"
+                         className="px-3 py-1 text-xs border-[var(--status-danger)]/40 text-[var(--status-danger-text)] hover:bg-[var(--status-danger-bg)]"
                          onClick={() => setPendingDelete({ id: client.id, name: client.company_name })}
                        >
                          Borrar <Trash2 aria-hidden="true" className="w-3 h-3 ml-1" />
@@ -285,7 +399,7 @@ export function ClientManagement() {
             <div className="mt-2">
               <PillButton
                 variant="outline"
-                className="w-full justify-center border-[var(--status-danger)]/40 text-[var(--status-danger)] hover:bg-[var(--status-danger-bg)]"
+                className="w-full justify-center border-[var(--status-danger)]/40 text-[var(--status-danger-text)] hover:bg-[var(--status-danger-bg)]"
                 onClick={() => setPendingDelete({ id: client.id, name: client.company_name })}
               >
                 Borrar Cliente <Trash2 aria-hidden="true" className="w-4 h-4 ml-1" />
@@ -306,54 +420,7 @@ export function ClientManagement() {
         )}
       </div>
 
-      {showEditForm && (<FormDialog open title="Editar Cliente" onClose={() => {
-                    setShowEditForm(false);
-                    setEditingClientId(null);
-                  }}>
-            <form className="space-y-4" onSubmit={handleUpdate}>
-              <Field label="Nombre de la Empresa"><input required type="text" value={editFormData.company_name} onChange={e => setEditFormData({...editFormData, company_name: e.target.value})} className="w-full px-4 py-2.5 rounded-[24px] bg-[var(--surface-panel)] border border-[var(--border-strong)] text-[var(--text-body)] placeholder:text-[var(--text-subtle)] focus:outline-none focus:ring-2 focus:ring-[var(--focus-ring)]" /></Field>
-              <Field label="Nombre de Contacto"><input required type="text" value={editFormData.full_name} onChange={e => setEditFormData({...editFormData, full_name: e.target.value})} className="w-full px-4 py-2.5 rounded-[24px] bg-[var(--surface-panel)] border border-[var(--border-strong)] text-[var(--text-body)] placeholder:text-[var(--text-subtle)] focus:outline-none focus:ring-2 focus:ring-[var(--focus-ring)]" /></Field>
-              <Field label="Email"><input required type="email" value={editFormData.email} onChange={e => setEditFormData({...editFormData, email: e.target.value})} className="w-full px-4 py-2.5 rounded-[24px] bg-[var(--surface-panel)] border border-[var(--border-strong)] text-[var(--text-body)] placeholder:text-[var(--text-subtle)] focus:outline-none focus:ring-2 focus:ring-[var(--focus-ring)]" /></Field>
-              <Field label="Teléfono / WhatsApp"><input type="tel" value={editFormData.phone} onChange={e => setEditFormData({...editFormData, phone: e.target.value})} className="w-full px-4 py-2.5 rounded-[24px] bg-[var(--surface-panel)] border border-[var(--border-strong)] text-[var(--text-body)] placeholder:text-[var(--text-subtle)] focus:outline-none focus:ring-2 focus:ring-[var(--focus-ring)]" /></Field>
-              <Field label="Dirección"><input type="text" value={editFormData.address} onChange={e => setEditFormData({...editFormData, address: e.target.value})} className="w-full px-4 py-2.5 rounded-[24px] bg-[var(--surface-panel)] border border-[var(--border-strong)] text-[var(--text-body)] placeholder:text-[var(--text-subtle)] focus:outline-none focus:ring-2 focus:ring-[var(--focus-ring)]" /></Field>
-              <div className="flex gap-3 pt-4">
-                <PillButton variant="outline" className="flex-1 justify-center" onClick={() => {
-                  setShowEditForm(false);
-                  setEditingClientId(null);
-                }} type="button">Cancelar</PillButton>
-                <PillButton variant="primary" className="flex-1 justify-center" type="submit">Guardar Cambios</PillButton>
-              </div>
-            </form>
-          </FormDialog>)}
-
-      {showCreateForm && (<FormDialog open title="Nuevo Cliente" onClose={() => setShowCreateForm(false)}>
-            <form className="space-y-4" onSubmit={handleCreate}>
-              <Field label="Nombre de la Empresa"><input required type="text" value={formData.company_name} onChange={e => setFormData({...formData, company_name: e.target.value})} className="w-full px-4 py-2.5 rounded-[24px] bg-[var(--surface-panel)] border border-[var(--border-strong)] text-[var(--text-body)] placeholder:text-[var(--text-subtle)] focus:outline-none focus:ring-2 focus:ring-[var(--focus-ring)]" /></Field>
-              <Field label="Nombre de Contacto"><input required type="text" value={formData.full_name} onChange={e => setFormData({...formData, full_name: e.target.value})} className="w-full px-4 py-2.5 rounded-[24px] bg-[var(--surface-panel)] border border-[var(--border-strong)] text-[var(--text-body)] placeholder:text-[var(--text-subtle)] focus:outline-none focus:ring-2 focus:ring-[var(--focus-ring)]" /></Field>
-              <Field label="Email"><input required type="email" value={formData.email} onChange={e => setFormData({...formData, email: e.target.value})} className="w-full px-4 py-2.5 rounded-[24px] bg-[var(--surface-panel)] border border-[var(--border-strong)] text-[var(--text-body)] placeholder:text-[var(--text-subtle)] focus:outline-none focus:ring-2 focus:ring-[var(--focus-ring)]" /></Field>
-              <Field label="Contraseña (Temporal)"><input required type="password" minLength={6} value={formData.password} onChange={e => setFormData({...formData, password: e.target.value})} className="w-full px-4 py-2.5 rounded-[24px] bg-[var(--surface-panel)] border border-[var(--border-strong)] text-[var(--text-body)] placeholder:text-[var(--text-subtle)] focus:outline-none focus:ring-2 focus:ring-[var(--focus-ring)]" /></Field>
-              <Field label="Teléfono"><input type="tel" value={formData.phone} onChange={e => setFormData({...formData, phone: e.target.value})} className="w-full px-4 py-2.5 rounded-[24px] bg-[var(--surface-panel)] border border-[var(--border-strong)] text-[var(--text-body)] placeholder:text-[var(--text-subtle)] focus:outline-none focus:ring-2 focus:ring-[var(--focus-ring)]" /></Field>
-              <Field label="Dirección (Opcional)"><input type="text" value={formData.address} onChange={e => setFormData({...formData, address: e.target.value})} className="w-full px-4 py-2.5 rounded-[24px] bg-[var(--surface-panel)] border border-[var(--border-strong)] text-[var(--text-body)] placeholder:text-[var(--text-subtle)] focus:outline-none focus:ring-2 focus:ring-[var(--focus-ring)]" /></Field>
-              <div className="flex gap-3 pt-4">
-                <PillButton variant="outline" className="flex-1 justify-center" onClick={() => setShowCreateForm(false)} type="button">Cancelar</PillButton>
-                <PillButton variant="primary" className="flex-1 justify-center" type="submit">Guardar</PillButton>
-              </div>
-            </form>
-          </FormDialog>)}
-      <ConfirmDialog
-        open={pendingDelete !== null}
-        variant="danger"
-        title={`¿Eliminar el cliente ${pendingDelete?.name ?? ""}?`}
-        description="Esta acción no se puede deshacer."
-        confirmLabel="Eliminar"
-        onConfirm={() => {
-          const target = pendingDelete;
-          setPendingDelete(null);
-          if (target) void handleDelete(target.id);
-        }}
-        onCancel={() => setPendingDelete(null)}
-      />
-
+      {dialogs}
     </div>
     </PageTransition>
   );

@@ -1,0 +1,602 @@
+[
+ {
+  "vp": "desktop",
+  "theme": "light",
+  "role": "productor",
+  "route": "#/predios",
+  "hscroll": false,
+  "h1": "Mis predios",
+  "small": 0,
+  "errs": []
+ },
+ {
+  "vp": "desktop",
+  "theme": "light",
+  "role": "productor",
+  "route": "#/area/1",
+  "hscroll": false,
+  "h1": "Nogal Norte",
+  "small": 1,
+  "errs": []
+ },
+ {
+  "vp": "desktop",
+  "theme": "light",
+  "role": "productor",
+  "route": "#/area/1/historial",
+  "hscroll": false,
+  "h1": "Nogal Norte",
+  "small": 1,
+  "errs": []
+ },
+ {
+  "vp": "desktop",
+  "theme": "light",
+  "role": "productor",
+  "route": "#/area/1/detalles",
+  "hscroll": false,
+  "h1": "Nogal Norte",
+  "small": 1,
+  "errs": []
+ },
+ {
+  "vp": "desktop",
+  "theme": "light",
+  "role": "productor",
+  "route": "#/area/4",
+  "hscroll": false,
+  "h1": "Maíz Lote 2",
+  "small": 1,
+  "errs": []
+ },
+ {
+  "vp": "desktop",
+  "theme": "light",
+  "role": "productor",
+  "route": "#/area/5",
+  "hscroll": false,
+  "h1": "Manzana Alta",
+  "small": 1,
+  "errs": []
+ },
+ {
+  "vp": "desktop",
+  "theme": "light",
+  "role": "productor",
+  "route": "#/area/6",
+  "hscroll": false,
+  "h1": "Algodón Bajo",
+  "small": 1,
+  "errs": []
+ },
+ {
+  "vp": "desktop",
+  "theme": "light",
+  "role": "productor",
+  "route": "#/cuenta",
+  "hscroll": false,
+  "h1": "Cuenta",
+  "small": 0,
+  "errs": []
+ },
+ {
+  "vp": "desktop",
+  "theme": "light",
+  "role": "admin",
+  "route": "#/hoy",
+  "hscroll": false,
+  "h1": "Hoy",
+  "small": 0,
+  "errs": []
+ },
+ {
+  "vp": "desktop",
+  "theme": "light",
+  "role": "admin",
+  "route": "#/directorio",
+  "hscroll": false,
+  "h1": "Clientes",
+  "small": 0,
+  "errs": []
+ },
+ {
+  "vp": "desktop",
+  "theme": "light",
+  "role": "admin",
+  "route": "#/directorio?area=3&tab=ciclos",
+  "hscroll": false,
+  "h1": "Clientes",
+  "small": 0,
+  "errs": []
+ },
+ {
+  "vp": "desktop",
+  "theme": "light",
+  "role": "admin",
+  "route": "#/red/equipos",
+  "hscroll": false,
+  "h1": "Red",
+  "small": 0,
+  "errs": []
+ },
+ {
+  "vp": "desktop",
+  "theme": "light",
+  "role": "admin",
+  "route": "#/red/nodos",
+  "hscroll": false,
+  "h1": "Red",
+  "small": 0,
+  "errs": []
+ },
+ {
+  "vp": "desktop",
+  "theme": "light",
+  "role": "admin",
+  "route": "#/ajustes/catalogo",
+  "hscroll": false,
+  "h1": "Ajustes",
+  "small": 0,
+  "errs": []
+ },
+ {
+  "vp": "desktop",
+  "theme": "light",
+  "role": "admin",
+  "route": "#/ajustes/auditoria",
+  "hscroll": false,
+  "h1": "Ajustes",
+  "small": 0,
+  "errs": []
+ },
+ {
+  "vp": "desktop",
+  "theme": "dark",
+  "role": "productor",
+  "route": "#/predios",
+  "hscroll": false,
+  "h1": "Mis predios",
+  "small": 0,
+  "errs": []
+ },
+ {
+  "vp": "desktop",
+  "theme": "dark",
+  "role": "productor",
+  "route": "#/area/1",
+  "hscroll": false,
+  "h1": "Nogal Norte",
+  "small": 1,
+  "errs": []
+ },
+ {
+  "vp": "desktop",
+  "theme": "dark",
+  "role": "productor",
+  "route": "#/area/1/historial",
+  "hscroll": false,
+  "h1": "Nogal Norte",
+  "small": 1,
+  "errs": []
+ },
+ {
+  "vp": "desktop",
+  "theme": "dark",
+  "role": "productor",
+  "route": "#/area/1/detalles",
+  "hscroll": false,
+  "h1": "Nogal Norte",
+  "small": 1,
+  "errs": []
+ },
+ {
+  "vp": "desktop",
+  "theme": "dark",
+  "role": "productor",
+  "route": "#/area/4",
+  "hscroll": false,
+  "h1": "Maíz Lote 2",
+  "small": 1,
+  "errs": []
+ },
+ {
+  "vp": "desktop",
+  "theme": "dark",
+  "role": "productor",
+  "route": "#/area/5",
+  "hscroll": false,
+  "h1": "Manzana Alta",
+  "small": 1,
+  "errs": []
+ },
+ {
+  "vp": "desktop",
+  "theme": "dark",
+  "role": "productor",
+  "route": "#/area/6",
+  "hscroll": false,
+  "h1": "Algodón Bajo",
+  "small": 1,
+  "errs": []
+ },
+ {
+  "vp": "desktop",
+  "theme": "dark",
+  "role": "productor",
+  "route": "#/cuenta",
+  "hscroll": false,
+  "h1": "Cuenta",
+  "small": 0,
+  "errs": []
+ },
+ {
+  "vp": "desktop",
+  "theme": "dark",
+  "role": "admin",
+  "route": "#/hoy",
+  "hscroll": false,
+  "h1": "Hoy",
+  "small": 0,
+  "errs": []
+ },
+ {
+  "vp": "desktop",
+  "theme": "dark",
+  "role": "admin",
+  "route": "#/directorio",
+  "hscroll": false,
+  "h1": "Clientes",
+  "small": 0,
+  "errs": []
+ },
+ {
+  "vp": "desktop",
+  "theme": "dark",
+  "role": "admin",
+  "route": "#/directorio?area=3&tab=ciclos",
+  "hscroll": false,
+  "h1": "Clientes",
+  "small": 0,
+  "errs": []
+ },
+ {
+  "vp": "desktop",
+  "theme": "dark",
+  "role": "admin",
+  "route": "#/red/equipos",
+  "hscroll": false,
+  "h1": "Red",
+  "small": 0,
+  "errs": []
+ },
+ {
+  "vp": "desktop",
+  "theme": "dark",
+  "role": "admin",
+  "route": "#/red/nodos",
+  "hscroll": false,
+  "h1": "Red",
+  "small": 0,
+  "errs": []
+ },
+ {
+  "vp": "desktop",
+  "theme": "dark",
+  "role": "admin",
+  "route": "#/ajustes/catalogo",
+  "hscroll": false,
+  "h1": "Ajustes",
+  "small": 0,
+  "errs": []
+ },
+ {
+  "vp": "desktop",
+  "theme": "dark",
+  "role": "admin",
+  "route": "#/ajustes/auditoria",
+  "hscroll": false,
+  "h1": "Ajustes",
+  "small": 0,
+  "errs": []
+ },
+ {
+  "vp": "mobile",
+  "theme": "light",
+  "role": "productor",
+  "route": "#/predios",
+  "hscroll": false,
+  "h1": "Mis predios",
+  "small": 0,
+  "errs": []
+ },
+ {
+  "vp": "mobile",
+  "theme": "light",
+  "role": "productor",
+  "route": "#/area/1",
+  "hscroll": false,
+  "h1": "Nogal Norte",
+  "small": 0,
+  "errs": []
+ },
+ {
+  "vp": "mobile",
+  "theme": "light",
+  "role": "productor",
+  "route": "#/area/1/historial",
+  "hscroll": false,
+  "h1": "Nogal Norte",
+  "small": 0,
+  "errs": []
+ },
+ {
+  "vp": "mobile",
+  "theme": "light",
+  "role": "productor",
+  "route": "#/area/1/detalles",
+  "hscroll": false,
+  "h1": "Nogal Norte",
+  "small": 0,
+  "errs": []
+ },
+ {
+  "vp": "mobile",
+  "theme": "light",
+  "role": "productor",
+  "route": "#/area/4",
+  "hscroll": false,
+  "h1": "Maíz Lote 2",
+  "small": 0,
+  "errs": []
+ },
+ {
+  "vp": "mobile",
+  "theme": "light",
+  "role": "productor",
+  "route": "#/area/5",
+  "hscroll": false,
+  "h1": "Manzana Alta",
+  "small": 0,
+  "errs": []
+ },
+ {
+  "vp": "mobile",
+  "theme": "light",
+  "role": "productor",
+  "route": "#/area/6",
+  "hscroll": false,
+  "h1": "Algodón Bajo",
+  "small": 0,
+  "errs": []
+ },
+ {
+  "vp": "mobile",
+  "theme": "light",
+  "role": "productor",
+  "route": "#/cuenta",
+  "hscroll": false,
+  "h1": "Cuenta",
+  "small": 0,
+  "errs": []
+ },
+ {
+  "vp": "mobile",
+  "theme": "light",
+  "role": "admin",
+  "route": "#/hoy",
+  "hscroll": false,
+  "h1": "Hoy",
+  "small": 0,
+  "errs": []
+ },
+ {
+  "vp": "mobile",
+  "theme": "light",
+  "role": "admin",
+  "route": "#/directorio",
+  "hscroll": false,
+  "h1": "Clientes",
+  "small": 0,
+  "errs": []
+ },
+ {
+  "vp": "mobile",
+  "theme": "light",
+  "role": "admin",
+  "route": "#/directorio?area=3&tab=ciclos",
+  "hscroll": false,
+  "h1": "Clientes",
+  "small": 0,
+  "errs": []
+ },
+ {
+  "vp": "mobile",
+  "theme": "light",
+  "role": "admin",
+  "route": "#/red/equipos",
+  "hscroll": false,
+  "h1": "Red",
+  "small": 0,
+  "errs": []
+ },
+ {
+  "vp": "mobile",
+  "theme": "light",
+  "role": "admin",
+  "route": "#/red/nodos",
+  "hscroll": false,
+  "h1": "Red",
+  "small": 0,
+  "errs": []
+ },
+ {
+  "vp": "mobile",
+  "theme": "light",
+  "role": "admin",
+  "route": "#/ajustes/catalogo",
+  "hscroll": false,
+  "h1": "Ajustes",
+  "small": 0,
+  "errs": []
+ },
+ {
+  "vp": "mobile",
+  "theme": "light",
+  "role": "admin",
+  "route": "#/ajustes/auditoria",
+  "hscroll": false,
+  "h1": "Ajustes",
+  "small": 0,
+  "errs": []
+ },
+ {
+  "vp": "mobile",
+  "theme": "dark",
+  "role": "productor",
+  "route": "#/predios",
+  "hscroll": false,
+  "h1": "Mis predios",
+  "small": 0,
+  "errs": []
+ },
+ {
+  "vp": "mobile",
+  "theme": "dark",
+  "role": "productor",
+  "route": "#/area/1",
+  "hscroll": false,
+  "h1": "Nogal Norte",
+  "small": 0,
+  "errs": []
+ },
+ {
+  "vp": "mobile",
+  "theme": "dark",
+  "role": "productor",
+  "route": "#/area/1/historial",
+  "hscroll": false,
+  "h1": "Nogal Norte",
+  "small": 0,
+  "errs": []
+ },
+ {
+  "vp": "mobile",
+  "theme": "dark",
+  "role": "productor",
+  "route": "#/area/1/detalles",
+  "hscroll": false,
+  "h1": "Nogal Norte",
+  "small": 0,
+  "errs": []
+ },
+ {
+  "vp": "mobile",
+  "theme": "dark",
+  "role": "productor",
+  "route": "#/area/4",
+  "hscroll": false,
+  "h1": "Maíz Lote 2",
+  "small": 0,
+  "errs": []
+ },
+ {
+  "vp": "mobile",
+  "theme": "dark",
+  "role": "productor",
+  "route": "#/area/5",
+  "hscroll": false,
+  "h1": "Manzana Alta",
+  "small": 0,
+  "errs": []
+ },
+ {
+  "vp": "mobile",
+  "theme": "dark",
+  "role": "productor",
+  "route": "#/area/6",
+  "hscroll": false,
+  "h1": "Algodón Bajo",
+  "small": 0,
+  "errs": []
+ },
+ {
+  "vp": "mobile",
+  "theme": "dark",
+  "role": "productor",
+  "route": "#/cuenta",
+  "hscroll": false,
+  "h1": "Cuenta",
+  "small": 0,
+  "errs": []
+ },
+ {
+  "vp": "mobile",
+  "theme": "dark",
+  "role": "admin",
+  "route": "#/hoy",
+  "hscroll": false,
+  "h1": "Hoy",
+  "small": 0,
+  "errs": []
+ },
+ {
+  "vp": "mobile",
+  "theme": "dark",
+  "role": "admin",
+  "route": "#/directorio",
+  "hscroll": false,
+  "h1": "Clientes",
+  "small": 0,
+  "errs": []
+ },
+ {
+  "vp": "mobile",
+  "theme": "dark",
+  "role": "admin",
+  "route": "#/directorio?area=3&tab=ciclos",
+  "hscroll": false,
+  "h1": "Clientes",
+  "small": 0,
+  "errs": []
+ },
+ {
+  "vp": "mobile",
+  "theme": "dark",
+  "role": "admin",
+  "route": "#/red/equipos",
+  "hscroll": false,
+  "h1": "Red",
+  "small": 0,
+  "errs": []
+ },
+ {
+  "vp": "mobile",
+  "theme": "dark",
+  "role": "admin",
+  "route": "#/red/nodos",
+  "hscroll": false,
+  "h1": "Red",
+  "small": 0,
+  "errs": []
+ },
+ {
+  "vp": "mobile",
+  "theme": "dark",
+  "role": "admin",
+  "route": "#/ajustes/catalogo",
+  "hscroll": false,
+  "h1": "Ajustes",
+  "small": 0,
+  "errs": []
+ },
+ {
+  "vp": "mobile",
+  "theme": "dark",
+  "role": "admin",
+  "route": "#/ajustes/auditoria",
+  "hscroll": false,
+  "h1": "Ajustes",
+  "small": 0,
+  "errs": []
+ }
+]

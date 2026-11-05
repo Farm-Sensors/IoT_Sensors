@@ -26,7 +26,8 @@ async function loginAndSave(baseURL: string, user: typeof ADMIN, path: string) {
 
 export default async function globalSetup(config: FullConfig) {
   const baseURL = config.projects[0].use.baseURL ?? "http://localhost:5173";
-  const up = (await isUp("http://localhost:5050/health")) && (await isUp(`${baseURL}/`));
+  const backend = process.env.E2E_BACKEND_URL || "http://localhost:5050";
+  const up = (await isUp(`${backend}/health`)) && (await isUp(`${baseURL}/`));
   if (!up) {
     throw new Error("Levanta el stack local con make dev");
   }

@@ -30,7 +30,7 @@ const BINDING_LABELS: Record<string, string> = {
 };
 
 const PRIMARY_LINK =
-  "inline-flex items-center justify-center rounded-full bg-[var(--accent-primary)] px-6 py-2.5 font-medium text-[var(--text-inverted)] hover:opacity-90 focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus-ring)] focus-visible:ring-offset-2";
+  "inline-flex items-center justify-center rounded-[var(--radius)] bg-[var(--accent-primary)] px-6 py-2.5 font-medium text-[var(--text-inverted)] hover:opacity-90 focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus-ring)] focus-visible:ring-offset-2";
 
 type SlotNode = {
   name: string | null;
@@ -114,7 +114,7 @@ export function GatewayDetail() {
   if (loading && !gateway) {
     return (
       <PageTransition>
-        <p role="status">Cargando…</p>
+        <p role="status" className="p-4 md:p-8">Cargando…</p>
       </PageTransition>
     );
   }
@@ -122,7 +122,7 @@ export function GatewayDetail() {
   if (!gateway) {
     return (
       <PageTransition>
-        <div className="space-y-4">
+        <div className="space-y-4 p-4 md:p-8">
           <p role="alert" className="text-[var(--status-danger-text)]">
             {error || "Equipo no encontrado"}
           </p>
@@ -139,7 +139,7 @@ export function GatewayDetail() {
 
   return (
     <PageTransition>
-      <div className="space-y-6">
+      <div className="space-y-6 p-4 md:p-8">
         <div className="space-y-3">
           {backLink}
           <PageHeader title={gatewayRanchLabel(gateway)} />
@@ -226,7 +226,7 @@ export function GatewayDetail() {
                   className="inline-flex min-h-[44px] items-center rounded text-sm font-medium underline underline-offset-4"
                   to="/admin/gateways/pair"
                 >
-                  Cambiar el equipo de este rancho
+                  Cambiar el equipo de este predio
                 </Link>
               )}
               <RevokeLinkButton gateway={gateway} onRevoked={load} />

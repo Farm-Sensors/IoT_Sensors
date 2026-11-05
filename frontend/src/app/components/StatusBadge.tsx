@@ -4,10 +4,10 @@ import { type ReactNode } from "react";
 export type StatusTone = "active" | "warning" | "danger" | "info" | "neutral";
 
 const TONES: Record<StatusTone, { bg: string; icon: string }> = {
-  active: { bg: "bg-[var(--status-active-bg)]", icon: "text-[var(--status-active)]" },
-  warning: { bg: "bg-[var(--status-warning-bg)]", icon: "text-[var(--status-warning)]" },
-  danger: { bg: "bg-[var(--status-danger-bg)]", icon: "text-[var(--status-danger)]" },
-  info: { bg: "bg-[var(--status-info-bg)]", icon: "text-[var(--status-info)]" },
+  active: { bg: "bg-[var(--status-active-bg)]", icon: "text-[var(--status-active-text)]" },
+  warning: { bg: "bg-[var(--status-warning-bg)]", icon: "text-[var(--status-warning-text)]" },
+  danger: { bg: "bg-[var(--status-danger-bg)]", icon: "text-[var(--status-danger-text)]" },
+  info: { bg: "bg-[var(--status-info-bg)]", icon: "text-[var(--status-info-text)]" },
   neutral: { bg: "bg-[var(--card-sand)]", icon: "text-[var(--text-muted)]" },
 };
 

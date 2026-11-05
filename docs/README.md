@@ -49,6 +49,7 @@ Comportamiento del sistema, por capacidad. Todo cambio de comportamiento parte d
 | `data-model.md` | Modelo de datos: tablas, relaciones, ERD, consultas de referencia |
 | `security.md` | Mecanismos de seguridad y pendientes |
 | `design-system.md` | Design system del frontend (tokens reales) |
+| `redesign/` | Rediseño de la interfaz. **Empieza por `redesign/README.md`** (v2: auditoría, paridad, prototipos). La implementación de v2 aún no está autorizada; la app es la de `main` |
 | `deployment.md` | Despliegue en Dokploy (manual: un push a `main` no redespliega) |
 | `integration/README.md` | Integración gateway v2 con Agro.io: flujo verificado y responsables |
 | `integration/gateway-v2-cutover-runbook.md` | Verificación de corte y rollback |

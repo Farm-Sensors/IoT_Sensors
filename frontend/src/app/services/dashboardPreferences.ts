@@ -22,11 +22,11 @@ export const DASHBOARD_CARD_LABELS: Record<DashboardCardKey, string> = {
   "priority.humidity": "Humedad del Suelo",
   "priority.flow": "Flujo de Agua",
   "priority.eto": "E.T.O.",
-  "irrigation.status": "Estado del Riego",
-  "soil.details": "Suelo",
-  "soil.chart": "Gráfica de humedad (últimas 12 lecturas)",
-  "environmental.details": "Ambiental",
-  "sources.external": "Fuentes externas",
+  "irrigation.status": "Estado del riego (junto a «Datos actuales»)",
+  "soil.details": "Otras mediciones: suelo",
+  "soil.chart": "Gráfica de humedad (últimas 24 h)",
+  "environmental.details": "Otras mediciones: ambiente",
+  "sources.external": "Fuentes externas (clima de referencia y NDVI)",
 };
 
 /**

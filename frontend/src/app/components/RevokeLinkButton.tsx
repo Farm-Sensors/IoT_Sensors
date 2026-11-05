@@ -7,7 +7,7 @@ import { getErrorMessage } from "../utils/errors";
 
 export const REVOKE_LINK_DESCRIPTION =
   "El equipo dejará de poder enviar datos. Las lecturas ya recibidas se conservan. " +
-  "Para volver a usar este equipo en este u otro rancho, en la pantalla del equipo toca " +
+  "Para volver a usar este equipo en este u otro predio, en la pantalla del equipo toca " +
   "«Desvincular equipo» y después crea el enlace de nuevo en Equipos.";
 
 interface RevokeLinkButtonProps {
@@ -20,7 +20,7 @@ interface RevokeLinkButtonProps {
 
 const VARIANT_CLASSES = {
   button:
-    "rounded-full border border-[var(--status-danger-text)] px-5 py-2 text-sm hover:bg-[var(--status-danger-bg)]",
+    "rounded-[var(--radius)] border border-[var(--status-danger-text)] px-5 py-2 text-sm hover:bg-[var(--status-danger-bg)]",
   link: "rounded text-sm underline underline-offset-4 hover:no-underline",
 };
 
