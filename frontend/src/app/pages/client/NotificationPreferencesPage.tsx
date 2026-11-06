@@ -275,7 +275,7 @@ export function NotificationPreferencesPage() {
           </p>
         )}
 
-        <div className="mb-6 flex items-center justify-between gap-4 rounded-[var(--radius)] border border-[var(--border)] bg-[var(--card)] p-4">
+        <div className="focus-block mb-6 flex items-center justify-between gap-4 rounded-[var(--radius)] p-4">
           <div>
             <h2 className="text-base font-semibold text-[var(--text-title)]">Recibir avisos fuera de la plataforma</h2>
             <p className="text-sm text-[var(--text-subtle)]">

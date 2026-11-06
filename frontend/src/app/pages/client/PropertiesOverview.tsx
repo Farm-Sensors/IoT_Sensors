@@ -1,3 +1,4 @@
+import { FocusBlock } from "../../components/FocusBlock";
 import { ArrowDown, ArrowLeft, ArrowRight, ArrowUp, ChevronRight, GripVertical, Pencil, RotateCcw, Warehouse } from "lucide-react";
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { Link } from "react-router";
@@ -251,10 +252,6 @@ export function PropertiesOverview() {
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
             <h1 className="text-[22px] font-semibold md:text-2xl">Mis predios</h1>
-            <p role="status" className="mt-1 text-base">
-              <b className="font-semibold">{summary.reporting} de {summary.total} áreas al día</b>
-              {problems.length > 0 && <span className="text-[var(--status-danger-text)]"> · {problems.join(" · ")}</span>}
-            </p>
           </div>
           <div className="flex flex-wrap gap-2">
             {editing && hasCustomOrder && (
@@ -279,6 +276,12 @@ export function PropertiesOverview() {
           </p>
         )}
       </header>
+      <FocusBlock
+        className="mt-5"
+        value={<>{summary.reporting}<span className="text-[var(--text-muted)]"> / {summary.total}</span></>}
+        label="áreas al día"
+        hint={problems.length > 0 ? problems.join(" · ") : "Todos tus nodos están enviando datos."}
+      />
 
       {withRows.map(({ property: p, rows: list }) => {
         const ok = list.filter((r) => r.state === "al_dia").length;
@@ -311,7 +314,7 @@ export function PropertiesOverview() {
                     <button type="button" onClick={() => movePropertyBy(p.id, 1)} disabled={propertyIds.indexOf(p.id) === propertyIds.length - 1} aria-label={`Bajar ${p.name}`} title="Bajar" className="inline-flex h-9 w-9 items-center justify-center rounded-[var(--radius)] text-[var(--text-muted)] hover:bg-[var(--hover-overlay)] disabled:opacity-30 focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus-ring)]"><ArrowDown aria-hidden="true" className="h-4 w-4" /></button>
                   </span>
                 )}
-                <h2 id={`predio-${p.id}`} className="text-lg font-semibold">{p.name}</h2>
+                <h2 id={`predio-${p.id}`} className="group-title text-lg">{p.name}</h2>
                 <p className={`text-sm ${bad ? "font-medium text-[var(--status-danger-text)]" : "text-[var(--text-muted)]"}`}>
                   {hectares > 0 ? `${hectares} ha · ` : ""}{list.length} {list.length === 1 ? "área" : "áreas"}{bad ? ` · ${ok} al día` : ""}
                 </p>

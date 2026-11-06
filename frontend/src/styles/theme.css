@@ -13,20 +13,20 @@
   --brand-lime:   #8BC34A;
   --brand-mist:   #E8F5E9;
 
-  --bg-base:          #F1F4F1;   /* crema suave */
-  --bg-surface:       #F8FAF8;   /* hueso claro */
+  --bg-base:          #F3F6F1;   /* crema suave */
+  --bg-surface:       #FFFFFF;   /* hueso claro */
   --bg-elevated:      #FFFFFF;
   --bg-input:         transparent;
 
   /* --- Light Agricultural Colors --- */
   --accent-primary:   #00450D;   /* verde bosque (marca) */
-  --accent-gold:      #5B6770;   /* marrón dorado */
+  --accent-gold:      #4F6B55;   /* marrón dorado */
   --accent-glow:      rgba(0, 69, 13, 0.12);
-  --accent-gold-glow: rgba(91, 103, 112, 0.12);
+  --accent-gold-glow: rgba(79, 107, 85, 0.12);
 
   /* --- Light Text --- */
-  --text-primary:     #1F2937;   /* marrón casi negro */
-  --text-secondary:   #47525B;   /* marrón grisáceo */
+  --text-primary:     #12261A;   /* marrón casi negro */
+  --text-secondary:   #3F5A45;   /* marrón grisáceo */
   --text-inverted:    #FFFFFF;   /* crema, sobre fondos oscuros */
   --text-on-dark:     #FFFFFF;   /* Siempre claro, para tarjetas oscuras */
 
@@ -48,10 +48,10 @@
 
   /* --- Light Borders & Shadows --- */
   --accent-soft:      #E8F5E9;
-  --border-glass:     rgba(31, 41, 55, 0.10);
-  --border-subtle:    rgba(31, 41, 55, 0.06);
-  --border-strong:    rgba(31, 41, 55, 0.18);
-  --shadow-soft:      0 1px 2px rgba(31, 41, 55, 0.06);
+  --border-glass:     rgba(0, 69, 13, 0.10);
+  --border-subtle:    rgba(0, 69, 13, 0.06);
+  --border-strong:    rgba(0, 69, 13, 0.18);
+  --shadow-soft:      0 1px 2px rgba(0, 69, 13, 0.06);
 
   /* --- Typography --- */
   --font-serif:   'Plus Jakarta Sans', system-ui, sans-serif;
@@ -67,64 +67,64 @@
   --text-body:                var(--text-main);
   --text-subtle:              var(--text-muted);
   --focus-ring:               var(--accent-primary);
-  --hover-overlay:            rgba(31, 41, 55, 0.05);
-  --pressed-overlay:          rgba(31, 41, 55, 0.10);
+  --hover-overlay:            rgba(0, 69, 13, 0.05);
+  --pressed-overlay:          rgba(0, 69, 13, 0.10);
   --disabled-opacity:         0.5;
-  --outline-contrast:         rgba(31, 41, 55, 0.25);
+  --outline-contrast:         rgba(0, 69, 13, 0.25);
   --chart-priority-1:         var(--accent-primary);
   --chart-priority-2:         var(--accent-brown);
   --chart-priority-3:         var(--card-brown);
 
   /* --- Legacy vars (backward compat) --- */
   --card-light:       #FFFFFF;
-  --card-sand:        #E6EBE6;
-  --card-dark:        #0F2A14;
-  --card-brown:       #3D4852;
+  --card-sand:        #DCE8DB;
+  --card-dark:        #0B2A12;
+  --card-brown:       #2F4A36;
   --accent-green:     #00450D;
-  --accent-brown:     #5B6770;
-  --text-main:        #1F2937;
-  --text-muted:       #47525B;
-  --progress-track:   #D3DAD3;
+  --accent-brown:     #4F6B55;
+  --text-main:        #12261A;
+  --text-muted:       #3F5A45;
+  --progress-track:   #D3DCCF;
 
   /* ── shadcn/ui standard vars (Light) ── */
   --font-size:                    16px;
-  --background:                   #F1F4F1;
-  --foreground:                   #1F2937;
+  --background:                   #F3F6F1;
+  --foreground:                   #12261A;
   --card:                         #FFFFFF;
-  --card-foreground:              #1F2937;
+  --card-foreground:              #12261A;
   --popover:                      #FFFFFF;
-  --popover-foreground:           #1F2937;
+  --popover-foreground:           #12261A;
   --primary:                      #00450D;
   --primary-foreground:           #FFFFFF;
-  --secondary:                    #E6EBE6;
-  --secondary-foreground:         #1F2937;
-  --muted:                        #E6EBE6;
-  --muted-foreground:             #47525B;
+  --secondary:                    #DCE8DB;
+  --secondary-foreground:         #12261A;
+  --muted:                        #DCE8DB;
+  --muted-foreground:             #3F5A45;
   --accent:                       #E8F5E9;
-  --accent-foreground:            #1F2937;
+  --accent-foreground:            #12261A;
   --destructive:                  #d4183d;
   --destructive-foreground:       #ffffff;
-  --border:                       #D3DAD3;
+  --border:                       #D3DCCF;
   --input:                        transparent;
   --input-background:             #FFFFFF;
-  --switch-background:            #47525B;
+  --switch-background:            #3F5A45;
   --font-weight-medium:           500;
   --font-weight-normal:           400;
   --ring:                         #00450D;
   --chart-1:                      #00450D;
-  --chart-2:                      #5B6770;
-  --chart-3:                      #1F2937; /* text-main */
-  --chart-4:                      #47525B; /* text-muted */
-  --chart-5:                      #3D4852; /* card-brown */
+  --chart-2:                      #4F6B55;
+  --chart-3:                      #12261A; /* text-main */
+  --chart-4:                      #3F5A45; /* text-muted */
+  --chart-5:                      #2F4A36; /* card-brown */
   --radius:                       4px;
-  --sidebar:                      #FFFFFF;
-  --sidebar-foreground:           #1F2937;
-  --sidebar-primary:              #00450D;
-  --sidebar-primary-foreground:   #FFFFFF;
-  --sidebar-accent:               #E8F5E9;
-  --sidebar-accent-foreground:    #1F2937;
-  --sidebar-border:               #D3DAD3;
-  --sidebar-ring:                 #00450D;
+  --sidebar:                      #00450D;
+  --sidebar-foreground:           #E8F5E9;
+  --sidebar-primary:              #8BC34A;
+  --sidebar-primary-foreground:   #00450D;
+  --sidebar-accent:               rgba(255, 255, 255, 0.16);
+  --sidebar-accent-foreground:    #FFFFFF;
+  --sidebar-border:               rgba(255, 255, 255, 0.14);
+  --sidebar-ring:                 #8BC34A;
 }
 
 /* ============================================================
@@ -143,13 +143,13 @@
 
   /* --- Dark Agricultural Colors (derived semantically from light system) --- */
   --accent-primary:   #81C784;
-  --accent-gold:      #9BA6AE;
+  --accent-gold:      #A3B0A6;
   --accent-glow:      rgba(129, 199, 132, 0.16);
   --accent-gold-glow: rgba(155, 166, 174, 0.16);
 
   /* --- Dark Text --- */
   --text-primary:     #E6EDE6;
-  --text-secondary:   #9BA6AE;
+  --text-secondary:   #A3B0A6;
   --text-inverted:    #07200C;
   --text-on-dark:     #E6EDE6;
 
@@ -197,9 +197,9 @@
   --card-dark:        #0E1F12;
   --card-brown:       #232B31;
   --accent-green:     #81C784;
-  --accent-brown:     #9BA6AE;
+  --accent-brown:     #A3B0A6;
   --text-main:        #E6EDE6;
-  --text-muted:       #9BA6AE;
+  --text-muted:       #A3B0A6;
   --progress-track:   rgba(230, 237, 230, 0.16);
 
   /* ── shadcn/ui standard vars (Dark) ── */
@@ -214,7 +214,7 @@
   --secondary:                    #1C221D;
   --secondary-foreground:         #E6EDE6;
   --muted:                        #1C221D;
-  --muted-foreground:             #9BA6AE;
+  --muted-foreground:             #A3B0A6;
   --accent:                       #1A2E1C;
   --accent-foreground:            #E6EDE6;
   --destructive:                  #F87171;
@@ -222,14 +222,14 @@
   --border:                       #2B332C;
   --input:                        #191F1A;
   --input-background:             #191F1A;
-  --switch-background:            #9BA6AE;
+  --switch-background:            #A3B0A6;
   --ring:                         #81C784;
   --chart-1:                      #81C784;
-  --chart-2:                      #9BA6AE;
+  --chart-2:                      #A3B0A6;
   --chart-3:                      #E6EDE6;
-  --chart-4:                      #9BA6AE;
+  --chart-4:                      #A3B0A6;
   --chart-5:                      #3D4852;
-  --sidebar:                      #151A16;
+  --sidebar:                      #0B100D;
   --sidebar-foreground:           #E6EDE6;
   --sidebar-primary:              #81C784;
   --sidebar-primary-foreground:   #07200C;
@@ -366,7 +366,7 @@
 
 .glass-card {
   background: var(--bg-surface);
-  border: 1px solid var(--border-glass);
+  border: 1px solid var(--border);
   box-shadow: var(--shadow-soft);
   transition: all 0.3s ease;
 }
@@ -664,3 +664,76 @@
 .map-pin span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 100%; }
 .map-pin:focus-visible, .map-pin.is-selected { outline: 2px solid var(--focus-ring); outline-offset: 2px; z-index: 2; }
 .map-pin.is-selected { border-color: var(--accent-primary); }
+
+/* ============================================================
+   LISTAS Y TABLAS — el verde de marca da la jerarquía
+   Encabezados de tabla con fondo suave, filas que responden al cursor y
+   títulos de grupo con una marca a la izquierda. Funcionan igual en tema claro y oscuro.
+   ============================================================ */
+
+thead th {
+  background: var(--accent-soft);
+  color: var(--accent-green);
+}
+
+[class*="divide-y"] > li:hover,
+tbody tr:hover {
+  background: var(--accent-soft);
+}
+
+.group-title {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--accent-green);
+  font-weight: 600;
+}
+
+.group-title::before {
+  content: "";
+  width: 3px;
+  height: 1em;
+  border-radius: 2px;
+  background: var(--brand-lime);
+}
+
+/* Riel de estado: una marca de 4 px a la izquierda de la fila (verde = bien, rojo = sin comunicación, gris = por configurar). */
+[data-tone] { position: relative; }
+[data-tone]::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 4px;
+  z-index: 1;
+  background: var(--tone-color, var(--brand-green));
+}
+[data-tone="bad"]  { --tone-color: var(--status-danger-text); }
+[data-tone="info"] { --tone-color: var(--status-info-text); }
+[data-tone="muted"] { --tone-color: var(--border-strong); }
+[data-tone="none"] { --tone-color: var(--border-strong); }
+
+/* Bloque verde sólido: el dato principal de la pantalla. Reasigna los tokens de texto para que
+   cualquier contenido que ya use --text-main, --text-muted, --border o --progress-track se vea bien dentro. */
+.focus-block {
+  background: var(--brand-forest);
+  color: #fff;
+  border: 0;
+  --text-main: #fff;
+  --text-primary: #fff;
+  --text-title: #fff;
+  --text-body: #fff;
+  --text-muted: #BFE0C2;
+  --text-subtle: #BFE0C2;
+  --border: rgba(255, 255, 255, 0.22);
+  --progress-track: rgba(255, 255, 255, 0.22);
+  --accent-primary: #8BC34A;
+  --accent-soft: #8BC34A;
+  --accent-green: #fff;
+}
+
+.dark .focus-block {
+  background: #123B1C;
+  border: 1px solid var(--border-strong);
+}

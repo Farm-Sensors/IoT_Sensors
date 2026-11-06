@@ -150,10 +150,10 @@ export function CropCycleManagement({ areaId }: { areaId?: number } = {}) {
               // Primero las áreas sin ciclo activo: son las que necesitan atención.
               .sort((x, y) => Number(Boolean(x.active)) - Number(Boolean(y.active)) || x.area.name.localeCompare(y.area.name))
               .map(({ area, own, active }) => (
-                <li key={area.id} className="px-4 py-3">
+                <li key={area.id} data-tone={active ? "ok" : "bad"} className="px-4 py-3">
                   <div className="flex flex-wrap items-center justify-between gap-3">
                     <div className="min-w-0">
-                      <h2 className="truncate text-base font-semibold">{area.name}</h2>
+                      <h2 className="truncate text-base font-semibold text-[var(--accent-green)]">{area.name}</h2>
                       <p className={`text-sm ${active ? "text-[var(--text-muted)]" : "text-[var(--status-danger-text)]"}`}>
                         {active ? `Ciclo activo desde ${shortDate(active.start_date)}${active.end_date ? ` · termina ${shortDate(active.end_date)}` : ""}` : "Sin ciclo activo"}
                       </p>

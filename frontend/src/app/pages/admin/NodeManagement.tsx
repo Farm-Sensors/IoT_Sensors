@@ -339,12 +339,12 @@ export function NodeManagement({ areaId }: { areaId?: number } = {}) {
         <div className="space-y-6">
           {rowsByProperty.map((group) => (
             <section key={group.name} aria-label={group.name}>
-              <h2 className="mb-1 flex items-center gap-2 text-sm font-semibold">{group.name}<span className="font-mono-data font-normal text-[var(--text-muted)]">{group.items.length}</span></h2>
+              <h2 className="group-title mb-1 text-sm">{group.name}<span className="font-mono-data font-normal text-[var(--text-muted)]">{group.items.length}</span></h2>
               <ul className={listBox}>
                 {group.items.map(({ node, area, last, state }) => {
                   const label = node.name || node.serial_number || `Nodo #${node.id}`;
                   return (
-                    <li key={node.id} className="flex items-stretch">
+                    <li key={node.id} data-tone={state === "sin_comunicacion" ? "bad" : state === "al_dia" ? "ok" : "muted"} className="flex items-stretch">
                       <Link to={`/admin/nodos/${node.id}`} className={`${rowLink} min-w-0 flex-1`}>
                         <span className="min-w-0 flex-1 max-sm:basis-full">
                           <span className="block truncate font-semibold">{area?.name ?? "Área desconocida"}</span>

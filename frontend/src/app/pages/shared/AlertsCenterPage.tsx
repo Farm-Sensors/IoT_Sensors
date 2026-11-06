@@ -19,6 +19,7 @@ import {
 } from "../../services/alerts";
 import { parseBackendTimestamp } from "../../utils/datetime";
 import { describeReading, SEVERITY_META, TYPE_LABEL } from "./alertFormat";
+import { FocusBlock } from "../../components/FocusBlock";
 
 type ReadFilter = "all" | "read" | "unread";
 
@@ -335,14 +336,7 @@ export function AlertsCenterPage() {
         <div className="mb-5 flex flex-wrap items-start justify-between gap-3">
           <div>
             <h1 className="text-2xl font-semibold text-[var(--text-title)] md:text-3xl">{isAdmin ? "Todas las alertas" : "Mis alertas"}</h1>
-            <p className="mt-1 text-sm text-[var(--text-subtle)]">
-              {unreadTotal > 0 ? (
-                <span className="font-semibold text-[var(--text-main)]">{unreadTotal === 1 ? "1 sin leer" : `${unreadTotal} sin leer`}</span>
-              ) : (
-                "Todo leído"
-              )}
-              {updatedAt ? ` · Actualizado a las ${format(updatedAt, "HH:mm")}` : ""}
-            </p>
+            {updatedAt && <p className="mt-1 text-sm text-[var(--text-subtle)]">Actualizado a las {format(updatedAt, "HH:mm")}</p>}
           </div>
           <div className="flex flex-wrap gap-2">
             <button type="button" onClick={markAllAsRead} disabled={markingAllRead || unreadTotal === 0} className={quietButton}>
@@ -355,6 +349,13 @@ export function AlertsCenterPage() {
             </button>
           </div>
         </div>
+
+        <FocusBlock
+          className="mb-4"
+          value={unreadTotal}
+          label={unreadTotal === 1 ? "alerta sin leer" : "alertas sin leer"}
+          hint={unreadTotal > 0 ? "Empieza por las críticas, que van marcadas en rojo." : "Estás al día: no tienes nada pendiente."}
+        />
 
         <div className="mb-4 rounded-[var(--radius)] border border-[var(--border)] bg-[var(--card)] p-3">
           <div className="flex flex-wrap items-center gap-2">

@@ -8,7 +8,7 @@ import { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router";
 import type { ReactNode } from "react";
 import { useEmbedded } from "../../components/EmbeddedPanel";
-import { HealthBadge, PanelHeader, listBox, panelButton, panelButtonDanger, panelButtonPrimary, placeLabel, rowLink, type Health } from "./directory/Health";
+import { EMPTY_HEALTH, HealthBadge, healthLabel, PanelHeader, listBox, panelButton, panelButtonDanger, panelButtonPrimary, placeLabel, rowLink, type Health } from "./directory/Health";
 import { BentoCard } from "../../components/BentoCard";
 import { EmptyState } from "../../components/EmptyState";
 import { PageTransition } from "../../components/PageTransition";
@@ -235,7 +235,7 @@ export function PropertyManagement({ clientId: clientIdProp, propertyId, meta, h
         ) : (
           <ul className={listBox}>
             {properties.map((prop) => (
-              <li key={prop.id}>
+              <li key={prop.id} data-tone={healthLabel(health?.[prop.id] ?? EMPTY_HEALTH).tone}>
                 <Link to={`/admin/predios/${prop.id}/areas`} className={rowLink}>
                   <span className="min-w-0">
                     <span className="block truncate font-semibold">{prop.name}</span>

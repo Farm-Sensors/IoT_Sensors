@@ -78,7 +78,7 @@ export function AreaDetails() {
 
   return (
     <div className="grid gap-4 md:grid-cols-2">
-      <section aria-labelledby="det-ciclo" className={card}>
+      <section aria-labelledby="det-ciclo" className={`${card} focus-block self-start`}>
         <h2 id="det-ciclo" className="mb-3 text-base font-semibold">Ciclo de cultivo</h2>
         {active ? (
           <>

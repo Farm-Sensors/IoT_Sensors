@@ -16,6 +16,7 @@ import { PageHeader } from "../../components/PageHeader";
 import { PageTransition } from "../../components/PageTransition";
 import { PairingApprovalPanel } from "../../components/PairingApprovalPanel";
 import { PillButton } from "../../components/PillButton";
+import { FocusBlock } from "../../components/FocusBlock";
 import { RevokeLinkButton } from "../../components/RevokeLinkButton";
 import { useToast } from "../../components/Toast";
 import { api } from "../../services/api";
@@ -422,7 +423,7 @@ export function GatewayManagement() {
     const heartbeat = parseBackendTimestamp(status?.last_heartbeat_at ?? null);
     const lastTalk = state === "unlinked" ? null : heartbeat ? `Última comunicación ${formatAgo(minutesSince(heartbeat))}` : "Sin comunicación todavía";
     return (
-      <li key={gateway.id} className="flex flex-wrap items-center justify-between gap-x-6 gap-y-3 px-4 py-3">
+      <li key={gateway.id} data-tone={state === "working" ? "ok" : state === "stale" ? "bad" : state === "assigning" ? "info" : "muted"} className="flex flex-wrap items-center justify-between gap-x-6 gap-y-3 px-4 py-3">
         <div className="min-w-0">
           <h2 className="truncate text-base font-semibold text-[var(--text-main)]">{label}</h2>
           <p className="mt-0.5 text-sm text-[var(--text-muted)]">
@@ -457,9 +458,24 @@ export function GatewayManagement() {
           />
         </BentoCard>
       ) : (
-        <ul aria-label="Equipos" className={listBox}>
-          {currentLinks.map(renderCard)}
-        </ul>
+        <>
+          {(() => {
+            const states = currentLinks.map((gateway) => equipoState(gateway, statuses[gateway.id]));
+            const working = states.filter((s) => s === "working").length;
+            const stale = states.filter((s) => s === "stale").length;
+            const pending = states.length - working - stale;
+            return (
+              <FocusBlock
+                                value={<>{working}<span className="text-[var(--text-muted)]"> / {states.length}</span></>}
+                label={working === 1 ? "equipo funcionando" : "equipos funcionando"}
+                hint={stale + pending === 0 ? "Todos los equipos están enviando datos." : [stale ? `${stale} sin datos recientes` : "", pending ? `${pending} por completar` : ""].filter(Boolean).join(" · ")}
+              />
+            );
+          })()}
+          <ul aria-label="Equipos" className={listBox}>
+            {currentLinks.map(renderCard)}
+          </ul>
+        </>
       )}
       {revokedLinks.length > 0 && (
         <details className="group rounded-[var(--radius)] border border-[var(--border)] bg-[var(--card)]">
@@ -745,7 +761,8 @@ export function GatewayManagement() {
           return (
             <li
               key={title}
-              className="flex items-center gap-3 rounded-2xl border border-[var(--border-subtle)] px-4 py-3 text-sm"
+              data-tone={done ? "ok" : "muted"}
+              className="flex items-center gap-3 rounded-[var(--radius)] border border-[var(--border)] bg-[var(--card)] px-4 py-3 text-sm"
             >
               <span
                 aria-hidden="true"

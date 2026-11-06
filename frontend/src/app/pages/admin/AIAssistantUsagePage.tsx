@@ -33,9 +33,9 @@ function formatDateTime(value?: string | null): string {
 
 const number = (n: number) => n.toLocaleString("es-MX");
 
-function Stat({ label, value, hint }: { label: string; value: string; hint?: string }) {
+function Stat({ label, value, hint, strong = false }: { label: string; value: string; hint?: string; strong?: boolean }) {
   return (
-    <div className="rounded-[var(--radius)] border border-[var(--border)] bg-[var(--card)] px-4 py-3">
+    <div className={`rounded-[var(--radius)] border border-[var(--border)] bg-[var(--card)] px-4 py-3 ${strong ? "focus-block" : ""}`}>
       <p className="text-xs text-[var(--text-muted)]">{label}</p>
       <p className="font-mono-data text-xl font-medium text-[var(--text-main)]">{value}</p>
       {hint && <p className="text-xs text-[var(--text-muted)]">{hint}</p>}
@@ -197,7 +197,7 @@ export function AIAssistantUsagePage() {
         </div>
 
         <section aria-label="Resumen del periodo" className="mb-5 grid grid-cols-2 gap-3 md:grid-cols-4">
-          <Stat label="Preguntas" value={number(summary.total_requests)} />
+          <Stat strong label="Preguntas" value={number(summary.total_requests)} />
           <Stat label="Respondidas bien" value={successRatio} hint={problems > 0 ? `${number(problems)} con error o límite` : undefined} />
           <Stat
             label="Respuestas"

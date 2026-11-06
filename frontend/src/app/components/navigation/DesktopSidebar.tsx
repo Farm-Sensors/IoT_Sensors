@@ -31,7 +31,7 @@ export function DesktopSidebar({ role }: DesktopSidebarProps) {
   return (
     <div className="glass-sidebar sticky top-0 flex h-screen w-[208px] shrink-0 flex-col self-start overflow-hidden">
       <div className="flex items-center gap-2.5 px-4 pb-4 pt-5">
-        <BrandSymbol className="h-10 w-10" />
+        <BrandSymbol onDark className="h-10 w-10" />
         <span className="text-[15px] font-semibold tracking-tight text-sidebar-foreground">Sensores Agrícolas</span>
       </div>
 
@@ -49,8 +49,8 @@ export function DesktopSidebar({ role }: DesktopSidebarProps) {
               className={`flex min-h-[44px] items-center gap-3 rounded-[var(--radius)] px-3 text-sm transition-colors
                 focus:outline-none focus-visible:ring-2 focus-visible:ring-sidebar-ring
                 ${isActive
-                  ? "bg-sidebar-accent font-semibold text-sidebar-accent-foreground"
-                  : "text-sidebar-foreground/75 hover:bg-[var(--hover-overlay)] hover:text-sidebar-foreground"
+                  ? "bg-sidebar-accent font-semibold text-sidebar-accent-foreground shadow-[inset_3px_0_0_var(--sidebar-primary)]"
+                  : "text-sidebar-foreground/75 hover:bg-white/10 hover:text-sidebar-foreground"
                 }`}
             >
               <Icon aria-hidden="true" className="h-[18px] w-[18px] flex-shrink-0" />
@@ -68,7 +68,7 @@ export function DesktopSidebar({ role }: DesktopSidebarProps) {
           </div>
           <button
             onClick={toggleTheme}
-            className="inline-flex h-11 w-11 items-center justify-center rounded-[var(--radius)] text-sidebar-foreground/75 transition-colors hover:bg-[var(--hover-overlay)] focus:outline-none focus-visible:ring-2 focus-visible:ring-sidebar-ring"
+            className="inline-flex h-11 w-11 items-center justify-center rounded-[var(--radius)] text-sidebar-foreground/75 transition-colors hover:bg-white/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-sidebar-ring"
             aria-label={theme === "light" ? "Cambiar a tema oscuro" : "Cambiar a tema claro"}
             title="Cambiar tema"
           >
@@ -76,7 +76,7 @@ export function DesktopSidebar({ role }: DesktopSidebarProps) {
           </button>
           <button
             onClick={handleLogout}
-            className="inline-flex h-11 w-11 items-center justify-center rounded-[var(--radius)] text-sidebar-foreground/75 transition-colors hover:bg-destructive/10 hover:text-destructive focus:outline-none focus-visible:ring-2 focus-visible:ring-sidebar-ring"
+            className="inline-flex h-11 w-11 items-center justify-center rounded-[var(--radius)] text-sidebar-foreground/75 transition-colors hover:bg-white/10 hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-sidebar-ring"
             aria-label="Cerrar sesión"
             title="Cerrar sesión"
           >

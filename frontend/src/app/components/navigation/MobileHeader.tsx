@@ -27,9 +27,9 @@ export function MobileHeader({ role }: { role: "client" | "admin" }) {
   }, [open]);
 
   return (
-    <header className="sticky top-0 z-40 flex h-14 items-center justify-between border-b border-sidebar-border bg-sidebar px-3">
+    <header className="sticky top-0 z-40 flex h-14 items-center justify-between border-b border-sidebar-border bg-sidebar px-3 text-sidebar-foreground">
       <span className="flex items-center gap-2 text-[15px] font-semibold tracking-tight">
-        <BrandSymbol className="h-9 w-9" />
+        <BrandSymbol onDark className="h-9 w-9" />
         Sensores Agrícolas
       </span>
       <div ref={ref} className="relative">
@@ -43,8 +43,8 @@ export function MobileHeader({ role }: { role: "client" | "admin" }) {
           <User aria-hidden="true" className="h-5 w-5" />
         </button>
         {open && (
-          <div role="menu" className="absolute right-0 top-12 w-56 rounded-[var(--radius)] border border-sidebar-border bg-popover p-1.5 shadow-lg">
-            <p className="border-b border-sidebar-border px-3 py-2 text-sm text-muted-foreground">
+          <div role="menu" className="absolute right-0 top-12 w-56 rounded-[var(--radius)] border border-border bg-popover p-1.5 text-popover-foreground shadow-lg">
+            <p className="border-b border-border px-3 py-2 text-sm text-muted-foreground">
               {user?.nombre || "Usuario"} · {role === "client" ? "Productor" : "Administración"}
             </p>
             <button role="menuitem" onClick={() => { toggleTheme(); setOpen(false); }} className="flex min-h-[44px] w-full items-center gap-3 rounded-[var(--radius)] px-3 text-left text-sm hover:bg-[var(--hover-overlay)]">

@@ -53,8 +53,8 @@ const METRICS: Metric[] = [
   { id: "airTemp", label: "Temp. aire", unit: "°C", decimals: 1, zero: false, slot: 4 },
   { id: "relativeHumidity", label: "H. relativa", unit: "%", decimals: 0, zero: false, slot: 6 },
 ];
-const COLORS_LIGHT = ["#2a78d6", "#eb6834", "#1baf7a", "#eda100", "#e87ba4", "#008300", "#6250d6", "#e34948"];
-const COLORS_DARK = ["#3987e5", "#d95926", "#199e70", "#c98500", "#d55181", "#008300", "#9085e9", "#e66767"];
+const COLORS_LIGHT = ["#00450D", "#eb6834", "#1baf7a", "#eda100", "#e87ba4", "#008300", "#6250d6", "#e34948"];
+const COLORS_DARK = ["#81C784", "#d95926", "#199e70", "#c98500", "#d55181", "#008300", "#9085e9", "#e66767"];
 
 function MetricPicker({ label, value, onChange }: { label: string; value: MetricId; onChange: (id: MetricId) => void }) {
   return (
