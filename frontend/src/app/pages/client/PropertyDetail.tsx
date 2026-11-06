@@ -30,7 +30,8 @@ function AreaCard({ row, now }: { row: AreaOverviewRow; now: number }) {
   return (
     <Link
       to={`/cliente/area/${row.area.id}`}
-      className={`group flex flex-col gap-4 rounded-[var(--radius)] border bg-[var(--card)] p-4 transition-colors hover:border-[var(--accent-primary)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus-ring)] ${ok ? "border-[var(--border-strong)]" : "border-l-4 border-[var(--border-strong)] border-l-[var(--status-danger-text)]"}`}
+      data-tone={ok ? "ok" : "bad"}
+      className="group flex flex-col gap-4 rounded-[var(--radius)] border border-[var(--border-strong)] bg-[var(--card)] p-4 pl-5 transition-colors hover:border-[var(--accent-primary)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus-ring)]"
     >
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
@@ -48,7 +49,7 @@ function AreaCard({ row, now }: { row: AreaOverviewRow; now: number }) {
           <div className={ok ? "" : "text-[var(--text-muted)]"}>
             <div className="text-xs text-[var(--text-muted)]">Humedad del suelo</div>
             {row.humidity === null ? <span className="text-2xl" title="Sin dato">—</span> : (
-              <span className="font-mono-data text-[34px] font-medium leading-tight">{row.humidity.toFixed(1)}<small className="ml-1 text-sm text-[var(--text-muted)]">%</small></span>
+              <span className={`font-mono-data text-[34px] font-medium leading-tight ${ok ? "text-[var(--accent-green)]" : ""}`}>{row.humidity.toFixed(1)}<small className="ml-1 text-sm text-[var(--text-muted)]">%</small></span>
             )}
           </div>
         </div>
@@ -118,7 +119,7 @@ export function PropertyDetail() {
         <div className="mt-8"><EmptyState icon={MapPin} title="Sin áreas de riego" description="Este predio todavía no tiene áreas. Contacta al administrador." /></div>
       ) : (
         <>
-          <dl className="mt-6 grid grid-cols-1 divide-y divide-[var(--border)] overflow-hidden rounded-[var(--radius)] border border-[var(--border)] bg-[var(--card)] sm:grid-cols-3 sm:divide-x sm:divide-y-0">
+          <dl className="focus-block mt-6 grid grid-cols-1 divide-y divide-[var(--border)] overflow-hidden rounded-[var(--radius)] sm:grid-cols-3 sm:divide-x sm:divide-y-0">
             <Fact label="Áreas al día" value={`${ok} de ${propertyAreas.length}`} note={ok < propertyAreas.length ? "las demás no reportan" : "todas reportan"} />
             <Fact label="Flujo ahora" value={flowNow === null ? "—" : `${flowNow.toFixed(1)} L/min`} note="suma de las áreas al día" />
             <Fact label="Riego encendido" value={`${irrigating} de ${okRows.length}`} note="áreas al día regando" />

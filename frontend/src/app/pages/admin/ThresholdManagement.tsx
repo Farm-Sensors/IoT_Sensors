@@ -4,6 +4,7 @@ import { useSearchParams } from "react-router";
 
 import { ConfirmDialog } from "../../components/ConfirmDialog";
 import { EmptyState } from "../../components/EmptyState";
+import { FocusBlock } from "../../components/FocusBlock";
 import { FormDialog } from "../../components/FormDialog";
 import { PageTransition } from "../../components/PageTransition";
 import { PillButton } from "../../components/PillButton";
@@ -265,6 +266,13 @@ export function ThresholdManagement() {
             Nuevo umbral
           </PillButton>
         </div>
+
+        <FocusBlock
+          className="mb-4"
+          value={thresholds.filter((item) => item.active).length}
+          label={thresholds.filter((item) => item.active).length === 1 ? "umbral activo" : "umbrales activos"}
+          hint={thresholds.some((item) => !item.active) ? `${thresholds.filter((item) => !item.active).length} en pausa` : "Ninguno en pausa."}
+        />
 
         {error && (
           <div role="alert" className="mb-4 rounded-[var(--radius)] border border-[var(--status-danger-text)]/30 bg-[var(--status-danger-bg)] p-3 text-sm text-[var(--status-danger-text)]">

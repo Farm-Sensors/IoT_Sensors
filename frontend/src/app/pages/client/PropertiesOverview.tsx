@@ -1,3 +1,4 @@
+import { FocusBlock } from "../../components/FocusBlock";
 import { ArrowDown, ArrowLeft, ArrowRight, ArrowUp, ChevronRight, GripVertical, Pencil, RotateCcw, Warehouse } from "lucide-react";
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { Link } from "react-router";
@@ -251,10 +252,6 @@ export function PropertiesOverview() {
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
             <h1 className="text-[22px] font-semibold md:text-2xl">Mis predios</h1>
-            <p role="status" className="mt-1 text-base">
-              <b className="font-semibold">{summary.reporting} de {summary.total} áreas al día</b>
-              {problems.length > 0 && <span className="text-[var(--status-danger-text)]"> · {problems.join(" · ")}</span>}
-            </p>
           </div>
           <div className="flex flex-wrap gap-2">
             {editing && hasCustomOrder && (
@@ -279,6 +276,12 @@ export function PropertiesOverview() {
           </p>
         )}
       </header>
+      <FocusBlock
+        className="mt-5"
+        value={<>{summary.reporting}<span className="text-[var(--text-muted)]"> / {summary.total}</span></>}
+        label="áreas al día"
+        hint={problems.length > 0 ? problems.join(" · ") : "Todos tus nodos están enviando datos."}
+      />
 
       {withRows.map(({ property: p, rows: list }) => {
         const ok = list.filter((r) => r.state === "al_dia").length;

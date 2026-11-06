@@ -722,12 +722,15 @@ tbody tr:hover {
   border: 0;
   --text-main: #fff;
   --text-primary: #fff;
+  --text-title: #fff;
+  --text-body: #fff;
   --text-muted: #BFE0C2;
   --text-subtle: #BFE0C2;
   --border: rgba(255, 255, 255, 0.22);
   --progress-track: rgba(255, 255, 255, 0.22);
   --accent-primary: #8BC34A;
   --accent-soft: #8BC34A;
+  --accent-green: #fff;
 }
 
 .dark .focus-block {

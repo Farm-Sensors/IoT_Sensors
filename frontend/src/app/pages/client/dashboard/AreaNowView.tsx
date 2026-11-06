@@ -67,7 +67,7 @@ export function AreaNowView({
   return (
     <div className="space-y-6">
       {shown.length > 0 && (
-        <section aria-label="Datos prioritarios" className={`${panel} border-t-[3px] border-t-[var(--brand-green)]`}>
+        <section aria-label="Datos prioritarios" className={`${panel} focus-block`}>
           <div className={`grid divide-y divide-[var(--border)] md:divide-x md:divide-y-0 ${shown.length === 1 ? "md:grid-cols-1" : shown.length === 2 ? "md:grid-cols-2" : "md:grid-cols-3"}`}>
             {shown.map((p) => (
               <div key={p.key} className="min-w-0 p-4 md:p-5">
