@@ -1,6 +1,5 @@
 import { useEffect, useRef } from "react";
 import { Link, useLocation } from "react-router";
-import { useModules } from "../../hooks/useModules";
 import { preloadMapRoutes } from "../../services/routePreload";
 import { isNavItemActive, navItemsFor } from "./items";
 
@@ -15,7 +14,7 @@ interface MobileTabBarProps {
  */
 export function MobileTabBar({ role }: MobileTabBarProps) {
   const location = useLocation();
-  const tabs = navItemsFor(role, useModules());
+  const tabs = navItemsFor(role);
   const activeRef = useRef<HTMLAnchorElement>(null);
   const scrolls = tabs.length > 6;
 

@@ -2,7 +2,7 @@
 
 > **Estado:** aprobada por JP («Asistente» sin «IA» y Consumo como pestaña) y aplicada. Menú de 5 destinos (productor) y 6 (admin), pestañas por módulo (`SectionTabs`), `?area=` en Alertas y Umbrales (`useAreaFromQuery`), línea «N alertas sin leer» en Área (`AreaAlertsLink`) y enlace a los umbrales del área en Detalles. En móvil, el administrador conserva sus 6 destinos y la barra los reparte por igual sin desplazarse (hasta 6; se mide a 360, 390 y 430 px sin textos recortados). Ajustes sigue en la barra, no en el menú de cuenta. Textos y estética de cada pantalla: siguiente etapa.
 
-Autorizado el 2026-11-01 (ver `../README.md`). Alcance: **solo navegación y arquitectura de información**; la estética va después. Sin cambios de backend, API, base de datos, permisos, flags ni lógica. Las rutas actuales **no cambian de dirección**; solo cambia dónde se llega a ellas y cómo se agrupan. Cada módulo sigue ocultándose con su flag.
+Autorizado el 2026-11-01 (ver `../README.md`). Alcance: **solo navegación y arquitectura de información**; la estética va después. Sin cambios de backend, API, base de datos, permisos, flags ni lógica. Las rutas actuales **no cambian de dirección**; solo cambia dónde se llega a ellas y cómo se agrupan. ~~Cada módulo sigue ocultándose con su flag.~~ **Actualizado (2026-11-06, decisión del dueño):** las secciones *Alertas* y *Asistente* se muestran siempre, aunque sus módulos estén apagados; las pestañas de un módulo apagado llevan «Desactivado» y la página muestra el aviso de función desactivada (`ModuleOffNotice`). Los flags siguen apagados.
 
 ## 1. Qué hay hoy (con los módulos encendidos)
 
@@ -31,11 +31,11 @@ En móvil la barra inferior del productor pasa de 3 a 8 destinos, y la del admin
 | Productor | **Mis predios · Mapa · Alertas · Asistente · Cuenta** (5) | 8 → 5 |
 | Admin | **Hoy · Clientes · Red · Alertas · Asistente · Ajustes** (6) | 9 → 6 |
 
-Con un módulo apagado desaparece solo lo suyo: si ninguno está encendido, el menú es exactamente el de hoy (Mis predios, Mapa, Cuenta; Hoy, Clientes, Red, Ajustes).
+Con un módulo apagado su pestaña sigue visible, marcada «Desactivado»; el menú tiene siempre los 5 destinos del productor y los 6 del admin.
 
 ### Pestañas dentro de cada sección (las rutas actuales, reagrupadas)
 
-| Sección | Pestañas | Ruta | Visible si |
+| Sección | Pestañas | Ruta | Módulo (si está apagado: «Desactivado») |
 |---|---|---|---|
 | **Alertas** | Mis alertas (admin: Todas las alertas) | `…/alertas` (y `…/alertas/:id`) | `alerts` |
 | | Umbrales | `…/umbrales` | `alerts` |
@@ -61,7 +61,7 @@ Cada pestaña es la pantalla actual, sin cambios de lógica. La sección usa el 
 
 ### Móvil
 
-- Barra inferior del productor: **Mis predios · Mapa · Alertas · Asistente · Cuenta** (5 destinos; con módulos apagados, los 3 de hoy). Las pestañas internas van arriba de cada sección, desplazables.
+- Barra inferior del productor: **Mis predios · Mapa · Alertas · Asistente · Cuenta** (5 destinos, también con módulos apagados). Las pestañas internas van arriba de cada sección, desplazables.
 - Admin móvil: **Hoy · Clientes · Red · Alertas · Asistente** y Ajustes en el menú de cuenta si no caben 6.
 
 ## 4. Qué no cambia
@@ -77,7 +77,7 @@ Rutas, módulos (flags), permisos, API, textos de negocio, alertas y su generaci
 
 ## 6. Riesgos y decisiones para JP
 
-- **Asistente y reportes bajo una sola sección** supone que a quien solo tiene un módulo encendido se le ve una sola pestaña (se oculta la barra de pestañas si hay una sola).
+- **Asistente y reportes bajo una sola sección** supone que a quien solo tiene un módulo encendido se le ve una sola pestaña (ya no aplica: todas las pestañas se ven siempre, las apagadas con «Desactivado»).
 - **¿«Asistente» sin «IA» en el menú?** Recomendado: sí. Si prefieres conservar «IA» como etiqueta de apoyo, se pone en el encabezado de la sección.
 - **Consumo** queda como pestaña del Asistente (solo admin) en lugar de entrada de menú; es un dato de operación, no de uso diario.
 - Los textos de los encabezados se afinan en la fase estética, no ahora.

@@ -167,6 +167,7 @@ export function AdminDashboard() {
             <div className="grid grid-cols-2 gap-2 sm:flex">
               <Link to="/admin/clientes" className={`${actionBtn} border-[var(--accent-primary)] bg-[var(--accent-primary)] text-[var(--text-inverted)] hover:opacity-90 sm:w-40`}>Nuevo Cliente</Link>
               <Link to="/admin/nodos" className={`${actionBtn} border-[var(--border-strong)] bg-[var(--card)] hover:bg-[var(--accent-soft)] sm:w-40`}>Nuevo Nodo</Link>
+              <Link to="/admin/umbrales" className={`${actionBtn} col-span-2 border-transparent text-[var(--accent-primary)] underline-offset-4 hover:underline`}>Umbrales</Link>
             </div>
           }
         />

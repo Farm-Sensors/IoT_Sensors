@@ -4,6 +4,7 @@ import { Link, useLocation, useParams } from "react-router";
 
 import { Disclosure } from "../../components/Disclosure";
 import { PageTransition } from "../../components/PageTransition";
+import { useModuleStatus } from "../../hooks/useModules";
 import { useAlertPlaces } from "../../hooks/useAlertPlaces";
 import { getAIReport } from "../../services/aiReports";
 import { describePeriod, formatDateTime, REPORT_STATUS } from "./reportFormat";
@@ -35,12 +36,16 @@ export function AIReportDetailPage() {
   const reportsPath = isAdmin ? "/admin/reportes-ia" : "/cliente/reportes-ia";
   const parsedReportId = Number(reportId);
   const { placeOf, clients } = useAlertPlaces(isAdmin);
+  const modules = useModuleStatus();
+  const enabled = modules?.ai_reports === true;
 
   const [loading, setLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [report, setReport] = useState<Awaited<ReturnType<typeof getAIReport>> | null>(null);
 
   const fetchReport = useCallback(async () => {
+    // Con el módulo apagado no se pide nada: el servidor respondería 503.
+    if (!enabled) return;
     if (!Number.isFinite(parsedReportId) || parsedReportId <= 0) {
       setErrorMessage("El reporte solicitado no es válido");
       setLoading(false);
@@ -58,7 +63,7 @@ export function AIReportDetailPage() {
     } finally {
       setLoading(false);
     }
-  }, [parsedReportId]);
+  }, [parsedReportId, enabled]);
 
   useEffect(() => {
     void fetchReport();
@@ -93,7 +98,12 @@ export function AIReportDetailPage() {
           Volver a reportes automáticos
         </Link>
 
-        {loading ? (
+        {modules && !enabled ? (
+          <div className="rounded-[var(--radius)] border border-[var(--border)] bg-[var(--card)] px-4 py-10 text-center">
+            <h1 className="text-base font-semibold text-[var(--text-main)]">Reporte no disponible</h1>
+            <p className="mx-auto mt-1 max-w-md text-sm text-[var(--text-muted)]">Los reportes automáticos se verán aquí cuando la función esté activa.</p>
+          </div>
+        ) : loading ? (
           <div role="status" className="flex items-center justify-center gap-2 py-12 text-[var(--text-subtle)]">
             <Loader2 aria-hidden="true" className="h-5 w-5 animate-spin" />
             Cargando reporte…

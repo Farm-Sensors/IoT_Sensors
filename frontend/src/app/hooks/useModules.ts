@@ -4,6 +4,11 @@ import { getCachedModules, loadModules, MODULES_OFF, type Modules } from "../ser
 
 /** Módulos encendidos para la sesión actual; apagados mientras cargan o sin sesión. */
 export function useModules(): Modules {
+  return useModuleStatus() ?? MODULES_OFF;
+}
+
+/** Como `useModules`, pero `null` mientras cargan (o sin sesión): para no pedir ni avisar antes de saber. */
+export function useModuleStatus(): Modules | null {
   const { user } = useAuth();
   const userKey = user ? String(user.sub ?? "") : null;
   const [state, setState] = useState<{ userKey: string | null; value: Modules | null }>(() => ({
@@ -22,6 +27,6 @@ export function useModules(): Modules {
     };
   }, [userKey]);
 
-  if (userKey === null || state.userKey !== userKey) return MODULES_OFF;
-  return state.value ?? MODULES_OFF;
+  if (userKey === null || state.userKey !== userKey) return null;
+  return state.value;
 }

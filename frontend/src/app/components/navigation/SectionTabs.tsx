@@ -1,11 +1,12 @@
 import { Link, useLocation } from "react-router";
-import { useModules } from "../../hooks/useModules";
+import { useModuleStatus } from "../../hooks/useModules";
 import { isSectionTabActive, sectionTabsFor } from "./items";
 
-/** Pestañas de sección (Clientes, Red, Ajustes, Alertas y Asistente): llevan a las pantallas hermanas. */
+/** Pestañas de sección (Clientes, Red, Ajustes, Alertas y Asistente): llevan a las pantallas hermanas; las de módulos apagados dicen «Desactivado». */
 export function SectionTabs() {
   const { pathname } = useLocation();
-  const tabs = sectionTabsFor(pathname, useModules());
+  const tabs = sectionTabsFor(pathname);
+  const modules = useModuleStatus();
   if (!tabs) return null;
   return (
     <nav aria-label="Secciones" className="flex gap-1 overflow-x-auto border-b border-[var(--border)] px-4 pt-3 md:px-8" style={{ scrollbarWidth: "none" }}>
@@ -20,6 +21,9 @@ export function SectionTabs() {
               ${active ? "border-[var(--accent-primary)] font-semibold text-[var(--text-main)]" : "border-transparent text-[var(--text-muted)] hover:text-[var(--text-main)]"}`}
           >
             {tab.label}
+            {tab.module && modules && !modules[tab.module] && (
+              <span className="ml-2 rounded-full border border-[var(--border)] px-2 py-0.5 text-xs font-normal text-[var(--text-muted)]">Desactivado</span>
+            )}
           </Link>
         );
       })}

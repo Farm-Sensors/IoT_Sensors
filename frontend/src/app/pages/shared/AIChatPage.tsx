@@ -17,6 +17,7 @@ import { Disclosure } from "../../components/Disclosure";
 import { PageTransition } from "../../components/PageTransition";
 import { useOptionalSelection } from "../../context/SelectionContext";
 import { useAlertPlaces } from "../../hooks/useAlertPlaces";
+import { useModuleStatus } from "../../hooks/useModules";
 import {
   askAIAssistant,
   AIChatMessage,
@@ -236,6 +237,8 @@ export function AIChatPage() {
   const [propertyId, setPropertyId] = useState(0);
   const [areaId, setAreaId] = useState(0);
   const initialisedRef = useRef(false);
+  // Con el módulo apagado no se envían preguntas: el servidor respondería 503.
+  const enabled = useModuleStatus()?.ai_assistant === true;
   const streamTimerRef = useRef<number | null>(null);
   const chatScrollRef = useRef<HTMLDivElement | null>(null);
 
@@ -319,7 +322,7 @@ export function AIChatPage() {
 
   const send = async (text: string) => {
     const userText = text.trim();
-    if (!userText || loading || isStreaming) return;
+    if (!enabled || !userText || loading || isStreaming) return;
 
     const userMessage: ChatBubble = { id: `user-${Date.now()}`, role: "user", content: userText };
     const nextMessages = [...messages, userMessage];
@@ -521,7 +524,7 @@ export function AIChatPage() {
           </label>
           <button
             type="submit"
-            disabled={loading || isStreaming || !input.trim()}
+            disabled={!enabled || loading || isStreaming || !input.trim()}
             className="inline-flex min-h-[44px] items-center justify-center gap-2 rounded-[var(--radius)] bg-[var(--accent-primary)] px-4 text-sm font-semibold text-[var(--text-inverted)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus-ring)] focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
           >
             <Send aria-hidden="true" className="h-4 w-4" />
