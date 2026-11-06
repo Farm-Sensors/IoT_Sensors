@@ -16,11 +16,23 @@ function Value({ value, unit, big = false }: { value: string | number; unit: str
   );
 }
 
-function Measure({ label, value, unit }: { label: string; value: string | number; unit: string }) {
+function Measure({ label, value, unit, wide = false }: { label: string; value: string | number; unit: string; wide?: boolean }) {
   return (
-    <div className="flex items-baseline justify-between gap-3 border-b border-[var(--border)] py-2 last:border-b-0">
-      <dt className="text-sm text-[var(--text-muted)]">{label}</dt>
-      <dd><Value value={value} unit={unit} /></dd>
+    <div className={`bg-[var(--card)] px-4 py-3 ${wide ? "col-span-2" : ""}`}>
+      <dt className="text-xs text-[var(--text-muted)]">{label}</dt>
+      <dd className="font-mono-data text-2xl font-medium leading-tight text-[var(--accent-green)]">
+        {value} <small className="font-sans text-sm font-normal text-[var(--text-muted)]">{unit}</small>
+      </dd>
+    </div>
+  );
+}
+
+/** Un grupo de mediciones: cabecera verde suave con marca lima y las cifras en celdas separadas por líneas finas. */
+function MeasureGroup({ title, children }: { title: string; children: ReactNode }) {
+  return (
+    <div className="overflow-hidden rounded-[var(--radius)] border border-[var(--border)]">
+      <h3 className="group-title bg-[var(--accent-soft)] px-4 py-2.5 text-sm">{title}</h3>
+      <dl className="grid grid-cols-2 gap-px bg-[var(--border)]">{children}</dl>
     </div>
   );
 }
@@ -106,29 +118,23 @@ export function AreaNowView({
       )}
 
       {(visibleCards.has("soil.details") || visibleCards.has("environmental.details")) && (
-        <section className={`${panel} p-4 md:p-5`}>
-          <h2 className="mb-1 text-sm font-semibold">Otras mediciones</h2>
-          <div className="grid gap-x-10 md:grid-cols-2">
+        <section aria-labelledby="otras-h">
+          <h2 id="otras-h" className="mb-2 text-sm font-semibold">Otras mediciones</h2>
+          <div className="grid gap-4 md:grid-cols-2">
             {visibleCards.has("soil.details") && (
-              <div>
-                <h3 className="mt-3 text-xs font-semibold text-[var(--text-muted)]">Suelo</h3>
-                <dl>
-                  <Measure label="Conductividad" value={currentReadings.soilConductivity} unit="dS/m" />
-                  <Measure label="Temperatura" value={currentReadings.soilTemp} unit="°C" />
-                  <Measure label="Potencial hídrico" value={currentReadings.waterPotential} unit="MPa" />
-                </dl>
-              </div>
+              <MeasureGroup title="Suelo">
+                <Measure label="Conductividad" value={currentReadings.soilConductivity} unit="dS/m" />
+                <Measure label="Temperatura" value={currentReadings.soilTemp} unit="°C" />
+                <Measure wide label="Potencial hídrico" value={currentReadings.waterPotential} unit="MPa" />
+              </MeasureGroup>
             )}
             {visibleCards.has("environmental.details") && (
-              <div>
-                <h3 className="mt-3 text-xs font-semibold text-[var(--text-muted)]">Ambiental</h3>
-                <dl>
-                  <Measure label="Temperatura del aire" value={currentReadings.airTemp} unit="°C" />
-                  <Measure label="Humedad relativa" value={currentReadings.relativeHumidity} unit="%" />
-                  <Measure label="Viento" value={currentReadings.windSpeed} unit="km/h" />
-                  <Measure label="Radiación solar" value={currentReadings.solarRadiation} unit="W/m²" />
-                </dl>
-              </div>
+              <MeasureGroup title="Ambiental">
+                <Measure label="Temperatura del aire" value={currentReadings.airTemp} unit="°C" />
+                <Measure label="Humedad relativa" value={currentReadings.relativeHumidity} unit="%" />
+                <Measure label="Viento" value={currentReadings.windSpeed} unit="km/h" />
+                <Measure label="Radiación solar" value={currentReadings.solarRadiation} unit="W/m²" />
+              </MeasureGroup>
             )}
           </div>
         </section>
