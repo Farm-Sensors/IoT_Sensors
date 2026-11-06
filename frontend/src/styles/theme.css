@@ -14,7 +14,7 @@
   --brand-mist:   #E8F5E9;
 
   --bg-base:          #F3F6F1;   /* crema suave */
-  --bg-surface:       #F8FAF6;   /* hueso claro */
+  --bg-surface:       #FFFFFF;   /* hueso claro */
   --bg-elevated:      #FFFFFF;
   --bg-input:         transparent;
 
@@ -366,7 +366,7 @@
 
 .glass-card {
   background: var(--bg-surface);
-  border: 1px solid var(--border-glass);
+  border: 1px solid var(--border);
   box-shadow: var(--shadow-soft);
   transition: all 0.3s ease;
 }
