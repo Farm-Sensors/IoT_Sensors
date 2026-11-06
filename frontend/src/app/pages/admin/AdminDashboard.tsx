@@ -9,6 +9,7 @@ import { usePageVisibility } from "../../hooks/usePageVisibility";
 import { api } from "../../services/api";
 import { listGateways } from "../../services/gateways";
 import { getGeoNodes } from "../../services/nodes";
+import { FocusBlock } from "../../components/FocusBlock";
 import { formatAgo } from "../client/overview/areaStatus";
 import { buildPending, PENDING_LABEL, PENDING_ORDER, summarizeAreas, type AreaSummary, type PendingItem } from "./today/pending";
 
@@ -161,7 +162,7 @@ export function AdminDashboard() {
       <div className="mx-auto max-w-[1000px] p-4 md:p-8">
         <PageHeader
           title="Inicio"
-          subtitle={summary ? `${summary.al_dia} de ${summary.total} áreas al día · ${new Date().toLocaleDateString('es-MX', { weekday: 'long', day: 'numeric', month: 'long' })}` : new Date().toLocaleDateString('es-MX', { weekday: 'long', day: 'numeric', month: 'long' })}
+          subtitle={new Date().toLocaleDateString('es-MX', { weekday: 'long', day: 'numeric', month: 'long' })}
           action={
             <div className="grid grid-cols-2 gap-2 sm:flex">
               <Link to="/admin/clientes" className={`${actionBtn} border-[var(--accent-primary)] bg-[var(--accent-primary)] text-[var(--text-inverted)] hover:opacity-90 sm:w-40`}>Nuevo Cliente</Link>
@@ -169,6 +170,15 @@ export function AdminDashboard() {
             </div>
           }
         />
+
+        {!loading && summary && (
+          <FocusBlock
+            className="mt-6"
+            value={<>{summary.al_dia}<span className="text-[var(--text-muted)]"> / {summary.total}</span></>}
+            label="áreas al día"
+            hint={summary.al_dia === summary.total ? "Todos los nodos están enviando datos." : `${summary.total - summary.al_dia} sin datos recientes: revísalas abajo.`}
+          />
+        )}
 
         {loading ? (
           <div className="py-12">

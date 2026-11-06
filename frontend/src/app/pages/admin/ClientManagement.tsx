@@ -8,6 +8,7 @@ import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router";
 import type { ReactNode } from "react";
 import { useEmbedded } from "../../components/EmbeddedPanel";
+import { FocusBlock } from "../../components/FocusBlock";
 import { EMPTY_HEALTH, HealthBadge, healthLabel, PanelHeader, listBox, panelButton, panelButtonDanger, panelButtonPrimary, rowLink, type Health } from "./directory/Health";
 import { StatusBadge } from "../../components/StatusBadge";
 import { BentoCard } from "../../components/BentoCard";
@@ -229,6 +230,19 @@ export function ClientManagement({ clientId, meta, health }: { clientId?: string
           <h2 className="text-xl font-semibold">Clientes <span className="font-mono-data text-sm font-normal text-[var(--text-muted)]">{clients.length}</span></h2>
           <button type="button" className={panelButtonPrimary} onClick={() => setShowCreateForm(true)}><Plus aria-hidden="true" className="h-4 w-4" />Nuevo Cliente</button>
         </div>
+        {health && !loading && (() => {
+          const all = Object.values(health);
+          const total = all.reduce((n, h) => n + h.total, 0);
+          const stale = all.reduce((n, h) => n + h.stale, 0);
+          return total > 0 ? (
+            <FocusBlock
+              className="mb-4"
+              value={stale}
+              label={stale === 1 ? "área sin comunicación" : "áreas sin comunicación"}
+              hint={`de ${total} ${total === 1 ? "área" : "áreas"} en ${clients.length} ${clients.length === 1 ? "cliente" : "clientes"}`}
+            />
+          ) : null;
+        })()}
         <label className="mb-3 block lg:hidden">
           <span className="sr-only">Buscar clientes</span>
           <input type="text" placeholder="Buscar por nombre, email o teléfono…" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="min-h-[44px] w-full rounded-[var(--radius)] border border-[var(--border)] bg-[var(--input-background)] px-3 text-sm" />

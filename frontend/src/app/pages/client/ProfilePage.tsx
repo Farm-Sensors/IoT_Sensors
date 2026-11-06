@@ -6,6 +6,7 @@ import { PillButton } from "../../components/PillButton";
 import { SkeletonCard } from "../../components/SkeletonCard";
 import { useToast } from "../../components/Toast";
 import { api } from "../../services/api";
+import { FocusBlock } from "../../components/FocusBlock";
 import { UserProfile } from "../../types/api";
 
 const inputClass = `
@@ -111,6 +112,7 @@ export function ProfilePage() {
             )
           }
         />
+        {profile && <FocusBlock value="Productor" label="tu cuenta" hint={`${profile.full_name} · ${profile.email}`} />}
 
         {error && (
           <div role="alert" className="rounded-[var(--radius)] border border-[var(--status-danger)]/25 bg-[var(--status-danger-bg)] px-4 py-3 text-sm text-[var(--status-danger-text)]">

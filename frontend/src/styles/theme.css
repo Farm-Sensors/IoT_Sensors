@@ -713,3 +713,24 @@ tbody tr:hover {
 [data-tone="info"] { --tone-color: var(--status-info-text); }
 [data-tone="muted"] { --tone-color: var(--border-strong); }
 [data-tone="none"] { --tone-color: var(--border-strong); }
+
+/* Bloque verde sólido: el dato principal de la pantalla. Reasigna los tokens de texto para que
+   cualquier contenido que ya use --text-main, --text-muted, --border o --progress-track se vea bien dentro. */
+.focus-block {
+  background: var(--brand-forest);
+  color: #fff;
+  border: 0;
+  --text-main: #fff;
+  --text-primary: #fff;
+  --text-muted: #BFE0C2;
+  --text-subtle: #BFE0C2;
+  --border: rgba(255, 255, 255, 0.22);
+  --progress-track: rgba(255, 255, 255, 0.22);
+  --accent-primary: #8BC34A;
+  --accent-soft: #8BC34A;
+}
+
+.dark .focus-block {
+  background: #123B1C;
+  border: 1px solid var(--border-strong);
+}
