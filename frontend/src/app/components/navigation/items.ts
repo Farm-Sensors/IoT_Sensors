@@ -10,7 +10,7 @@ import {
   Warehouse,
   type LucideIcon,
 } from "lucide-react";
-import { MODULES_OFF, type ModuleKey, type Modules } from "../../services/modules";
+import type { ModuleKey } from "../../services/modules";
 
 export interface NavItem {
   path: string;
@@ -24,7 +24,7 @@ export interface NavItem {
   exact?: boolean;
 }
 
-/** Pestaña interna de una sección; `module` la oculta si ese módulo (Fase 2) está apagado. */
+/** Pestaña interna de una sección; `module` indica el módulo (Fase 2) del que depende, para marcarla si está apagado. */
 export interface SectionTab {
   path: string;
   label: string;
@@ -44,7 +44,8 @@ interface NavSection {
  * Navegación por cosas, no por herramientas (docs/redesign/v2/02-arquitectura.md).
  * Las pantallas de Fase 2 se agrupan en dos secciones con pestañas (docs/redesign/v2/20-navegacion-fase-2.md):
  * «Alertas» (mis alertas, umbrales y canales de aviso) y «Asistente» (preguntar, reportes automáticos y consumo).
- * Las rutas no cambian de dirección y cada módulo sigue ocultándose con su flag.
+ * Las rutas no cambian de dirección. Las secciones se muestran siempre, aunque sus módulos estén apagados:
+ * la pestaña lleva «Desactivado» y la página, un aviso (`ModuleOffNotice`).
  */
 const clientAlerts: NavSection = {
   label: "Alertas",
@@ -81,14 +82,10 @@ const adminAssistant: NavSection = {
   ],
 };
 
-const visibleTabs = (section: NavSection, modules: Modules) => section.tabs.filter((t) => !t.module || modules[t.module]);
-
-/** Destino de menú de una sección: apunta a su primera pestaña visible; `null` si todos sus módulos están apagados. */
-function sectionItem(section: NavSection, modules: Modules): NavItem | null {
-  const tabs = visibleTabs(section, modules);
-  if (tabs.length === 0) return null;
+/** Destino de menú de una sección: apunta a su primera pestaña. */
+function sectionItem(section: NavSection): NavItem {
   return {
-    path: tabs[0].path,
+    path: section.tabs[0].path,
     label: section.label,
     icon: section.icon,
     match: section.tabs.flatMap((t) => [t.path, ...(t.match ?? [])]),
@@ -107,16 +104,12 @@ const adminCore = {
   ajustes: { path: "/admin/cultivos", icon: Sprout, label: "Ajustes", match: ["/admin/auditoria"] } as NavItem,
 };
 
-/**
- * Ítems del menú para el rol, sin los módulos apagados. Las rutas siguen
- * existiendo: solo se quitan del menú.
- */
-export function navItemsFor(role: "client" | "admin", modules: Modules): NavItem[] {
-  const present = (item: NavItem | null): item is NavItem => item !== null;
+/** Ítems del menú para el rol; incluye las secciones de Fase 2 aunque sus módulos estén apagados. */
+export function navItemsFor(role: "client" | "admin"): NavItem[] {
   if (role === "client") {
-    return [clientCore.predios, clientCore.mapa, sectionItem(clientAlerts, modules), sectionItem(clientAssistant, modules), clientCore.cuenta].filter(present);
+    return [clientCore.predios, clientCore.mapa, sectionItem(clientAlerts), sectionItem(clientAssistant), clientCore.cuenta];
   }
-  return [adminCore.hoy, adminCore.clientes, adminCore.red, sectionItem(adminAlerts, modules), sectionItem(adminAssistant, modules), adminCore.ajustes].filter(present);
+  return [adminCore.hoy, adminCore.clientes, adminCore.red, sectionItem(adminAlerts), sectionItem(adminAssistant), adminCore.ajustes];
 }
 
 const trim = (path: string) => path.replace(/\/+$/, "") || "/";
@@ -150,19 +143,23 @@ const adminSections: { when: string[]; tabs: SectionTab[] }[] = [
 /** Secciones de Fase 2 con pestañas (productor y admin). */
 const phase2Sections: NavSection[] = [clientAlerts, clientAssistant, adminAlerts, adminAssistant];
 
-/**
- * Pestañas de la sección a la que pertenece la ruta, o `null` si no hay (o si queda una sola pestaña visible:
- * entonces no se muestra la barra).
- */
-export function sectionTabsFor(pathname: string, modules: Modules = MODULES_OFF): SectionTab[] | null {
+const insideAny = (pathname: string, paths: string[]) => {
   const current = trim(pathname);
-  const inside = (paths: string[]) => paths.some((w) => current === trim(w) || current.startsWith(`${trim(w)}/`));
-  const admin = adminSections.find((s) => inside(s.when));
+  return paths.some((w) => current === trim(w) || current.startsWith(`${trim(w)}/`));
+};
+
+/** Pestañas de la sección a la que pertenece la ruta (todas, también las de módulos apagados), o `null` si no hay. */
+export function sectionTabsFor(pathname: string): SectionTab[] | null {
+  const admin = adminSections.find((s) => insideAny(pathname, s.when));
   if (admin) return admin.tabs;
-  const section = phase2Sections.find((sec) => inside(sec.tabs.flatMap((t) => [t.path, ...(t.match ?? [])])));
-  if (!section) return null;
-  const tabs = visibleTabs(section, modules);
-  return tabs.length > 1 ? tabs : null;
+  const section = phase2Sections.find((sec) => insideAny(pathname, sec.tabs.flatMap((t) => [t.path, ...(t.match ?? [])])));
+  return section ? section.tabs : null;
+}
+
+/** Módulo de Fase 2 del que depende la ruta actual, o `null` si la pantalla no depende de ninguno. */
+export function moduleForPath(pathname: string): ModuleKey | null {
+  const tab = phase2Sections.flatMap((sec) => sec.tabs).find((t) => insideAny(pathname, [t.path, ...(t.match ?? [])]));
+  return tab?.module ?? null;
 }
 
 export function isSectionTabActive(tab: SectionTab, pathname: string): boolean {

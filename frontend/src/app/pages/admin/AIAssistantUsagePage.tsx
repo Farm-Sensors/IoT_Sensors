@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 
 import { Disclosure } from "../../components/Disclosure";
 import { PageTransition } from "../../components/PageTransition";
+import { useModuleStatus } from "../../hooks/useModules";
 import { api } from "../../services/api";
 import { AIAssistantUsageItem, getAIAssistantUsage } from "../../services/aiAssistantUsage";
 import { parseBackendTimestamp } from "../../utils/datetime";
@@ -48,6 +49,8 @@ function Stat({ label, value, hint, strong = false }: { label: string; value: st
  * del periodo van arriba; el registro de solicitudes, debajo, con usuario por nombre y acciones en palabras.
  */
 export function AIAssistantUsagePage() {
+  // Con el módulo apagado (o aún sin saberlo) no se pide nada: el servidor respondería 503.
+  const enabled = useModuleStatus()?.ai_assistant === true;
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [items, setItems] = useState<AIAssistantUsageItem[]>([]);
@@ -89,6 +92,7 @@ export function AIAssistantUsagePage() {
   }, []);
 
   const fetchUsage = async () => {
+    if (!enabled) return;
     setLoading(true);
     setErrorMessage(null);
     try {
@@ -114,7 +118,7 @@ export function AIAssistantUsagePage() {
   useEffect(() => {
     void fetchUsage();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [page, hours, action, userId]);
+  }, [page, hours, action, userId, enabled]);
 
   const successRatio = useMemo(() => {
     if (summary.total_requests <= 0) return "—";

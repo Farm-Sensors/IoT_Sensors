@@ -4,6 +4,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { clearModulesCache, MODULES_OFF, type Modules } from "../../services/modules";
 import { DesktopSidebar } from "./DesktopSidebar";
 import { MobileTabBar } from "./MobileTabBar";
+import { SectionTabs } from "./SectionTabs";
 
 const mocks = vi.hoisted(() => ({ get: vi.fn() }));
 vi.mock("../../services/api", () => ({ api: { get: mocks.get } }));
@@ -12,7 +13,6 @@ vi.mock("../../context/AuthContext", () => ({
 }));
 vi.mock("../../context/ThemeContext", () => ({ useTheme: () => ({ theme: "light", toggleTheme: vi.fn() }) }));
 
-const ALL_ON: Modules = { alerts: true, ai_assistant: true, ai_reports: true, notifications: true };
 const PHASE2 = { client: ["Alertas", "Asistente"], admin: ["Alertas", "Asistente"] } as const;
 
 function serveModules(modules: Modules) {
@@ -28,43 +28,43 @@ beforeEach(() => {
 afterEach(cleanup);
 
 describe.each(["client", "admin"] as const)("%s navigation", (role) => {
-  it("hides Phase 2 modules while they are off", async () => {
+  it("shows the Phase 2 sections even while their modules are off, without asking the server", () => {
     serveModules(MODULES_OFF);
     render(<MemoryRouter><DesktopSidebar role={role} /></MemoryRouter>);
-    await waitFor(() => expect(mocks.get).toHaveBeenCalledWith("/settings/modules"));
     expect(screen.getByText(role === "client" ? "Mis predios" : "Inicio")).toBeTruthy();
-    for (const label of PHASE2[role]) expect(screen.queryByText(label)).toBeNull();
+    for (const label of PHASE2[role]) expect(screen.getByText(label)).toBeTruthy();
+    expect(mocks.get).not.toHaveBeenCalled();
   });
 
-  it("shows Phase 2 modules once they are on", async () => {
-    serveModules(ALL_ON);
-    render(<MemoryRouter><DesktopSidebar role={role} /></MemoryRouter>);
-    for (const label of PHASE2[role]) expect(await screen.findByText(label)).toBeTruthy();
-  });
-
-  it("filters the mobile tab bar the same way and asks the server only once", async () => {
-    serveModules({ ...MODULES_OFF, ai_reports: true });
-    const { unmount } = render(<MemoryRouter><MobileTabBar role={role} /></MemoryRouter>);
-    // Solo está encendido el módulo de reportes: aparece «Asistente» (que lleva a los reportes) y no «Alertas».
-    const assistant = await screen.findByLabelText("Asistente");
-    expect(assistant).toHaveAttribute("href", `/${role === "client" ? "cliente" : "admin"}/reportes-ia`);
-    expect(screen.queryByLabelText("Alertas")).toBeNull();
-    unmount();
+  it("the mobile tab bar also lists them, pointing at each section's first tab", () => {
     render(<MemoryRouter><MobileTabBar role={role} /></MemoryRouter>);
-    expect(screen.getByLabelText("Asistente")).toBeTruthy();
-    expect(mocks.get).toHaveBeenCalledTimes(1);
+    const base = role === "client" ? "cliente" : "admin";
+    expect(screen.getByLabelText("Alertas")).toHaveAttribute("href", `/${base}/alertas`);
+    expect(screen.getByLabelText("Asistente")).toHaveAttribute("href", `/${base}/asistente-ia`);
+  });
+});
+
+describe("section tabs", () => {
+  it("label the tabs of modules that are off with «Desactivado»", async () => {
+    serveModules({ ...MODULES_OFF, alerts: true });
+    render(
+      <MemoryRouter initialEntries={["/cliente/alertas"]}>
+        <SectionTabs />
+      </MemoryRouter>,
+    );
+    const channels = screen.getByRole("link", { name: /Correo y WhatsApp/ });
+    await waitFor(() => expect(channels.textContent).toContain("Desactivado"));
+    expect(screen.getByRole("link", { name: /Umbrales/ }).textContent).not.toContain("Desactivado");
   });
 });
 
 describe("current page marker", () => {
-  it("marks the current entry with aria-current and a non-color indicator, on desktop and mobile", async () => {
-    serveModules(MODULES_OFF);
+  it("marks the current entry with aria-current and a non-color indicator, on desktop and mobile", () => {
     const { unmount } = render(
       <MemoryRouter initialEntries={["/admin/clientes"]}>
         <DesktopSidebar role="admin" />
       </MemoryRouter>,
     );
-    await waitFor(() => expect(mocks.get).toHaveBeenCalled());
     expect(screen.getByRole("navigation", { name: "Navegación principal" })).toBeTruthy();
     const current = screen.getAllByRole("link").filter((link) => link.getAttribute("aria-current") === "page");
     expect(current).toHaveLength(1);

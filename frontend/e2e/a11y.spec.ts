@@ -10,6 +10,9 @@ const update = process.env.A11Y_UPDATE_BASELINE === "1";
 // Identificadores estables de pantalla: los IDs de BD nunca forman parte del baseline.
 const clientRoutes = ["/cliente", "/cliente/area/:areaId", "/cliente/area/:areaId/historial", "/cliente/area/:areaId/detalles", "/cliente/predio/:predioId", "/cliente/mapa", "/cliente/perfil"];
 const adminRoutes = ["/admin", "/admin/clientes", "/admin/clientes/:clientId/predios", "/admin/clientes/:clientId/dashboard", "/admin/predios/:predioId/areas", "/admin/cultivos", "/admin/ciclos", "/admin/nodos", "/admin/nodos/:nodeId", "/admin/gateways", "/admin/gateways/:gatewayId", "/admin/gateways/pair", "/admin/mapa"];
+// Pantallas de Fase 2: con los módulos apagados (local) muestran el aviso de «desactivada».
+const clientPhase2 = ["/cliente/alertas", "/cliente/umbrales", "/cliente/notificaciones", "/cliente/asistente-ia", "/cliente/reportes-ia"];
+const adminPhase2 = ["/admin/alertas", "/admin/umbrales", "/admin/asistente-ia", "/admin/reportes-ia", "/admin/consumo-ia"];
 const forms = [
   { route: "/admin/clientes", button: "Nuevo Cliente", heading: "Nuevo Cliente" },
   { route: "/admin/predios/:predioId/areas", button: "Nueva Área", heading: "Nueva Área de Riego" },
@@ -33,11 +36,13 @@ function seedIds(api: Api) {
   })();
 }
 
-type Screen = { route: string; role: string; form?: typeof forms[number] };
+type Screen = { route: string; role: string; form?: typeof forms[number]; moduleOff?: boolean };
 const screens: Screen[] = [
   { route: "/", role: "guest" },
   ...clientRoutes.map(route => ({ route, role: "client" })),
   ...adminRoutes.map(route => ({ route, role: "admin" })),
+  ...clientPhase2.map(route => ({ route, role: "client", moduleOff: true })),
+  ...adminPhase2.map(route => ({ route, role: "admin", moduleOff: true })),
   ...forms.map(form => ({ route: form.route, role: "admin", form })),
 ];
 for (const screen of screens) {
@@ -54,6 +59,7 @@ for (const screen of screens) {
     await target.waitForLoadState("networkidle");
     await target.waitForLoadState("networkidle");
     await expect(target.getByRole("heading", { name: "¡Ups! Algo salió mal", exact: true })).toHaveCount(0);
+    if (screen.moduleOff) await expect(target.getByRole("status").filter({ hasText: "Esta función está desactivada por ahora." })).toBeVisible();
     if (form) {
       await target.getByRole("button", { name: form.button, exact: true }).click();
       await expect(target.getByRole("heading", { name: form.heading, exact: true })).toBeVisible();

@@ -3,6 +3,7 @@ import { Outlet, useLocation } from "react-router";
 import { DesktopSidebar } from "../components/navigation/DesktopSidebar";
 import { MobileHeader } from "../components/navigation/MobileHeader";
 import { MobileTabBar } from "../components/navigation/MobileTabBar";
+import { ModuleOffNotice } from "../components/navigation/ModuleOffNotice";
 import { SectionTabs } from "../components/navigation/SectionTabs";
 import { SkipLink } from "../components/navigation/SkipLink";
 import { AlertsPopover } from "../components/notifications/AlertsPopover";
@@ -40,6 +41,7 @@ export function AdminLayout() {
             }`}
         >
           <SectionTabs />
+          <ModuleOffNotice />
           <Outlet />
         </main>
 

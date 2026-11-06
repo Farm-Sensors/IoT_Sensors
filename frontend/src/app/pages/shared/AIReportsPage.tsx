@@ -8,6 +8,7 @@ import { PageTransition } from "../../components/PageTransition";
 import { ReadingDateRangeSelector } from "../../components/ReadingDateRangeSelector";
 import { useOptionalSelection } from "../../context/SelectionContext";
 import { useAlertPlaces } from "../../hooks/useAlertPlaces";
+import { useModuleStatus } from "../../hooks/useModules";
 import { usePageVisibility } from "../../hooks/usePageVisibility";
 import { AIReportItem, AIReportStatus, listAIReports } from "../../services/aiReports";
 import { describePeriod, REPORT_STATUS, summaryText } from "./reportFormat";
@@ -33,6 +34,8 @@ export function AIReportsPage() {
   const baseDetailPath = isAdmin ? "/admin/reportes-ia" : "/cliente/reportes-ia";
   const isPageVisible = usePageVisibility();
   const loadingRef = useRef(false);
+  // Con el módulo apagado (o aún sin saberlo) no se pide nada: el servidor respondería 503.
+  const enabled = useModuleStatus()?.ai_reports === true;
 
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -65,7 +68,7 @@ export function AIReportsPage() {
   }, [properties, areas, clientId, isAdmin]);
 
   const fetchReports = useCallback(async () => {
-    if (loadingRef.current) return;
+    if (!enabled || loadingRef.current) return;
     loadingRef.current = true;
     if (items.length === 0) setLoading(true);
     setErrorMessage(null);
@@ -91,7 +94,7 @@ export function AIReportsPage() {
       setLoading(false);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [page, statusFilter, isAdmin, clientId, startDate, endDate, items.length, areaId]);
+  }, [page, statusFilter, isAdmin, clientId, startDate, endDate, items.length, areaId, enabled]);
 
   useEffect(() => {
     setItems([]);

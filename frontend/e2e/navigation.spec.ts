@@ -8,7 +8,7 @@ interface Entry {
   h1: string | RegExp;
 }
 
-// Fuente: components/navigation/items.ts (ítems sin `module`) y el h1 de cada página.
+// Fuente: components/navigation/items.ts (destinos sin módulo) y el h1 de cada página.
 const CLIENT_ENTRIES: Entry[] = [
   { desktop: "Mis predios", mobile: "Mis predios", path: "/cliente", h1: "Mis predios" },
   { desktop: "Mapa", mobile: "Mapa", path: "/cliente/mapa", h1: "Mapa" },
@@ -22,16 +22,30 @@ const ADMIN_ENTRIES: Entry[] = [
   { desktop: "Ajustes", mobile: "Ajustes", path: "/admin/cultivos", h1: "Catálogo de Cultivos" },
 ];
 
-// Ítems con `module` (Fase 2): con los flags apagados en local no deben aparecer.
-const CLIENT_HIDDEN = ["Alertas", "Asistente IA", "Chat IA", "Reportes IA", "IA", "Umbrales", "Notificaciones", "Notifs"];
-const ADMIN_HIDDEN = ["Umbrales", "Alertas", "Asistente IA", "Chat IA", "Consumo IA", "Uso IA", "Reportes IA", "IA"];
+// Secciones de Fase 2: se muestran aunque sus módulos estén apagados (flags OFF en local); cada pestaña
+// abre su página con el aviso de «desactivada» y sin error.
+interface Phase2Tab { section: string; tab: string; path: string }
+const CLIENT_PHASE2: Phase2Tab[] = [
+  { section: "Alertas", tab: "Mis alertas", path: "/cliente/alertas" },
+  { section: "Alertas", tab: "Umbrales", path: "/cliente/umbrales" },
+  { section: "Alertas", tab: "Correo y WhatsApp", path: "/cliente/notificaciones" },
+  { section: "Asistente", tab: "Preguntar", path: "/cliente/asistente-ia" },
+  { section: "Asistente", tab: "Reportes automáticos", path: "/cliente/reportes-ia" },
+];
+const ADMIN_PHASE2: Phase2Tab[] = [
+  { section: "Alertas", tab: "Todas las alertas", path: "/admin/alertas" },
+  { section: "Alertas", tab: "Umbrales", path: "/admin/umbrales" },
+  { section: "Asistente", tab: "Preguntar", path: "/admin/asistente-ia" },
+  { section: "Asistente", tab: "Reportes automáticos", path: "/admin/reportes-ia" },
+  { section: "Asistente", tab: "Consumo", path: "/admin/consumo-ia" },
+];
 
 const ROLES = [
-  { role: "admin", home: "/admin", homeLabel: "Inicio", entries: ADMIN_ENTRIES, hidden: ADMIN_HIDDEN },
-  { role: "cliente", home: "/cliente", homeLabel: "Mis predios", entries: CLIENT_ENTRIES, hidden: CLIENT_HIDDEN },
+  { role: "admin", home: "/admin", homeLabel: "Inicio", entries: ADMIN_ENTRIES, phase2: ADMIN_PHASE2 },
+  { role: "cliente", home: "/cliente", homeLabel: "Mis predios", entries: CLIENT_ENTRIES, phase2: CLIENT_PHASE2 },
 ] as const;
 
-for (const { role, home, homeLabel, entries, hidden } of ROLES) {
+for (const { role, home, homeLabel, entries, phase2 } of ROLES) {
   test.describe(`Navegación del ${role}`, () => {
     test("cada entrada del menú abre su página", async ({ adminPage, clientPage }, testInfo) => {
       const page = role === "admin" ? adminPage : clientPage;
@@ -47,15 +61,21 @@ for (const { role, home, homeLabel, entries, hidden } of ROLES) {
       }
     });
 
-    test("no muestra las entradas de módulos apagados", async ({ adminPage, clientPage }, testInfo) => {
+    test("muestra las secciones de Fase 2 con los módulos apagados y avisa en cada página", async ({ adminPage, clientPage }, testInfo) => {
       const page = role === "admin" ? adminPage : clientPage;
       const mobile = testInfo.project.name === "mobile";
       const menu = mobile ? page : page.getByRole("navigation");
       await page.goto(home);
       await expect(menu.getByRole("link", { name: homeLabel, exact: true })).toBeVisible();
 
-      for (const name of hidden) {
-        await expect(menu.getByRole("link", { name, exact: true })).toHaveCount(0);
+      for (const { section, tab, path } of phase2) {
+        await menu.getByRole("link", { name: section, exact: true }).first().click();
+        await page.getByRole("navigation", { name: "Secciones" }).getByRole("link", { name: new RegExp(`^${tab}`) }).click();
+        await expect(page).toHaveURL(new RegExp(`${path}$`));
+        await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
+        await expect(page.getByRole("status").filter({ hasText: "Esta función está desactivada por ahora." })).toBeVisible();
+        await expect(page.getByRole("heading", { name: "¡Ups! Algo salió mal", exact: true })).toHaveCount(0);
+        await expect(page.getByRole("alert")).toHaveCount(0);
       }
     });
   });
@@ -76,4 +96,10 @@ test.describe("Pestañas de sección del admin", () => {
     await tabs.getByRole("link", { name: "Registro de eventos" }).click();
     await expect(page.getByRole("heading", { level: 1, name: "Registro de eventos" })).toBeVisible();
   });
+});
+
+test("el Inicio del admin enlaza a Umbrales", async ({ adminPage: page }) => {
+  await page.goto("/admin");
+  await page.getByRole("main").getByRole("link", { name: "Umbrales", exact: true }).click();
+  await expect(page).toHaveURL(/\/admin\/umbrales$/);
 });

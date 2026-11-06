@@ -3,7 +3,6 @@ import { BrandSymbol } from "../BrandSymbol";
 import { Link, useLocation, useNavigate } from "react-router";
 import { useAuth } from "../../context/AuthContext";
 import { useTheme } from "../../context/ThemeContext";
-import { useModules } from "../../hooks/useModules";
 import { preloadMapRoutes } from "../../services/routePreload";
 import { isNavItemActive, navItemsFor } from "./items";
 
@@ -17,7 +16,7 @@ export function DesktopSidebar({ role }: DesktopSidebarProps) {
   const { theme, toggleTheme } = useTheme();
   const location = useLocation();
   const navigate = useNavigate();
-  const navItems = navItemsFor(role, useModules());
+  const navItems = navItemsFor(role);
 
   const maybePreloadMaps = (path: string) => {
     if (path.includes("/mapa") || path.includes("/gateways")) void preloadMapRoutes();
