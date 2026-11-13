@@ -147,12 +147,17 @@ export function HumidityChart({ series, now }: { series: { name: string; points:
 }
 
 /** Litros por hora de las últimas 24 h. */
-export function LitersChart({ buckets }: { buckets: { start: Date; liters: number }[] }) {
+export function LitersChart({ buckets }: { buckets: { start: Date; liters: number | null }[] }) {
   const [boxRef, W] = useChartWidth(380);
   const L = 58, R = 8, T = 12, B = 26;
-  const max = Math.max(...buckets.map((b) => b.liters), 1) * 1.1;
+  const measured = buckets.flatMap((b) => (b.liters === null ? [] : [b.liters]));
+  // Eje con extremos enteros y distintos: nunca «0, 1, 1».
+  const max = Math.max(2, Math.ceil(Math.max(0, ...measured) * 1.1 / 2) * 2);
   const bw = (W - L - R) / buckets.length;
-  const total = buckets.reduce((a, b) => a + b.liters, 0);
+  const total = measured.reduce((a, b) => a + b, 0);
+  if (measured.length === 0) {
+    return <div ref={boxRef}><p className="py-8 text-center text-sm text-[var(--text-muted)]">Sin datos de flujo en las últimas 24 h.</p></div>;
+  }
   return (
     <div ref={boxRef}><ChartBox label="Gráfica de flujo de agua">
       <svg viewBox={`0 0 ${W} ${H}`} width={W} height={H} className="block" role="img" aria-label={`Litros de agua por hora, últimas 24 horas. Total ${Math.round(total)} litros.`}>
@@ -166,7 +171,7 @@ export function LitersChart({ buckets }: { buckets: { start: Date; liters: numbe
           );
         })}
         {buckets.map((b, i) => {
-          const h = (b.liters / max) * (H - T - B);
+          const h = ((b.liters ?? 0) / max) * (H - T - B);
           return (
             <g key={i}>
               <rect x={L + i * bw + 2} y={H - B - h} width={bw - 4} height={h} fill="var(--accent-primary)" />

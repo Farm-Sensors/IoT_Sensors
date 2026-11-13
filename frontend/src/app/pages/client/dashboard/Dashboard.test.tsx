@@ -105,8 +105,8 @@ describe.each([AreaNowView])("telemetry layout", (Layout) => {
     const { rerender } = render(<Layout {...props} />);
     for (const title of ["Humedad del Suelo", "Flujo de Agua", "E.T.O."]) expect(screen.getByText(title)).toBeTruthy();
     for (const unit of ["%", "L/min", "mm/día", "dS/m", "MPa"]) expect(screen.getAllByText(unit).length).toBeGreaterThan(0);
-    expect(screen.getAllByText("0").length).toBeGreaterThanOrEqual(3);
-    expect(screen.getByText("Sin datos")).toBeTruthy();
+    expect(screen.getAllByText(/^0(\.0+)?$/).length).toBeGreaterThanOrEqual(3);
+    expect(screen.getAllByText("Sin datos").length).toBeGreaterThan(0);
     expect(screen.queryByText("+0.3 vs ayer")).toBeNull();
     rerender(<Layout {...props} currentReadings={toCurrentReadings({ ...reading, soil: null, irrigation: null, environmental: null })} />);
     expect(screen.getAllByText(/^Sin datos(?: |$)/).length).toBeGreaterThanOrEqual(10);
@@ -136,7 +136,7 @@ describe.each([AreaNowView])("freshness", (Layout) => {
 it("shows the freshness of the area once, in the header", async () => {
   render(<ClientDashboard />);
   await screen.findByText("Humedad del Suelo");
-  expect(screen.getAllByText(/Último dato:/)).toHaveLength(1);
+  expect(screen.getAllByText(/^Último dato /)).toHaveLength(1);
 });
 
 it("names both selectors for assistive technology", () => {
@@ -154,7 +154,7 @@ it("changes freshness at 20 minutes and displays the exact timestamp", () => {
   expect(container.querySelector("time")?.dateTime).toBe(lastUpdate.toISOString());
   expect(getConnectionState(lastUpdate)).toBe("online");
   act(() => vi.advanceTimersByTime(30000));
-  expect(screen.getByText(/Sin reporte reciente/)).toBeTruthy();
+  expect(screen.getByText(/Sin comunicación/)).toBeTruthy();
   expect(getConnectionState(lastUpdate)).toBe("warning");
 });
 
@@ -243,10 +243,10 @@ it("discards late responses for a previously selected area", async () => {
   expect(screen.queryByText("Humedad del Suelo")).toBeNull();
   mocks.selection.selectedArea = mocks.selection.areas[1];
   rerender(<ClientDashboard />);
-  expect(await screen.findByText("77")).toBeTruthy();
+  expect(await screen.findByText("77.0")).toBeTruthy();
   await act(async () => resolveOld({ data: { ...reading, soil: { ...reading.soil!, humidity: 99 } } }));
-  expect(screen.queryByText("99")).toBeNull();
-  expect(screen.getByText("77")).toBeTruthy();
+  expect(screen.queryByText("99.0")).toBeNull();
+  expect(screen.getByText("77.0")).toBeTruthy();
   await waitFor(() => expect(mocks.get).toHaveBeenCalledWith("/readings/latest", { params: { irrigation_area_id: 13 } }));
 });
 
@@ -282,7 +282,7 @@ it("hides the threshold semaphore while the alerts module is off", async () => {
 });
 
 describe("dashboard card preferences", () => {
-  it("shows only the cards with data when there is no configuration", async () => {
+  it("shows every priority card and category, with Sin datos, when there is no configuration", async () => {
     mocks.get.mockImplementation((path: string) => {
       if (path === "/readings/latest") return Promise.resolve({ data: soilOnlyReading });
       return withDashboardCards(null)(path);
@@ -292,10 +292,11 @@ describe("dashboard card preferences", () => {
     expect(await screen.findByText("Humedad del Suelo")).toBeTruthy();
     expect(screen.getByText("Suelo")).toBeTruthy();
     expect(screen.getByText("Humedad del suelo · últimas 24 h")).toBeTruthy();
-    expect(screen.queryByText("Flujo de Agua")).toBeNull();
-    expect(screen.queryByText("E.T.O.")).toBeNull();
-    expect(screen.queryByText("Estado del Riego")).toBeNull();
-    expect(screen.queryByText("Ambiental")).toBeNull();
+    // Un campo que el nodo no envía se lee «Sin datos»: la tarjeta no desaparece.
+    expect(screen.getByText("Flujo de Agua")).toBeTruthy();
+    expect(screen.getByText("E.T.O.")).toBeTruthy();
+    expect(screen.getByText("Ambiental")).toBeTruthy();
+    expect(screen.getAllByText("Sin datos").length).toBeGreaterThanOrEqual(3);
   });
 
   it("shows exactly the configured cards and hides data-backed cards outside the list", async () => {
@@ -322,9 +323,8 @@ describe("dashboard card preferences", () => {
     render(<ClientDashboard />);
 
     expect(await screen.findByText("Humedad del Suelo")).toBeTruthy();
-    expect(screen.queryByText("Flujo de Agua")).toBeNull();
-    expect(screen.queryByText("Estado del Riego")).toBeNull();
-    expect(screen.queryByText("Ambiental")).toBeNull();
+    expect(screen.getByText("Flujo de Agua")).toBeTruthy();
+    expect(screen.getByText("Ambiental")).toBeTruthy();
   });
 });
 

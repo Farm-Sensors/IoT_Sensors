@@ -9,6 +9,9 @@ import { useTheme } from "../../context/ThemeContext";
 import type { GeoNode } from "../../services/nodes";
 import { AREA_STATE_LABEL, areaState, formatAgo, type AreaState } from "../client/overview/areaStatus";
 import { StateBadge } from "../client/overview/OverviewCharts";
+import { spreadOffsets } from "../../utils/mapSpread";
+import { formatFreshness } from "../../utils/metricFormat";
+import { parseBackendTimestamp } from "../../utils/datetime";
 
 const LIGHT = "https://tiles.openfreemap.org/styles/liberty";
 const DARK = "https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json";
@@ -117,7 +120,7 @@ export function AdminMapPage() {
   useEffect(() => {
     if (!map) return;
     markersRef.current.forEach((m) => m.remove());
-    const make = (el: HTMLElement, lng: number, lat: number) => new maplibregl.Marker({ element: el, anchor: "bottom", offset: [0, -4] }).setLngLat([lng, lat]).addTo(map);
+    const make = (el: HTMLElement, lng: number, lat: number, [dx, dy]: [number, number] = [0, 0]) => new maplibregl.Marker({ element: el, anchor: "bottom", offset: [dx, dy - 4] }).setLngLat([lng, lat]).addTo(map);
     if (propertyId === null) {
       markersRef.current = propertyPins.map((pin) => {
         const sub = `${pin.total} ${pin.total === 1 ? "nodo" : "nodos"} · ${pin.stale > 0 ? `${pin.stale} sin comunicación` : pin.state === "sin_datos" ? "sin datos" : "al día"}`;
@@ -125,9 +128,11 @@ export function AdminMapPage() {
       });
       return;
     }
-    markersRef.current = areaPins.map(({ node, state }) => {
+    // Varias áreas sin GPS comparten la ubicación del predio: se reparten para que ninguna tape a otra.
+    const offsets = spreadOffsets(areaPins.map(({ node }) => [node.longitude as number, node.latitude as number]));
+    markersRef.current = areaPins.map(({ node, state }, i) => {
       const sub = state === "sin_comunicacion" && node.minutes_since_last_reading != null ? `sin comunicación · ${formatAgo(node.minutes_since_last_reading).replace("hace ", "")}` : AREA_STATE_LABEL[state];
-      return make(buildPin(node.irrigation_area_name, sub, state, node.irrigation_area_id === selectedAreaId, null, () => setSelectedAreaId(node.irrigation_area_id)), node.longitude as number, node.latitude as number);
+      return make(buildPin(node.irrigation_area_name, sub, state, node.irrigation_area_id === selectedAreaId, null, () => setSelectedAreaId(node.irrigation_area_id)), node.longitude as number, node.latitude as number, offsets[i]);
     });
   }, [map, propertyId, propertyPins, areaPins, selectedAreaId]);
 
@@ -196,11 +201,12 @@ export function AdminMapPage() {
             <button type="button" aria-label="Cerrar" onClick={() => setSelectedAreaId(null)} className="absolute right-2 top-2 inline-flex h-10 w-10 items-center justify-center rounded-[var(--radius)] text-[var(--text-muted)] hover:bg-[var(--accent-soft)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus-ring)]"><X aria-hidden="true" className="h-4 w-4" /></button>
             <h2 className="pr-10 text-base font-semibold">{selected.node.irrigation_area_name}</h2>
             <p className="text-sm text-[var(--text-muted)]">{[selected.node.client_company_name, selected.node.property_name, selected.node.crop_type_name].filter(Boolean).join(" · ")}</p>
+            {selected.node.location_source === "property" && <p className="mt-0.5 text-xs text-[var(--text-muted)]">Ubicación aproximada: la del predio (el nodo no tiene GPS)</p>}
             <div className="mt-3 flex items-end justify-between gap-3">
               <div className="text-sm text-[var(--text-muted)]">{selected.node.name || selected.node.serial_number || `Nodo #${selected.node.id}`}{!selected.node.is_active ? " · deshabilitado" : ""}</div>
               <div className="text-right">
                 <StateBadge state={selected.state} />
-                {selected.node.minutes_since_last_reading != null && <div className="text-xs text-[var(--text-muted)]">{formatAgo(selected.node.minutes_since_last_reading)}</div>}
+                <div className="text-xs text-[var(--text-muted)]">{selected.node.last_reading_timestamp ? formatFreshness(parseBackendTimestamp(selected.node.last_reading_timestamp)) : AREA_STATE_LABEL.sin_datos}</div>
               </div>
             </div>
             <div className="mt-4 flex gap-2">

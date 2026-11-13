@@ -228,13 +228,10 @@ export function ClientDashboard({ embedded = false }: { embedded?: boolean } = {
 
         <div className={`${embedded ? "" : "mt-4 "}flex flex-wrap items-start gap-x-6 gap-y-3`}>
           {currentReadings.lastUpdate && <FreshnessIndicator lastUpdate={currentReadings.lastUpdate} />}
-          {embedded ? (
-            visibleCards.has("irrigation.status") && activeSnapshot?.reading && (
-              <IrrigationStatusBadge state={irrigationState} label={getIrrigationStatusLabel(irrigationState)} />
-            )
-          ) : gatewayStatus && (
-            <GatewayStatusBadge status={gatewayStatus.status} edgeStatus={gatewayStatus.edge_status} />
+          {embedded && visibleCards.has("irrigation.status") && activeSnapshot?.reading && (
+            <IrrigationStatusBadge state={irrigationState} label={getIrrigationStatusLabel(irrigationState)} />
           )}
+          {gatewayStatus && <GatewayStatusBadge status={gatewayStatus.status} edgeStatus={gatewayStatus.edge_status} />}
         </div>
       </div>
 

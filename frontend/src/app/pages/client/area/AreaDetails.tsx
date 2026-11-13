@@ -74,7 +74,6 @@ export function AreaDetails() {
   const elapsed = active ? Math.max(0, differenceInCalendarDays(today, new Date(`${active.start_date}T00:00:00`))) : 0;
   const total = active?.end_date ? Math.max(1, differenceInCalendarDays(new Date(`${active.end_date}T00:00:00`), new Date(`${active.start_date}T00:00:00`))) : null;
   const place = REAL_PLACE(property?.location);
-  const gatewayProblem = gateway && ["delayed", "stale", "disconnected"].some((s) => s === gateway.status || s === gateway.edge_status);
 
   return (
     <div className="grid gap-4 md:grid-cols-2">
@@ -117,11 +116,18 @@ export function AreaDetails() {
           <dl>
             <Field label="Nombre">{node.name ?? "Sin nombre"}</Field>
             {node.serial_number && <Field label="Número de serie"><span className="font-mono-data">{node.serial_number}</span></Field>}
-            <Field label="Coordenadas del nodo">
-              {node.latitude !== null && node.longitude !== null ? <span className="font-mono-data">{coords(node.latitude, node.longitude)}</span> : "Sin GPS"}
-            </Field>
+            {node.latitude !== null && node.longitude !== null && node.location_source === "property" ? (
+              <>
+                <Field label="GPS del nodo">Sin GPS</Field>
+                <Field label="Ubicación en el mapa"><span className="font-mono-data">{coords(node.latitude, node.longitude)}</span> <span className="text-[var(--text-muted)]">(la del predio, aproximada)</span></Field>
+              </>
+            ) : (
+              <Field label="GPS del nodo">
+                {node.latitude !== null && node.longitude !== null ? <span className="font-mono-data">{coords(node.latitude, node.longitude)}</span> : "Sin GPS"}
+              </Field>
+            )}
             {place && <Field label="Ubicación del predio">{place}</Field>}
-            {gatewayProblem && gateway && <Field label="Equipo del predio"><GatewayStatusBadge status={gateway.status} edgeStatus={gateway.edge_status} /></Field>}
+            {gateway && <Field label="Equipo del predio"><GatewayStatusBadge status={gateway.status} edgeStatus={gateway.edge_status} /></Field>}
           </dl>
         ) : (
           <p className="py-3 text-sm text-[var(--text-muted)]">Esta área no tiene nodo asignado. El administrador lo registra.</p>

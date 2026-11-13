@@ -51,7 +51,7 @@ it("shows the freshness once and keeps support data behind a closed disclosure",
   serveNode({ soil: { humidity: 45 }, irrigation: { flow_per_minute: 1 }, environmental: { eto: 2 } });
   render(<MemoryRouter><NodeDetail /></MemoryRouter>);
   await screen.findByRole("heading", { level: 1, name: "Nodo Norte" });
-  expect(screen.getAllByText(/Último dato:/)).toHaveLength(1);
+  expect(screen.getAllByText(/^Último dato /)).toHaveLength(1);
   const trigger = screen.getByRole("button", { name: "Datos para soporte" });
   expect(trigger).toHaveAttribute("aria-expanded", "false");
   expect(screen.queryByText("SN-42")).toBeNull();

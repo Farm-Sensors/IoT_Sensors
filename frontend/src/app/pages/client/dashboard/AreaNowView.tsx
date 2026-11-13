@@ -3,25 +3,28 @@ import { Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YA
 import type { DashboardCardKey } from "../../../services/dashboardPreferences";
 import type { CurrentReadings, ChartReading } from "./readings";
 import { getHumidityAxisDomain, type PriorityKey, type SemaphoreLevel } from "./helpers";
+import { NO_DATA } from "../../../utils/metricFormat";
 import { SemaphorePill } from "./SemaphorePill";
 
 const panel = "rounded-[var(--radius)] border border-[var(--border)] bg-[var(--card)]";
 
-/** Un valor con su unidad; «Sin datos» (nunca un 0 inventado) cuando el nodo no lo envía. */
-function Value({ value, unit, big = false }: { value: string | number; unit: string; big?: boolean }) {
+/** Un valor ya formateado con su unidad; «Sin datos» va sin unidad (nunca un 0 inventado). */
+function Value({ value, unit, big = false }: { value: string; unit: string; big?: boolean }) {
+  const missing = value === NO_DATA;
   return (
-    <p className={`font-mono-data font-medium ${big ? "text-[34px] leading-tight text-[var(--accent-green)]" : "text-xl"}`}>
-      {value} <small className="font-sans text-sm text-[var(--text-muted)]">{unit}</small>
+    <p className={`font-mono-data font-medium ${big ? (missing ? "text-2xl leading-tight text-[var(--text-muted)]" : "text-[34px] leading-tight text-[var(--accent-green)]") : "text-xl"}`}>
+      {value}{!missing && <> <small className="font-sans text-sm text-[var(--text-muted)]">{unit}</small></>}
     </p>
   );
 }
 
-function Measure({ label, value, unit, wide = false }: { label: string; value: string | number; unit: string; wide?: boolean }) {
+function Measure({ label, value, unit, wide = false }: { label: string; value: string; unit: string; wide?: boolean }) {
+  const missing = value === NO_DATA;
   return (
     <div className={`bg-[var(--card)] px-4 py-3 ${wide ? "col-span-2" : ""}`}>
       <dt className="text-xs text-[var(--text-muted)]">{label}</dt>
-      <dd className="font-mono-data text-2xl font-medium leading-tight text-[var(--accent-green)]">
-        {value} <small className="font-sans text-sm font-normal text-[var(--text-muted)]">{unit}</small>
+      <dd className={`font-mono-data font-medium leading-tight ${missing ? "text-lg text-[var(--text-muted)]" : "text-2xl text-[var(--accent-green)]"}`}>
+        {value}{!missing && <> <small className="font-sans text-sm font-normal text-[var(--text-muted)]">{unit}</small></>}
       </dd>
     </div>
   );
@@ -55,7 +58,7 @@ export function AreaNowView({
   showSemaphore: boolean;
   visibleCards: Set<DashboardCardKey>;
 }) {
-  const priority: { key: DashboardCardKey; sem: PriorityKey; title: ReactNode; value: string | number; unit: string; extra?: ReactNode }[] = [
+  const priority: { key: DashboardCardKey; sem: PriorityKey; title: ReactNode; value: string; unit: string; extra?: ReactNode }[] = [
     { key: "priority.humidity", sem: "soil.humidity", title: "Humedad del Suelo", value: currentReadings.soilHumidity, unit: "%" },
     {
       key: "priority.flow", sem: "irrigation.flow_per_minute", title: "Flujo de Agua", value: currentReadings.waterFlow, unit: "L/min",
@@ -68,7 +71,7 @@ export function AreaNowView({
               </AreaChart>
             </ResponsiveContainer>
           </div>
-          <p className="mt-1 text-xs text-[var(--text-muted)]">Acumulado: <span className="font-mono-data">{currentReadings.accumulatedWater}</span> L</p>
+          <p className="mt-1 text-xs text-[var(--text-muted)]">Acumulado: <span className="font-mono-data">{currentReadings.accumulatedWater}</span>{currentReadings.accumulatedWater !== NO_DATA && " L"}</p>
         </>
       ),
     },

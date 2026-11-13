@@ -14,6 +14,8 @@ export interface GeoNode {
   name: string | null;
   latitude: number | null;
   longitude: number | null;
+  /** De dónde sale la ubicación: GPS del nodo o ubicación de referencia del predio (aproximada). */
+  location_source?: "node" | "property" | null;
   is_active: boolean;
   last_reading_timestamp: string | null;
   minutes_since_last_reading: number | null;
