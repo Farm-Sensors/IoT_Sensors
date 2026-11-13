@@ -1,4 +1,5 @@
 from datetime import datetime
+from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -48,6 +49,8 @@ class NodeGeoResponse(BaseModel):
     name: str | None = None
     latitude: float | None = None
     longitude: float | None = None
+    # "node": the node's own GPS; "property": the property's reference location (node GPS is optional).
+    location_source: Literal["node", "property"] | None = None
     is_active: bool
     last_reading_timestamp: datetime | None = None
     minutes_since_last_reading: int | None = None
