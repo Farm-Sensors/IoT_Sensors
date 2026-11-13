@@ -177,6 +177,7 @@ describe("GatewayManagement (lista de equipos y asistente)", () => {
         named(2, "Rancho Dos", { status: "active" }),
         named(3, "Rancho Tres", { status: "active" }),
         named(4, "Rancho Cuatro", { status: "active" }),
+        named(6, "Rancho Nuevo", { status: "active" }),
         named(5, "Rancho Viejo", { status: "revoked", property_deleted: true }),
       ],
     });
@@ -186,6 +187,8 @@ describe("GatewayManagement (lista de equipos y asistente)", () => {
       3: [slot(16, "confirmed", recent), slot(17, "confirmed", recent)],
       4: [slot(16, "confirmed", recent), slot(17, "confirmed", old)],
       5: [slot(16, "confirmed", old), slot(17, "confirmed", old)],
+      // Recién asignado: una área ya reporta y la otra todavía no manda su primera lectura.
+      6: [slot(16, "confirmed", recent), slot(17, "confirmed", null)],
     };
     mocks.getGatewayStatus.mockImplementation((id: number) =>
       Promise.resolve({ data: { ...statusWith(byId[id]), gateway_id: id } }),
@@ -217,8 +220,12 @@ describe("GatewayManagement (lista de equipos y asistente)", () => {
     expect(within(card("Rancho Cuatro")).getByTestId("equipo-state")).toHaveTextContent(
       "Sin datos recientes",
     );
+    expect(within(card("Rancho Nuevo")).getByTestId("equipo-state")).toHaveTextContent(
+      "Esperando primera lectura",
+    );
+    expect(within(card("Rancho Nuevo")).getByRole("button", { name: /^Ver avance/ })).toBeInTheDocument();
     // Una sola acción por tarjeta.
-    for (const name of ["Rancho Uno", "Rancho Dos", "Rancho Tres", "Rancho Cuatro"]) {
+    for (const name of ["Rancho Uno", "Rancho Dos", "Rancho Tres", "Rancho Cuatro", "Rancho Nuevo"]) {
       expect(within(card(name)).queryAllByRole("button").length + within(card(name)).queryAllByRole("link").length).toBe(1);
     }
 
