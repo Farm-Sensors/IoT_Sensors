@@ -77,6 +77,16 @@ function AreaTile({ row, weight, now, edit }: { row: AreaOverviewRow; weight: nu
           </div>
         )}
       </div>
+      {/* Los otros dos datos prioritarios y la frescura, siempre visibles bajo la humedad. */}
+      {ok && (
+        <div className="flex-none border-t border-[var(--border)] px-3 py-2 text-xs text-[var(--text-muted)]">
+          <dl className="flex flex-wrap gap-x-3 gap-y-0.5">
+            <div className="flex gap-1"><dt>Flujo</dt><dd className="font-mono-data text-[var(--text-main)]">{row.flow === null ? "Sin datos" : `${row.flow.toFixed(1)} L/min`}</dd></div>
+            <div className="flex gap-1"><dt>ETO</dt><dd className="font-mono-data text-[var(--text-main)]">{row.eto === null ? "Sin datos" : `${row.eto.toFixed(2)} mm/día`}</dd></div>
+          </dl>
+          <div className="mt-0.5">{minutes === null ? "Sin lecturas" : `Último dato ${formatAgo(minutes)}`}</div>
+        </div>
+      )}
     </>
   );
 
