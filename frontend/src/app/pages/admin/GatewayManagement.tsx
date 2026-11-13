@@ -427,7 +427,7 @@ export function GatewayManagement() {
         <div className="min-w-0">
           <h2 className="truncate text-base font-semibold text-[var(--text-main)]">{label}</h2>
           <p className="mt-0.5 text-sm text-[var(--text-muted)]">
-            {areasWithData(status)} de {gateway.slots.length} áreas con datos{lastTalk ? ` · ${lastTalk}` : ""}
+            {areasWithData(status)} de {gateway.slots.length} áreas al día{lastTalk ? ` · ${lastTalk}` : ""}
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-3">
@@ -675,7 +675,7 @@ export function GatewayManagement() {
         En la pantalla del equipo asigna cada nodo a su área y toca «Enviar asignaciones».
       </p>
       <p className="text-sm font-medium" aria-live="polite">
-        {withData} de {gateway.slots.length} áreas con datos
+        {withData} de {gateway.slots.length} áreas al día
       </p>
       {setupStatus ? (
         <ul aria-label="Áreas" className="divide-y divide-[var(--border-subtle)] text-sm">

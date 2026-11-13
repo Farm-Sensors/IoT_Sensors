@@ -105,7 +105,7 @@ describe("GatewayDetail", () => {
       await screen.findByRole("heading", { level: 1, name: "Rancho Prueba SA · Rancho Prueba" }),
     ).toBeInTheDocument();
     expect(screen.getByTestId("equipo-state")).toHaveTextContent("Asignando nodos");
-    expect(screen.getByText("0 de 2 áreas con datos")).toBeInTheDocument();
+    expect(screen.getByText("0 de 2 áreas al día")).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Ver avance" })).toHaveAttribute(
       "href",
       "/admin/gateways?gateway=10",

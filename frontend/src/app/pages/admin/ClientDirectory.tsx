@@ -1,5 +1,5 @@
 import { differenceInCalendarDays, format } from "date-fns";
-import { ChevronDown, ChevronRight, MapPin, Search, Sprout, Users, Warehouse } from "lucide-react";
+import { ChevronDown, ChevronRight, Eye, MapPin, Search, Sprout, Users, Warehouse } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Link, useNavigate, useParams, useSearchParams } from "react-router";
 import { Breadcrumbs, type Crumb } from "../../components/Breadcrumbs";
@@ -9,17 +9,19 @@ import { ErrorState } from "../../components/ErrorState";
 import { PageHeader } from "../../components/PageHeader";
 import { api } from "../../services/api";
 import { getGeoNodes, type GeoNode } from "../../services/nodes";
-import { areaState, formatAgo, type AreaState } from "../client/overview/areaStatus";
+import { areaState, type AreaState } from "../client/overview/areaStatus";
+import { parseBackendTimestamp } from "../../utils/datetime";
 import { StateBadge } from "../client/overview/OverviewCharts";
 import { ClientManagement } from "./ClientManagement";
 import { CropCycleManagement } from "./CropCycleManagement";
-import { HealthBadge, EMPTY_HEALTH, panelButton, type Health } from "./directory/Health";
+import { HealthBadge, EMPTY_HEALTH, panelButton, placeLabel, referenceLabel, type Health } from "./directory/Health";
+import { formatFreshness, formatMetric } from "../../utils/metricFormat";
 import { IrrigationAreaManagement } from "./IrrigationAreaManagement";
 import { NodeManagement } from "./NodeManagement";
 import { PropertyManagement } from "./PropertyManagement";
 
 interface DClient { id: number; company_name: string }
-interface DProperty { id: number; client_id: number; name: string; location: string | null }
+interface DProperty { id: number; client_id: number; name: string; location: string | null; latitude: number | null; longitude: number | null }
 interface DArea { id: number; property_id: number; name: string; area_size: number | null; crop_type: { name: string } | null }
 interface DCycle { irrigation_area_id: number; start_date: string; end_date: string | null }
 interface Tree { clients: DClient[]; properties: DProperty[]; areas: DArea[]; nodes: GeoNode[]; cycles: DCycle[] }
@@ -38,19 +40,23 @@ async function loadTree(): Promise<Tree> {
   return { clients: clients.data.data, properties: properties.data.data, areas: areas.data.data, nodes: geo.data, cycles: cycles.data.data };
 }
 
-/** Árbol cliente › predio › área. Se vuelve a pedir cuando el panel crea, edita o borra algo. */
+/** Pausa entre actualizaciones del directorio, igual que Inicio. */
+const POLL_MS = 30_000;
+
+/** Árbol cliente › predio › área. Se vuelve a pedir cada 30 s y cuando el panel crea, edita o borra algo. */
 function useTree() {
   const [tree, setTree] = useState<Tree | null>(null);
   const [error, setError] = useState(false);
   const reload = useCallback(() => { loadTree().then((t) => { setTree(t); setError(false); }).catch(() => setError(true)); }, []);
   useEffect(() => {
     reload();
+    const timer = window.setInterval(reload, POLL_MS);
     // Cualquier escritura (POST, PUT, PATCH, DELETE) hecha por los paneles refresca el árbol.
     const id = api.interceptors.response.use((response) => {
       if (response.config.method && response.config.method.toLowerCase() !== "get") window.setTimeout(reload, 400);
       return response;
     });
-    return () => api.interceptors.response.eject(id);
+    return () => { window.clearInterval(timer); api.interceptors.response.eject(id); };
   }, [reload]);
   return { tree, error, reload };
 }
@@ -76,8 +82,10 @@ function useDerived(tree: Tree | null) {
       const h = (map[key] ??= { ...EMPTY_HEALTH });
       h.total += 1;
       if (i.state === "sin_comunicacion") h.stale += 1;
-      else if (i.state !== "al_dia" || !i.hasCycle) h.setup += 1;
-      else h.ok += 1;
+      if (i.state === "sin_datos") h.noData += 1;
+      if (i.state === "sin_nodo") h.noNode += 1;
+      if (!i.hasCycle) h.noCycle += 1;
+      if (i.state === "al_dia" && i.hasCycle) h.ok += 1;
     };
     for (const area of tree.areas) {
       add(propertyHealth, area.property_id, info[area.id]);
@@ -90,7 +98,7 @@ function useDerived(tree: Tree | null) {
 
 /** Número de áreas con algo pendiente; en rojo si alguna no se comunica. */
 function Count({ health }: { health?: Health }) {
-  const n = health ? health.stale + health.setup : 0;
+  const n = health ? health.total - health.ok : 0;
   if (!n) return null;
   return <span title={`${n} con pendientes`} className={`ml-auto inline-flex min-w-[22px] justify-center rounded-full px-1.5 text-xs font-semibold ${health && health.stale > 0 ? "bg-[var(--status-danger-bg)] text-[var(--status-danger-text)]" : "bg-[var(--card-sand)] text-[var(--text-muted)]"}`}><span aria-hidden="true">{n}</span><span className="sr-only">{n} con pendientes</span></span>;
 }
@@ -190,17 +198,34 @@ function Fact({ label, action, children }: { label: string; action?: React.React
 
 const day = (iso: string) => format(new Date(`${iso}T00:00:00`), "dd/MM/yyyy");
 
-function AreaPanel({ area, info }: { area: DArea; info?: AreaInfo }) {
+interface Latest { timestamp: string; soil: { humidity: number | null }; irrigation: { flow_per_minute: number | null }; environmental: { eto: number | null } }
+
+/** Última lectura del área (o `null` si nunca ha reportado); se vuelve a pedir cuando cambia la frescura del árbol. */
+function useLatest(areaId: number, stamp: string | null | undefined) {
+  const [latest, setLatest] = useState<Latest | null>(null);
+  useEffect(() => {
+    if (!stamp) { setLatest(null); return; }
+    let alive = true;
+    api.get<Latest | null>(`/readings/latest?irrigation_area_id=${areaId}`).then((r) => { if (alive) setLatest(r.data ?? null); }).catch(() => { if (alive) setLatest(null); });
+    return () => { alive = false; };
+  }, [areaId, stamp]);
+  return latest;
+}
+
+function AreaPanel({ area, info, property }: { area: DArea; info?: AreaInfo; property?: DProperty }) {
   const [params, setParams] = useSearchParams();
   const tab: AreaTab = params.get("tab") === "ciclos" ? "ciclos" : params.get("tab") === "nodo" ? "nodo" : "resumen";
   const go = (t: AreaTab) => setParams(t === "resumen" ? {} : { tab: t }, { replace: true });
   const tabs: { id: AreaTab; label: string }[] = [{ id: "resumen", label: "Resumen" }, { id: "ciclos", label: "Ciclos" }, { id: "nodo", label: "Nodo" }];
-  const minutes = info?.node?.minutes_since_last_reading ?? null;
+  const last = parseBackendTimestamp(info?.node?.last_reading_timestamp);
+  const latest = useLatest(area.id, info?.node?.last_reading_timestamp);
   const goBtn = (t: AreaTab, text: string) => <button type="button" onClick={() => go(t)} className={panelButton}>{text}</button>;
+  const asClient = <Link to={`/admin/areas/${area.id}/ver`} className={panelButton}><Eye aria-hidden="true" className="h-4 w-4" />Ver como el cliente</Link>;
 
   return (
     <div>
       <IrrigationAreaManagement predioId={String(area.property_id)} areaId={String(area.id)} meta={info ? <span className="inline-flex"><StateBadge state={info.state} /></span> : undefined} />
+      <div className="mt-3 flex flex-wrap gap-2">{asClient}</div>
       <div role="tablist" aria-label="Secciones del área" className="mb-4 mt-4 flex gap-1 border-b border-[var(--border)]">
         {tabs.map((t) => (
           <button key={t.id} role="tab" aria-selected={tab === t.id} onClick={() => go(t.id)}
@@ -213,10 +238,20 @@ function AreaPanel({ area, info }: { area: DArea; info?: AreaInfo }) {
         <dl>
           <Fact label="Datos">
             {!info || info.state === "sin_nodo" ? "Sin nodo: no llegan datos."
-              : info.state === "sin_datos" ? "El nodo todavía no ha enviado lecturas."
-              : info.state === "sin_comunicacion" ? <span className="text-[var(--status-danger-text)]">Sin comunicación · último dato {minutes !== null ? formatAgo(minutes) : "hace tiempo"}</span>
-              : <>Al día · último dato {minutes !== null ? formatAgo(minutes) : "hace un momento"}</>}
+              : info.state === "sin_datos" || !last ? "Sin lecturas todavía: el nodo no ha enviado datos."
+              : info.state === "sin_comunicacion" ? <span className="text-[var(--status-danger-text)]">Sin comunicación · {formatFreshness(last)}</span>
+              : <>Al día · {formatFreshness(last)}</>}
           </Fact>
+          {info && info.state !== "sin_nodo" && (
+            <Fact label="Datos prioritarios (última lectura)">
+              <span className="flex flex-wrap gap-x-4 gap-y-1">
+                <span>Humedad del suelo <span className="font-mono-data font-semibold">{formatMetric("humidity", latest?.soil.humidity)}</span></span>
+                <span>Flujo de agua <span className="font-mono-data font-semibold">{formatMetric("flow", latest?.irrigation.flow_per_minute)}</span></span>
+                <span>ETO <span className="font-mono-data font-semibold">{formatMetric("eto", latest?.environmental.eto)}</span></span>
+              </span>
+            </Fact>
+          )}
+          {property && <Fact label="Predio">{property.name} · {placeLabel(property.location)} · {referenceLabel(property)}</Fact>}
           <Fact label="Ciclo de cultivo" action={goBtn("ciclos", info?.cycle ? "Ver ciclos" : "Crear ciclo")}>
             {info?.cycle
               ? <>Desde <span className="font-mono-data">{day(info.cycle.start_date)}</span> · día <span className="font-mono-data">{differenceInCalendarDays(new Date(), new Date(`${info.cycle.start_date}T00:00:00`)) + 1}</span>{info.cycle.end_date ? <> · termina <span className="font-mono-data">{day(info.cycle.end_date)}</span></> : null}</>
@@ -293,6 +328,15 @@ export function ClientDirectory() {
             ) : selection.kind === "client" ? (
               <>
                 <ClientManagement clientId={String(selection.id)} meta={metaWithHealth(counts(selection.id), derived.clientHealth[selection.id])} />
+                {(() => {
+                  const firstArea = tree?.areas.find((a) => tree.properties.some((p) => p.id === a.property_id && p.client_id === selection.id));
+                  return firstArea ? (
+                    <div className="mt-3">
+                      <Link to={`/admin/areas/${firstArea.id}/ver`} className={panelButton}><Eye aria-hidden="true" className="h-4 w-4" />Ver como el cliente</Link>
+                      <p className="mt-1 text-xs text-[var(--text-muted)]">Abre «{firstArea.name}» tal como la ve el cliente; desde cada área puedes ver las demás.</p>
+                    </div>
+                  ) : null;
+                })()}
                 <div className="mt-6 border-t border-[var(--border)] pt-4">
                   <PropertyManagement clientId={String(selection.id)} health={derived.propertyHealth} />
                 </div>
@@ -305,7 +349,7 @@ export function ClientDirectory() {
                 </div>
               </>
             ) : area && tree ? (
-              <AreaPanel area={area} info={derived.info[area.id]} key={area.id} />
+              <AreaPanel area={area} info={derived.info[area.id]} property={property ?? undefined} key={area.id} />
             ) : (
               <p role="status" className="text-sm text-[var(--text-muted)]">Cargando…</p>
             )}

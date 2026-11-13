@@ -27,6 +27,13 @@ interface CropCycle {
 }
 
 /** `areaId`: solo los ciclos de esa área (Directorio › Área › Ciclos); sin él, todas las áreas. */
+/** Un ciclo está activo hasta el final de su día de fin, inclusive (igual que Inicio y el directorio). */
+export function isCycleActive(endDate: string | null, today = new Date()): boolean {
+  if (!endDate) return true;
+  const todayIso = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
+  return endDate >= todayIso;
+}
+
 export function CropCycleManagement({ areaId }: { areaId?: number } = {}) {
   const embedded = useEmbedded();
   const [showCreateForm, setShowCreateForm] = useState(false);
@@ -99,13 +106,9 @@ export function CropCycleManagement({ areaId }: { areaId?: number } = {}) {
 
   const shortDate = (iso: string) => new Date(`${iso}T00:00:00`).toLocaleDateString("es-MX", { day: "2-digit", month: "2-digit", year: "numeric" });
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('es-ES', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
-    });
-  };
+  // Las fechas del ciclo son días de calendario: se leen como día local, nunca como medianoche UTC
+  // (en México eso las movería al día anterior).
+  const formatDate = (dateString: string) => new Date(`${dateString}T00:00:00`).toLocaleDateString("es-MX", { year: "numeric", month: "long", day: "numeric" });
 
   if (loading && areas.length === 0) {
     return (
@@ -144,7 +147,7 @@ export function CropCycleManagement({ areaId }: { areaId?: number } = {}) {
             {[...areas]
               .map((area) => {
                 const own = cycles.filter((c) => c.irrigation_area_id === area.id).sort((x, y) => y.start_date.localeCompare(x.start_date));
-                const active = own.find((c) => !c.end_date || new Date(c.end_date) > new Date());
+                const active = own.find((c) => isCycleActive(c.end_date));
                 return { area, own, active };
               })
               // Primero las áreas sin ciclo activo: son las que necesitan atención.
@@ -193,7 +196,7 @@ export function CropCycleManagement({ areaId }: { areaId?: number } = {}) {
 
               <div className="space-y-3">
                 {areaCycles.map((cycle) => {
-                  const isActive = !cycle.end_date || new Date(cycle.end_date) > new Date();
+                  const isActive = isCycleActive(cycle.end_date);
 
                   return (
                     <div

@@ -1,4 +1,6 @@
 """Tests de integración para /api/v1/properties."""
+import pytest
+
 
 
 
@@ -75,6 +77,33 @@ class TestUpdateProperty:
         )
         assert resp.status_code == 200
         assert resp.json()["name"] == "Rancho Modificado"
+
+    def test_admin_sets_and_clears_reference_location(self, client, admin_headers, sample_property):
+        url = f"/api/v1/properties/{sample_property.id}"
+        resp = client.put(url, json={"latitude": 28.19, "longitude": -105.47}, headers=admin_headers)
+        assert resp.status_code == 200
+        assert resp.json()["latitude"] == 28.19 and resp.json()["longitude"] == -105.47
+        # Updating only the name keeps the location.
+        assert client.put(url, json={"name": "Otro"}, headers=admin_headers).json()["latitude"] == 28.19
+        cleared = client.put(url, json={"latitude": None, "longitude": None}, headers=admin_headers)
+        assert cleared.status_code == 200
+        assert cleared.json()["latitude"] is None and cleared.json()["longitude"] is None
+
+    @pytest.mark.parametrize(
+        "body",
+        [{"latitude": 28.19}, {"latitude": 91, "longitude": 0}, {"latitude": 0, "longitude": -181}, {"latitude": 28.1, "longitude": None}],
+    )
+    def test_reference_location_is_validated(self, client, admin_headers, sample_property, body):
+        resp = client.put(f"/api/v1/properties/{sample_property.id}", json=body, headers=admin_headers)
+        assert resp.status_code == 422
+
+    def test_client_cannot_edit_reference_location(self, client, client_headers, sample_property):
+        resp = client.put(
+            f"/api/v1/properties/{sample_property.id}",
+            json={"latitude": 1, "longitude": 1},
+            headers=client_headers,
+        )
+        assert resp.status_code == 403
 
 
 class TestDeleteProperty:

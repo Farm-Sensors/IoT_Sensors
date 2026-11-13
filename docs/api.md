@@ -169,7 +169,7 @@ Contrato detallado (payloads, schemas, errores, ejemplos): **`openapi.yaml`** (a
 | Properties | GET | `/api/v1/properties` | Listar (paginado, filtro `client_id`) |
 | Properties | POST | `/api/v1/properties` | Crear predio — Admin |
 | Properties | GET | `/api/v1/properties/{property_id}` | Detalle (incluye `latitude`/`longitude` de referencia, `null` si el equipo aún no la reportó) |
-| Properties | PUT | `/api/v1/properties/{property_id}` | Actualizar — Admin |
+| Properties | PUT | `/api/v1/properties/{property_id}` | Actualizar — Admin. Acepta `latitude` (−90..90) y `longitude` (−180..180) **juntas** para capturar o corregir la ubicación de referencia; ambas `null` la borran; una sola → 422 |
 | Properties | DELETE | `/api/v1/properties/{property_id}` | Eliminar — Admin |
 | Crop Types | GET | `/api/v1/crop-types` | Listar (paginado) |
 | Crop Types | POST | `/api/v1/crop-types` | Crear tipo de cultivo — Admin (campos opcionales `photo_url`, `photo_credit`, `photo_page`: foto de Wikimedia Commons; otro origen devuelve 422) |

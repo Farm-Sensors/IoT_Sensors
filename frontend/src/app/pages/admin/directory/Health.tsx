@@ -1,17 +1,26 @@
 import { AlertTriangle, CheckCircle2 } from "lucide-react";
 import type { ReactNode } from "react";
 
-/** Cuántas áreas de un cliente o predio están al día, no se comunican o les falta configurar algo. */
-export interface Health { total: number; ok: number; stale: number; setup: number }
+/**
+ * Cuántas áreas de un cliente o predio están al día y, por separado, cuántas no se comunican,
+ * nunca han enviado lecturas, no tienen nodo o no tienen ciclo. Un área puede contar en más de un pendiente
+ * (p. ej. sin comunicación y sin ciclo); `ok` son las que están al día y con ciclo.
+ */
+export interface Health { total: number; ok: number; stale: number; noData: number; noNode: number; noCycle: number }
 
-export const EMPTY_HEALTH: Health = { total: 0, ok: 0, stale: 0, setup: 0 };
+export const EMPTY_HEALTH: Health = { total: 0, ok: 0, stale: 0, noData: 0, noNode: 0, noCycle: 0 };
 
-/** Texto de salud: lo más grave primero («2 sin comunicación»), luego lo que falta configurar. */
+/** Texto de salud: todos los pendientes, lo más grave primero («1 sin comunicación · 1 sin lecturas todavía · 2 sin ciclo»). */
 export function healthLabel(h: Health): { text: string; tone: "ok" | "bad" | "setup" | "none" } {
   if (h.total === 0) return { text: "Sin áreas", tone: "none" };
-  if (h.stale > 0) return { text: `${h.stale} sin comunicación`, tone: "bad" };
-  if (h.setup > 0) return { text: `${h.setup} por configurar`, tone: "setup" };
-  return { text: "Todo al día", tone: "ok" };
+  const parts = [
+    h.stale ? `${h.stale} sin comunicación` : null,
+    h.noData ? `${h.noData} sin lecturas todavía` : null,
+    h.noNode ? `${h.noNode} sin nodo` : null,
+    h.noCycle ? `${h.noCycle} sin ciclo` : null,
+  ].filter(Boolean);
+  if (parts.length === 0) return { text: "Todo al día", tone: "ok" };
+  return { text: parts.join(" · "), tone: h.stale > 0 ? "bad" : "setup" };
 }
 
 /** Indicador de salud con ícono y texto (nunca solo color). */
@@ -30,7 +39,15 @@ export function HealthBadge({ health }: { health?: Health }) {
 export function placeLabel(location: string | null | undefined): string {
   const value = location?.trim();
   if (!value) return "Sin ubicación registrada";
-  return /^-?\d+(\.\d+)?\s*,\s*-?\d+(\.\d+)?$/.test(value) ? "Ubicado por coordenadas" : value;
+  return /^-?\d+(\.\d+)?\s*,\s*-?\d+(\.\d+)?$/.test(value) ? "Coordenadas en el texto de ubicación" : value;
+}
+
+/** Ubicación de referencia del predio (la reporta el equipo o la captura el admin): alimenta el mapa y el clima. */
+export function referenceLabel(property: { latitude: number | null; longitude: number | null }): string {
+  if (property.latitude == null || property.longitude == null) return "Sin ubicación de referencia";
+  const lat = `${Math.abs(property.latitude).toFixed(4)}° ${property.latitude >= 0 ? "N" : "S"}`;
+  const lon = `${Math.abs(property.longitude).toFixed(4)}° ${property.longitude >= 0 ? "E" : "O"}`;
+  return `Referencia ${lat}, ${lon}`;
 }
 
 /** Botones de acción del panel (alto táctil de 44 px, mismo estilo en todos los niveles). */

@@ -1,6 +1,6 @@
 import type { GeoNode } from "../../../services/nodes";
 
-export type PendingKind = "sin_comunicacion" | "sin_datos" | "sin_nodo" | "sin_ciclo" | "equipo_por_vincular";
+export type PendingKind = "sin_comunicacion" | "equipo_sin_conexion" | "sin_datos" | "sin_nodo" | "sin_ciclo" | "equipo_por_vincular";
 
 export interface PendingItem {
   key: string;
@@ -19,23 +19,31 @@ export interface PendingItem {
   since?: string;
   /** Minutos sin datos, para ordenar del más antiguo al más reciente. */
   minutes?: number;
+  /** Cuántas áreas abarca el renglón (un predio con 4 áreas sin ciclo cuenta 4). */
+  count?: number;
 }
 
 export const PENDING_LABEL: Record<PendingKind, string> = {
   sin_comunicacion: "Sin comunicación",
-  sin_datos: "Sin datos",
+  equipo_sin_conexion: "Equipo sin conexión",
+  sin_datos: "Sin lecturas todavía",
   sin_nodo: "Sin nodo",
   sin_ciclo: "Sin ciclo de cultivo",
   equipo_por_vincular: "Equipo por vincular",
 };
 
-export const PENDING_ORDER: PendingKind[] = ["sin_comunicacion", "sin_datos", "sin_nodo", "sin_ciclo", "equipo_por_vincular"];
+export const PENDING_ORDER: PendingKind[] = ["sin_comunicacion", "equipo_sin_conexion", "sin_datos", "sin_nodo", "sin_ciclo", "equipo_por_vincular"];
 
 interface AreaLite { id: number; property_id: number; name: string }
 interface PropertyLite { id: number; client_id: number; name: string }
 interface ClientLite { id: number; company_name: string }
 interface CycleLite { irrigation_area_id: number; end_date: string | null }
-interface GatewayLite { id: number; property_id?: number; status: string; property_name: string; client_name: string; property_deleted: boolean }
+interface GatewayLite {
+  id: number; property_id?: number; status: string; property_name: string; client_name: string; property_deleted: boolean;
+  /** Estado de conexión del equipo activo (`/gateways/{id}/status`): never_seen, recently_seen, stale, disconnected. */
+  connection?: string | null;
+  last_heartbeat_minutes?: number | null;
+}
 
 export interface PendingInput {
   areas: AreaLite[];
@@ -88,11 +96,33 @@ export function buildPending(input: PendingInput): PendingItem[] {
       detail: single ? "No tiene un ciclo de cultivo activo." : `${list.length} áreas sin ciclo de cultivo activo.`,
       to: single ? `/admin/areas/${list[0].id}?tab=ciclos` : `/admin/predios/${propertyId}/areas`,
       action: single ? "Crear ciclo" : "Crear ciclos",
+      count: list.length,
     });
   }
 
   for (const gateway of gateways) {
-    if (gateway.status === "active" || gateway.status === "revoked") continue;
+    if (gateway.status === "active") {
+      // Un equipo vinculado que dejó de reportarse (o nunca lo hizo) es un problema aunque sus áreas tengan datos viejos.
+      if (gateway.connection === "stale" || gateway.connection === "disconnected" || gateway.connection === "never_seen") {
+        const never = gateway.connection === "never_seen" || gateway.last_heartbeat_minutes == null;
+        items.push({
+          key: `conexion-${gateway.id}`,
+          propertyId: gateway.property_id,
+          kind: "equipo_sin_conexion",
+          title: gateway.property_name,
+          context: gateway.client_name,
+          client: gateway.client_name,
+          place: `Equipo del predio ${gateway.property_name}`,
+          detail: never ? "El equipo está vinculado pero nunca se ha reportado." : `El equipo no se reporta desde ${formatAgo(gateway.last_heartbeat_minutes!)}.`,
+          since: never ? "nunca se ha reportado" : formatAgo(gateway.last_heartbeat_minutes!),
+          minutes: never ? Number.MAX_SAFE_INTEGER : gateway.last_heartbeat_minutes!,
+          to: `/admin/gateways/${gateway.id}`,
+          action: "Ver equipo",
+        });
+      }
+      continue;
+    }
+    if (gateway.status === "revoked") continue;
     items.push({
       key: `equipo-${gateway.id}`,
       propertyId: gateway.property_id,
