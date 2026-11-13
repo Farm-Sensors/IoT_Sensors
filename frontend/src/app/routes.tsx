@@ -207,6 +207,16 @@ export const router = createBrowserRouter([
                 Component: ClientDirectory,
               },
               {
+                // Supervisión: el admin ve el área tal como la ve el cliente (Ahora, Historial, Detalles).
+                path: "areas/:areaId/ver",
+                element: <AreaLayout supervision />,
+                children: [
+                  { index: true, Component: AreaNow },
+                  { path: "historial", Component: AreaHistory },
+                  { path: "detalles", Component: AreaDetails },
+                ],
+              },
+              {
                 path: "predios/:predioId/areas",
                 Component: ClientDirectory,
               },

@@ -6,6 +6,7 @@ import { Link, useLocation, useParams } from "react-router";
 
 import { PageTransition } from "../../components/PageTransition";
 import { useAlertPlaces } from "../../hooks/useAlertPlaces";
+import { useModuleStatus } from "../../hooks/useModules";
 import {
   AlertItem,
   generateAlertRecommendation,
@@ -43,6 +44,9 @@ export function AlertDetailPage() {
   const thresholdsPath = isAdmin ? "/admin/umbrales" : "/cliente/umbrales";
   const { placeOf } = useAlertPlaces(isAdmin);
   const parsedAlertId = Number(alertId);
+  // Con el módulo de alertas apagado basta el aviso «Desactivado»: no se pide la alerta ni se muestra un error.
+  const modules = useModuleStatus();
+  const alertsOn = modules?.alerts === true;
 
   const [alert, setAlert] = useState<AlertItem | null>(null);
   const [loading, setLoading] = useState(true);
@@ -121,8 +125,10 @@ export function AlertDetailPage() {
   );
 
   useEffect(() => {
+    if (modules === null) return;
+    if (!alertsOn) { setLoading(false); return; }
     fetchAlert();
-  }, [fetchAlert]);
+  }, [fetchAlert, modules, alertsOn]);
 
   useEffect(() => {
     if (!alert) return;

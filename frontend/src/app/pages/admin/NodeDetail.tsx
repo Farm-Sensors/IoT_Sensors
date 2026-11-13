@@ -18,6 +18,7 @@ import { PageTransition } from "../../components/PageTransition";
 import { PillButton } from "../../components/PillButton";
 import { useToast } from "../../components/Toast";
 import { api } from "../../services/api";
+import { getPropertyGatewayStatus, type GatewayStatus } from "../../services/gateways";
 import { getErrorMessage } from "../../utils/errors";
 import { parseBackendTimestamp } from "../../utils/datetime";
 
@@ -47,6 +48,7 @@ export function NodeDetail() {
   const [node, setNode] = useState<any>(null);
   const [area, setArea] = useState<any>(null);
   const [latestReading, setLatestReading] = useState<any>(null);
+  const [gatewayStatus, setGatewayStatus] = useState<GatewayStatus | null>(null);
   const [historicalData, setHistoricalData] = useState<any[]>([]);
 
   const [showEditForm, setShowEditForm] = useState(false);
@@ -60,9 +62,10 @@ export function NodeDetail() {
   const [editIsActive, setEditIsActive] = useState(true);
 
   useEffect(() => {
-    const fetchNodeData = async () => {
+    // La primera carga muestra el esqueleto; las siguientes (cada 30 s) actualizan sin parpadeo.
+    const fetchNodeData = async (first: boolean) => {
       try {
-        setLoading(true);
+        if (first) setLoading(true);
         setError(null);
 
         // 1. Fetch Node
@@ -74,7 +77,10 @@ export function NodeDetail() {
         if (nodeData.irrigation_area_id) {
           try {
             const areaRes = await api.get(`/irrigation-areas/${nodeData.irrigation_area_id}`);
-            setArea(areaRes.data.data || areaRes.data);
+            const areaData = areaRes.data.data || areaRes.data;
+            setArea(areaData);
+            // Estado del equipo del predio (si lo tiene): explica por qué un nodo dejó de reportar.
+            getPropertyGatewayStatus(areaData.property_id).then((r) => setGatewayStatus(r.data)).catch(() => setGatewayStatus(null));
           } catch (e) {
             console.error("Area fetching error", e);
           }
@@ -82,7 +88,8 @@ export function NodeDetail() {
           // 3. Fetch latest reading
           try {
             const latestRes = await api.get(`/readings/latest?irrigation_area_id=${nodeData.irrigation_area_id}`);
-            setLatestReading(latestRes.data.data || latestRes.data);
+            // `null` cuando el área nunca ha reportado.
+            setLatestReading(latestRes.data?.data ?? latestRes.data ?? null);
           } catch (e) {
             console.error("Latest reading error", e);
           }
@@ -105,15 +112,16 @@ export function NodeDetail() {
           }
         }
       } catch (err: any) {
-        setError(err.response?.data?.detail || "Error al cargar información del nodo.");
+        if (first) setError(err.response?.data?.detail || "Error al cargar información del nodo.");
       } finally {
-        setLoading(false);
+        if (first) setLoading(false);
       }
     };
 
-    if (nodeId) {
-      fetchNodeData();
-    }
+    if (!nodeId) return;
+    void fetchNodeData(true);
+    const timer = window.setInterval(() => void fetchNodeData(false), 30_000);
+    return () => window.clearInterval(timer);
   }, [nodeId]);
 
   if (loading) {
@@ -248,7 +256,7 @@ export function NodeDetail() {
 
             <div className="flex flex-wrap items-center gap-3">
               {lastUpdate && <FreshnessIndicator lastUpdate={lastUpdate} />}
-              <GatewayStatusBadge />
+              {gatewayStatus && <GatewayStatusBadge status={gatewayStatus.status} edgeStatus={gatewayStatus.edge_status} />}
             </div>
 
             <Disclosure summary="Datos para soporte">
@@ -312,7 +320,8 @@ export function NodeDetail() {
                 <YAxis
                   stroke="var(--text-subtle)"
                   style={{ fontSize: '12px' }}
-                  domain={[30, 60]} // Adjust bounds automatically might be better but maintaining mock layout
+                  domain={["auto", "auto"]}
+                  unit="%"
                 />
                 <Tooltip
                   contentStyle={{

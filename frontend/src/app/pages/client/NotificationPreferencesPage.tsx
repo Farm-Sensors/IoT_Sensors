@@ -1,4 +1,5 @@
 import { Loader2, Save } from "lucide-react";
+import { locationLabel } from "./overview/areaStatus";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { Disclosure } from "../../components/Disclosure";
@@ -304,7 +305,7 @@ export function NotificationPreferencesPage() {
             <section key={property.id} aria-labelledby={`avisos-predio-${property.id}`}>
               <h2 id={`avisos-predio-${property.id}`} className="mb-2 text-sm font-semibold text-[var(--text-main)]">
                 {property.name}
-                {property.location ? <span className="font-normal text-[var(--text-muted)]"> · {property.location}</span> : null}
+                {property.location && locationLabel(property.location) !== "Ubicado por coordenadas" ? <span className="font-normal text-[var(--text-muted)]"> · {property.location}</span> : null}
               </h2>
               <ul className="space-y-2">
                 {propertyAreas.map((area) => (

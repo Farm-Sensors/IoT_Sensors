@@ -48,10 +48,10 @@ export function GatewayDetail() {
   const [publishing, setPublishing] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const load = async () => {
+  const load = async (quiet = false) => {
     if (!gatewayId) return;
     try {
-      setLoading(true);
+      if (!quiet) setLoading(true);
       const [gatewayRes, statusRes] = await Promise.all([
         getGateway(Number(gatewayId)),
         getGatewayStatus(Number(gatewayId)),
@@ -83,6 +83,9 @@ export function GatewayDetail() {
 
   useEffect(() => {
     void load();
+    // El heartbeat y las lecturas cambian solos: se actualiza cada 30 s sin esqueleto.
+    const timer = window.setInterval(() => void load(true), 30_000);
+    return () => window.clearInterval(timer);
   }, [gatewayId]);
 
   const handlePublish = async () => {
@@ -148,7 +151,7 @@ export function GatewayDetail() {
             {state !== "revoked" && (
               <>
                 <span>
-                  {areasWithData(status)} de {slotCount} áreas con datos
+                  {areasWithData(status)} de {slotCount} áreas al día
                 </span>
                 <span>Última señal del equipo: {lastHeartbeat ? formatElapsed(lastHeartbeat) : "todavía no"}</span>
               </>

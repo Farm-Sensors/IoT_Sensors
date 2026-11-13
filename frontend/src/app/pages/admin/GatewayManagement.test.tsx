@@ -203,15 +203,15 @@ describe("GatewayManagement (lista de equipos y asistente)", () => {
       within(list).getByRole("heading", { name: `Cliente · ${name}` }).closest("li")!;
 
     expect(within(card("Rancho Uno")).getByTestId("equipo-state")).toHaveTextContent("Falta vincular");
-    expect(within(card("Rancho Uno")).getByText(/^0 de 2 áreas con datos/)).toBeInTheDocument();
+    expect(within(card("Rancho Uno")).getByText(/^0 de 2 áreas al día/)).toBeInTheDocument();
     expect(within(card("Rancho Uno")).getByRole("button", { name: /^Vincular equipo/ })).toBeInTheDocument();
 
     expect(within(card("Rancho Dos")).getByTestId("equipo-state")).toHaveTextContent("Asignando nodos");
-    expect(within(card("Rancho Dos")).getByText(/^1 de 2 áreas con datos/)).toBeInTheDocument();
+    expect(within(card("Rancho Dos")).getByText(/^1 de 2 áreas al día/)).toBeInTheDocument();
     expect(within(card("Rancho Dos")).getByRole("button", { name: /^Ver avance/ })).toBeInTheDocument();
 
     expect(within(card("Rancho Tres")).getByTestId("equipo-state")).toHaveTextContent("Funcionando");
-    expect(within(card("Rancho Tres")).getByText(/^2 de 2 áreas con datos/)).toBeInTheDocument();
+    expect(within(card("Rancho Tres")).getByText(/^2 de 2 áreas al día/)).toBeInTheDocument();
     expect(within(card("Rancho Tres")).getByRole("link", { name: /^Ver detalle/ })).toHaveAttribute(
       "href",
       "/admin/gateways/3",
@@ -233,7 +233,7 @@ describe("GatewayManagement (lista de equipos y asistente)", () => {
     const revoked = screen.getByText("Enlaces revocados (1)").closest("details")!;
     expect(revoked).not.toHaveAttribute("open");
     expect(within(revoked).getByText("Cliente · Rancho Viejo (predio eliminado)")).toBeInTheDocument();
-    expect(within(revoked).queryByText(/áreas con datos/)).not.toBeInTheDocument();
+    expect(within(revoked).queryByText(/áreas al día/)).not.toBeInTheDocument();
 
     // Nada técnico a la vista.
     expect(screen.queryByText(/Detalles técnicos|POST \/api|Enlace #|versión|gateway|parcela|ranura/i)).not.toBeInTheDocument();
@@ -340,7 +340,7 @@ describe("GatewayManagement (lista de equipos y asistente)", () => {
     await waitFor(() => expect(next).toHaveFocus());
     const third = currentStep();
     expect(within(third).getByRole("status")).toHaveTextContent("Equipo vinculado");
-    expect(within(third).getByText(/^0 de 2 áreas con datos/)).toBeInTheDocument();
+    expect(within(third).getByText(/^0 de 2 áreas al día/)).toBeInTheDocument();
     expect(await within(third).findAllByText("Esperando nodo")).toHaveLength(2);
     expect(screen.queryByLabelText("Código del equipo")).not.toBeInTheDocument();
   });
@@ -359,7 +359,7 @@ describe("GatewayManagement (lista de equipos y asistente)", () => {
     const areas = await screen.findByRole("list", { name: "Áreas" });
     expect(within(areas).getByText("Área Norte").closest("li")).toHaveTextContent("Recibiendo datos");
     expect(within(areas).getByText("Área Sur").closest("li")).toHaveTextContent("Esperando nodo");
-    expect(screen.getByText(/^1 de 2 áreas con datos/)).toBeInTheDocument();
+    expect(screen.getByText(/^1 de 2 áreas al día/)).toBeInTheDocument();
     view.unmount();
 
     mocks.getGatewayStatus.mockResolvedValue({

@@ -7,7 +7,8 @@ import { PageTransition } from "../../components/PageTransition";
 import { SkeletonGrid } from "../../components/SkeletonCard";
 import { usePageVisibility } from "../../hooks/usePageVisibility";
 import { api } from "../../services/api";
-import { listGateways } from "../../services/gateways";
+import { getGatewayStatus, listGateways } from "../../services/gateways";
+import { parseBackendTimestamp } from "../../utils/datetime";
 import { getGeoNodes } from "../../services/nodes";
 import { FocusBlock } from "../../components/FocusBlock";
 import { formatAgo } from "../client/overview/areaStatus";
@@ -37,9 +38,20 @@ function usePending() {
         api.get("/crop-cycles?per_page=200"),
         listGateways(),
       ]);
+      // Conexión de cada equipo vinculado: el heartbeat dice si el equipo sigue vivo.
+      const withConnection = await Promise.all(gateways.data.map(async (g) => {
+        if (g.status !== "active") return g;
+        try {
+          const { data } = await getGatewayStatus(g.id);
+          const beat = parseBackendTimestamp(data.last_heartbeat_at);
+          return { ...g, connection: data.status, last_heartbeat_minutes: beat ? Math.max(0, Math.floor((Date.now() - beat.getTime()) / 60_000)) : null };
+        } catch {
+          return g;
+        }
+      }));
       const input = {
         clients: clients.data.data, properties: properties.data.data, areas: areas.data.data,
-        nodes: geo.data, cycles: cycles.data.data, gateways: gateways.data,
+        nodes: geo.data, cycles: cycles.data.data, gateways: withConnection,
         today: format(new Date(), "yyyy-MM-dd"), formatAgo,
       };
       const built = buildPending(input);
@@ -88,7 +100,7 @@ export function AdminDashboard() {
           api.get("/clients?per_page=1"),
           api.get("/properties?per_page=1"),
           api.get("/nodes?per_page=200"), // Get more nodes to find inactive ones
-          api.get(`/readings?per_page=1&start_date=${new Date().toISOString().split('T')[0]}`)
+          api.get(`/readings?per_page=1&start_date=${format(new Date(), "yyyy-MM-dd")}&end_date=${format(new Date(), "yyyy-MM-dd")}&tz=${encodeURIComponent(Intl.DateTimeFormat().resolvedOptions().timeZone)}`)
         ]);
 
         const totalClients = clientsRes.data.total || 0;
@@ -149,10 +161,13 @@ export function AdminDashboard() {
   }, []);
 
   const minutes = Math.floor((Date.now() - updatedAt) / 60_000);
-  const urgent = (pending ?? []).filter((i) => i.kind === "sin_comunicacion" || i.kind === "sin_datos");
-  const toSetUp = (pending ?? []).filter((i) => i.kind !== "sin_comunicacion" && i.kind !== "sin_datos");
+  // Urgente = algo que funcionaba y dejó de hacerlo. Un área que nunca ha reportado se configura, no «dejó de llegar».
+  const isUrgent = (i: PendingItem) => i.kind === "sin_comunicacion" || i.kind === "equipo_sin_conexion";
+  const urgent = (pending ?? []).filter(isUrgent);
+  const toSetUp = (pending ?? []).filter((i) => !isUrgent(i));
   const grouped = PENDING_ORDER.map((kind) => ({ kind, list: toSetUp.filter((i) => i.kind === kind) })).filter((g) => g.list.length);
-  const setUpCount = toSetUp.length + offlineNodes.length;
+  const areasIn = (list: PendingItem[]) => list.reduce((n, i) => n + (i.count ?? 1), 0);
+  const setUpCount = areasIn(toSetUp) + offlineNodes.length;
   // Todo bien: nada urgente y nada por configurar. En lugar de una pantalla casi vacía, se muestra «Todo en orden» con las cifras.
   const allGood = pending !== null && urgent.length === 0 && setUpCount === 0;
   const actionBtn = "inline-flex h-11 items-center border justify-center rounded-[var(--radius)] px-4 text-sm font-semibold focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus-ring)] focus-visible:ring-offset-2";
@@ -273,7 +288,7 @@ export function AdminDashboard() {
                       <h3 className="mb-1 flex items-center gap-2 text-sm font-semibold">
                         <AlertTriangle aria-hidden="true" className="h-4 w-4 text-[var(--text-muted)]" />
                         {PENDING_LABEL[kind]}
-                        <span className="font-mono-data font-normal text-[var(--text-muted)]">{list.length}</span>
+                        <span className="font-mono-data font-normal text-[var(--text-muted)]">{areasIn(list)}</span>
                       </h3>
                       <ul className="divide-y divide-[var(--border)] rounded-[var(--radius)] border border-[var(--border)] bg-[var(--card)]">
                         {list.map((item) => <PendingRow key={item.key} item={item} />)}
