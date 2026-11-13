@@ -13,6 +13,9 @@ export interface Property {
   client_id: number;
   name: string;
   location: string | null;
+  /** Ubicación de referencia del predio (la reporta el equipo o la captura el admin). */
+  latitude?: number | null;
+  longitude?: number | null;
 }
 
 export interface CropTypeBrief {

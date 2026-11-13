@@ -1,3 +1,4 @@
+import { format } from "date-fns";
 import axios from "axios";
 import { useEffect, useState, type ReactNode } from "react";
 import { BentoCard } from "../../../components/BentoCard";
@@ -80,6 +81,14 @@ function SourceCard<T>({ areaId, path, title, hideWhenUnavailable = false, empty
   );
 }
 
+
+/** Nombre legible del proveedor externo; el identificador interno (`open-meteo`) no se muestra. */
+const PROVIDERS: Record<string, string> = { "open-meteo": "Open-Meteo", "sentinel-2": "Sentinel-2", "agroio": "Agro.io" };
+function providerName(id: string | null | undefined): string {
+  if (!id) return "Sin datos";
+  return PROVIDERS[id.toLowerCase()] ?? id;
+}
+
 export function ExternalDataCards({ areaId }: { areaId: number }) {
   return (
     <section aria-label="Fuentes externas" className="mt-6">
@@ -88,7 +97,7 @@ export function ExternalDataCards({ areaId }: { areaId: number }) {
         <SourceCard<WeatherCurrent> key={`weather-${areaId}`} areaId={areaId} path="/weather/current" title="Clima de referencia" hideWhenUnavailable emptyMessage="Sin clima de referencia: el predio todavía no tiene ubicación (la reporta el equipo al vincularse)." emptyStatuses={[409]}>
           {(weather) => (
             <div className="space-y-2 text-[var(--text-body)]">
-              <p>Fuente: {weather.provider} · {weather.cache_state === "fresh" ? "Datos actuales" : "Datos en caché sin actualizar"}</p>
+              <p>Fuente: {providerName(weather.provider)} · {weather.cache_state === "fresh" ? "Datos actuales" : "Datos en caché sin actualizar"}</p>
               <p>Observado: <ObservationTime value={weather.current.observed_at} /></p>
               <dl className="grid grid-cols-2 gap-3">
                 {([
@@ -102,7 +111,7 @@ export function ExternalDataCards({ areaId }: { areaId: number }) {
                   <div key={key}><dt className="text-sm text-[var(--text-muted)]">{label}</dt><dd>{value ?? "Sin datos"} {weather.units[key]}</dd></div>
                 ))}
               </dl>
-              <p className="text-sm">Día de referencia: {weather.today.date}</p>
+              <p className="text-sm">Día de referencia: {format(new Date(`${weather.today.date}T00:00:00`), "dd/MM/yyyy")}</p>
             </div>
           )}
         </SourceCard>
@@ -110,7 +119,7 @@ export function ExternalDataCards({ areaId }: { areaId: number }) {
           {(ndvi) => (
             <div className="space-y-2 text-[var(--text-body)]">
               <p className="text-3xl font-mono-data">{ndvi.ndvi}</p>
-              <p>Fuente: {ndvi.provider}</p>
+              <p>Fuente: {providerName(ndvi.provider)}</p>
               <p>Sentinel-2 · {ndvi.collection} · Muestreo puntual</p>
               <p>Escena observada: <ObservationTime value={ndvi.scene_observed_at} /></p>
               <p>Nubosidad: {ndvi.cloud_cover_percent} %</p>

@@ -8,9 +8,11 @@ import { useGeoNodesData } from "../../components/maps/useGeoNodesData";
 import { useSelection } from "../../context/SelectionContext";
 import { useTheme } from "../../context/ThemeContext";
 import type { GeoNode } from "../../services/nodes";
-import { AREA_STATE_LABEL, formatAgo, minutesSince, type AreaState } from "./overview/areaStatus";
+import { AREA_STATE_LABEL, formatAgo, type AreaState } from "./overview/areaStatus";
 import { StateBadge } from "./overview/OverviewCharts";
 import { useAreaOverview, type AreaOverviewRow } from "./overview/useAreaOverview";
+import { spreadOffsets } from "../../utils/mapSpread";
+import { formatFreshness, formatMetricValue } from "../../utils/metricFormat";
 
 const DEFAULT_LIGHT_STYLE_URL = "https://tiles.openfreemap.org/styles/liberty";
 const DEFAULT_DARK_STYLE_URL = "https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json";
@@ -136,10 +138,12 @@ export function ClientMapPage() {
       });
       return;
     }
-    visible.forEach((pin) => {
+    const offsets = spreadOffsets(visible.map((p) => [p.node.longitude as number, p.node.latitude as number]));
+    visible.forEach((pin, i) => {
       const el = buildPinElement(pin, () => setSelectedAreaId(pin.node.irrigation_area_id));
       el.classList.toggle("is-selected", pin.node.irrigation_area_id === selectedAreaId);
-      const marker = new maplibregl.Marker({ element: el, anchor: "bottom", offset: [0, -4] }).setLngLat([pin.node.longitude as number, pin.node.latitude as number]).addTo(map);
+      const [dx, dy] = offsets[i];
+      const marker = new maplibregl.Marker({ element: el, anchor: "bottom", offset: [dx, dy - 4] }).setLngLat([pin.node.longitude as number, pin.node.latitude as number]).addTo(map);
       markersRef.current.set(pin.node.irrigation_area_id, { marker, el });
     });
   }, [map, propertyId, propertyPins, visible, selectedAreaId]);
@@ -186,7 +190,12 @@ export function ClientMapPage() {
   };
 
   const minutes = Math.floor((Date.now() - updatedAt) / 60_000);
-  const statusLine = [`${counts.al_dia ?? 0} de ${scope.length} ${scope.length === 1 ? "área al día" : "áreas al día"}`, counts.sin_comunicacion ? `${counts.sin_comunicacion} sin comunicación` : null, counts.sin_datos ? `${counts.sin_datos} sin datos` : null].filter(Boolean).join(" · ");
+  // Las cuentas son de TODAS las áreas (también las que no tienen ubicación), igual que «Mis predios».
+  const scopeRows = rows.filter((r) => propertyId === null || r.area.property_id === propertyId);
+  const allCounts = scopeRows.reduce((acc, r) => { acc[r.state] = (acc[r.state] ?? 0) + 1; return acc; }, {} as Record<string, number>);
+  const totalAreas = scopeRows.length || scope.length;
+  const shownCounts = scopeRows.length ? allCounts : counts;
+  const statusLine = [`${shownCounts.al_dia ?? 0} de ${totalAreas} ${totalAreas === 1 ? "área al día" : "áreas al día"}`, shownCounts.sin_comunicacion ? `${shownCounts.sin_comunicacion} sin comunicación` : null, shownCounts.sin_datos ? `${shownCounts.sin_datos} sin lecturas todavía` : null].filter(Boolean).join(" · ");
 
   return (
     <div className="flex h-full min-h-0 flex-col p-4 md:p-6">
@@ -210,7 +219,7 @@ export function ClientMapPage() {
           <Link to={`/cliente/predio/${propertyId}`} className="inline-flex min-h-[40px] items-center gap-0.5 font-semibold text-[var(--accent-primary)] underline-offset-4 hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus-ring)]">Detalle de {properties.find((p) => p.id === propertyId)?.name ?? "este predio"}<ChevronRight aria-hidden="true" className="h-4 w-4" /></Link>
         </p>
       ) : pins.length > 0 && <p className="mb-2 text-sm text-[var(--text-muted)]">Toca un predio para ver sus áreas.</p>}
-      {unplaced.length > 0 && propertyId !== null && (
+      {unplaced.length > 0 && (
         <p className="mb-2 text-sm text-[var(--text-muted)]">
           {unplaced.length === 1 ? "1 área no aparece" : `${unplaced.length} áreas no aparecen`} porque no tiene{unplaced.length === 1 ? "" : "n"} ubicación: {unplaced.map((a) => a.name).join(", ")}.
         </p>
@@ -231,15 +240,16 @@ export function ClientMapPage() {
             <button type="button" aria-label="Cerrar" onClick={() => setSelectedAreaId(null)} className="absolute right-2 top-2 inline-flex h-10 w-10 items-center justify-center rounded-[var(--radius)] text-[var(--text-muted)] hover:bg-[var(--accent-soft)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus-ring)]"><X aria-hidden="true" className="h-4 w-4" /></button>
             <h2 className="pr-10 text-base font-semibold">{selected.node.irrigation_area_name}</h2>
             <p className="text-sm text-[var(--text-muted)]">{[selected.node.property_name, selected.node.crop_type_name].filter(Boolean).join(" · ")}</p>
+            {selected.node.location_source === "property" && <p className="mt-0.5 text-xs text-[var(--text-muted)]">Ubicación aproximada: la del predio (el nodo no tiene GPS)</p>}
             <div className="mt-3 flex items-end justify-between gap-3">
               <div>
-                {selected.state === "al_dia" && selected.humidity !== null
-                  ? <span className="font-mono-data text-[28px] font-medium leading-none">{selected.humidity.toFixed(1)}<small className="ml-1 text-xs text-[var(--text-muted)]">% humedad</small></span>
-                  : <span className="text-sm text-[var(--text-muted)]">Sin dato reciente</span>}
+                {selected.humidity !== null
+                  ? <span className={`font-mono-data text-[28px] font-medium leading-none ${selected.state === "al_dia" ? "" : "text-[var(--text-muted)]"}`}>{formatMetricValue("humidity", selected.humidity)}<small className="ml-1 text-xs text-[var(--text-muted)]">% humedad</small></span>
+                  : <span className="text-sm text-[var(--text-muted)]">Sin datos</span>}
               </div>
               <div className="text-right">
                 <StateBadge state={selected.state} />
-                {selected.row?.lastUpdate && <div className="text-xs text-[var(--text-muted)]">{formatAgo(minutesSince(selected.row.lastUpdate))}</div>}
+                <div className="text-xs text-[var(--text-muted)]">{selected.row?.lastUpdate ? formatFreshness(selected.row.lastUpdate) : AREA_STATE_LABEL.sin_datos}</div>
               </div>
             </div>
             <Link to={`/cliente/area/${selected.node.irrigation_area_id}`} className="mt-4 inline-flex min-h-[44px] w-full items-center justify-center gap-1 rounded-[var(--radius)] bg-[var(--accent-primary)] px-4 text-sm font-semibold text-[var(--text-inverted)] hover:opacity-90 focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus-ring)] focus-visible:ring-offset-2">

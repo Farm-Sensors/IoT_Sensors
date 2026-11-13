@@ -7,7 +7,8 @@ import { ErrorState } from "../../components/ErrorState";
 import { SkeletonCard } from "../../components/SkeletonCard";
 import { useAuth } from "../../context/AuthContext";
 import { useSelection } from "../../context/SelectionContext";
-import { AREA_STATE_LABEL, AREA_STATE_ORDER, formatAgo, hourlyHumidity, hourlyLiters, minutesSince, summarize } from "./overview/areaStatus";
+import { AREA_STATE_LABEL, AREA_STATE_ORDER, hourlyHumidity, hourlyLiters, minutesSince, summarize } from "./overview/areaStatus";
+import { formatFreshness, formatMetric, formatMetricValue } from "../../utils/metricFormat";
 import { HumidityChart, LitersChart, StateBadge } from "./overview/OverviewCharts";
 import { applyOrder, moveBy, moveTo, useSavedOrder } from "./overview/order";
 import { useAreaOverview, type AreaOverviewRow } from "./overview/useAreaOverview";
@@ -69,22 +70,23 @@ function AreaTile({ row, weight, now, edit }: { row: AreaOverviewRow; weight: nu
           </>
         )}
         {ok ? (
-          <div className="relative z-10 font-mono-data text-[28px] font-medium leading-none">{row.humidity!.toFixed(1)}<small className="ml-1 text-xs text-[var(--text-muted)]">% humedad</small><span className="sr-only">, {AREA_STATE_LABEL[row.state].toLowerCase()}</span></div>
+          <div className="relative z-10 font-mono-data text-[28px] font-medium leading-none">{formatMetricValue("humidity", row.humidity)}<small className="ml-1 text-xs text-[var(--text-muted)]">% humedad</small><span className="sr-only">, {AREA_STATE_LABEL[row.state].toLowerCase()}</span></div>
         ) : (
           <div className="relative space-y-0.5">
             <StateBadge state={row.state} />
-            <div className="text-xs text-[var(--text-muted)]">{minutes === null ? "Sin lecturas" : `Último dato ${formatAgo(minutes)}`}</div>
+            {minutes === null && <div className="text-xs text-[var(--text-muted)]">{AREA_STATE_LABEL.sin_datos}</div>}
           </div>
         )}
       </div>
-      {/* Los otros dos datos prioritarios y la frescura, siempre visibles bajo la humedad. */}
-      {ok && (
+      {/* Los otros datos prioritarios y la frescura bajo la humedad; si el área dejó de reportar, sus últimos valores conocidos. */}
+      {row.lastUpdate && (
         <div className="flex-none border-t border-[var(--border)] px-3 py-2 text-xs text-[var(--text-muted)]">
           <dl className="flex flex-wrap gap-x-3 gap-y-0.5">
-            <div className="flex gap-1"><dt>Flujo</dt><dd className="font-mono-data text-[var(--text-main)]">{row.flow === null ? "Sin datos" : `${row.flow.toFixed(1)} L/min`}</dd></div>
-            <div className="flex gap-1"><dt>ETO</dt><dd className="font-mono-data text-[var(--text-main)]">{row.eto === null ? "Sin datos" : `${row.eto.toFixed(2)} mm/día`}</dd></div>
+            {!ok && <div className="flex gap-1"><dt>Humedad</dt><dd className="font-mono-data text-[var(--text-main)]">{formatMetric("humidity", row.humidity)}</dd></div>}
+            <div className="flex gap-1"><dt>Flujo</dt><dd className="font-mono-data text-[var(--text-main)]">{formatMetric("flow", row.flow)}</dd></div>
+            <div className="flex gap-1"><dt>ETO</dt><dd className="font-mono-data text-[var(--text-main)]">{formatMetric("eto", row.eto)}</dd></div>
           </dl>
-          <div className="mt-0.5">{minutes === null ? "Sin lecturas" : `Último dato ${formatAgo(minutes)}`}</div>
+          <div className="mt-0.5">{formatFreshness(row.lastUpdate, now)}{!ok && " · último valor conocido"}</div>
         </div>
       )}
     </>
@@ -252,8 +254,8 @@ export function PropertiesOverview() {
     setDrag(null);
   };
   const maxHectares = Math.max(1, ...withRows.map(({ rows: l }) => l.reduce((sum, r) => sum + (r.area.area_size ?? 0), 0)));
-  const okRows = rows.filter((r) => r.state === "al_dia");
-  const liters = hourlyLiters(okRows.map((r) => r.series), now);
+  // Las últimas 24 h incluyen áreas que dejaron de reportar después: su historia sigue siendo real.
+  const liters = hourlyLiters(rows.map((r) => r.series), now);
   const problems = AREA_STATE_ORDER.filter((k) => k !== "al_dia" && summary.counts[k] > 0).map((k) => `${summary.counts[k]} ${AREA_STATE_LABEL[k].toLowerCase()}`);
 
   return (
@@ -356,12 +358,12 @@ export function PropertiesOverview() {
         </summary>
         <div className="space-y-6 border-t border-[var(--border)] p-4">
           <p className="text-sm text-[var(--text-muted)]">
-            {summary.flowNow === null ? "Flujo ahora: —" : `Flujo ahora: ${summary.flowNow.toFixed(1)} L/min`} · {summary.irrigating} {summary.irrigating === 1 ? "área con riego encendido" : "áreas con riego encendido"}
+            Flujo ahora: {formatMetric("flow", summary.flowNow)} · {summary.irrigationKnown === 0 ? "riego: sin datos" : `${summary.irrigating} de ${summary.irrigationKnown} ${summary.irrigationKnown === 1 ? "área con riego informado encendida" : "áreas con riego informado encendidas"}`}
           </p>
           <div className="grid gap-6 lg:grid-cols-[minmax(0,1.5fr)_minmax(0,1fr)]">
             <div className="min-w-0">
               <h2 className="mb-2 text-sm font-semibold">Humedad del suelo por predio <span className="text-xs font-normal text-[var(--text-muted)]">promedio de sus áreas al día</span></h2>
-              <HumidityChart now={now} series={withRows.map(({ property: p, rows: list }) => ({ name: p.name, points: hourlyHumidity(list.filter((r) => r.state === "al_dia").map((r) => r.series), now) })).filter((s) => s.points.length)} />
+              <HumidityChart now={now} series={withRows.map(({ property: p, rows: list }) => ({ name: p.name, points: hourlyHumidity(list.map((r) => r.series), now) })).filter((s) => s.points.length)} />
             </div>
             <div className="min-w-0">
               <h2 className="mb-2 text-sm font-semibold">Flujo de agua total <span className="text-xs font-normal text-[var(--text-muted)]">litros por hora</span></h2>

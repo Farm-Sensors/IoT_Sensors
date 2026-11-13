@@ -7,17 +7,16 @@ import { GatewayStatusBadge } from "../../components/GatewayStatusBadge";
 import { SkeletonCard } from "../../components/SkeletonCard";
 import { useSelection } from "../../context/SelectionContext";
 import { usePropertyGatewayStatus } from "../../hooks/usePropertyGatewayStatus";
-import { formatAgo, minutesSince } from "./overview/areaStatus";
+import { minutesSince } from "./overview/areaStatus";
+import { formatFreshness, formatMetric, formatMetricValue, type MetricKey } from "../../utils/metricFormat";
 import { StateBadge } from "./overview/OverviewCharts";
 import { useAreaOverview, type AreaOverviewRow } from "./overview/useAreaOverview";
 
-function Small({ label, value, unit }: { label: string; value: number | null; unit: string }) {
+function Small({ label, value, metric }: { label: string; value: number | null; metric: MetricKey }) {
   return (
     <div>
       <div className="text-xs text-[var(--text-muted)]">{label}</div>
-      {value === null ? <span title="Sin dato">—<span className="sr-only"> sin dato</span></span> : (
-        <span className="font-mono-data text-base font-medium">{value.toFixed(1)}<small className="ml-1 text-xs text-[var(--text-muted)]">{unit}</small></span>
-      )}
+      <span className={`font-mono-data text-base font-medium ${value === null ? "text-[var(--text-muted)]" : ""}`}>{formatMetric(metric, value)}</span>
     </div>
   );
 }
@@ -40,7 +39,7 @@ function AreaCard({ row, now }: { row: AreaOverviewRow; now: number }) {
         </div>
         <div className="flex-shrink-0 text-right">
           <StateBadge state={row.state} />
-          {!ok && <div className="text-xs text-[var(--text-muted)]">{minutes === null ? "Sin lecturas" : formatAgo(minutes)}</div>}
+          <div className="text-xs text-[var(--text-muted)]">{minutes === null ? "Sin lecturas todavía" : formatFreshness(row.lastUpdate, now)}</div>
         </div>
       </div>
 
@@ -48,8 +47,8 @@ function AreaCard({ row, now }: { row: AreaOverviewRow; now: number }) {
         <div className="flex items-end justify-between gap-4">
           <div className={ok ? "" : "text-[var(--text-muted)]"}>
             <div className="text-xs text-[var(--text-muted)]">Humedad del suelo</div>
-            {row.humidity === null ? <span className="text-2xl" title="Sin dato">—</span> : (
-              <span className={`font-mono-data text-[34px] font-medium leading-tight ${ok ? "text-[var(--accent-green)]" : ""}`}>{row.humidity.toFixed(1)}<small className="ml-1 text-sm text-[var(--text-muted)]">%</small></span>
+            {row.humidity === null ? <span className="text-2xl">Sin datos</span> : (
+              <span className={`font-mono-data text-[34px] font-medium leading-tight ${ok ? "text-[var(--accent-green)]" : ""}`}>{formatMetricValue("humidity", row.humidity)}<small className="ml-1 text-sm text-[var(--text-muted)]">%</small></span>
             )}
           </div>
         </div>
@@ -57,8 +56,8 @@ function AreaCard({ row, now }: { row: AreaOverviewRow; now: number }) {
 
       <div className="flex items-end justify-between gap-3 border-t border-[var(--border)] pt-3">
         <div className="flex gap-6">
-          <Small label="Flujo" value={row.flow} unit="L/min" />
-          <Small label="E.T.O." value={row.eto} unit="mm/d" />
+          <Small label="Flujo" value={row.flow} metric="flow" />
+          <Small label="E.T.O." value={row.eto} metric="eto" />
         </div>
         <span className="inline-flex items-center gap-0.5 text-sm font-semibold text-[var(--accent-primary)]">Abrir<ChevronRight aria-hidden="true" className="h-4 w-4 transition-transform group-hover:translate-x-0.5" /></span>
       </div>
@@ -97,7 +96,10 @@ export function PropertyDetail() {
   const okRows = rows.filter((r) => r.state === "al_dia");
   const flows = okRows.map((r) => r.flow).filter((f): f is number => f !== null);
   const flowNow = flows.length ? flows.reduce((x, y) => x + y, 0) : null;
-  const irrigating = okRows.filter((r) => r.irrigating).length;
+  // Un área que no informa si riega (`null`) no cuenta como apagada: queda fuera del total.
+  const irrigationKnown = okRows.filter((r) => r.irrigating !== null);
+  const irrigating = irrigationKnown.filter((r) => r.irrigating === true).length;
+  const hasReferenceLocation = property.latitude != null && property.longitude != null;
   const hectares = propertyAreas.reduce((sum, a) => sum + (a.area_size ?? 0), 0);
 
   return (
@@ -111,8 +113,9 @@ export function PropertyDetail() {
         {property.location && !/^-?\d+(\.\d+)?\s*,\s*-?\d+(\.\d+)?$/.test(property.location.trim()) && (
           <span className="inline-flex items-center gap-1"><MapPin aria-hidden="true" className="h-4 w-4" />{property.location}</span>
         )}
+        <span>{hasReferenceLocation ? "Ubicación registrada" : "Sin ubicación registrada"}</span>
         <span>{hectares > 0 ? `${hectares} ha · ` : ""}{propertyAreas.length} {propertyAreas.length === 1 ? "área" : "áreas"} · {ok} al día</span>
-        {gateway && ["delayed", "stale", "disconnected"].some((s) => s === gateway.status || s === gateway.edge_status) && <GatewayStatusBadge status={gateway.status} edgeStatus={gateway.edge_status} />}
+        {gateway && <GatewayStatusBadge status={gateway.status} edgeStatus={gateway.edge_status} />}
       </p>
 
       {propertyAreas.length === 0 ? (
@@ -121,8 +124,12 @@ export function PropertyDetail() {
         <>
           <dl className="focus-block mt-6 grid grid-cols-1 divide-y divide-[var(--border)] overflow-hidden rounded-[var(--radius)] sm:grid-cols-3 sm:divide-x sm:divide-y-0">
             <Fact label="Áreas al día" value={`${ok} de ${propertyAreas.length}`} note={ok < propertyAreas.length ? "las demás no reportan" : "todas reportan"} />
-            <Fact label="Flujo ahora" value={flowNow === null ? "—" : `${flowNow.toFixed(1)} L/min`} note="suma de las áreas al día" />
-            <Fact label="Riego encendido" value={`${irrigating} de ${okRows.length}`} note="áreas al día regando" />
+            <Fact label="Flujo ahora" value={flowNow === null ? "Sin datos" : formatMetric("flow", flowNow)} note="suma de las áreas al día" />
+            <Fact
+              label="Riego encendido"
+              value={irrigationKnown.length === 0 ? "Sin datos" : `${irrigating} de ${irrigationKnown.length}`}
+              note={irrigationKnown.length === okRows.length ? "áreas al día regando" : "de las áreas al día que informan el riego"}
+            />
           </dl>
 
           <h2 className="mb-3 mt-8 text-lg font-semibold">Áreas de riego</h2>
