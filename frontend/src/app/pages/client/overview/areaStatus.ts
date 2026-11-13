@@ -6,7 +6,7 @@ export type AreaState = "al_dia" | "sin_comunicacion" | "sin_datos" | "sin_nodo"
 export const AREA_STATE_LABEL: Record<AreaState, string> = {
   al_dia: "Al día",
   sin_comunicacion: "Sin comunicación",
-  sin_datos: "Sin datos",
+  sin_datos: "Sin lecturas todavía",
   sin_nodo: "Sin nodo",
 };
 
@@ -46,7 +46,10 @@ export interface OverviewSummary {
   total: number;
   avgHumidity: number | null;
   flowNow: number | null;
+  /** Áreas al día con el riego encendido (`irrigation.active === true`). */
   irrigating: number;
+  /** Áreas al día que sí informan si riegan; un `null` es «Sin datos», nunca «apagado». */
+  irrigationKnown: number;
   avgEto: number | null;
   attention: number;
   counts: Record<AreaState, number>;
@@ -73,7 +76,8 @@ export function summarize(rows: SummaryInput[]): OverviewSummary {
     total: rows.length,
     avgHumidity: mean(ok.map((r) => r.humidity).filter((v): v is number => v !== null)),
     flowNow: flows.length ? flows.reduce((a, b) => a + b, 0) : null,
-    irrigating: ok.filter((r) => r.irrigating).length,
+    irrigating: ok.filter((r) => r.irrigating === true).length,
+    irrigationKnown: ok.filter((r) => r.irrigating !== null).length,
     avgEto: mean(ok.map((r) => r.eto).filter((v): v is number => v !== null)),
     attention: rows.length - ok.length,
     counts,
@@ -83,13 +87,14 @@ export function summarize(rows: SummaryInput[]): OverviewSummary {
 /** Litros por hora de las últimas 24 h: L/min × intervalo entre lecturas (10 min). */
 export const READING_INTERVAL_MIN = 10;
 
-export function hourlyLiters(seriesByArea: SeriesPoint[][], now = Date.now()): { start: Date; liters: number }[] {
+/** Una hora sin ninguna lectura de flujo queda en `null` (sin datos), nunca en 0 L. */
+export function hourlyLiters(seriesByArea: SeriesPoint[][], now = Date.now()): { start: Date; liters: number | null }[] {
   const t0 = now - 24 * 3600_000;
-  const buckets = Array.from({ length: 24 }, (_, i) => ({ start: new Date(t0 + i * 3600_000), liters: 0 }));
+  const buckets: { start: Date; liters: number | null }[] = Array.from({ length: 24 }, (_, i) => ({ start: new Date(t0 + i * 3600_000), liters: null }));
   seriesByArea.flat().forEach((p) => {
     if (p.flow === null) return;
     const k = Math.floor((p.t.getTime() - t0) / 3600_000);
-    if (k >= 0 && k < 24) buckets[k].liters += p.flow * READING_INTERVAL_MIN;
+    if (k >= 0 && k < 24) buckets[k].liters = (buckets[k].liters ?? 0) + p.flow * READING_INTERVAL_MIN;
   });
   return buckets;
 }

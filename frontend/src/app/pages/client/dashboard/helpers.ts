@@ -97,26 +97,19 @@ export function getHumidityAxisDomain(values: ReadonlyArray<number | null>): [nu
 }
 
 /**
- * Dependencia de datos de cada tarjeta: la tarjeta automática se muestra solo si
- * al menos uno de sus campos viene en la última lectura (los campos ausentes son `null`).
+ * Qué tarjetas muestra el dashboard sin configuración del admin. Los tres datos prioritarios,
+ * el estado del riego y las tres categorías se muestran siempre: un campo que el nodo no envía
+ * se lee «Sin datos», no desaparece (AGENTS.md §2.1–2.2). Solo la gráfica de humedad depende de
+ * que haya humedad.
  */
 const CARD_DATA_CHECKS: Record<DashboardCardKey, (reading: ReadingResponse | null) => boolean> = {
-  "priority.humidity": (reading) => reading?.soil?.humidity != null,
-  "priority.flow": (reading) => reading?.irrigation?.flow_per_minute != null,
-  "priority.eto": (reading) => reading?.environmental?.eto != null,
-  "irrigation.status": (reading) => reading?.irrigation?.active != null,
-  "soil.details": (reading) =>
-    [reading?.soil?.conductivity, reading?.soil?.temperature, reading?.soil?.water_potential].some(
-      (value) => value != null,
-    ),
+  "priority.humidity": () => true,
+  "priority.flow": () => true,
+  "priority.eto": () => true,
+  "irrigation.status": () => true,
+  "soil.details": () => true,
   "soil.chart": (reading) => reading?.soil?.humidity != null,
-  "environmental.details": (reading) =>
-    [
-      reading?.environmental?.temperature,
-      reading?.environmental?.relative_humidity,
-      reading?.environmental?.wind_speed,
-      reading?.environmental?.solar_radiation,
-    ].some((value) => value != null),
+  "environmental.details": () => true,
   "sources.external": () => true,
 };
 
@@ -124,7 +117,7 @@ const CARD_DATA_CHECKS: Record<DashboardCardKey, (reading: ReadingResponse | nul
  * Resuelve qué tarjetas del dashboard deben mostrarse.
  * Con `cards` explícitas se muestra exactamente esa selección; con `null`
  * (sin configurar, o si la consulta de preferencias falló) se aplica la regla
- * automática: solo las tarjetas cuyo dato exista en la última lectura.
+ * automática de `CARD_DATA_CHECKS`.
  */
 export function resolveVisibleCards(
   cards: DashboardCardKey[] | null,

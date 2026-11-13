@@ -26,24 +26,24 @@ test("el cliente consulta sus métricas y cambia de área", async ({ clientPage:
   await expect(page.getByRole("status", { name: "Cargando lecturas" })).toHaveCount(0);
 
   const metrics = [
-    { title: "Humedad del Suelo", unit: "%", value: reading.soil?.humidity },
-    { title: "Flujo de Agua", unit: "L/min", value: reading.irrigation?.flow_per_minute },
-    { title: "E.T.O.", unit: "mm/día", value: reading.environmental?.eto },
+    { title: "Humedad del Suelo", unit: "%", decimals: 1, value: reading.soil?.humidity },
+    { title: "Flujo de Agua", unit: "L/min", decimals: 1, value: reading.irrigation?.flow_per_minute },
+    { title: "E.T.O.", unit: "mm/día", decimals: 2, value: reading.environmental?.eto },
   ];
   let checkedMissing = false;
-  for (const { title, unit, value } of metrics) {
+  for (const { title, unit, decimals, value } of metrics) {
     const heading = page.getByRole("heading", { name: title, exact: true });
     await expect(heading).toBeVisible();
-    // El contenedor más cercano que incluye título y unidad es la tarjeta.
-    const card = page.locator("div").filter({ has: heading })
-      .filter({ has: page.getByText(unit, { exact: true }) }).last();
-    await expect(card.getByText(unit, { exact: true })).toBeVisible();
+    // La tarjeta es el contenedor directo del título; la tarjeta prioritaria se muestra aunque falte el dato.
+    const card = heading.locator("..");
     if (value === null) {
       // Un campo ausente se ve «Sin datos», nunca 0.
-      await expect(card.getByText(`Sin datos ${unit}`, { exact: true })).toBeVisible();
+      await expect(card.getByText("Sin datos", { exact: true })).toBeVisible();
       checkedMissing = true;
     } else {
-      await expect(card.getByText(new RegExp(`^${String(value).replace(/[.-]/g, "\\$&")} ${unit.replace(".", "\\.")}$`))).toBeVisible();
+      // Misma precisión por magnitud que la app (utils/metricFormat.ts).
+      const shown = value.toFixed(decimals).replace(/^-0(\.0+)?$/, (m) => m.slice(1));
+      await expect(card.getByText(new RegExp(`^${shown.replace(/[.-]/g, "\\$&")} ${unit.replace(".", "\\.")}$`))).toBeVisible();
     }
   }
   const secondaryMetrics = [
@@ -59,19 +59,19 @@ test("el cliente consulta sus métricas y cambia de área", async ({ clientPage:
     const fieldLabel = page.getByText(label, { exact: true });
     if (value !== null || !(await fieldLabel.isVisible())) continue;
     const field = page.locator("div").filter({ has: fieldLabel })
-      .filter({ hasText: `Sin datos ${unit}` }).last();
-    await expect(field.getByText(`Sin datos ${unit}`, { exact: true })).toBeVisible();
+      .filter({ hasText: "Sin datos" }).last();
+    await expect(field.getByText("Sin datos", { exact: true }).first()).toBeVisible();
     checkedMissing = true;
   }
   if (reading.irrigation?.accumulated_liters === null) {
-    await expect(page.getByText("Acumulado: Sin datos L", { exact: true })).toBeVisible();
+    await expect(page.getByText("Acumulado: Sin datos", { exact: true })).toBeVisible();
     checkedMissing = true;
   }
   if (!checkedMissing) {
     testInfo.annotations.push({ type: "Sin datos", description:
       "Comprobación null omitida: no hay campos numéricos null renderizados en este dashboard del seed." });
   }
-  await expect(page.getByText(/Último dato:/).first()).toBeVisible();
+  await expect(page.getByText(/^Último dato /).first()).toBeVisible();
   await expect(page.locator("time").first()).toHaveAttribute("datetime", /\d{4}-\d{2}-\d{2}T/);
 
   // Las pestañas del área llevan al Historial (con la descarga) y a los Detalles.

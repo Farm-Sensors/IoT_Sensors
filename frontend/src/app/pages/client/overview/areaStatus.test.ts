@@ -39,7 +39,7 @@ describe("resumen de la portada", () => {
   it("agrupa litros por hora: L/min por 10 min entre lecturas", () => {
     const buckets = hourlyLiters([[{ t: ago(30), humidity: null, flow: 6 }, { t: ago(20), humidity: null, flow: 6 }, { t: ago(25 * 60), humidity: null, flow: 6 }]], NOW);
     expect(buckets).toHaveLength(24);
-    expect(buckets.reduce((a, b) => a + b.liters, 0)).toBe(120);
+    expect(buckets.reduce((a, b) => a + (b.liters ?? 0), 0)).toBe(120);
   });
 });
 

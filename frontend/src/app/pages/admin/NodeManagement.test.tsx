@@ -98,7 +98,7 @@ describe("NodeManagement", () => {
     // El nodo está habilitado pero nunca envió datos: la fila lo dice con su estado, sin tabla ni columna «Habilitado».
     const row = (await screen.findByRole("link", { name: /Área Norte/ })).closest("li")!;
     expect(within(row).getByText("Nodo Norte")).toBeInTheDocument();
-    expect(within(row).getByText("Sin datos")).toBeInTheDocument();
+    expect(within(row).getByText("Sin lecturas todavía")).toBeInTheDocument();
     expect(within(row).getByText("sin lecturas")).toBeInTheDocument();
     expect(screen.queryByRole("table")).not.toBeInTheDocument();
 

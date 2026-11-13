@@ -62,7 +62,7 @@ describe("ClientMapPage", () => {
     expect(pinTexts()[0]).toContain("3 áreas");
     expect(screen.getByText("Toca un predio para ver sus áreas.")).toBeTruthy();
     const legend = screen.getByRole("list", { name: "Leyenda" });
-    for (const label of ["Al día", "Sin comunicación", "Sin datos"]) expect(legend).toHaveTextContent(label);
+    for (const label of ["Al día", "Sin comunicación", "Sin lecturas todavía"]) expect(legend).toHaveTextContent(label);
     expect(screen.queryByText(/Actualizar capa|MapLibre/)).toBeNull();
   });
 

@@ -1,19 +1,14 @@
 import { useEffect, useState } from "react";
 import { FRESH_MINUTES_THRESHOLD } from "../pages/client/dashboard/helpers";
+import { AREA_STATE_LABEL, formatAgo, minutesSince } from "../pages/client/overview/areaStatus";
+import { formatStamp } from "../utils/metricFormat";
 
 interface FreshnessIndicatorProps {
   lastUpdate: Date;
   variant?: "light" | "dark";
 }
 
-function getTimeText(minutesAgo: number): string {
-  if (minutesAgo < 1) return "hace un momento";
-  if (minutesAgo < 60) return `hace ${minutesAgo} min`;
-  const hours = Math.floor(minutesAgo / 60);
-  const mins = minutesAgo % 60;
-  return mins > 0 ? `hace ${hours}h ${mins}min` : `hace ${hours}h`;
-}
-
+/** Frescura de un área o nodo: estado («Datos actuales» / «Sin comunicación») y «Último dato 13/11 15:04 · hace 12 min». */
 export function FreshnessIndicator({ lastUpdate, variant = "light" }: FreshnessIndicatorProps) {
   const [, forceUpdate] = useState(0);
 
@@ -23,31 +18,21 @@ export function FreshnessIndicator({ lastUpdate, variant = "light" }: FreshnessI
     return () => clearInterval(interval);
   }, []);
 
-  let minutesAgo = Math.floor((Date.now() - lastUpdate.getTime()) / (1000 * 60));
-  if (minutesAgo < 0) minutesAgo = 0;
-
-  let dotColor: string;
-  let statusLabel: string;
-
-  if (minutesAgo < FRESH_MINUTES_THRESHOLD) {
-    dotColor = "var(--status-active)";
-    statusLabel = "Datos actuales";
-  } else {
-    dotColor = "var(--status-warning)";
-    statusLabel = "Sin reporte reciente";
-  }
-
+  const minutesAgo = minutesSince(lastUpdate);
+  const fresh = minutesAgo < FRESH_MINUTES_THRESHOLD;
+  const dotColor = fresh ? "var(--status-active)" : "var(--status-warning)";
+  const statusLabel = fresh ? "Datos actuales" : AREA_STATE_LABEL.sin_comunicacion;
+  const ago = formatAgo(minutesAgo);
   const textColor = variant === "dark" ? "text-[var(--text-on-dark)]/70" : "text-[var(--text-muted)]";
-  const isPulsing = minutesAgo < FRESH_MINUTES_THRESHOLD;
 
   return (
     <div
       className={`flex items-start gap-2 text-sm ${textColor}`}
-      title={`Estado del nodo: ${statusLabel}. Último dato recibido ${getTimeText(minutesAgo)}.`}
+      title={`${statusLabel}. Último dato recibido ${ago}.`}
     >
       <span className="relative mt-1.5 flex h-2.5 w-2.5 flex-shrink-0 items-center justify-center">
         {/* Pulsing ring when fresh */}
-        {isPulsing && (
+        {fresh && (
           <span
             className="absolute inline-flex w-full h-full rounded-full opacity-60"
             style={{
@@ -64,7 +49,7 @@ export function FreshnessIndicator({ lastUpdate, variant = "light" }: FreshnessI
       </span>
       <span className="flex flex-col">
         <span className="font-medium">{statusLabel}</span>
-        <span>Último dato: <time dateTime={lastUpdate.toISOString()}>{lastUpdate.toLocaleString("es-MX")}</time> · {getTimeText(minutesAgo)}</span>
+        <span>Último dato <time dateTime={lastUpdate.toISOString()}>{formatStamp(lastUpdate)}</time> · {ago}</span>
       </span>
     </div>
   );
