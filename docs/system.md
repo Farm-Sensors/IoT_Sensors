@@ -110,14 +110,13 @@ credenciales en `test-data.md`; puertas de la integración en `integration/READM
   tras flags salvo las dos excepciones aprobadas (NDVI de último punto y clima de referencia).
   Contrato v2 en **revisión 4** (operación `location`), **aceptada el 2026-10-26** (commit `f336997`,
   digest `9e964fff…`; registro en `integration/README.md`).
-  Laboratorio: admin, `alan2203mx@gmail.com` y `test@gmail.com` + catálogos, y el rancho de prueba
-  «nuevo» (cliente `test@gmail.com`, área «nuevaarea», enlace 24) que el equipo armó a mano desde cero
-  con el panel y la pantalla de la Raspberry el 2026-10-26.
+  Laboratorio: admin, `alan2203mx@gmail.com` y `test@gmail.com` + catálogos, , sin ranchos (el 2026-11-13 se borró el rancho «nuevo» y se
+  revocó su enlace 24 para repetir el flujo completo desde cero).
 - **Agro (appliance)**: `main` en `6a95681` (tag `0.9.5`, producción, canal **stable**) y
   `integration/iot-v2` (canal **beta**) con `main` 0.9.5 unido y los PRs #22–#28 fusionados. La
   Raspberry de pruebas corre **beta `2.0.0-alpha.32`**, `mode: serial` leyendo un **radio virtual**
   (tramas reales de `H845D` renombradas a `RPL01`, cada 30–60 s para pruebas manuales; un nodo
-  real manda cada 10 min), vinculada al enlace 24. Su stable es el asset oficial 0.9.5. Datos reales
+  real manda cada 10 min), **sin vincular** (desvinculada el 2026-11-13). Su stable es el asset oficial 0.9.5. Datos reales
   conservados (`H845D`, `H4EBF`: 50 972 mediciones); ningún nodo físico transmite desde el 15 sep.
 - **Pantalla *Instalación* del equipo** (Agro beta): Paso 1 dice «Sin vincular» / «Vinculada a la
   nube» y ofrece **Desvincular equipo** (local; conserva los datos). Paso 2 marca **«Este nodo no es
