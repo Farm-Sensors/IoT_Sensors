@@ -8,7 +8,7 @@ import { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router";
 import type { ReactNode } from "react";
 import { useEmbedded } from "../../components/EmbeddedPanel";
-import { EMPTY_HEALTH, HealthBadge, healthLabel, PanelHeader, listBox, panelButton, panelButtonDanger, panelButtonPrimary, placeLabel, rowLink, type Health } from "./directory/Health";
+import { EMPTY_HEALTH, HealthBadge, healthLabel, PanelHeader, listBox, panelButton, panelButtonDanger, panelButtonPrimary, placeLabel, referenceLabel, rowLink, type Health } from "./directory/Health";
 import { BentoCard } from "../../components/BentoCard";
 import { EmptyState } from "../../components/EmptyState";
 import { PageTransition } from "../../components/PageTransition";
@@ -21,6 +21,8 @@ type Property = {
   client_id: number;
   name: string;
   location: string | null;
+  latitude: number | null;
+  longitude: number | null;
 };
 
 export function PropertyManagement({ clientId: clientIdProp, propertyId, meta, health }: { clientId?: string; propertyId?: string; meta?: ReactNode; health?: Record<number, Health> } = {}) {
@@ -44,6 +46,8 @@ export function PropertyManagement({ clientId: clientIdProp, propertyId, meta, h
   const [editFormData, setEditFormData] = useState({
     name: "",
     location: "",
+    latitude: "",
+    longitude: "",
   });
 
   const fetchData = async () => {
@@ -89,6 +93,8 @@ export function PropertyManagement({ clientId: clientIdProp, propertyId, meta, h
     setEditFormData({
       name: property.name || "",
       location: property.location || "",
+      latitude: property.latitude == null ? "" : String(property.latitude),
+      longitude: property.longitude == null ? "" : String(property.longitude),
     });
     setShowEditForm(true);
   };
@@ -97,10 +103,19 @@ export function PropertyManagement({ clientId: clientIdProp, propertyId, meta, h
     e.preventDefault();
     if (!editingProperty) return;
 
+    const lat = editFormData.latitude.trim();
+    const lon = editFormData.longitude.trim();
+    if ((lat === "") !== (lon === "")) {
+      showToast("Escribe la latitud y la longitud, o deja las dos vacías.", "error");
+      return;
+    }
     try {
       await api.put(`/properties/${editingProperty.id}`, {
         name: editFormData.name,
         location: editFormData.location,
+        // Ubicación de referencia: alimenta el mapa (áreas sin GPS) y el clima del predio.
+        latitude: lat === "" ? null : Number(lat),
+        longitude: lon === "" ? null : Number(lon),
       });
       setShowEditForm(false);
       setEditingProperty(null);
@@ -168,6 +183,24 @@ export function PropertyManagement({ clientId: clientIdProp, propertyId, meta, h
                   className="w-full px-4 py-2.5 rounded-[var(--radius)] bg-[var(--surface-panel)] border border-[var(--border-strong)] text-[var(--text-body)] focus:outline-none focus:ring-2 focus:ring-[var(--focus-ring)]"
                 />
               </div>
+              <fieldset>
+                <legend className="mb-1 block text-sm text-[var(--text-subtle)]">Ubicación de referencia (opcional)</legend>
+                <p className="mb-2 text-xs text-[var(--text-muted)]">La reporta el equipo al vincularse; aquí puedes capturarla o corregirla. La usan el mapa y el clima.</p>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label htmlFor="property-edit-latitude" className="mb-1 block text-xs text-[var(--text-subtle)]">Latitud</label>
+                    <input id="property-edit-latitude" type="number" step="any" min={-90} max={90} value={editFormData.latitude}
+                      onChange={(e) => setEditFormData({ ...editFormData, latitude: e.target.value })}
+                      className="w-full px-4 py-2.5 rounded-[var(--radius)] bg-[var(--surface-panel)] border border-[var(--border-strong)] text-[var(--text-body)] focus:outline-none focus:ring-2 focus:ring-[var(--focus-ring)]" />
+                  </div>
+                  <div>
+                    <label htmlFor="property-edit-longitude" className="mb-1 block text-xs text-[var(--text-subtle)]">Longitud</label>
+                    <input id="property-edit-longitude" type="number" step="any" min={-180} max={180} value={editFormData.longitude}
+                      onChange={(e) => setEditFormData({ ...editFormData, longitude: e.target.value })}
+                      className="w-full px-4 py-2.5 rounded-[var(--radius)] bg-[var(--surface-panel)] border border-[var(--border-strong)] text-[var(--text-body)] focus:outline-none focus:ring-2 focus:ring-[var(--focus-ring)]" />
+                  </div>
+                </div>
+              </fieldset>
               <div className="flex gap-3 pt-4">
                 <PillButton
                   variant="outline"
@@ -211,7 +244,7 @@ export function PropertyManagement({ clientId: clientIdProp, propertyId, meta, h
           {current ? (
             <PanelHeader
               title={current.name}
-              meta={<>{placeLabel(current.location)}{meta ? <> · {meta}</> : null}</>}
+              meta={<>{placeLabel(current.location)} · {referenceLabel(current)}{meta ? <> · {meta}</> : null}</>}
               actions={
                 <>
                   <button type="button" className={panelButton} onClick={() => openEditForm(current)}><Pencil aria-hidden="true" className="h-4 w-4" />Editar</button>

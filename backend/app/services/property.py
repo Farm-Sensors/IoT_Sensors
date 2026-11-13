@@ -78,6 +78,11 @@ def update_property(db: Session, property_id: int, data: PropertyUpdate) -> Prop
         prop.nombre = update_data["name"]
     if "location" in update_data:
         prop.ubicacion = update_data["location"]
+    if "latitude" in update_data:
+        quantum = Decimal("0.0000001")
+        lat, lon = update_data["latitude"], update_data["longitude"]
+        prop.latitud = None if lat is None else Decimal(str(lat)).quantize(quantum)
+        prop.longitud = None if lon is None else Decimal(str(lon)).quantize(quantum)
 
     db.commit()
     db.refresh(prop)
