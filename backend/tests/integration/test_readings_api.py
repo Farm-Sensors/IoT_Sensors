@@ -431,7 +431,43 @@ class TestExportReadings:
         )
         assert resp.status_code == 200
         assert "text/csv" in resp.headers["content-type"]
-        assert b"timestamp" in resp.content
+        text = resp.content.decode("utf-8-sig")
+        assert text.startswith("Fecha y hora (UTC),Predio,Área,Humedad del suelo (%)")
+
+    def test_export_csv_uses_local_time_and_no_data_text(
+        self, client, admin_headers, node_headers, sample_node, sample_irrigation_area
+    ):
+        payload = {
+            "timestamp": "2026-04-01T05:30:00Z",
+            "soil": {"conductivity": 1.983, "temperature": 21.4, "humidity": 40.04, "water_potential": -0.7},
+            "irrigation": {"active": None, "accumulated_liters": None, "flow_per_minute": None},
+            "environmental": {"temperature": None, "relative_humidity": None, "wind_speed": None, "solar_radiation": None, "eto": 0.032},
+        }
+        created = client.post("/api/v1/readings", json=payload, headers={"X-Event-ID": str(uuid4()), **node_headers})
+        assert created.status_code == 201, created.text
+        resp = client.get(
+            f"/api/v1/readings/export?format=csv&irrigation_area_id={sample_irrigation_area.id}"
+            "&start_date=2026-03-31&end_date=2026-03-31&tz=America/Chihuahua",
+            headers=admin_headers,
+        )
+        assert resp.status_code == 200
+        header, row = resp.content.decode("utf-8-sig").strip().splitlines()
+        # 05:30Z is still 31/03 in Chihuahua (UTC-6): the local day includes it.
+        assert header.startswith("Fecha y hora (America/Chihuahua)")
+        assert row.startswith("31/03/2026 23:30:00")
+        cells = row.split(",")
+        assert cells[3] == "40.0"  # humidity, 1 decimal
+        assert cells[5] == "0.03"  # ETO, 2 decimals, not rounded to 0
+        assert cells[9] == "Sin datos"  # irrigation.active null is not «No»
+
+    def test_export_rejects_unknown_time_zone(
+        self, client, admin_headers, sample_irrigation_area
+    ):
+        resp = client.get(
+            f"/api/v1/readings/export?format=csv&irrigation_area_id={sample_irrigation_area.id}&tz=Mars/Base",
+            headers=admin_headers,
+        )
+        assert resp.status_code == 422
 
     def test_export_xlsx(
         self, client, admin_headers, node_headers, sample_node, sample_irrigation_area

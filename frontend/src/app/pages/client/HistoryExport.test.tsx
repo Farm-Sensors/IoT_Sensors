@@ -2,7 +2,7 @@ import { act, cleanup, fireEvent, render, screen, waitFor, within } from "@testi
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { ReactNode } from "react";
 import { HistoricalData } from "./HistoricalData";
-import { dateParam, quickRangeDates } from "../../utils/readingFilters";
+import { dateParam } from "../../utils/readingFilters";
 
 const mocks = vi.hoisted(() => ({ get: vi.fn(), download: vi.fn(), toast: vi.fn(), selection: { selectedArea: { id: 12, name: "Nogal" } as { id: number; name: string } | null } }));
 vi.mock("../../services/api", () => ({ api: { get: mocks.get } }));
@@ -55,7 +55,7 @@ it("renders all sensor units, zero, null and false; paginates without refetching
   await waitFor(() => expect(chartCalls().length).toBe(1));
   const count = chartCalls().length;
   fireEvent.click(screen.getByRole("button", { name: "Siguiente" }));
-  expect(await screen.findByText("9.9")).toBeTruthy();
+  expect(await screen.findByText("9.90")).toBeTruthy();
   expect(tableCalls().at(-1)?.[0]).toContain("page=2&per_page=20");
   expect(chartCalls()).toHaveLength(count);
   fireEvent.click(screen.getByRole("button", { name: "Este año" }));
@@ -65,7 +65,7 @@ it("renders all sensor units, zero, null and false; paginates without refetching
 
 it("uses the selected cycle in list and export and clears it on area change", async () => {
   const { rerender } = render(<HistoricalData />);
-  const cycle = await screen.findByRole("option", { name: /2026-01-01/ });
+  const cycle = await screen.findByRole("option", { name: /01\/01\/2026/ });
   expect(cycle).toBeTruthy();
   fireEvent.change(screen.getByLabelText("Ciclo de cultivo"), { target: { value: "7" } });
   await waitFor(() => expect(tableCalls().at(-1)?.[0]).toContain("crop_cycle_id=7"));
@@ -93,7 +93,7 @@ it("discards late page responses after a range change", async () => {
   fireEvent.click(screen.getByRole("button", { name: "Este mes" }));
   await screen.findByText("Apagado");
   await act(async () => resolvePage({ data: { data: [{ ...reading, soil: { ...reading.soil, conductivity: 999 } }], total: 21, per_page: 20 } }));
-  expect(screen.queryByText("999.0")).toBeNull();
+  expect(screen.queryByText("999.00")).toBeNull();
 });
 
 it("distinguishes list failure from empty results and can retry", async () => {
@@ -122,7 +122,7 @@ it("labels a partial chart and keeps the table visible on chart failure", async 
 describe.each([HistoricalData])("export screen", (Screen) => {
   it.each([["CSV", "csv"], ["Excel", "xlsx"], ["PDF", "pdf"]])("downloads %s with dates and area via existing endpoint", async (label, extension) => {
     render(<Screen />);
-    await screen.findByRole("option", { name: /2026-01-01/ });
+    await screen.findByRole("option", { name: /01\/01\/2026/ });
     fireEvent.change(screen.getByLabelText("Ciclo de cultivo"), { target: { value: "7" } });
     fireEvent.click(screen.getByRole("button", { name: label }));
     await waitFor(() => expect(mocks.download).toHaveBeenCalledTimes(1));
@@ -132,8 +132,10 @@ describe.each([HistoricalData])("export screen", (Screen) => {
     expect(params.get("format")).toBe(extension);
     expect(params.get("irrigation_area_id")).toBe("12");
     expect(params.get("crop_cycle_id")).toBe("7");
-    expect(params.get("start_date")).toBe(dateParam(quickRangeDates("Últimos 7 días").start));
+    // With a cycle chosen, the range sent (and shown) is the cycle's: 2026-01-01 → today (no end date).
+    expect(params.get("start_date")).toBe("2026-01-01");
     expect(params.get("end_date")).toBe(dateParam(new Date()));
+    expect(params.get("tz")).toBeTruthy();
     expect(name).toMatch(new RegExp(`\\.${extension}$`));
   });
   it("surfaces download errors", async () => {
@@ -144,7 +146,7 @@ describe.each([HistoricalData])("export screen", (Screen) => {
   });
   it("supports an exact custom range without availability clamping", async () => {
     render(<Screen />);
-    await screen.findByRole("option", { name: /2026-01-01/ });
+    await screen.findByRole("option", { name: /01\/01\/2026/ });
     fireEvent.click(screen.getByRole("button", { name: "Personalizado" }));
     fireEvent.click(screen.getByRole("button", { name: "Fecha inicio" }));
     fireEvent.change(screen.getByLabelText("Día del calendario"), { target: { value: "2025-12-15" } });
@@ -184,9 +186,10 @@ describe("filters and export summary", () => {
 
   it("names the cycle in the summary once it is chosen", async () => {
     render(<HistoricalData />);
-    await screen.findByRole("option", { name: /2026-01-01/ });
+    await screen.findByRole("option", { name: /01\/01\/2026/ });
     fireEvent.change(screen.getByLabelText("Ciclo de cultivo"), { target: { value: "7" } });
-    expect(await screen.findByText(/Ciclo 2026-01-01 — sin fecha de fin/)).toBeTruthy();
+    expect(await screen.findByText(/Ciclo 01\/01\/2026 — sin fecha de fin/)).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Fecha inicio" })).toBeDisabled();
   });
 
   it("shows one variable at a time and switches it from the picker", async () => {

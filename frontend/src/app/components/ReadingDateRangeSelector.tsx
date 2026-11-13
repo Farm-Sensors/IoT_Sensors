@@ -4,7 +4,7 @@ import { Calendar as CalendarIcon, Info, Loader2 } from "lucide-react";
 import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { api } from "../services/api";
 import type { PaginatedResponse } from "../types/api";
-import { QUICK_RANGES, type DateRangeMode } from "../utils/readingFilters";
+import { QUICK_RANGES, browserTimeZone, type DateRangeMode } from "../utils/readingFilters";
 import { PillButton } from "./PillButton";
 import { Calendar } from "./ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover";
@@ -36,6 +36,16 @@ interface ReadingDateRangeSelectorProps {
 
 function toIsoDate(day: Date): string {
   return format(day, "yyyy-MM-dd");
+}
+
+/** Día de calendario `YYYY-MM-DD` como fecha local (sin pasar por UTC). */
+function localDay(day: string): Date {
+  const [y, m, d] = day.split("-").map(Number);
+  return new Date(y, m - 1, d);
+}
+
+function cycleRangeText(cycle: { start_date: string; end_date: string | null }): string {
+  return `${format(localDay(cycle.start_date), "dd/MM/yyyy")} — ${cycle.end_date ? format(localDay(cycle.end_date), "dd/MM/yyyy") : "sin fecha de fin"}`;
 }
 
 export function ReadingDateRangeSelector({
@@ -103,6 +113,7 @@ export function ReadingDateRangeSelector({
         const params = new URLSearchParams({
           irrigation_area_id: irrigationAreaId.toString(),
           month_start: toIsoDate(startOfMonth(month)),
+          tz: browserTimeZone(),
         });
 
         const res = await api.get<ReadingAvailabilityResponse>(`/readings/availability?${params}`);
@@ -162,7 +173,17 @@ export function ReadingDateRangeSelector({
   };
 
   const customRange = !onPresetChange || preset === "Personalizado";
-  const cycleText = activeCycle ? `Ciclo ${activeCycle.start_date} — ${activeCycle.end_date ?? "sin fecha de fin"}` : "Todos los ciclos";
+  const cycleText = activeCycle ? `Ciclo ${cycleRangeText(activeCycle)}` : "Todos los ciclos";
+  // Con un ciclo elegido, el rango es el del ciclo (el servidor también lo usa): se muestra y no se edita.
+  const cycleLocked = activeCycle !== undefined;
+  const chooseCycle = (id?: number) => {
+    onCycleChange?.(id);
+    const cycle = cycles.find((c) => c.id === id);
+    if (!cycle) return;
+    onPresetChange?.("Personalizado");
+    onStartDateChange(localDay(cycle.start_date));
+    onEndDateChange(cycle.end_date ? localDay(cycle.end_date) : startOfDay(new Date()));
+  };
 
   return (
     <div className={cn("space-y-3", className)} data-variant={variant}>
@@ -170,7 +191,7 @@ export function ReadingDateRangeSelector({
         {onPresetChange && (
           <div role="group" aria-label="Rangos rápidos" className="inline-flex max-w-full flex-wrap gap-0.5 rounded-[var(--radius)] border border-[var(--border)] bg-[var(--card)] p-1">
             {[...QUICK_RANGES, "Personalizado" as const].map((range) => (
-              <button key={range} type="button" aria-pressed={preset === range} onClick={() => onPresetChange(range)}
+              <button key={range} type="button" aria-pressed={preset === range} disabled={cycleLocked} onClick={() => onPresetChange(range)}
                 className={`inline-flex min-h-[40px] items-center rounded-[var(--radius)] px-3 text-sm transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus-ring)] ${preset === range ? "bg-[var(--accent-primary)] font-semibold text-[var(--text-inverted)]" : "font-medium text-[var(--text-muted)] hover:bg-[var(--accent-soft)] hover:text-[var(--text-main)]"}`}>
                 {range}
               </button>
@@ -181,10 +202,10 @@ export function ReadingDateRangeSelector({
           <label className="block text-xs text-[var(--text-muted)]">
             Ciclo de cultivo
             <select value={cycleId ?? ""} disabled={!irrigationAreaId || cyclesLoading || cyclesError}
-              onChange={(event) => onCycleChange(event.target.value ? Number(event.target.value) : undefined)}
+              onChange={(event) => chooseCycle(event.target.value ? Number(event.target.value) : undefined)}
               className="mt-1 block min-h-[40px] min-w-[200px] rounded-[var(--radius)] border border-[var(--border-strong)] bg-[var(--card)] px-3 text-sm text-[var(--text-body)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus-ring)] disabled:opacity-60">
               <option value="">Todos los ciclos</option>
-              {cycles.map((cycle) => <option key={cycle.id} value={cycle.id}>{cycle.start_date} — {cycle.end_date ?? "Sin fecha de fin"}</option>)}
+              {cycles.map((cycle) => <option key={cycle.id} value={cycle.id}>{cycleRangeText(cycle)}</option>)}
             </select>
           </label>
         )}
@@ -196,7 +217,7 @@ export function ReadingDateRangeSelector({
             <span className="mb-1 block text-xs text-[var(--text-muted)]">Fecha inicio</span>
             <Popover open={startOpen} onOpenChange={setStartOpen}>
               <PopoverTrigger asChild>
-                <button type="button" aria-label="Fecha inicio" className={triggerBase}>
+                <button type="button" aria-label="Fecha inicio" disabled={cycleLocked} className={triggerBase}>
                   <CalendarIcon aria-hidden="true" className="h-4 w-4 text-[var(--text-muted)]" />
                   <span className="text-sm">{format(startDate, "dd/MM/yyyy")}</span>
                 </button>
@@ -211,7 +232,7 @@ export function ReadingDateRangeSelector({
             <span className="mb-1 block text-xs text-[var(--text-muted)]">Fecha fin</span>
             <Popover open={endOpen} onOpenChange={setEndOpen}>
               <PopoverTrigger asChild>
-                <button type="button" aria-label="Fecha fin" className={triggerBase}>
+                <button type="button" aria-label="Fecha fin" disabled={cycleLocked} className={triggerBase}>
                   <CalendarIcon aria-hidden="true" className="h-4 w-4 text-[var(--text-muted)]" />
                   <span className="text-sm">{format(endDate, "dd/MM/yyyy")}</span>
                 </button>
@@ -225,6 +246,7 @@ export function ReadingDateRangeSelector({
         </div>
       )}
 
+      {cycleLocked && <p className="text-xs text-[var(--text-muted)]">Con un ciclo elegido, las fechas son las del ciclo. Elige «Todos los ciclos» para cambiarlas.</p>}
       {cyclesLoading && <p role="status" className="text-sm text-[var(--text-muted)]">Cargando ciclos…</p>}
       {cyclesError && <div role="alert" className="flex flex-wrap items-center gap-3 text-sm text-[var(--text-body)]">
         <p>No se pudieron cargar los ciclos.</p>
@@ -241,8 +263,8 @@ export function ReadingDateRangeSelector({
           <span className="font-medium">{preset ?? "Rango"}</span>
           <span className="font-mono-data text-[var(--text-muted)]">{rangeText}</span>
           <span className="text-[var(--text-muted)]">· {cycleText}</span>
-          <span title="El rango se consulta por fecha en UTC; las horas de la gráfica y la tabla se muestran en tu zona horaria local." className="inline-flex text-[var(--text-muted)]">
-            <Info aria-hidden="true" className="h-3.5 w-3.5" /><span className="sr-only">Las fechas se consultan en UTC; las horas se muestran en tu zona horaria local.</span>
+          <span title={`Días y horas en tu zona horaria (${browserTimeZone()}).`} className="inline-flex text-[var(--text-muted)]">
+            <Info aria-hidden="true" className="h-3.5 w-3.5" /><span className="sr-only">Días y horas en tu zona horaria ({browserTimeZone()}).</span>
           </span>
           {loadingAvailability && <Loader2 aria-hidden="true" className="h-3.5 w-3.5 animate-spin text-[var(--text-muted)]" />}
         </p>

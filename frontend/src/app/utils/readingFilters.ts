@@ -14,8 +14,13 @@ export function quickRangeDates(range: Exclude<DateRangeMode, "Personalizado">, 
 // OpenAPI accepts calendar dates, not instants. Never shift a picked day via UTC getters.
 export function dateParam(date: Date): string { return format(date, "yyyy-MM-dd"); }
 
+/** Zona horaria del navegador (IANA): los días del filtro y las horas exportadas son locales a ella. */
+export function browserTimeZone(): string {
+  return Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC";
+}
+
 export function readingQuery(areaId: number, start: Date, end: Date, cycleId?: number) {
-  const params = new URLSearchParams({ irrigation_area_id: String(areaId), start_date: dateParam(start), end_date: dateParam(end) });
+  const params = new URLSearchParams({ irrigation_area_id: String(areaId), start_date: dateParam(start), end_date: dateParam(end), tz: browserTimeZone() });
   if (cycleId !== undefined) params.set("crop_cycle_id", String(cycleId));
   return params;
 }

@@ -14,32 +14,34 @@ import { SelectionScopeBar } from "../../components/selection/SelectionScopeBar"
 import { useSelection } from "../../context/SelectionContext";
 import { useTheme } from "../../context/ThemeContext";
 import { useIsMobile } from "../../hooks/useIsMobile";
-import { fetchReadingPage, fetchChartReadings } from "../../services/readings";
+import { areaHasReadings, fetchReadingPage, fetchChartReadings } from "../../services/readings";
 import { useReadingFilters } from "../../services/useReadingFilters";
-import { readingQuery, type ExportFormat } from "../../utils/readingFilters";
+import { browserTimeZone, readingQuery, type ExportFormat } from "../../utils/readingFilters";
 import { aggregateReadingsForChart, MS_IN_DAY } from "../../utils/readingChart";
 import { downloadBlobExport } from "../../utils/export";
 import { normalizeTimestamp } from "../../utils/datetime";
 import type { PaginatedResponse, ReadingResponse } from "../../types/api";
 
-const columns: { label: string; value: (reading: ReadingResponse) => number | boolean | null | undefined }[] = [
-  { label: "Humedad Suelo (%)", value: (r) => r.soil?.humidity },
-  { label: "Flujo (L/min)", value: (r) => r.irrigation?.flow_per_minute },
-  { label: "E.T.O. (mm/día)", value: (r) => r.environmental?.eto },
-  { label: "Conductividad (dS/m)", value: (r) => r.soil?.conductivity },
-  { label: "Temp. Suelo (°C)", value: (r) => r.soil?.temperature },
-  { label: "Potencial hídrico (MPa)", value: (r) => r.soil?.water_potential },
-  { label: "Riego activo", value: (r) => r.irrigation?.active },
-  { label: "Acumulado (L)", value: (r) => r.irrigation?.accumulated_liters },
-  { label: "Temp. Aire (°C)", value: (r) => r.environmental?.temperature },
-  { label: "H. Relativa (%)", value: (r) => r.environmental?.relative_humidity },
-  { label: "Viento (km/h)", value: (r) => r.environmental?.wind_speed },
-  { label: "Radiación solar (W/m²)", value: (r) => r.environmental?.solar_radiation },
+// Misma precisión por magnitud que el resto de la app y la exportación.
+const columns: { label: string; decimals: number; value: (reading: ReadingResponse) => number | boolean | null | undefined }[] = [
+  { label: "Humedad Suelo (%)", decimals: 1, value: (r) => r.soil?.humidity },
+  { label: "Flujo (L/min)", decimals: 1, value: (r) => r.irrigation?.flow_per_minute },
+  { label: "E.T.O. (mm/día)", decimals: 2, value: (r) => r.environmental?.eto },
+  { label: "Conductividad (dS/m)", decimals: 2, value: (r) => r.soil?.conductivity },
+  { label: "Temp. Suelo (°C)", decimals: 1, value: (r) => r.soil?.temperature },
+  { label: "Potencial hídrico (MPa)", decimals: 2, value: (r) => r.soil?.water_potential },
+  { label: "Riego activo", decimals: 0, value: (r) => r.irrigation?.active },
+  { label: "Acumulado (L)", decimals: 0, value: (r) => r.irrigation?.accumulated_liters },
+  { label: "Temp. Aire (°C)", decimals: 1, value: (r) => r.environmental?.temperature },
+  { label: "H. Relativa (%)", decimals: 0, value: (r) => r.environmental?.relative_humidity },
+  { label: "Viento (km/h)", decimals: 1, value: (r) => r.environmental?.wind_speed },
+  { label: "Radiación solar (W/m²)", decimals: 0, value: (r) => r.environmental?.solar_radiation },
 ];
-function displayValue(value: ReturnType<typeof columns[number]["value"]>) {
+function displayValue(value: ReturnType<typeof columns[number]["value"]>, decimals: number) {
   if (value == null) return "Sin datos";
   if (typeof value === "boolean") return value ? "Encendido" : "Apagado";
-  return value.toFixed(1);
+  const fixed = value.toFixed(decimals);
+  return /^-0(\.0+)?$/.test(fixed) ? fixed.slice(1) : fixed;
 }
 
 type MetricId = "soilHumidity" | "waterFlow" | "eto" | "soilTemp" | "airTemp" | "relativeHumidity";
@@ -107,6 +109,18 @@ function AreaHistory({ embedded }: { embedded: boolean }) {
   const [metric, setMetric] = useState<MetricId>("soilHumidity");
   const [recordsOpen, setRecordsOpen] = useState(false);
 
+  // Un área que nunca ha reportado no tiene «rango sin datos»: no hay nada que filtrar ni que descargar.
+  const [everReported, setEverReported] = useState<{ areaId: number; value: boolean }>();
+  useEffect(() => {
+    if (!selectedArea) return;
+    const controller = new AbortController();
+    areaHasReadings(selectedArea.id, controller.signal)
+      .then((value) => { if (!controller.signal.aborted) setEverReported({ areaId: selectedArea.id, value }); })
+      .catch(() => undefined);
+    return () => controller.abort();
+  }, [selectedArea?.id]);
+  const neverReported = everReported?.areaId === selectedArea?.id && everReported?.value === false;
+
   useEffect(() => {
     if (!query) return;
     const controller = new AbortController();
@@ -155,6 +169,14 @@ function AreaHistory({ embedded }: { embedded: boolean }) {
     const pad = Math.max((hi - lo) * 0.1, m.unit === "%" ? 1 : 0.5);
     const domain: [number, number] = m.zero ? [0, Math.ceil((hi + pad) * 10) / 10] : [Math.floor(lo - pad), Math.ceil(hi + pad)];
     const fmt = (v: number) => v.toFixed(m.decimals);
+    // Sin ningún valor de esta medición en el rango no se dibujan ejes vacíos (se leerían como cero).
+    if (values.length === 0) {
+      return (
+        <section key={id} aria-label={`Gráfica de ${m.label}`}>
+          <EmptyState icon={ChartLine} title={`Sin datos de ${m.label.toLowerCase()} en este rango`} description="El nodo de esta área no envía esta medición o no la envió en estas fechas." />
+        </section>
+      );
+    }
     return (
       <section key={id} aria-label={`Gráfica de ${m.label}`}>
         <h3 className="mb-2 flex items-center gap-2 text-sm font-semibold">
@@ -201,7 +223,7 @@ function AreaHistory({ embedded }: { embedded: boolean }) {
     <div role="group" aria-label="Descargar resultados" className="flex flex-wrap items-center gap-2">
       <span className="text-xs text-[var(--text-muted)]">Descargar</span>
       {([["csv", "CSV"], ["xlsx", "Excel"], ["pdf", "PDF"]] as const).map(([fmt, name]) => (
-        <button key={fmt} type="button" disabled={exporting || !selectedArea} onClick={() => handleExport(fmt)}
+        <button key={fmt} type="button" disabled={exporting || !selectedArea || neverReported || currentTable?.data?.total === 0} onClick={() => handleExport(fmt)}
           className="inline-flex min-h-[40px] items-center gap-1.5 rounded-[var(--radius)] border border-[var(--border-strong)] bg-[var(--card)] px-3 text-sm font-medium hover:bg-[var(--accent-soft)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus-ring)] disabled:cursor-not-allowed disabled:opacity-50">
           <Download aria-hidden="true" className="h-4 w-4" />{name}
         </button>
@@ -256,7 +278,9 @@ function AreaHistory({ embedded }: { embedded: boolean }) {
             <p className="border-t border-[var(--border)] pt-3 text-xs text-[var(--text-muted)]">Cada punto es el promedio de {bucketLabel}; los registros exactos están más abajo.</p>
           </div>
         ) : (
-          selectedArea ? <EmptyState icon={ChartLine} title="No hay datos para el rango seleccionado" description="Prueba con otro rango o ciclo de cultivo." /> : null
+          selectedArea ? (neverReported
+            ? <EmptyState icon={ChartLine} title="Sin lecturas todavía" description="Esta área aún no ha enviado ninguna lectura. Cuando lleguen, aparecerán aquí y se podrán descargar." />
+            : <EmptyState icon={ChartLine} title="No hay datos para el rango seleccionado" description="Prueba con otro rango o ciclo de cultivo. La descarga se habilita cuando hay registros." />) : null
         )}
       </section>
 
@@ -282,7 +306,7 @@ function AreaHistory({ embedded }: { embedded: boolean }) {
               <caption className="sr-only">Lecturas del rango y ciclo seleccionados</caption>
               <thead>
                 <tr className="border-b border-[var(--border-strong)]">
-                  <th scope="col" className="sticky left-0 z-10 whitespace-nowrap bg-[var(--card)] px-3 py-2 text-left text-xs font-semibold text-[var(--text-muted)]">Fecha/Hora (local)</th>
+                  <th scope="col" className="sticky left-0 z-10 whitespace-nowrap bg-[var(--card)] px-3 py-2 text-left text-xs font-semibold text-[var(--text-muted)]">Fecha/Hora ({browserTimeZone()})</th>
                   {columns.map(({ label }) => <th key={label} scope="col" className="px-3 py-2 text-left text-xs font-semibold text-[var(--text-muted)]">{label}</th>)}
                 </tr>
               </thead>
@@ -297,7 +321,7 @@ function AreaHistory({ embedded }: { embedded: boolean }) {
                     <td className="sticky left-0 whitespace-nowrap bg-[var(--card)] px-3 py-2 text-sm text-[var(--text-body)]">
                       {format(parseISO(normalizeTimestamp(r.timestamp)), "dd MMM yyyy, HH:mm", { locale: es })}
                     </td>
-                    {columns.map(({ label, value }) => <td key={label} className="whitespace-nowrap px-3 py-2 font-mono-data text-sm font-medium text-[var(--text-body)]">{displayValue(value(r))}</td>)}
+                    {columns.map(({ label, value, decimals }) => <td key={label} className="whitespace-nowrap px-3 py-2 font-mono-data text-sm font-medium text-[var(--text-body)]">{displayValue(value(r), decimals)}</td>)}
                   </tr>
                 ))}
               </tbody>
