@@ -158,7 +158,7 @@ export function GatewayDetail() {
             <PillButton loading={publishing} onClick={() => void handlePublish()}>
               Dejar lista la configuración
             </PillButton>
-          ) : state === "unlinked" || state === "assigning" ? (
+          ) : state === "unlinked" || state === "assigning" || state === "waiting" ? (
             <Link className={PRIMARY_LINK} to={`/admin/gateways?gateway=${gateway.id}`}>
               {state === "unlinked" ? "Vincular equipo" : "Ver avance"}
             </Link>
