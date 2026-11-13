@@ -5891,6 +5891,14 @@ components:
           - type: number
           - type: 'null'
           title: Longitude
+        location_source:
+          anyOf:
+          - type: string
+            enum:
+            - node
+            - property
+          - type: 'null'
+          title: Location Source
         is_active:
           type: boolean
           title: Is Active

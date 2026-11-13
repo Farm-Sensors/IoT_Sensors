@@ -2,6 +2,8 @@
 
 from uuid import uuid4
 
+import pytest
+
 
 
 SENSOR_PAYLOAD = {
@@ -526,13 +528,49 @@ class TestGeoNodes:
         )
         assert resp.status_code == 403
 
-    def test_geo_excludes_nodes_without_coordinates_by_default(
+    def test_geo_uses_property_location_when_node_has_no_gps(
         self,
         client,
         admin_headers,
         sample_property,
         sample_crop_type,
     ):
+        area_resp = client.post(
+            "/api/v1/irrigation-areas",
+            json={
+                "property_id": sample_property.id,
+                "crop_type_id": sample_crop_type.id,
+                "name": "Area Sin GPS",
+            },
+            headers=admin_headers,
+        )
+        assert area_resp.status_code == 201
+        node_resp = client.post(
+            "/api/v1/nodes",
+            json={"irrigation_area_id": area_resp.json()["id"], "name": "Nodo Sin GPS"},
+            headers=admin_headers,
+        )
+        assert node_resp.status_code == 201
+        node_id = node_resp.json()["id"]
+
+        resp = client.get("/api/v1/nodes/geo", headers=admin_headers)
+        assert resp.status_code == 200
+        item = next(i for i in resp.json()["data"] if i["id"] == node_id)
+        assert item["latitude"] == pytest.approx(float(sample_property.latitud))
+        assert item["longitude"] == pytest.approx(float(sample_property.longitud))
+        assert item["location_source"] == "property"
+
+    def test_geo_excludes_nodes_without_any_coordinates_by_default(
+        self,
+        client,
+        admin_headers,
+        sample_property,
+        sample_crop_type,
+        db,
+    ):
+        sample_property.latitud = None
+        sample_property.longitud = None
+        db.commit()
         area_resp = client.post(
             "/api/v1/irrigation-areas",
             json={
@@ -563,5 +601,6 @@ class TestGeoNodes:
             headers=admin_headers,
         )
         assert resp_with_no_coords.status_code == 200
-        ids_with_no_coords = {item["id"] for item in resp_with_no_coords.json()["data"]}
-        assert node_id in ids_with_no_coords
+        item = next(i for i in resp_with_no_coords.json()["data"] if i["id"] == node_id)
+        assert item["latitude"] is None
+        assert item["location_source"] is None

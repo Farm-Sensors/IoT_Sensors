@@ -187,7 +187,7 @@ Contrato detallado (payloads, schemas, errores, ejemplos): **`openapi.yaml`** (a
 | Crop Cycles | PUT | `/api/v1/crop-cycles/{cycle_id}` | Actualizar — Admin |
 | Crop Cycles | DELETE | `/api/v1/crop-cycles/{cycle_id}` | Eliminar — Admin |
 | Nodes | GET | `/api/v1/nodes` | Listar (paginado, filtro `irrigation_area_id`); omite los nodos borrados y los de un área, predio o cliente borrado |
-| Nodes | GET | `/api/v1/nodes/geo` | Capa geoespacial (frescura; filtros client/property/area) |
+| Nodes | GET | `/api/v1/nodes/geo` | Capa geoespacial (frescura; filtros client/property/area). Si el nodo no tiene GPS usa la **ubicación de referencia del predio**; `location_source` dice cuál (`node` / `property`) |
 | Nodes | POST | `/api/v1/nodes` | Registrar nodo lógico (sin credencial de ingest) — Admin. **409** si el área ya tiene nodo vigente (activo o deshabilitado) o si la serie ya existe; si el nodo del área estaba **eliminado**, lo **restaura** (mismo id, conserva sus lecturas) con el nombre, serie y GPS enviados |
 | Nodes | GET | `/api/v1/nodes/{node_id}` | Detalle |
 | Nodes | PUT | `/api/v1/nodes/{node_id}` | Actualizar — Admin |

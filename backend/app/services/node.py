@@ -122,8 +122,10 @@ def list_nodes_geo(
             CropType.nombre.label("crop_type_name"),
             Node.numero_serie.label("serial_number"),
             Node.nombre.label("name"),
-            Node.latitud.label("latitude"),
-            Node.longitud.label("longitude"),
+            # Node GPS is optional: without it the node sits at its property's reference location.
+            func.coalesce(Node.latitud, Property.latitud).label("latitude"),
+            func.coalesce(Node.longitud, Property.longitud).label("longitude"),
+            Node.latitud.is_not(None).label("has_node_location"),
             Node.activo.label("is_active"),
             latest_reading_sq.c.last_reading_timestamp,
         )
@@ -148,7 +150,10 @@ def list_nodes_geo(
     if irrigation_area_id is not None:
         query = query.where(IrrigationArea.id == irrigation_area_id)
     if not include_without_coordinates:
-        query = query.where(Node.latitud.is_not(None), Node.longitud.is_not(None))
+        query = query.where(
+            func.coalesce(Node.latitud, Property.latitud).is_not(None),
+            func.coalesce(Node.longitud, Property.longitud).is_not(None),
+        )
 
     count = db.execute(select(func.count()).select_from(query.subquery())).scalar() or 0
 
@@ -184,6 +189,11 @@ def list_nodes_geo(
                 "latitude": float(row.latitude) if row.latitude is not None else None,
                 "longitude": (
                     float(row.longitude) if row.longitude is not None else None
+                ),
+                "location_source": (
+                    None
+                    if row.latitude is None
+                    else ("node" if row.has_node_location else "property")
                 ),
                 "is_active": row.is_active,
                 "last_reading_timestamp": row.last_reading_timestamp,
