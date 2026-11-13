@@ -112,6 +112,10 @@ def get_readings_availability(
     month_start: date | None = Query(
         None, description="Any date inside the target month (YYYY-MM-DD)"
     ),
+    tz: str | None = Query(
+        None,
+        description="IANA time zone of the user (e.g. America/Chihuahua): days and exported times are local to it. Default UTC.",
+    ),
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
@@ -120,6 +124,7 @@ def get_readings_availability(
         db=db,
         irrigation_area_id=irrigation_area_id,
         month_start=month_start,
+        zone=reading_service.parse_time_zone(tz),
     )
     return ReadingAvailabilityResponse(
         min_date=min_date,
@@ -138,14 +143,19 @@ def export_readings(
     start_date: date | None = Query(None),
     end_date: date | None = Query(None),
     crop_cycle_id: int | None = Query(None),
+    tz: str | None = Query(
+        None,
+        description="IANA time zone of the user (e.g. America/Chihuahua): days and exported times are local to it. Default UTC.",
+    ),
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
     validate_area_access(current_user, db, irrigation_area_id)
+    zone = reading_service.parse_time_zone(tz)
 
     if format == "csv":
         content = reading_service.export_readings_csv(
-            db, irrigation_area_id, start_date, end_date, crop_cycle_id
+            db, irrigation_area_id, start_date, end_date, crop_cycle_id, zone
         )
         return Response(
             content=content,
@@ -156,7 +166,7 @@ def export_readings(
         )
     elif format == "xlsx":
         content = reading_service.export_readings_xlsx(
-            db, irrigation_area_id, start_date, end_date, crop_cycle_id
+            db, irrigation_area_id, start_date, end_date, crop_cycle_id, zone
         )
         return Response(
             content=content,
@@ -167,7 +177,7 @@ def export_readings(
         )
     else:  # pdf
         content = reading_service.export_readings_pdf(
-            db, irrigation_area_id, start_date, end_date, crop_cycle_id
+            db, irrigation_area_id, start_date, end_date, crop_cycle_id, zone
         )
         return Response(
             content=content,
@@ -189,9 +199,14 @@ def list_readings(
     start_date: date | None = Query(None),
     end_date: date | None = Query(None),
     crop_cycle_id: int | None = Query(None),
+    tz: str | None = Query(
+        None,
+        description="IANA time zone of the user (e.g. America/Chihuahua): days and exported times are local to it. Default UTC.",
+    ),
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
+    zone = reading_service.parse_time_zone(tz)
     node_ids: list[int] | None = None
 
     if irrigation_area_id is not None:
@@ -215,6 +230,7 @@ def list_readings(
         start_date=start_date,
         end_date=end_date,
         crop_cycle_id=crop_cycle_id,
+        zone=zone,
     )
     return PaginatedResponse(
         page=page,

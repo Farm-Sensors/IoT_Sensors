@@ -166,8 +166,9 @@ class TestExportReadings:
             db, irrigation_area_id=sample_irrigation_area.id
         )
         assert isinstance(result, str)
-        assert "timestamp" in result  # header row
-        assert "node_id" in result
+        header = result.lstrip("\ufeff").splitlines()[0]
+        assert header.startswith("Fecha y hora (UTC),Predio,Área")
+        assert "node_id" not in header
 
     def test_export_csv_contains_data(self, db, sample_node, sample_irrigation_area):
         reading_service.create_reading(db, sample_node, _make_reading_payload())

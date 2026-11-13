@@ -118,7 +118,7 @@ Límites de abuso de admin (en memoria, por proceso): **10 fallos / 15 min** por
 - **Métodos**: GET (listar/detalle), POST (crear, 201), PUT (actualizar, 200), DELETE (eliminar — soft delete, 200).
 - **Respuestas en JSON**. Errores con `{"detail": "..."}` (FastAPI); 422 con detalle de validación Pydantic.
 - **Paginación obligatoria** en listados: `?page=1&per_page=50` (defaults 1 y 50). Respuesta: `{ "page", "per_page", "total", "data" }`.
-- **Filtros de fecha** (readings, crop-cycles): `?start_date=YYYY-MM-DD&end_date=YYYY-MM-DD`. Ambos opcionales; sin ellos se retorna todo paginado.
+- **Filtros de fecha** (readings, crop-cycles): `?start_date=YYYY-MM-DD&end_date=YYYY-MM-DD`. Ambos opcionales; sin ellos se retorna todo paginado. En `/readings`, `/readings/export` y `/readings/availability`, `tz` (IANA, p. ej. `America/Chihuahua`) hace que los días sean días locales de esa zona; sin `tz` son días UTC. Si se envía `crop_cycle_id`, las fechas del ciclo sustituyen a `start_date`/`end_date`.
 - **Presets de fecha** (semana/mes/año): se resuelven en el **frontend**, que los traduce a `start_date`/`end_date`. La API solo entiende rangos.
 - **Nomenclatura**: BD en español ↔ API en inglés (los schemas Pydantic traducen, p.ej. `clientes.nombre_empresa` → `company_name`).
 
@@ -198,8 +198,8 @@ Contrato detallado (payloads, schemas, errores, ejemplos): **`openapi.yaml`** (a
 | Readings | GET | `/api/v1/readings` | Histórico (paginado; filtros área, fechas, ciclo). Sin área, el admin solo cuenta lecturas de nodos cuya jerarquía sigue vigente (no borrada) |
 | Readings | GET | `/api/v1/readings/latest` | Última lectura (indicador de frescura) |
 | Readings | GET | `/api/v1/readings/priority-status` | Semáforo prioritario (lectura + umbrales activos) |
-| Readings | GET | `/api/v1/readings/availability` | Fechas disponibles para calendario/filtros |
-| Readings | GET | `/api/v1/readings/export` | Exportar CSV/XLSX/PDF (`?format=...`) |
+| Readings | GET | `/api/v1/readings/availability` | Fechas disponibles para calendario/filtros (`tz` opcional: días locales) |
+| Readings | GET | `/api/v1/readings/export` | Exportar CSV/XLSX/PDF (`?format=...`). Encabezados en español con unidades, predio y área, hora local de `tz`, «Sin datos» para nulos y la misma precisión que la app. Con `crop_cycle_id` el rango es el del ciclo |
 | Thresholds | GET | `/api/v1/thresholds` | Listar (paginado y filtros) |
 | Thresholds | POST | `/api/v1/thresholds` | Crear umbral |
 | Thresholds | GET | `/api/v1/thresholds/{threshold_id}` | Detalle |

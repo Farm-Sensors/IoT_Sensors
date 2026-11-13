@@ -22,3 +22,9 @@ export async function fetchChartReadings(query: string, signal: AbortSignal) {
   }
   return { readings, total };
 }
+
+/** `true` si el área ha enviado al menos una lectura (`/readings/latest` devuelve `null` si nunca reportó). */
+export async function areaHasReadings(irrigationAreaId: number, signal: AbortSignal): Promise<boolean> {
+  const { data } = await api.get(`/readings/latest?irrigation_area_id=${irrigationAreaId}`, { signal });
+  return data != null;
+}

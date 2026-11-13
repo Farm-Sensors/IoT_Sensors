@@ -2608,6 +2608,18 @@ paths:
           - type: integer
           - type: 'null'
           title: Crop Cycle Id
+      - name: tz
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          description: 'IANA time zone of the user (e.g. America/Chihuahua): days
+            and exported times are local to it. Default UTC.'
+          title: Tz
+        description: 'IANA time zone of the user (e.g. America/Chihuahua): days and
+          exported times are local to it. Default UTC.'
       responses:
         '200':
           description: Successful Response
@@ -2706,6 +2718,18 @@ paths:
           description: Any date inside the target month (YYYY-MM-DD)
           title: Month Start
         description: Any date inside the target month (YYYY-MM-DD)
+      - name: tz
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          description: 'IANA time zone of the user (e.g. America/Chihuahua): days
+            and exported times are local to it. Default UTC.'
+          title: Tz
+        description: 'IANA time zone of the user (e.g. America/Chihuahua): days and
+          exported times are local to it. Default UTC.'
       responses:
         '200':
           description: Successful Response
@@ -2767,6 +2791,18 @@ paths:
           - type: integer
           - type: 'null'
           title: Crop Cycle Id
+      - name: tz
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          description: 'IANA time zone of the user (e.g. America/Chihuahua): days
+            and exported times are local to it. Default UTC.'
+          title: Tz
+        description: 'IANA time zone of the user (e.g. America/Chihuahua): days and
+          exported times are local to it. Default UTC.'
       responses:
         '200':
           description: Successful Response

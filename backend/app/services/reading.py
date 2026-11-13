@@ -1,9 +1,11 @@
 import csv
 import io
-from datetime import UTC, date, datetime, timedelta
+from datetime import UTC, date, datetime, time, timedelta, tzinfo
+from decimal import ROUND_HALF_UP, Decimal
+from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 from fastapi import HTTPException, status
-from sqlalchemy import func, select
+from sqlalchemy import exists, func, select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
@@ -14,6 +16,7 @@ from app.models.gateway import Gateway
 from app.models.gateway_config import GatewayConfig
 from app.models.irrigation_area import IrrigationArea
 from app.models.node import Node
+from app.models.property import Property
 from app.models.reading import Reading
 from app.models.threshold import Threshold
 from app.schemas.reading import ReadingCreate
@@ -382,6 +385,54 @@ def get_priority_status(db: Session, irrigation_area_id: int) -> dict[str, objec
     }
 
 
+def parse_time_zone(tz: str | None) -> tzinfo:
+    """Resolve the optional IANA ``tz`` query parameter; history defaults to UTC days."""
+    if not tz:
+        return UTC
+    try:
+        return ZoneInfo(tz)
+    except (ZoneInfoNotFoundError, ValueError):
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail=f"Unknown time zone '{tz}'",
+        ) from None
+
+
+def _day_start_utc(day: date, zone: tzinfo) -> datetime:
+    """Instant (naive UTC, as stored) at which ``day`` starts in ``zone``."""
+    return (
+        datetime.combine(day, time.min, tzinfo=zone).astimezone(UTC).replace(tzinfo=None)
+    )
+
+
+def _as_local(timestamp: datetime, zone: tzinfo) -> datetime:
+    """Stored naive-UTC timestamp as wall-clock time in ``zone`` (naive)."""
+    return timestamp.replace(tzinfo=UTC).astimezone(zone).replace(tzinfo=None)
+
+
+def _history_days(
+    db: Session,
+    start_date: date | None,
+    end_date: date | None,
+    crop_cycle_id: int | None,
+) -> tuple[date | None, date | None]:
+    """Calendar days the history covers: a crop cycle's dates win over start/end."""
+    if crop_cycle_id is None:
+        return start_date, end_date
+    cycle = db.execute(
+        select(CropCycle).where(
+            CropCycle.id == crop_cycle_id,
+            CropCycle.eliminado_en.is_(None),
+        )
+    ).scalar_one_or_none()
+    if cycle is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Crop cycle with id {crop_cycle_id} not found",
+        )
+    return cycle.fecha_inicio, cycle.fecha_fin
+
+
 def _build_history_query(
     irrigation_area_id: int | None,
     node_ids: list[int] | None,
@@ -389,8 +440,11 @@ def _build_history_query(
     end_date: date | None,
     crop_cycle_id: int | None,
     db: Session,
+    zone: tzinfo = UTC,
 ):
-    """Build WHERE conditions for history/export queries."""
+    """Build WHERE conditions for history/export queries.
+
+    Days are whole calendar days in ``zone`` (UTC by default)."""
     conditions = []
 
     if node_ids is not None:
@@ -413,38 +467,13 @@ def _build_history_query(
         # properties or clients, which keep their rows after a soft delete.
         conditions.append(Reading.nodo_id.in_(live_node_ids()))
 
-    # If crop_cycle_id is specified, use its dates
-    if crop_cycle_id is not None:
-        cycle = db.execute(
-            select(CropCycle).where(
-                CropCycle.id == crop_cycle_id,
-                CropCycle.eliminado_en.is_(None),
-            )
-        ).scalar_one_or_none()
-        if cycle is None:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail=f"Crop cycle with id {crop_cycle_id} not found",
-            )
+    first_day, last_day = _history_days(db, start_date, end_date, crop_cycle_id)
+    if first_day is not None:
+        conditions.append(Reading.marca_tiempo >= _day_start_utc(first_day, zone))
+    if last_day is not None:
         conditions.append(
-            Reading.marca_tiempo
-            >= datetime.combine(cycle.fecha_inicio, datetime.min.time())
+            Reading.marca_tiempo < _day_start_utc(last_day + timedelta(days=1), zone)
         )
-        if cycle.fecha_fin is not None:
-            conditions.append(
-                Reading.marca_tiempo
-                <= datetime.combine(cycle.fecha_fin, datetime.max.time())
-            )
-    else:
-        if start_date is not None:
-            conditions.append(
-                Reading.marca_tiempo
-                >= datetime.combine(start_date, datetime.min.time())
-            )
-        if end_date is not None:
-            conditions.append(
-                Reading.marca_tiempo <= datetime.combine(end_date, datetime.max.time())
-            )
 
     return conditions
 
@@ -458,9 +487,10 @@ def list_readings(
     start_date: date | None = None,
     end_date: date | None = None,
     crop_cycle_id: int | None = None,
+    zone: tzinfo = UTC,
 ) -> tuple[list[Reading], int]:
     conditions = _build_history_query(
-        irrigation_area_id, node_ids, start_date, end_date, crop_cycle_id, db
+        irrigation_area_id, node_ids, start_date, end_date, crop_cycle_id, db, zone
     )
 
     count_query = select(func.count()).select_from(Reading).where(*conditions)
@@ -477,12 +507,21 @@ def list_readings(
     return items, total
 
 
+def _as_datetime(value: datetime | date | str) -> datetime:
+    if isinstance(value, str):
+        return datetime.fromisoformat(value)
+    if isinstance(value, datetime):
+        return value
+    return datetime.combine(value, time.min)
+
+
 def get_readings_availability(
     db: Session,
     irrigation_area_id: int,
     month_start: date | None = None,
+    zone: tzinfo = UTC,
 ) -> tuple[date | None, date | None, list[date]]:
-    """Return min/max reading dates and available days for a month."""
+    """Return min/max reading dates and available days for a month, as days in ``zone``."""
     node_id = db.execute(
         select(Node.id).where(
             Node.area_riego_id == irrigation_area_id,
@@ -504,198 +543,188 @@ def get_readings_availability(
     if min_ts is None or max_ts is None:
         return None, None, []
 
-    if isinstance(min_ts, str):
-        min_ts = datetime.fromisoformat(min_ts)
-    elif isinstance(min_ts, date) and not isinstance(min_ts, datetime):
-        min_ts = datetime.combine(min_ts, datetime.min.time())
+    min_day = _as_local(_as_datetime(min_ts), zone).date()
+    max_day = _as_local(_as_datetime(max_ts), zone).date()
 
-    if isinstance(max_ts, str):
-        max_ts = datetime.fromisoformat(max_ts)
-    elif isinstance(max_ts, date) and not isinstance(max_ts, datetime):
-        max_ts = datetime.combine(max_ts, datetime.min.time())
-
-    current_month_start = (month_start or max_ts.date()).replace(day=1)
+    current_month_start = (month_start or max_day).replace(day=1)
     next_month_start = (
         current_month_start.replace(day=28) + timedelta(days=4)
     ).replace(day=1)
-    current_month_end = next_month_start - timedelta(days=1)
-
-    month_dates_raw = list(
-        db.execute(
-            select(func.date(Reading.marca_tiempo))
-            .where(
-                Reading.nodo_id == node_id,
-                Reading.marca_tiempo
-                >= datetime.combine(current_month_start, datetime.min.time()),
-                Reading.marca_tiempo
-                <= datetime.combine(current_month_end, datetime.max.time()),
+    month_days = [
+        current_month_start + timedelta(days=offset)
+        for offset in range((next_month_start - current_month_start).days)
+    ]
+    # One indexed EXISTS per local day: SQL DATE() would group by UTC days, and the
+    # database may have no time zone tables for CONVERT_TZ.
+    has_readings = db.execute(
+        select(
+            *(
+                exists()
+                .where(
+                    Reading.nodo_id == node_id,
+                    Reading.marca_tiempo >= _day_start_utc(day, zone),
+                    Reading.marca_tiempo
+                    < _day_start_utc(day + timedelta(days=1), zone),
+                )
+                .label(f"d{index}")
+                for index, day in enumerate(month_days)
             )
-            .group_by(func.date(Reading.marca_tiempo))
-            .order_by(func.date(Reading.marca_tiempo))
-        ).scalars()
-    )
+        )
+    ).one()
+    available_dates = [day for day, has in zip(month_days, has_readings) if has]
 
-    available_dates: list[date] = []
-    for d in month_dates_raw:
-        if isinstance(d, date):
-            available_dates.append(d)
-        elif isinstance(d, datetime):
-            available_dates.append(d.date())
-        elif isinstance(d, str):
-            available_dates.append(date.fromisoformat(d))
-
-    return min_ts.date(), max_ts.date(), available_dates
+    return min_day, max_day, available_dates
 
 
-def export_readings_csv(
+# Export columns: Spanish header with unit, short PDF header, storage attribute and
+# display decimals (``None`` = yes/no value). Same order and precision as the UI table.
+EXPORT_COLUMNS: tuple[tuple[str, str, str, int | None], ...] = (
+    ("Humedad del suelo (%)", "Hum. suelo\n(%)", "suelo_humedad", 1),
+    ("Flujo de agua (L/min)", "Flujo\n(L/min)", "riego_flujo_por_minuto", 1),
+    ("E.T.O. (mm/día)", "E.T.O.\n(mm/día)", "ambiental_eto", 2),
+    ("Conductividad (dS/m)", "Conduct.\n(dS/m)", "suelo_conductividad", 2),
+    ("Temperatura del suelo (°C)", "Temp. suelo\n(°C)", "suelo_temperatura", 1),
+    ("Potencial hídrico (MPa)", "Pot. hídrico\n(MPa)", "suelo_potencial_hidrico", 2),
+    ("Riego activo", "Riego\nactivo", "riego_activo", None),
+    ("Litros acumulados (L)", "Acumulado\n(L)", "riego_litros_acumulados", 0),
+    ("Temperatura del aire (°C)", "Temp. aire\n(°C)", "ambiental_temperatura", 1),
+    ("Humedad relativa (%)", "H. relativa\n(%)", "ambiental_humedad_relativa", 0),
+    ("Velocidad del viento (km/h)", "Viento\n(km/h)", "ambiental_velocidad_viento", 1),
+    ("Radiación solar (W/m²)", "Radiación\n(W/m²)", "ambiental_radiacion_solar", 0),
+)
+NO_DATA = "Sin datos"
+
+
+def _rounded(value: object, decimals: int) -> Decimal:
+    result = Decimal(str(value)).quantize(Decimal(1).scaleb(-decimals), ROUND_HALF_UP)
+    return abs(result) if result == 0 else result
+
+
+def _yes_no(value: bool | None) -> str:
+    if value is None:
+        return NO_DATA
+    return "Sí" if value else "No"
+
+
+def _cell_text(value: object, decimals: int | None, empty: str) -> str:
+    if decimals is None:
+        return _yes_no(value)  # type: ignore[arg-type]
+    return empty if value is None else str(_rounded(value, decimals))
+
+
+def _zone_name(zone: tzinfo) -> str:
+    return getattr(zone, "key", None) or str(zone)
+
+
+def _export_context(
     db: Session,
-    irrigation_area_id: int | None = None,
-    start_date: date | None = None,
-    end_date: date | None = None,
-    crop_cycle_id: int | None = None,
-) -> str:
-    """Export readings matching filters as CSV string."""
+    irrigation_area_id: int,
+    start_date: date | None,
+    end_date: date | None,
+    crop_cycle_id: int | None,
+    zone: tzinfo,
+) -> tuple[str, str, list[Reading]]:
+    """Predio and área names plus the readings matching the history filters."""
     conditions = _build_history_query(
-        irrigation_area_id, None, start_date, end_date, crop_cycle_id, db
+        irrigation_area_id, None, start_date, end_date, crop_cycle_id, db, zone
     )
+    names = db.execute(
+        select(Property.nombre, IrrigationArea.nombre)
+        .join(IrrigationArea, IrrigationArea.predio_id == Property.id)
+        .where(IrrigationArea.id == irrigation_area_id)
+    ).one_or_none()
+    property_name, area_name = names or ("", "")
     readings = list(
         db.execute(
             select(Reading).where(*conditions).order_by(Reading.marca_tiempo.asc())
         ).scalars()
     )
+    return property_name, area_name, readings
 
+
+def export_readings_csv(
+    db: Session,
+    irrigation_area_id: int,
+    start_date: date | None = None,
+    end_date: date | None = None,
+    crop_cycle_id: int | None = None,
+    zone: tzinfo = UTC,
+) -> str:
+    """Export readings matching filters as a UTF-8 (BOM) CSV string in local time."""
+    property_name, area_name, readings = _export_context(
+        db, irrigation_area_id, start_date, end_date, crop_cycle_id, zone
+    )
     output = io.StringIO()
     writer = csv.writer(output)
     writer.writerow(
         [
-            "timestamp",
-            "node_id",
-            "soil_conductivity",
-            "soil_temperature",
-            "soil_humidity",
-            "soil_water_potential",
-            "irrigation_active",
-            "irrigation_accumulated_liters",
-            "irrigation_flow_per_minute",
-            "env_temperature",
-            "env_relative_humidity",
-            "env_wind_speed",
-            "env_solar_radiation",
-            "env_eto",
+            f"Fecha y hora ({_zone_name(zone)})",
+            "Predio",
+            "Área",
+            *(header for header, _, _, _ in EXPORT_COLUMNS),
         ]
     )
     for r in readings:
         writer.writerow(
             [
-                r.marca_tiempo.isoformat(),
-                r.nodo_id,
-                r.suelo_conductividad,
-                r.suelo_temperatura,
-                r.suelo_humedad,
-                r.suelo_potencial_hidrico,
-                r.riego_activo,
-                r.riego_litros_acumulados,
-                r.riego_flujo_por_minuto,
-                r.ambiental_temperatura,
-                r.ambiental_humedad_relativa,
-                r.ambiental_velocidad_viento,
-                r.ambiental_radiacion_solar,
-                r.ambiental_eto,
+                _as_local(r.marca_tiempo, zone).strftime("%d/%m/%Y %H:%M:%S"),
+                property_name,
+                area_name,
+                *(
+                    _cell_text(getattr(r, attr), decimals, "")
+                    for _, _, attr, decimals in EXPORT_COLUMNS
+                ),
             ]
         )
-    return output.getvalue()
+    # The BOM lets spreadsheet programs read the accents and units as UTF-8.
+    return "\ufeff" + output.getvalue()
 
 
 def export_readings_xlsx(
     db: Session,
-    irrigation_area_id: int | None = None,
+    irrigation_area_id: int,
     start_date: date | None = None,
     end_date: date | None = None,
     crop_cycle_id: int | None = None,
+    zone: tzinfo = UTC,
 ) -> bytes:
-    """Export readings as XLSX bytes. Requires openpyxl."""
+    """Export readings as XLSX bytes in local time. Requires openpyxl."""
     from openpyxl import Workbook
+    from openpyxl.styles import Font
 
-    conditions = _build_history_query(
-        irrigation_area_id, None, start_date, end_date, crop_cycle_id, db
-    )
-    readings = list(
-        db.execute(
-            select(Reading).where(*conditions).order_by(Reading.marca_tiempo.asc())
-        ).scalars()
+    property_name, area_name, readings = _export_context(
+        db, irrigation_area_id, start_date, end_date, crop_cycle_id, zone
     )
 
     wb = Workbook()
     ws = wb.active
-    ws.title = "Readings"
-    headers = [
-        "timestamp",
-        "node_id",
-        "soil_conductivity",
-        "soil_temperature",
-        "soil_humidity",
-        "soil_water_potential",
-        "irrigation_active",
-        "irrigation_accumulated_liters",
-        "irrigation_flow_per_minute",
-        "env_temperature",
-        "env_relative_humidity",
-        "env_wind_speed",
-        "env_solar_radiation",
-        "env_eto",
-    ]
-    ws.append(headers)
+    ws.title = "Lecturas"
+    ws.append(
+        [
+            f"Fecha y hora ({_zone_name(zone)})",
+            "Predio",
+            "Área",
+            *(header for header, _, _, _ in EXPORT_COLUMNS),
+        ]
+    )
+    for cell in ws[1]:
+        cell.font = Font(bold=True)
+    ws.freeze_panes = "A2"
     for r in readings:
-        ws.append(
-            [
-                r.marca_tiempo.isoformat(),
-                r.nodo_id,
-                (
-                    float(r.suelo_conductividad)
-                    if r.suelo_conductividad is not None
-                    else None
-                ),
-                float(r.suelo_temperatura) if r.suelo_temperatura is not None else None,
-                float(r.suelo_humedad) if r.suelo_humedad is not None else None,
-                (
-                    float(r.suelo_potencial_hidrico)
-                    if r.suelo_potencial_hidrico is not None
-                    else None
-                ),
-                r.riego_activo,
-                (
-                    float(r.riego_litros_acumulados)
-                    if r.riego_litros_acumulados is not None
-                    else None
-                ),
-                (
-                    float(r.riego_flujo_por_minuto)
-                    if r.riego_flujo_por_minuto is not None
-                    else None
-                ),
-                (
-                    float(r.ambiental_temperatura)
-                    if r.ambiental_temperatura is not None
-                    else None
-                ),
-                (
-                    float(r.ambiental_humedad_relativa)
-                    if r.ambiental_humedad_relativa is not None
-                    else None
-                ),
-                (
-                    float(r.ambiental_velocidad_viento)
-                    if r.ambiental_velocidad_viento is not None
-                    else None
-                ),
-                (
-                    float(r.ambiental_radiacion_solar)
-                    if r.ambiental_radiacion_solar is not None
-                    else None
-                ),
-                float(r.ambiental_eto) if r.ambiental_eto is not None else None,
-            ]
-        )
+        row: list[object] = [_as_local(r.marca_tiempo, zone), property_name, area_name]
+        for _, _, attr, decimals in EXPORT_COLUMNS:
+            value = getattr(r, attr)
+            if decimals is None:
+                row.append(_yes_no(value))
+            else:
+                row.append(None if value is None else float(_rounded(value, decimals)))
+        ws.append(row)
+        cells = ws[ws.max_row]
+        cells[0].number_format = "dd/mm/yyyy hh:mm:ss"
+        for cell, (_, _, _, decimals) in zip(cells[3:], EXPORT_COLUMNS):
+            if decimals is not None:
+                cell.number_format = "0" if decimals == 0 else "0." + "0" * decimals
+    ws.column_dimensions["A"].width = 22
 
     buf = io.BytesIO()
     wb.save(buf)
@@ -704,89 +733,58 @@ def export_readings_xlsx(
 
 def export_readings_pdf(
     db: Session,
-    irrigation_area_id: int | None = None,
+    irrigation_area_id: int,
     start_date: date | None = None,
     end_date: date | None = None,
     crop_cycle_id: int | None = None,
+    zone: tzinfo = UTC,
 ) -> bytes:
-    """Export readings as PDF bytes. Requires reportlab."""
+    """Export readings as PDF bytes in local time. Requires reportlab."""
     from reportlab.lib import colors
     from reportlab.lib.pagesizes import landscape, letter
-    from reportlab.platypus import SimpleDocTemplate, Table, TableStyle
+    from reportlab.lib.styles import getSampleStyleSheet
+    from reportlab.platypus import Paragraph, SimpleDocTemplate, Spacer, Table, TableStyle
+    from xml.sax.saxutils import escape
 
-    conditions = _build_history_query(
-        irrigation_area_id, None, start_date, end_date, crop_cycle_id, db
+    property_name, area_name, readings = _export_context(
+        db, irrigation_area_id, start_date, end_date, crop_cycle_id, zone
     )
-    readings = list(
-        db.execute(
-            select(Reading).where(*conditions).order_by(Reading.marca_tiempo.asc())
-        ).scalars()
+    first_day, last_day = _history_days(db, start_date, end_date, crop_cycle_id)
+    period = (
+        f"{first_day.strftime('%d/%m/%Y') if first_day else 'desde el inicio'}"
+        f" – {last_day.strftime('%d/%m/%Y') if last_day else 'sin fecha de fin'}"
     )
 
     buf = io.BytesIO()
     doc = SimpleDocTemplate(buf, pagesize=landscape(letter))
+    styles = getSampleStyleSheet()
+    title = Paragraph(
+        escape(f"Lecturas · {property_name} · {area_name}"), styles["Heading2"]
+    )
+    subtitle = Paragraph(
+        escape(
+            f"Periodo: {period} · Horas en {_zone_name(zone)} · "
+            f"{len(readings)} registros"
+        ),
+        styles["Normal"],
+    )
     headers = [
-        "Timestamp",
-        "Node",
-        "Cond.",
-        "Temp.S",
-        "Hum.S",
-        "W.Pot",
-        "Active",
-        "Liters",
-        "Flow",
-        "Temp.E",
-        "RH%",
-        "Wind",
-        "Solar",
-        "ETo",
+        f"Fecha y hora\n({_zone_name(zone)})",
+        *(short for _, short, _, _ in EXPORT_COLUMNS),
     ]
     table_data = [headers]
     for r in readings:
         table_data.append(
             [
-                r.marca_tiempo.strftime("%Y-%m-%d %H:%M"),
-                r.nodo_id,
-                r.suelo_conductividad if r.suelo_conductividad is not None else "",
-                r.suelo_temperatura if r.suelo_temperatura is not None else "",
-                r.suelo_humedad if r.suelo_humedad is not None else "",
-                (
-                    r.suelo_potencial_hidrico
-                    if r.suelo_potencial_hidrico is not None
-                    else ""
+                _as_local(r.marca_tiempo, zone).strftime("%d/%m/%Y %H:%M"),
+                *(
+                    _cell_text(getattr(r, attr), decimals, NO_DATA)
+                    for _, _, attr, decimals in EXPORT_COLUMNS
                 ),
-                "On" if r.riego_activo else "Off",
-                (
-                    r.riego_litros_acumulados
-                    if r.riego_litros_acumulados is not None
-                    else ""
-                ),
-                (
-                    r.riego_flujo_por_minuto
-                    if r.riego_flujo_por_minuto is not None
-                    else ""
-                ),
-                r.ambiental_temperatura if r.ambiental_temperatura is not None else "",
-                (
-                    r.ambiental_humedad_relativa
-                    if r.ambiental_humedad_relativa is not None
-                    else ""
-                ),
-                (
-                    r.ambiental_velocidad_viento
-                    if r.ambiental_velocidad_viento is not None
-                    else ""
-                ),
-                (
-                    r.ambiental_radiacion_solar
-                    if r.ambiental_radiacion_solar is not None
-                    else ""
-                ),
-                r.ambiental_eto if r.ambiental_eto is not None else "",
             ]
         )
 
-    table = Table(table_data)
+    table = Table(table_data, repeatRows=1)
     table.setStyle(
         TableStyle(
             [
@@ -795,8 +793,9 @@ def export_readings_pdf(
                 ("FONTSIZE", (0, 0), (-1, -1), 7),
                 ("GRID", (0, 0), (-1, -1), 0.5, colors.black),
                 ("ALIGN", (0, 0), (-1, -1), "CENTER"),
+                ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
             ]
         )
     )
-    doc.build([table])
+    doc.build([title, subtitle, Spacer(1, 8), table])
     return buf.getvalue()

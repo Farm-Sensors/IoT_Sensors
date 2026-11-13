@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { dateParam, quickRangeDates, readingQuery } from "./readingFilters";
+import { browserTimeZone, dateParam, quickRangeDates, readingQuery } from "./readingFilters";
 import { aggregateReadingsForChart } from "./readingChart";
 import type { ReadingResponse } from "../types/api";
 
@@ -9,7 +9,7 @@ describe("calendar date filters", () => {
     ["Últimos 30 días", "2025-12-04"], ["Este mes", "2026-01-01"], ["Este año", "2026-01-01"],
   ] as const)("resolves %s with exact inclusive calendar dates", (preset, start) => {
     const range = quickRangeDates(preset, new Date(2026, 0, 2, 23, 59));
-    expect(readingQuery(12, range.start, range.end, 3).toString()).toBe(`irrigation_area_id=12&start_date=${start}&end_date=2026-01-02&crop_cycle_id=3`);
+    expect(readingQuery(12, range.start, range.end, 3).toString()).toBe(`irrigation_area_id=12&start_date=${start}&end_date=2026-01-02&tz=${encodeURIComponent(browserTimeZone())}&crop_cycle_id=3`);
   });
   it("preserves a selected date late in the local day and includes leap day", () => {
     expect(dateParam(new Date(2024, 1, 29, 23, 59))).toBe("2024-02-29");
